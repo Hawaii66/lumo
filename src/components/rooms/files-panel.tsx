@@ -4,6 +4,7 @@ import {
   Eye,
   File as FileIcon,
   FolderOpen,
+  Trash2,
   Upload,
 } from "lucide-react"
 import { useRef, useState } from "react"
@@ -12,6 +13,15 @@ import type { Id } from "../../../convex/_generated/dataModel"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { isPdfFile, PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { Button } from "~/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog"
 import { cn } from "~/lib/utils"
 
 type FilesPanelProps = {
@@ -109,9 +119,37 @@ type ViewingPdf = {
   url: string | null
 }
 
+type PendingDelete = {
+  id: Id<"files">
+  name: string
+}
+
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
+  const removeFile = useMutation(api.files.remove)
   const [viewingPdf, setViewingPdf] = useState<ViewingPdf | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
+    null,
+  )
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function confirmDelete() {
+    if (pendingDelete === null) return
+
+    setDeleteError(null)
+    setDeleting(true)
+    try {
+      await removeFile({ fileId: pendingDelete.id })
+      setPendingDelete(null)
+    } catch (err: unknown) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Kunde inte ta bort filen",
+      )
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   if (files === undefined) {
     return <p className="text-sm text-muted-foreground">Hämtar filer…</p>
@@ -184,12 +222,63 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                       Otillgänglig
                     </Button>
                   )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setDeleteError(null)
+                      setPendingDelete({ id: file._id, name: file.name })
+                    }}
+                  >
+                    <Trash2 />
+                    Ta bort
+                  </Button>
                 </span>
               </li>
             )
           })}
         </ul>
       ) : null}
+
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) {
+            setPendingDelete(null)
+            setDeleteError(null)
+          }
+        }}
+      >
+        <DialogContent showCloseButton={!deleting}>
+          <DialogHeader>
+            <DialogTitle>Ta bort fil?</DialogTitle>
+            <DialogDescription>
+              {pendingDelete
+                ? `Är du säker på att du vill ta bort “${pendingDelete.name}”? Det går inte att ångra.`
+                : null}
+            </DialogDescription>
+          </DialogHeader>
+          {deleteError ? (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose
+              render={<Button variant="outline" disabled={deleting} />}
+            >
+              Avbryt
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={() => {
+                void confirmDelete()
+              }}
+            >
+              {deleting ? "Tar bort…" : "Ta bort"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <PdfViewerSheet
         open={viewingPdf !== null}

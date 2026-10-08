@@ -116,3 +116,20 @@ export const listByRoom = query({
     return result;
   },
 });
+
+export const remove = mutation({
+  args: {
+    fileId: v.id("files"),
+  },
+  handler: async (ctx, args) => {
+    const file = await ctx.db.get(args.fileId);
+    if (file === null) {
+      throw new Error("Filen hittades inte");
+    }
+
+    await requireRoomMember(ctx, file.roomId);
+
+    await ctx.storage.delete(file.storageId);
+    await ctx.db.delete(args.fileId);
+  },
+});
