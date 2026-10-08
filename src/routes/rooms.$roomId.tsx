@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react"
 import { useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
+import { ThreadChat } from "~/components/rooms/thread-chat"
 import { ThreadsPanel } from "~/components/rooms/threads-panel"
 import { Button } from "~/components/ui/button"
 
@@ -44,7 +45,7 @@ function RoomPage() {
   }
 
   return (
-    <div className="flex min-h-svh bg-background">
+    <div className="flex h-svh bg-background">
       <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
         <div className="border-b border-sidebar-border p-3">
           <Button
@@ -77,7 +78,7 @@ function RoomPage() {
         />
       </aside>
 
-      <main className="flex flex-1 flex-col p-6">
+      <main className="flex min-h-0 flex-1 flex-col p-6">
         {selectedThreadId === null ? (
           <>
             <h2 className="text-lg font-medium">Trådar</h2>
@@ -92,12 +93,11 @@ function RoomPage() {
             Tråden hittades inte eller så saknar du åtkomst.
           </p>
         ) : (
-          <>
-            <h2 className="text-lg font-medium">{selectedThread.title}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Tråd redo för meddelanden.
-            </p>
-          </>
+          <ThreadChat
+            roomId={typedRoomId}
+            threadId={selectedThread.threadId}
+            title={selectedThread.title}
+          />
         )}
       </main>
     </div>

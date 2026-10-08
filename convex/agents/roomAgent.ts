@@ -1,7 +1,8 @@
 import { Agent } from "@convex-dev/agent";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { v } from "convex/values";
 import { components } from "../_generated/api";
-import { env } from "../_generated/server";
+import { env, internalAction } from "../_generated/server";
 
 /**
  * OpenRouter provider (no Convex AI Gateway).
@@ -16,4 +17,18 @@ export const roomAgent = new Agent(components.agent, {
   languageModel: openrouter("openai/gpt-4o-mini"),
   instructions:
     "Du är Lumo, en hjälpsam studieassistent. Svara tydligt på svenska om användaren skriver på svenska.",
+});
+
+export const generateResponse = internalAction({
+  args: {
+    threadId: v.string(),
+    promptMessageId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await roomAgent.generateText(
+      ctx,
+      { threadId: args.threadId },
+      { promptMessageId: args.promptMessageId },
+    );
+  },
 });
