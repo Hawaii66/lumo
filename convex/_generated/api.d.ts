@@ -15,6 +15,7 @@ import type * as authProviders_temp from "../authProviders/temp.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as lib_roomFiles from "../lib/roomFiles.js";
 import type * as rooms from "../rooms.js";
 import type * as scanSessions from "../scanSessions.js";
 import type * as threads from "../threads.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   health: typeof health;
   http: typeof http;
+  "lib/roomFiles": typeof lib_roomFiles;
   rooms: typeof rooms;
   scanSessions: typeof scanSessions;
   threads: typeof threads;

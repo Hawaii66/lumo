@@ -5,15 +5,34 @@ import {
   Eye,
   File as FileIcon,
   FolderOpen,
+  Trash2,
   Upload,
 } from "lucide-react"
 import { useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
+import {
+  ImageViewerSheet,
+  isImageFile,
+} from "~/components/rooms/image-viewer-sheet"
 import { PdfPreview } from "~/components/rooms/pdf-preview"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { isPdfFile, PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
+import {
+  isAllowedRoomFile,
+  ROOM_FILE_ACCEPT,
+  ROOM_FILE_TYPE_ERROR,
+} from "../../../convex/lib/roomFiles"
 import { Button } from "~/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog"
 import { cn } from "~/lib/utils"
 
 type FilesPanelProps = {
@@ -59,6 +78,9 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
     setUploading(true)
     try {
       for (const file of Array.from(fileList)) {
+        if (!isAllowedRoomFile(file.name, file.type)) {
+          throw new Error(ROOM_FILE_TYPE_ERROR)
+        }
         const uploadUrl = await generateUploadUrl({ roomId })
         const result = await fetch(uploadUrl, {
           method: "POST",
@@ -90,6 +112,7 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
         type="file"
         className="sr-only"
         multiple
+        accept={ROOM_FILE_ACCEPT}
         onChange={(event) => {
           void uploadFiles(event.target.files)
         }}
@@ -106,15 +129,44 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
   )
 }
 
-type ViewingPdf = {
+type ViewingFile = {
   name: string
   url: string | null
+}
+
+type PendingDelete = {
+  id: Id<"files">
+  name: string
 }
 
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
   const { engine, isLoading: engineLoading } = usePdfiumEngine()
-  const [viewingPdf, setViewingPdf] = useState<ViewingPdf | null>(null)
+  const removeFile = useMutation(api.files.remove)
+  const [viewingPdf, setViewingPdf] = useState<ViewingFile | null>(null)
+  const [viewingImage, setViewingImage] = useState<ViewingFile | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
+    null,
+  )
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  async function confirmDelete() {
+    if (pendingDelete === null) return
+
+    setDeleteError(null)
+    setDeleting(true)
+    try {
+      await removeFile({ fileId: pendingDelete.id })
+      setPendingDelete(null)
+    } catch (err: unknown) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Kunde inte ta bort filen",
+      )
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   if (files === undefined) {
     return <p className="text-sm text-muted-foreground">Hämtar filer…</p>
@@ -141,6 +193,7 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {files.map((file) => {
             const pdf = isPdfFile(file.name)
+            const image = isImageFile(file.name)
             return (
               <li
                 key={file._id}
@@ -165,6 +218,20 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                         className="pointer-events-none h-full w-full"
                       />
                     )}
+                  </button>
+                ) : image && file.url ? (
+                  <button
+                    type="button"
+                    className="flex h-44 items-center justify-center overflow-hidden bg-muted/40 transition-colors hover:bg-muted/70"
+                    onClick={() =>
+                      setViewingImage({ name: file.name, url: file.url })
+                    }
+                  >
+                    <img
+                      src={file.url}
+                      alt={file.name}
+                      className="h-full w-full object-contain"
+                    />
                   </button>
                 ) : (
                   <div className="flex h-44 items-center justify-center bg-muted/40">
@@ -192,6 +259,19 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                         Visa
                       </Button>
                     ) : null}
+                    {image ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!file.url}
+                        onClick={() =>
+                          setViewingImage({ name: file.name, url: file.url })
+                        }
+                      >
+                        <Eye />
+                        Visa
+                      </Button>
+                    ) : null}
                     {file.url ? (
                       <Button
                         variant="outline"
@@ -213,6 +293,17 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                         Otillgänglig
                       </Button>
                     )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteError(null)
+                        setPendingDelete({ id: file._id, name: file.name })
+                      }}
+                    >
+                      <Trash2 />
+                      Ta bort
+                    </Button>
                   </span>
                 </div>
               </li>
@@ -221,6 +312,46 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         </ul>
       ) : null}
 
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) {
+            setPendingDelete(null)
+            setDeleteError(null)
+          }
+        }}
+      >
+        <DialogContent showCloseButton={!deleting}>
+          <DialogHeader>
+            <DialogTitle>Ta bort fil?</DialogTitle>
+            <DialogDescription>
+              {pendingDelete
+                ? `Är du säker på att du vill ta bort “${pendingDelete.name}”? Det går inte att ångra.`
+                : null}
+            </DialogDescription>
+          </DialogHeader>
+          {deleteError ? (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose
+              render={<Button variant="outline" disabled={deleting} />}
+            >
+              Avbryt
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={deleting}
+              onClick={() => {
+                void confirmDelete()
+              }}
+            >
+              {deleting ? "Tar bort…" : "Ta bort"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <PdfViewerSheet
         open={viewingPdf !== null}
         onOpenChange={(open) => {
@@ -228,6 +359,15 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         }}
         fileName={viewingPdf?.name ?? null}
         url={viewingPdf?.url ?? null}
+      />
+
+      <ImageViewerSheet
+        open={viewingImage !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewingImage(null)
+        }}
+        fileName={viewingImage?.name ?? null}
+        url={viewingImage?.url ?? null}
       />
     </div>
   )

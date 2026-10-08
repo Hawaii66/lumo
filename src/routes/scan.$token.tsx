@@ -122,7 +122,7 @@ function PhoneScanPage() {
       <input
         ref={cameraInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,.jpeg,.jpg"
         capture="environment"
         className="sr-only"
         disabled={uploading}
@@ -133,7 +133,7 @@ function PhoneScanPage() {
       <input
         ref={galleryInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,.jpeg,.jpg"
         className="sr-only"
         disabled={uploading}
         onChange={(event) => {
