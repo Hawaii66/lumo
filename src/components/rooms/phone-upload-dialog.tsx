@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "convex/react"
 import { Smartphone } from "lucide-react"
 import { useEffect, useState } from "react"
+import QRCode from "react-qr-code"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { Button } from "~/components/ui/button"
@@ -23,7 +24,6 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
   const [open, setOpen] = useState(false)
   const [sessionId, setSessionId] = useState<Id<"scanSessions"> | null>(null)
   const [token, setToken] = useState<string | null>(null)
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [pageUrl, setPageUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
@@ -38,7 +38,6 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
     setOpen(false)
     setSessionId(null)
     setToken(null)
-    setQrDataUrl(null)
     setPageUrl(null)
     setError(null)
   }, [status?.status])
@@ -50,30 +49,6 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
     }
     setPageUrl(`${window.location.origin}/scan/${token}`)
   }, [token])
-
-  useEffect(() => {
-    if (pageUrl === null) {
-      setQrDataUrl(null)
-      return
-    }
-
-    let cancelled = false
-    void import("qrcode").then((QRCode) =>
-      QRCode.toDataURL(pageUrl, {
-        width: 240,
-        margin: 2,
-        errorCorrectionLevel: "M",
-      }).then((dataUrl) => {
-        if (!cancelled) {
-          setQrDataUrl(dataUrl)
-        }
-      }),
-    )
-
-    return () => {
-      cancelled = true
-    }
-  }, [pageUrl])
 
   async function startSession() {
     setError(null)
@@ -101,7 +76,6 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
     setOpen(false)
     setSessionId(null)
     setToken(null)
-    setQrDataUrl(null)
     setPageUrl(null)
     setError(null)
 
@@ -138,22 +112,26 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-3 py-2">
-          {starting || (token !== null && qrDataUrl === null) ? (
+          {starting || (token !== null && pageUrl === null) ? (
             <p className="text-sm text-muted-foreground">Skapar QR-kod…</p>
           ) : expired ? (
             <p className="text-sm text-destructive">
               Sessionen har gått ut. Stäng och öppna igen för en ny kod.
             </p>
-          ) : qrDataUrl ? (
-            <img
-              src={qrDataUrl}
-              alt="QR-kod för telefonuppladdning"
-              className="size-60 rounded-lg bg-white p-2"
-            />
+          ) : pageUrl ? (
+            <div className="rounded-lg bg-white p-3">
+              <QRCode
+                value={pageUrl}
+                size={240}
+                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                viewBox="0 0 240 240"
+                title="QR-kod för telefonuppladdning"
+              />
+            </div>
           ) : null}
 
-          {pageUrl && !expired ? (
-            <p className="max-w-full truncate text-center text-xs text-muted-foreground">
+          {import.meta.env.DEV && pageUrl && !expired ? (
+            <p className="text-center text-xs text-muted-foreground">
               {pageUrl}
             </p>
           ) : null}
