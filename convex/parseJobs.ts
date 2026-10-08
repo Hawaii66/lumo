@@ -174,6 +174,7 @@ export const listByRoom = query({
       pdfHash: job.pdfHash,
       problemCount: job.problemCount,
       skippedCount: job.skippedCount,
+      skippedPageCount: job.skippedPageCount,
       workflowId: job.workflowId,
     }));
   },
@@ -214,6 +215,7 @@ export const get = query({
       pdfHash: job.pdfHash,
       problemCount: job.problemCount,
       skippedCount: job.skippedCount,
+      skippedPageCount: job.skippedPageCount,
       workflowId: job.workflowId,
     };
   },

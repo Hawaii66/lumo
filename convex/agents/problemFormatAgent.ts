@@ -32,7 +32,7 @@ export type ProblemFormatResult = z.infer<typeof problemFormatSchema>;
 
 export const problemFormatAgent = new Agent(components.agent, {
   name: "ProblemFormatter",
-  languageModel: openrouter("openai/gpt-4o"),
+  languageModel: openrouter("openai/gpt-4o-mini"),
   instructions: `Du konverterar en matematikuppgift till en segmentarray.
 
 Segmenttyper:

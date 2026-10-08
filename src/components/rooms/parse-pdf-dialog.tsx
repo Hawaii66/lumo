@@ -83,6 +83,10 @@ export function ParsePdfDialog({
   const startParse = useMutation(api.parseJobs.start)
   const jobs = useQuery(api.parseJobs.listByRoom, open ? { roomId } : "skip")
   const problems = useQuery(api.problems.listByRoom, open ? { roomId } : "skip")
+  const completedPages = useQuery(
+    api.parsedPages.listByFile,
+    open ? { fileId, roomId } : "skip",
+  )
 
   const [ranges, setRanges] = useState<Array<PageRange>>([emptyRange()])
   const [pageCount, setPageCount] = useState<number | null>(null)
@@ -259,6 +263,13 @@ export function ParsePdfDialog({
               <Plus />
               Lägg till intervall
             </Button>
+
+            {completedPages !== undefined && completedPages.length > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Redan tolkade sidor (skippas nästa gång):{" "}
+                {completedPages.join(", ")}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -282,7 +293,11 @@ export function ParsePdfDialog({
                     ? ` · ${job.problemCount} nya`
                     : null}
                   {job.skippedCount !== undefined && job.skippedCount > 0
-                    ? ` · ${job.skippedCount} redan tolkade`
+                    ? ` · ${job.skippedCount} uppgifter redan tolkade`
+                    : null}
+                  {job.skippedPageCount !== undefined &&
+                  job.skippedPageCount > 0
+                    ? ` · ${job.skippedPageCount} sidor hoppades över`
                     : null}
                   {job.error ? (
                     <span className="block text-destructive">{job.error}</span>
