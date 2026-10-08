@@ -7,6 +7,10 @@ import {
   type MutationCtx,
   type QueryCtx,
 } from "./_generated/server";
+import {
+  isAllowedRoomFile,
+  ROOM_FILE_TYPE_ERROR,
+} from "./lib/roomFiles";
 
 const MAX_FILES_PER_ROOM = 200;
 const MAX_FILE_NAME_LENGTH = 200;
@@ -66,6 +70,11 @@ export const save = mutation({
     const metadata = await ctx.db.system.get("_storage", args.storageId);
     if (metadata === null) {
       throw new Error("Filen hittades inte i lagringen");
+    }
+
+    if (!isAllowedRoomFile(name, metadata.contentType)) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error(ROOM_FILE_TYPE_ERROR);
     }
 
     return await ctx.db.insert("files", {

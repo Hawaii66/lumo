@@ -10,8 +10,17 @@ import {
 import { useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
+import {
+  ImageViewerSheet,
+  isImageFile,
+} from "~/components/rooms/image-viewer-sheet"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { isPdfFile, PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
+import {
+  isAllowedRoomFile,
+  ROOM_FILE_ACCEPT,
+  ROOM_FILE_TYPE_ERROR,
+} from "../../../convex/lib/roomFiles"
 import { Button } from "~/components/ui/button"
 import {
   Dialog,
@@ -67,6 +76,9 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
     setUploading(true)
     try {
       for (const file of Array.from(fileList)) {
+        if (!isAllowedRoomFile(file.name, file.type)) {
+          throw new Error(ROOM_FILE_TYPE_ERROR)
+        }
         const uploadUrl = await generateUploadUrl({ roomId })
         const result = await fetch(uploadUrl, {
           method: "POST",
@@ -98,6 +110,7 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
         type="file"
         className="sr-only"
         multiple
+        accept={ROOM_FILE_ACCEPT}
         onChange={(event) => {
           void uploadFiles(event.target.files)
         }}
@@ -114,7 +127,7 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
   )
 }
 
-type ViewingPdf = {
+type ViewingFile = {
   name: string
   url: string | null
 }
@@ -127,7 +140,8 @@ type PendingDelete = {
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
   const removeFile = useMutation(api.files.remove)
-  const [viewingPdf, setViewingPdf] = useState<ViewingPdf | null>(null)
+  const [viewingPdf, setViewingPdf] = useState<ViewingFile | null>(null)
+  const [viewingImage, setViewingImage] = useState<ViewingFile | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
     null,
   )
@@ -176,6 +190,7 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {files.map((file) => {
             const pdf = isPdfFile(file.name)
+            const image = isImageFile(file.name)
             return (
               <li
                 key={file._id}
@@ -195,6 +210,19 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                       disabled={!file.url}
                       onClick={() =>
                         setViewingPdf({ name: file.name, url: file.url })
+                      }
+                    >
+                      <Eye />
+                      Visa
+                    </Button>
+                  ) : null}
+                  {image ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!file.url}
+                      onClick={() =>
+                        setViewingImage({ name: file.name, url: file.url })
                       }
                     >
                       <Eye />
@@ -287,6 +315,15 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         }}
         fileName={viewingPdf?.name ?? null}
         url={viewingPdf?.url ?? null}
+      />
+
+      <ImageViewerSheet
+        open={viewingImage !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewingImage(null)
+        }}
+        fileName={viewingImage?.name ?? null}
+        url={viewingImage?.url ?? null}
       />
     </div>
   )
