@@ -9,6 +9,7 @@ import {
 import { useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
+import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { isPdfFile, PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { Button } from "~/components/ui/button"
 import { cn } from "~/lib/utils"
@@ -96,7 +97,7 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
         onClick={() => inputRef.current?.click()}
       >
         <Upload />
-        {uploading ? "Laddar upp…" : "Ladda upp"}
+        {uploading ? "Laddar upp…" : "Från dator"}
       </Button>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
@@ -127,7 +128,10 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
               : `${files.length} ${files.length === 1 ? "fil" : "filer"} i rummet`}
           </p>
         </div>
-        <UploadButton roomId={roomId} />
+        <div className="flex flex-wrap items-start justify-end gap-2">
+          <UploadButton roomId={roomId} />
+          <PhoneUploadDialog roomId={roomId} />
+        </div>
       </div>
 
       {files.length > 0 ? (
