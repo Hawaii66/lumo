@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "convex/react"
+import { usePdfiumEngine } from "@embedpdf/engines/react"
 import {
   Download,
   Eye,
@@ -14,6 +15,7 @@ import {
   ImageViewerSheet,
   isImageFile,
 } from "~/components/rooms/image-viewer-sheet"
+import { PdfPreview } from "~/components/rooms/pdf-preview"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { isPdfFile, PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import {
@@ -139,6 +141,7 @@ type PendingDelete = {
 
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
+  const { engine, isLoading: engineLoading } = usePdfiumEngine()
   const removeFile = useMutation(api.files.remove)
   const [viewingPdf, setViewingPdf] = useState<ViewingFile | null>(null)
   const [viewingImage, setViewingImage] = useState<ViewingFile | null>(null)
@@ -187,81 +190,122 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
       </div>
 
       {files.length > 0 ? (
-        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {files.map((file) => {
             const pdf = isPdfFile(file.name)
             const image = isImageFile(file.name)
             return (
               <li
                 key={file._id}
-                className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2.5"
+                className="flex flex-col overflow-hidden rounded-lg border border-border"
               >
-                <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
-                  <FileIcon className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate" title={file.name}>
+                {pdf && file.url ? (
+                  <button
+                    type="button"
+                    className="flex h-44 items-center justify-center overflow-hidden bg-muted/40 transition-colors hover:bg-muted/70"
+                    onClick={() =>
+                      setViewingPdf({ name: file.name, url: file.url })
+                    }
+                  >
+                    {engineLoading || !engine ? (
+                      <span className="text-xs text-muted-foreground">
+                        Laddar…
+                      </span>
+                    ) : (
+                      <PdfPreview
+                        url={file.url}
+                        engine={engine}
+                        className="pointer-events-none h-full w-full"
+                      />
+                    )}
+                  </button>
+                ) : image && file.url ? (
+                  <button
+                    type="button"
+                    className="flex h-44 items-center justify-center overflow-hidden bg-muted/40 transition-colors hover:bg-muted/70"
+                    onClick={() =>
+                      setViewingImage({ name: file.name, url: file.url })
+                    }
+                  >
+                    <img
+                      src={file.url}
+                      alt={file.name}
+                      className="h-full w-full object-contain"
+                    />
+                  </button>
+                ) : (
+                  <div className="flex h-44 items-center justify-center bg-muted/40">
+                    <FileIcon className="size-10 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                  <span
+                    className="min-w-0 truncate text-sm font-medium"
+                    title={file.name}
+                  >
                     {file.name}
                   </span>
-                </span>
-                <span className="flex shrink-0 items-center gap-1.5">
-                  {pdf ? (
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    {pdf ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!file.url}
+                        onClick={() =>
+                          setViewingPdf({ name: file.name, url: file.url })
+                        }
+                      >
+                        <Eye />
+                        Visa
+                      </Button>
+                    ) : null}
+                    {image ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!file.url}
+                        onClick={() =>
+                          setViewingImage({ name: file.name, url: file.url })
+                        }
+                      >
+                        <Eye />
+                        Visa
+                      </Button>
+                    ) : null}
+                    {file.url ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        render={
+                          <a
+                            href={file.url}
+                            download={file.name}
+                            target="_blank"
+                            rel="noreferrer"
+                          />
+                        }
+                      >
+                        <Download />
+                        Ladda ner
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" disabled>
+                        Otillgänglig
+                      </Button>
+                    )}
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
-                      disabled={!file.url}
-                      onClick={() =>
-                        setViewingPdf({ name: file.name, url: file.url })
-                      }
+                      onClick={() => {
+                        setDeleteError(null)
+                        setPendingDelete({ id: file._id, name: file.name })
+                      }}
                     >
-                      <Eye />
-                      Visa
+                      <Trash2 />
+                      Ta bort
                     </Button>
-                  ) : null}
-                  {image ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!file.url}
-                      onClick={() =>
-                        setViewingImage({ name: file.name, url: file.url })
-                      }
-                    >
-                      <Eye />
-                      Visa
-                    </Button>
-                  ) : null}
-                  {file.url ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      render={
-                        <a
-                          href={file.url}
-                          download={file.name}
-                          target="_blank"
-                          rel="noreferrer"
-                        />
-                      }
-                    >
-                      <Download />
-                      Ladda ner
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" disabled>
-                      Otillgänglig
-                    </Button>
-                  )}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      setDeleteError(null)
-                      setPendingDelete({ id: file._id, name: file.name })
-                    }}
-                  >
-                    <Trash2 />
-                    Ta bort
-                  </Button>
-                </span>
+                  </span>
+                </div>
               </li>
             )
           })}
