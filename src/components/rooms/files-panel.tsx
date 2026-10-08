@@ -1,9 +1,16 @@
 import { useMutation, useQuery } from "convex/react"
-import { Download, File as FileIcon, FolderOpen, Upload } from "lucide-react"
+import {
+  Download,
+  Eye,
+  File as FileIcon,
+  FolderOpen,
+  Upload,
+} from "lucide-react"
 import { useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
+import { isPdfFile, PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { Button } from "~/components/ui/button"
 import { cn } from "~/lib/utils"
 
@@ -97,8 +104,14 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
   )
 }
 
+type ViewingPdf = {
+  name: string
+  url: string | null
+}
+
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
+  const [viewingPdf, setViewingPdf] = useState<ViewingPdf | null>(null)
 
   if (files === undefined) {
     return <p className="text-sm text-muted-foreground">Hämtar filer…</p>
@@ -123,42 +136,69 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
 
       {files.length > 0 ? (
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {files.map((file) => (
-            <li
-              key={file._id}
-              className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2.5"
-            >
-              <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
-                <FileIcon className="size-4 shrink-0 text-muted-foreground" />
-                <span className="truncate" title={file.name}>
-                  {file.name}
+          {files.map((file) => {
+            const pdf = isPdfFile(file.name)
+            return (
+              <li
+                key={file._id}
+                className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2.5"
+              >
+                <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                  <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate" title={file.name}>
+                    {file.name}
+                  </span>
                 </span>
-              </span>
-              {file.url ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  render={
-                    <a
-                      href={file.url}
-                      download={file.name}
-                      target="_blank"
-                      rel="noreferrer"
-                    />
-                  }
-                >
-                  <Download />
-                  Ladda ner
-                </Button>
-              ) : (
-                <Button variant="outline" size="sm" disabled>
-                  Otillgänglig
-                </Button>
-              )}
-            </li>
-          ))}
+                <span className="flex shrink-0 items-center gap-1.5">
+                  {pdf ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!file.url}
+                      onClick={() =>
+                        setViewingPdf({ name: file.name, url: file.url })
+                      }
+                    >
+                      <Eye />
+                      Visa
+                    </Button>
+                  ) : null}
+                  {file.url ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      render={
+                        <a
+                          href={file.url}
+                          download={file.name}
+                          target="_blank"
+                          rel="noreferrer"
+                        />
+                      }
+                    >
+                      <Download />
+                      Ladda ner
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>
+                      Otillgänglig
+                    </Button>
+                  )}
+                </span>
+              </li>
+            )
+          })}
         </ul>
       ) : null}
+
+      <PdfViewerSheet
+        open={viewingPdf !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewingPdf(null)
+        }}
+        fileName={viewingPdf?.name ?? null}
+        url={viewingPdf?.url ?? null}
+      />
     </div>
   )
 }
