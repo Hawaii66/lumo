@@ -31,4 +31,12 @@ export default defineSchema({
     .index("by_room", ["roomId"])
     .index("by_user", ["userId"])
     .index("by_user_and_room", ["userId", "roomId"]),
+  roomThreads: defineTable({
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+    title: v.string(),
+    createdBy: v.id("users"),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_thread", ["threadId"]),
 });

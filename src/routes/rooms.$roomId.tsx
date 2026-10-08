@@ -1,22 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import { ArrowLeft } from "lucide-react"
+import { useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
+import { ThreadsPanel } from "~/components/rooms/threads-panel"
 import { Button } from "~/components/ui/button"
-import { cn } from "~/lib/utils"
 
 export const Route = createFileRoute("/rooms/$roomId")({
   component: RoomPage,
 })
 
-const TABS = [{ id: "overview", label: "Översikt" }] as const
-
 function RoomPage() {
   const { roomId } = Route.useParams()
-  const room = useQuery(api.rooms.get, {
-    roomId: roomId as Id<"rooms">,
-  })
+  const typedRoomId = roomId as Id<"rooms">
+  const room = useQuery(api.rooms.get, { roomId: typedRoomId })
+  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
+
+  const selectedThread = useQuery(
+    api.threads.get,
+    selectedThreadId
+      ? { roomId: typedRoomId, threadId: selectedThreadId }
+      : "skip",
+  )
 
   if (room === undefined) {
     return (
@@ -39,7 +45,7 @@ function RoomPage() {
 
   return (
     <div className="flex min-h-svh bg-background">
-      <aside className="flex w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+      <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
         <div className="border-b border-sidebar-border p-3">
           <Button
             variant="ghost"
@@ -58,27 +64,41 @@ function RoomPage() {
           </p>
         </div>
 
-        <nav className="flex flex-col gap-0.5 p-2" aria-label="Rummeny">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={cn(
-                "rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors",
-                "bg-sidebar-accent text-sidebar-accent-foreground",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        <div className="px-3 pt-3">
+          <h2 className="px-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Trådar
+          </h2>
+        </div>
+
+        <ThreadsPanel
+          roomId={typedRoomId}
+          selectedThreadId={selectedThreadId}
+          onSelectThread={setSelectedThreadId}
+        />
       </aside>
 
       <main className="flex flex-1 flex-col p-6">
-        <h2 className="text-lg font-medium">Översikt</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Välkommen till {room.name}.
-        </p>
+        {selectedThreadId === null ? (
+          <>
+            <h2 className="text-lg font-medium">Trådar</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Skapa en ny tråd eller välj en i listan till vänster.
+            </p>
+          </>
+        ) : selectedThread === undefined ? (
+          <p className="text-sm text-muted-foreground">Hämtar tråd…</p>
+        ) : selectedThread === null ? (
+          <p className="text-sm text-muted-foreground">
+            Tråden hittades inte eller så saknar du åtkomst.
+          </p>
+        ) : (
+          <>
+            <h2 className="text-lg font-medium">{selectedThread.title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Tråd redo för meddelanden.
+            </p>
+          </>
+        )}
       </main>
     </div>
   )

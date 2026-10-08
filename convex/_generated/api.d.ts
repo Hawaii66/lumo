@@ -8,12 +8,14 @@
  * @module
  */
 
+import type * as agents_roomAgent from "../agents/roomAgent.js";
 import type * as auth from "../auth.js";
 import type * as authProviders_openai from "../authProviders/openai.js";
 import type * as authProviders_temp from "../authProviders/temp.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as rooms from "../rooms.js";
+import type * as threads from "../threads.js";
 import type * as users from "../users.js";
 
 import type {
@@ -23,12 +25,14 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "agents/roomAgent": typeof agents_roomAgent;
   auth: typeof auth;
   "authProviders/openai": typeof authProviders_openai;
   "authProviders/temp": typeof authProviders_temp;
   health: typeof health;
   http: typeof http;
   rooms: typeof rooms;
+  threads: typeof threads;
   users: typeof users;
 }>;
 
@@ -58,4 +62,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
+};
