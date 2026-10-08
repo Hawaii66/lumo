@@ -15,6 +15,7 @@ import { MathField } from "~/components/math-field"
 import { ComputeEngineDemo } from "~/components/compute-engine-demo"
 import { FillInBlankDemo } from "~/components/fill-in-blank-demo"
 import { MultiStepEquationDemo } from "~/components/multi-step-equation-demo"
+import { SignInCard } from "~/components/sign-in"
 import { useUiStore, type HelpLevel } from "~/stores/ui-store"
 
 export const Route = createFileRoute("/")({
@@ -51,6 +52,8 @@ function Home() {
           </CardDescription>
         </CardHeader>
       </Card>
+
+      <SignInCard />
 
       <Card>
         <CardHeader>
