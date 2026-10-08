@@ -22,6 +22,15 @@ const EXAMPLES = [
   { label: "sin²+cos²", latex: "\\sin^2(x)+\\cos^2(x)" },
   { label: "1/3", latex: "\\frac{1}{3}" },
   { label: "2^{11}-1", latex: "2^{11}-1" },
+  {
+    label: "3×3 · 3×2",
+    latex:
+      "\\begin{pmatrix}1&2&3\\\\4&5&6\\\\7&8&9\\end{pmatrix}\\begin{pmatrix}1&2\\\\3&4\\\\5&6\\end{pmatrix}",
+  },
+  {
+    label: "2×2⁻¹",
+    latex: "\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}^{-1}",
+  },
 ] as const
 
 function ResultRow({
@@ -47,7 +56,15 @@ function ResultRow({
       <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
         {title}
       </p>
-      <MathField value={result.latex} readOnly className="min-h-10 bg-muted/40" />
+      {result.error ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-sm text-destructive">
+          {result.error}
+        </p>
+      ) : result.latex ? (
+        <MathField value={result.latex} readOnly className="min-h-10 bg-muted/40" />
+      ) : (
+        <p className="text-sm text-muted-foreground">—</p>
+      )}
       <p className="font-mono text-xs break-all text-muted-foreground">
         {JSON.stringify(result.json)}
       </p>
