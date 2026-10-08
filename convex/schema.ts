@@ -29,5 +29,6 @@ export default defineSchema({
     userId: v.id("users"),
   })
     .index("by_room", ["roomId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_user_and_room", ["userId", "roomId"]),
 });
