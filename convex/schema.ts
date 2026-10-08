@@ -24,6 +24,20 @@ export default defineSchema({
     name: v.string(),
     storageId: v.id("_storage"),
   }).index("by_room", ["roomId"]),
+  scanSessions: defineTable({
+    token: v.string(),
+    roomId: v.id("rooms"),
+    createdBy: v.id("users"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("expired"),
+    ),
+    expiresAt: v.number(),
+    fileId: v.optional(v.id("files")),
+  })
+    .index("by_token", ["token"])
+    .index("by_createdBy", ["createdBy"]),
   roomMembers: defineTable({
     roomId: v.id("rooms"),
     userId: v.id("users"),

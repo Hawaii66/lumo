@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms.$roomId'
+import { Route as ScanTokenRouteImport } from './routes/scan.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const RoomsRoomIdRoute = RoomsRoomIdRouteImport.update({
   path: '/rooms/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScanTokenRoute = ScanTokenRouteImport.update({
+  id: '/scan/$token',
+  path: '/scan/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
+  '/scan/$token': typeof ScanTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
+  '/scan/$token': typeof ScanTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
+  '/scan/$token': typeof ScanTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/rooms/$roomId'
+  fullPaths: '/' | '/rooms/$roomId' | '/scan/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/rooms/$roomId'
-  id: '__root__' | '/' | '/rooms/$roomId'
+  to: '/' | '/rooms/$roomId' | '/scan/$token'
+  id: '__root__' | '/' | '/rooms/$roomId' | '/scan/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
+  ScanTokenRoute: typeof ScanTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomsRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scan/$token': {
+      id: '/scan/$token'
+      path: '/scan/$token'
+      fullPath: '/scan/$token'
+      preLoaderRoute: typeof ScanTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RoomsRoomIdRoute: RoomsRoomIdRoute,
+  ScanTokenRoute: ScanTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

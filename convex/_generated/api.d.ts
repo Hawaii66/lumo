@@ -16,6 +16,7 @@ import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as rooms from "../rooms.js";
+import type * as scanSessions from "../scanSessions.js";
 import type * as threads from "../threads.js";
 import type * as users from "../users.js";
 
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   health: typeof health;
   http: typeof http;
   rooms: typeof rooms;
+  scanSessions: typeof scanSessions;
   threads: typeof threads;
   users: typeof users;
 }>;
