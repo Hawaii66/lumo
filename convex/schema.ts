@@ -11,17 +11,17 @@ export default defineSchema({
     provider: v.union(v.literal("temp"), v.literal("openai")),
     providerId: v.string(),
   }).index("by_provider", ["provider", "providerId"]),
-  room: defineTable({
+  rooms: defineTable({
     name: v.string(),
     description: v.string(),
   }).index("by_name", ["name"]),
   files: defineTable({
-    roomId: v.id("room"),
+    roomId: v.id("rooms"),
     name: v.string(),
     storageId:v.id("_storage")
   }).index("by_room", ["roomId"]),
   roomMembers: defineTable({
-    roomId: v.id("room"),
+    roomId: v.id("rooms"),
     userId: v.id("users"),
   }).index("by_room", ["roomId"]).index("by_user", ["userId"])
 });
