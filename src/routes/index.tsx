@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/card"
 import { Label } from "~/components/ui/label"
 import { MathField } from "~/components/math-field"
+import { ComputeEngineDemo } from "~/components/compute-engine-demo"
 import { useUiStore, type HelpLevel } from "~/stores/ui-store"
 
 export const Route = createFileRoute("/")({
@@ -88,6 +89,8 @@ function Home() {
           </p>
         </CardContent>
       </Card>
+
+      <ComputeEngineDemo />
     </main>
   )
 }
