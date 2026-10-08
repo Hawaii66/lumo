@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { pageRangeValidator, segmentValidator } from "./lib/segments";
 
 export default defineSchema({
   ...authTables,
@@ -53,4 +54,44 @@ export default defineSchema({
   })
     .index("by_room", ["roomId"])
     .index("by_thread", ["threadId"]),
+  problems: defineTable({
+    pdfHash: v.string(),
+    problemNumber: v.string(),
+    questionRaw: v.string(),
+    answerRaw: v.optional(v.string()),
+    segments: v.array(segmentValidator),
+    answerSegments: v.optional(v.array(segmentValidator)),
+    fileId: v.id("files"),
+    roomId: v.id("rooms"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("ready"),
+      v.literal("failed"),
+    ),
+    error: v.optional(v.string()),
+  })
+    .index("by_pdfHash_and_number", ["pdfHash", "problemNumber"])
+    .index("by_room", ["roomId"]),
+  parseJobs: defineTable({
+    roomId: v.id("rooms"),
+    fileId: v.id("files"),
+    mergedStorageId: v.id("_storage"),
+    pdfHash: v.optional(v.string()),
+    pageRanges: v.array(pageRangeValidator),
+    workflowId: v.optional(v.string()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("hashing"),
+      v.literal("extracting"),
+      v.literal("converting"),
+      v.literal("completed"),
+      v.literal("failed"),
+    ),
+    error: v.optional(v.string()),
+    createdBy: v.id("users"),
+    problemCount: v.optional(v.number()),
+    skippedCount: v.optional(v.number()),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_file", ["fileId"]),
 });
