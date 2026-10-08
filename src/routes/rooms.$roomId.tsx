@@ -4,6 +4,10 @@ import { ArrowLeft } from "lucide-react"
 import { useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
+import {
+  FilesGrid,
+  RoomFilesTabBar,
+} from "~/components/rooms/files-panel"
 import { ThreadChat } from "~/components/rooms/thread-chat"
 import { ThreadsPanel } from "~/components/rooms/threads-panel"
 import { Button } from "~/components/ui/button"
@@ -12,15 +16,18 @@ export const Route = createFileRoute("/rooms/$roomId")({
   component: RoomPage,
 })
 
+type MainView = "thread" | "files"
+
 function RoomPage() {
   const { roomId } = Route.useParams()
   const typedRoomId = roomId as Id<"rooms">
   const room = useQuery(api.rooms.get, { roomId: typedRoomId })
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
+  const [mainView, setMainView] = useState<MainView>("thread")
 
   const selectedThread = useQuery(
     api.threads.get,
-    selectedThreadId
+    selectedThreadId && mainView === "thread"
       ? { roomId: typedRoomId, threadId: selectedThreadId }
       : "skip",
   )
@@ -73,13 +80,23 @@ function RoomPage() {
 
         <ThreadsPanel
           roomId={typedRoomId}
-          selectedThreadId={selectedThreadId}
-          onSelectThread={setSelectedThreadId}
+          selectedThreadId={mainView === "thread" ? selectedThreadId : null}
+          onSelectThread={(threadId) => {
+            setSelectedThreadId(threadId)
+            setMainView("thread")
+          }}
+        />
+
+        <RoomFilesTabBar
+          filesActive={mainView === "files"}
+          onShowFiles={() => setMainView("files")}
         />
       </aside>
 
-      <main className="flex min-h-0 flex-1 flex-col p-6">
-        {selectedThreadId === null ? (
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
+        {mainView === "files" ? (
+          <FilesGrid roomId={typedRoomId} />
+        ) : selectedThreadId === null ? (
           <>
             <h2 className="text-lg font-medium">Trådar</h2>
             <p className="mt-1 text-sm text-muted-foreground">

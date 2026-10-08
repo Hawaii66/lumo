@@ -12,6 +12,7 @@ import type * as agents_roomAgent from "../agents/roomAgent.js";
 import type * as auth from "../auth.js";
 import type * as authProviders_openai from "../authProviders/openai.js";
 import type * as authProviders_temp from "../authProviders/temp.js";
+import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as rooms from "../rooms.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   "authProviders/openai": typeof authProviders_openai;
   "authProviders/temp": typeof authProviders_temp;
+  files: typeof files;
   health: typeof health;
   http: typeof http;
   rooms: typeof rooms;
