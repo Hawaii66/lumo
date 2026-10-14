@@ -5,7 +5,6 @@ import {
   Eye,
   File as FileIcon,
   FolderOpen,
-  Sparkles,
   Trash2,
   Upload,
 } from "lucide-react"
@@ -21,7 +20,6 @@ import {
   ImageViewerSheet,
   isImageFile,
 } from "~/components/rooms/image-viewer-sheet"
-import { ParsePdfDialog } from "~/components/rooms/parse-pdf-dialog"
 import { PdfPreview } from "~/components/rooms/pdf-preview"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { PdfViewerSheet, isPdfFile } from "~/components/rooms/pdf-viewer-sheet"
@@ -141,19 +139,12 @@ type PendingDelete = {
   name: string
 }
 
-type ParsingFile = {
-  id: Id<"files">
-  name: string
-  url: string
-}
-
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
   const { engine, isLoading: engineLoading } = usePdfiumEngine()
   const removeFile = useMutation(api.files.remove)
   const [viewingPdf, setViewingPdf] = useState<ViewingFile | null>(null)
   const [viewingImage, setViewingImage] = useState<ViewingFile | null>(null)
-  const [parsingFile, setParsingFile] = useState<ParsingFile | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
     null,
   )
@@ -268,23 +259,6 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                         Visa
                       </Button>
                     ) : null}
-                    {pdf && file.url ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          if (!file.url) return
-                          setParsingFile({
-                            id: file._id,
-                            name: file.name,
-                            url: file.url,
-                          })
-                        }}
-                      >
-                        <Sparkles />
-                        Tolka
-                      </Button>
-                    ) : null}
                     {image ? (
                       <Button
                         variant="outline"
@@ -395,19 +369,6 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         fileName={viewingImage?.name ?? null}
         url={viewingImage?.url ?? null}
       />
-
-      {parsingFile ? (
-        <ParsePdfDialog
-          roomId={roomId}
-          fileId={parsingFile.id}
-          fileName={parsingFile.name}
-          fileUrl={parsingFile.url}
-          open
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) setParsingFile(null)
-          }}
-        />
-      ) : null}
     </div>
   )
 }
