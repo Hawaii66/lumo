@@ -1,16 +1,8 @@
 import { Agent } from "@convex-dev/agent";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { v } from "convex/values";
 import { components } from "../_generated/api";
-import { env, internalAction } from "../_generated/server";
-
-/**
- * OpenRouter provider (no Convex AI Gateway).
- * Set OPENROUTER_API_KEY with: npx convex env set OPENROUTER_API_KEY <key>
- */
-const openrouter = createOpenRouter(
-  env.OPENROUTER_API_KEY ? { apiKey: env.OPENROUTER_API_KEY } : undefined,
-);
+import { internalAction } from "../_generated/server";
+import { openrouter } from "./openrouter";
 
 export const roomAgent = new Agent(components.agent, {
   name: "Lumo",
