@@ -8,9 +8,9 @@
  * @module
  */
 
+import type * as PDFParse_middleJson from "../PDFParse/middleJson.js";
 import type * as PDFParse_pdfParse from "../PDFParse/pdfParse.js";
 import type * as PDFParse_problemPageAgent from "../PDFParse/problemPageAgent.js";
-import type * as PDFParse_types from "../PDFParse/types.js";
 import type * as agents_openrouter from "../agents/openrouter.js";
 import type * as agents_roomAgent from "../agents/roomAgent.js";
 import type * as auth from "../auth.js";
@@ -33,9 +33,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "PDFParse/middleJson": typeof PDFParse_middleJson;
   "PDFParse/pdfParse": typeof PDFParse_pdfParse;
   "PDFParse/problemPageAgent": typeof PDFParse_problemPageAgent;
-  "PDFParse/types": typeof PDFParse_types;
   "agents/openrouter": typeof agents_openrouter;
   "agents/roomAgent": typeof agents_roomAgent;
   auth: typeof auth;

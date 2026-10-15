@@ -1,89 +1,86 @@
 import { Agent } from "@convex-dev/agent";
 import { v } from "convex/values";
+import { z } from "zod";
 import { components } from "../_generated/api";
 import { internalAction } from "../_generated/server";
 import { openrouter } from "../agents/openrouter";
-import { z } from "zod/v4";
-import { ProblemPageInfoSchema } from "./types";
 
-export const roomAgent = new Agent(components.agent, {
-    name: "Lumo",
-    languageModel: openrouter("openai/gpt-5.6-sol"),
+export const parsedProblemValidator = v.object({
+  rawProblemNumber: v.string(),
+  rawText: v.string(),
+  rawAnswer: v.string(),
 });
 
-export const parseProblemText = internalAction({
-    args: {
-        problemNumber: v.string(),
-        url:v.string(),
-        userId: v.id("users"),
-    },
-    handler: async (ctx, args) => {
-        const parsedProblems = await roomAgent.generateObject(ctx, {
-            userId: args.userId
-        }, {
-            schema: z.object({
-                problemNumber: z.string().describe("The problem number"),
-                question:z.string().describe("The question text"),
-                answer:z.string().describe("The answer text"),
-            }),
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: `Parse out the question and answer text for problem number ${args.problemNumber} from the PDF. Return the question and answer text as separate fields. If the question or answer contains math use latext format wrapped in $$`
-                        }, {
-                            type: "file",
-                            data: args.url,
-                            mediaType: "application/pdf",
-                        }
-                    ]
-                }
-            ]
-        })
-
-        const question = parsedProblems.object
-        return question
-    },
+const parsedProblemSchema = z.object({
+  rawProblemNumber: z
+    .string()
+    .describe("Problemnumret, t.ex. '1.1' eller 'P 1.1' som det står i källan"),
+  rawText: z
+    .string()
+    .describe("Problemtexten i rå form, inklusive math/LaTeX, utan svar"),
+  rawAnswer: z
+    .string()
+    .describe(
+      "Svaret i rå form inklusive math/LaTeX. Tom sträng om inget svar finns",
+    ),
 });
 
-export const parseProblemPageInfo = internalAction({
-    args: {
-        fileId: v.id("_storage"),
-        userId: v.id("users"),
-    },
-    handler: async (ctx, args) => {
-        const url = await ctx.storage.getUrl(args.fileId);
-        if (!url) {
-            return null
-        }
+export const problemPageAgent = new Agent(components.agent, {
+  name: "ProblemPageParser",
+  languageModel: openrouter("openai/gpt-4o-mini"),
+  instructions: `Du extraherar ett enda matematikproblem från OCR/parser-text.
+Returnera:
+- rawProblemNumber: problemnumret (behåll källans format om möjligt, t.ex. "1.1")
+- rawText: hela problemtexten rå, med LaTeX/ekvationer bevarade; inkludera inte svaret
+- rawAnswer: tillhörande svar rått; tom sträng om saknas
+Rätta inte matematiken och översätt inte. Behåll originalspråk (ofta svenska).`,
+});
 
-        const parsedProblems = await roomAgent.generateObject(ctx, {
-            userId: args.userId
-        }, {
-            schema: z.object({
-                problems: z.array(ProblemPageInfoSchema),
-                pageCount: z.number().describe("The total number of pages in the PDF")
-            }),
-            messages: [
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "text",
-                            text: "Parse out each problem number and what page numbers that problem is on, both question and answer. If a problem spans multiple pages include eage page number. Also return the number of pages on a 1 index base"
-                        }, {
-                            type: "file",
-                            data: url,
-                            mediaType: "application/pdf",
-                        }
-                    ]
-                }
-            ]
-        })
+/**
+ * Parse one pre-split problem+answer chunk into structured raw fields.
+ */
+export const parseProblemChunk = internalAction({
+  args: {
+    userId: v.id("users"),
+    problemNumber: v.string(),
+    problemText: v.string(),
+    answerText: v.string(),
+  },
+  returns: parsedProblemValidator,
+  handler: async (ctx, args) => {
+    const result = await problemPageAgent.generateObject(
+      ctx,
+      { userId: args.userId },
+      {
+        schema: parsedProblemSchema,
+        schemaName: "ParsedMathProblem",
+        schemaDescription:
+          "Ett matematikproblem med rå text, rått svar och problemnummer",
+        prompt: `Extrahera problemet från denna chunk.
 
-        const problems = parsedProblems.object
-        return problems
-    },
+Förväntat problemnummer: ${args.problemNumber}
+
+--- PROBLEMTEXT ---
+${args.problemText}
+
+--- SVARSTEXT (kan vara tom) ---
+${args.answerText.length > 0 ? args.answerText : "(inget svar i källan)"}
+`,
+      },
+      {
+        storageOptions: { saveMessages: "none" },
+        contextOptions: { recentMessages: 0 },
+      },
+    );
+
+    const object = result.object;
+    return {
+      rawProblemNumber:
+        object.rawProblemNumber.trim().length > 0
+          ? object.rawProblemNumber.trim()
+          : args.problemNumber,
+      rawText: object.rawText.trim(),
+      rawAnswer: object.rawAnswer.trim(),
+    };
+  },
 });
