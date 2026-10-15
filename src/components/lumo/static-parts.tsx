@@ -7,12 +7,14 @@ type StaticLumoPartsProps = {
   className?: string
 }
 
+type ContentPart = Exclude<LumoStaticPart, { type: "subproblem" }>
+
 type Segment =
-  | { kind: "intro"; parts: Array<Exclude<LumoStaticPart, { type: "subproblem" }>> }
+  | { kind: "intro"; parts: Array<ContentPart> }
   | {
       kind: "subproblem"
       label: string
-      parts: Array<Exclude<LumoStaticPart, { type: "subproblem" }>>
+      parts: Array<ContentPart>
     }
 
 function groupParts(parts: Array<LumoStaticPart>): Array<Segment> {
@@ -39,33 +41,49 @@ function groupParts(parts: Array<LumoStaticPart>): Array<Segment> {
   return segments
 }
 
-function InlineParts({
-  parts,
-}: {
-  parts: Array<Exclude<LumoStaticPart, { type: "subproblem" }>>
-}) {
+function PartCaption({ caption }: { caption: string }) {
+  return (
+    <span className="mr-1 font-medium text-muted-foreground">{caption} =</span>
+  )
+}
+
+function InlineParts({ parts }: { parts: Array<ContentPart> }) {
   return (
     <span className="leading-relaxed">
       {parts.map((part, index) => {
+        const prev = parts[index - 1]
+        const needsSep =
+          index > 0 &&
+          !part.caption &&
+          prev !== undefined &&
+          !prev.caption &&
+          prev.type === "latex" &&
+          part.type === "latex"
+
         if (part.type === "text") {
           return (
             <span key={index} className="whitespace-pre-wrap">
+              {needsSep ? "; " : index > 0 && !part.caption ? " " : ""}
+              {part.caption ? <PartCaption caption={part.caption} /> : null}
               {part.content}
-              {index < parts.length - 1 ? " " : ""}
             </span>
           )
         }
+
         return (
-          <StaticMath
-            key={index}
-            latex={part.content}
-            display={part.display ?? "inline"}
-            className={
-              part.display === "block"
-                ? "my-1"
-                : "mx-0.5 align-middle border-0 bg-transparent p-0 shadow-none"
-            }
-          />
+          <span key={index} className="inline">
+            {needsSep ? "; " : index > 0 && !part.caption ? " " : ""}
+            {part.caption ? <PartCaption caption={part.caption} /> : null}
+            <StaticMath
+              latex={part.content}
+              display={part.display ?? "inline"}
+              className={
+                part.display === "block"
+                  ? "my-1"
+                  : "mx-0.5 align-middle border-0 bg-transparent p-0 shadow-none"
+              }
+            />
+          </span>
         )
       })}
     </span>

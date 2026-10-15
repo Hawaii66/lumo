@@ -12,30 +12,80 @@ export const Route = createFileRoute("/preview")({
 
 const SAMPLE = `[
   {
-    "problemNumber": "1.1",
+    "problemNumber": "1.3",
     "question": {
       "version": 1,
       "parts": [
-        { "content": "Förenkla", "type": "text" },
+        {
+          "content": "Ange den minsta gemensamma nämnaren. Beräkna sedan summan.",
+          "type": "text"
+        },
         { "label": "a", "type": "subproblem" },
-        { "content": "a^{2}+b-c", "display": "inline", "type": "latex" },
-        { "content": "där", "type": "text" },
-        { "content": "c=1-a+2b", "display": "inline", "type": "latex" },
+        {
+          "content": "\\\\frac{1}{20}, \\\\frac{1}{28}, \\\\frac{1}{21}",
+          "display": "inline",
+          "type": "latex"
+        },
         { "label": "b", "type": "subproblem" },
-        { "content": "3x^{2}-2x+1-y", "display": "inline", "type": "latex" },
-        { "content": "där", "type": "text" },
-        { "content": "y=5x-7-z", "display": "inline", "type": "latex" },
-        { "content": "och", "type": "text" },
-        { "content": "z=-2+x^{2}", "display": "inline", "type": "latex" }
+        {
+          "content": "\\\\frac{x+1}{x^{2}+1}, \\\\frac{2x+4}{x^{2}-1}, \\\\frac{-3}{x-1}",
+          "display": "inline",
+          "type": "latex"
+        }
       ]
     },
     "answer": {
       "version": 1,
       "parts": [
         { "label": "a", "type": "subproblem" },
-        { "content": "a^{2}+a-b-1", "display": "inline", "type": "latex" },
+        {
+          "caption": "Mgn",
+          "content": "420",
+          "display": "inline",
+          "type": "latex"
+        },
+        {
+          "caption": "summa",
+          "content": "\\\\frac{2}{15}",
+          "display": "inline",
+          "type": "latex"
+        },
         { "label": "b", "type": "subproblem" },
-        { "content": "4x^{2}-7x+6", "display": "inline", "type": "latex" }
+        {
+          "caption": "Mgn",
+          "content": "(x^{2}+1)(x+1)(x-1)",
+          "display": "inline",
+          "type": "latex"
+        },
+        {
+          "caption": "summa",
+          "content": "\\\\frac{2x}{(x+1)(x^{2}+1)}",
+          "display": "inline",
+          "type": "latex"
+        }
+      ]
+    }
+  },
+  {
+    "problemNumber": "1.19",
+    "question": {
+      "version": 1,
+      "parts": [
+        { "content": "Bestäm alla reella x som uppfyller", "type": "text" },
+        { "label": "b", "type": "subproblem" },
+        {
+          "content": "x + \\\\sqrt{1-4x} = 1",
+          "display": "inline",
+          "type": "latex"
+        }
+      ]
+    },
+    "answer": {
+      "version": 1,
+      "parts": [
+        { "label": "b", "type": "subproblem" },
+        { "content": "x=0", "display": "inline", "type": "latex" },
+        { "content": "x=-2", "display": "inline", "type": "latex" }
       ]
     }
   }
@@ -58,7 +108,8 @@ function PreviewPage() {
             Lumo problem preview
           </h1>
           <p className="text-sm text-muted-foreground">
-            Klistra in JSON från PDF-parsen (text / latex / subproblem).
+            Klistra in JSON från PDF-parsen (text / latex / subproblem; valfri
+            caption).
           </p>
         </div>
         <Link

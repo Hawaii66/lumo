@@ -30,10 +30,14 @@ export const problemPageAgent = new Agent(components.agent, {
   languageModel: openrouter("openai/gpt-4o-mini"),
   instructions: `Du extraherar ett enda matematikproblem från OCR/parser-text.
 Returnera:
-- rawProblemNumber: problemnumret (behåll källans format om möjligt, t.ex. "1.1")
+- rawProblemNumber: problemnumret utan prefix "P" om möjligt (t.ex. "1.1")
 - rawText: hela problemtexten rå, med LaTeX/ekvationer bevarade; inkludera inte svaret
 - rawAnswer: tillhörande svar rått; tom sträng om saknas
-Rätta inte matematiken och översätt inte. Behåll originalspråk (ofta svenska).`,
+
+Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer i ordning.
+Slå ihop radbrytningar som hör till samma problem, men hitta inte på text.
+Rätta bara uppenbart OCR-skräp i löptext (t.ex. "Ar ¨"→"Är"); ändra inte matematiken.
+Översätt inte. Behåll originalspråk (ofta svenska).`,
 });
 
 /**

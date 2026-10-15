@@ -12,12 +12,16 @@ export const promptSpecSchema = z.object({
 export const textPartSchema = z.object({
   type: z.literal("text"),
   content: z.string(),
+  /** Optional name for this value within a task, e.g. "Mgn", "summa". */
+  caption: z.string().min(1).optional(),
 });
 
 export const latexPartSchema = z.object({
   type: z.literal("latex"),
   content: z.string(),
   display: z.enum(["inline", "block"]).optional(),
+  /** Optional name for this value within a task, e.g. "Mgn", "summa". */
+  caption: z.string().min(1).optional(),
 });
 
 export const fillBlankPartSchema = z.object({
@@ -140,7 +144,12 @@ export const lumoStaticPartAzureSchema = z.object({
   label: z
     .string()
     .describe(
-      "Subproblem letter (e.g. a, b) when type is subproblem; empty string otherwise",
+      "Task letter only (a, b, c) when type is subproblem; empty string otherwise — never put Mgn/summa here",
+    ),
+  caption: z
+    .string()
+    .describe(
+      "Optional value name within a task (e.g. Mgn, summa) for text/latex; empty when unnamed or for subproblem",
     ),
 });
 
@@ -148,14 +157,14 @@ export const lumoParsedProblemAzureSchema = z.object({
   problemNumber: z
     .string()
     .min(1)
-    .describe("Problemnummer utan bokstav, t.ex. '1.1' (inte '1.1a')"),
+    .describe("Problemnummer utan bokstav, t.ex. '1.1' (inte '1.1a' eller 'P 1.1')"),
   question: z.object({
     version: z.literal(1),
     parts: z
       .array(lumoStaticPartAzureSchema)
       .min(1)
       .describe(
-        "Frågans delar. Efter varje subproblem MÅSTE text/latex följa. Splitta 'och'-listor/(a)(b) till a,b,… — aldrig +/− inom ett uttryck",
+        "Frågans delar. subproblem endast för skilda uppgifter; efter varje subproblem MÅSTE text/latex följa; flera svar under samma uppgift = flera text/latex (caption valfritt)",
       ),
   }),
   answer: z.object({
@@ -163,7 +172,7 @@ export const lumoParsedProblemAzureSchema = z.object({
     parts: z
       .array(lumoStaticPartAzureSchema)
       .describe(
-        "Svarets delar. Efter varje subproblem MÅSTE latex/text följa. Splitta 'respektive' till a,b,…; inte +/− inom ett uttryck; tom om saknas",
+        "Svarets delar. Samma task-labels som frågan; flera resultat under en task = flera latex/text med valfri caption (Mgn, summa); tom om saknas",
       ),
   }),
 });
@@ -173,6 +182,11 @@ export type LumoParsedProblemAzure = z.infer<
   typeof lumoParsedProblemAzureSchema
 >;
 
+function optionalCaption(raw: string): string | undefined {
+  const caption = raw.trim();
+  return caption.length > 0 ? caption : undefined;
+}
+
 export function normalizeLumoStaticPart(
   part: LumoStaticPartAzure,
 ): LumoStaticPart | null {
@@ -180,34 +194,92 @@ export function normalizeLumoStaticPart(
     case "text": {
       const content = part.content.trim();
       if (content.length === 0) return null;
-      return { type: "text", content };
+      const caption = optionalCaption(part.caption);
+      return caption !== undefined
+        ? { type: "text", content, caption }
+        : { type: "text", content };
     }
     case "latex": {
       const content = part.content.trim();
       if (content.length === 0) return null;
-      return { type: "latex", content, display: part.display };
+      const caption = optionalCaption(part.caption);
+      return caption !== undefined
+        ? { type: "latex", content, display: part.display, caption }
+        : { type: "latex", content, display: part.display };
     }
     case "subproblem": {
-      const label = part.label.trim();
+      const label = part.label.trim().toLowerCase();
       if (label.length === 0) return null;
       return { type: "subproblem", label };
     }
   }
 }
 
+/**
+ * Drop orphan / duplicate task markers so every subproblem has following content
+ * and each task letter appears at most once (extra markers are merged away).
+ */
+export function repairStaticParts(
+  parts: Array<LumoStaticPart>,
+): Array<LumoStaticPart> {
+  const out: Array<LumoStaticPart> = [];
+  const seenTaskLabels = new Set<string>();
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]!;
+    if (part.type !== "subproblem") {
+      out.push(part);
+      continue;
+    }
+
+    const next = parts[i + 1];
+    if (next === undefined || next.type === "subproblem") {
+      continue;
+    }
+    if (seenTaskLabels.has(part.label)) {
+      // Duplicate task letter — keep following content under the first marker.
+      continue;
+    }
+    seenTaskLabels.add(part.label);
+    out.push(part);
+  }
+
+  while (out.length > 0 && out[out.length - 1]!.type === "subproblem") {
+    out.pop();
+  }
+  return out;
+}
+
+/** Strip leading "P" and keep the first N.M number. */
+export function normalizeProblemNumber(
+  raw: string,
+  fallback: string,
+): string {
+  const fromRaw = raw.trim().match(/(\d+\.\d+)/);
+  if (fromRaw?.[1]) return fromRaw[1];
+  const fromFallback = fallback.trim().match(/(\d+\.\d+)/);
+  if (fromFallback?.[1]) return fromFallback[1];
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : fallback.trim();
+}
+
 export function normalizeLumoParsedProblem(
   raw: LumoParsedProblemAzure,
   fallbackQuestionText: string,
 ): LumoParsedProblem {
-  const questionParts = raw.question.parts
-    .map(normalizeLumoStaticPart)
-    .filter((p): p is LumoStaticPart => p !== null);
-  const answerParts = raw.answer.parts
-    .map(normalizeLumoStaticPart)
-    .filter((p): p is LumoStaticPart => p !== null);
+  const questionParts = repairStaticParts(
+    raw.question.parts
+      .map(normalizeLumoStaticPart)
+      .filter((p): p is LumoStaticPart => p !== null),
+  );
+  const answerParts = repairStaticParts(
+    raw.answer.parts
+      .map(normalizeLumoStaticPart)
+      .filter((p): p is LumoStaticPart => p !== null),
+  );
 
   return {
-    problemNumber: raw.problemNumber.trim(),
+    problemNumber: normalizeProblemNumber(raw.problemNumber, fallbackQuestionText),
     question: {
       version: 1,
       parts:
@@ -225,12 +297,14 @@ export function normalizeLumoParsedProblem(
 export const lumoTextPartValidator = v.object({
   type: v.literal("text"),
   content: v.string(),
+  caption: v.optional(v.string()),
 });
 
 export const lumoLatexPartValidator = v.object({
   type: v.literal("latex"),
   content: v.string(),
   display: v.optional(v.union(v.literal("inline"), v.literal("block"))),
+  caption: v.optional(v.string()),
 });
 
 export const lumoSubproblemPartValidator = v.object({
@@ -325,12 +399,12 @@ Du MÅSTE svara med ett enda JSON-objekt (inga markdown-staket, ingen prosa utan
 }
 
 Tillåtna part-typer:
-- { "type": "text", "content": "..." } — vanlig förklaring
-- { "type": "latex", "content": "...", "display"?: "inline"|"block" } — statisk matematik (BARA LaTeX, utan $ eller $$)
+- { "type": "text", "content": "...", "caption"?: "Mgn" } — vanlig förklaring; caption = valfritt värdenamn
+- { "type": "latex", "content": "...", "display"?: "inline"|"block", "caption"?: "summa" } — statisk matematik (BARA LaTeX, utan $ eller $$)
 - { "type": "fillBlank", "prompt"?: "...", "latex": "...", "prompts": [{ "id": "...", "answer": "..." }] }
 - { "type": "solution", "problemLatex": "...", "steps": [{ "id", "title", "hint", "latex", "prompts": [{ "id", "answer" }], "solvedLatex" }] }
 - { "type": "quickReplies", "choices": [{ "id", "label" }] } — klickbara snabbval
-- { "type": "subproblem", "label": "a" } — deluppgiftsetikett
+- { "type": "subproblem", "label": "a" } — deluppgift / skild task (inte värdenamn som Mgn)
 
 Regler för luckor (fillBlank / solution.steps):
 - Använd MathLive-placeholders med TOM kropp: \\\\placeholder[id]{}

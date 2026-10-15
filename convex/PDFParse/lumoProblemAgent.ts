@@ -6,6 +6,7 @@ import {
   lumoParsedProblemAzureSchema,
   lumoParsedProblemValidator,
   normalizeLumoParsedProblem,
+  normalizeProblemNumber,
 } from "../lib/lumoContent";
 import { openrouter } from "../agents/openrouter";
 import { parsedProblemValidator } from "./problemPageAgent";
@@ -19,98 +20,103 @@ Returnera ETT JSON-objekt:
   "answer": { "version": 1, "parts": [ ... ] }
 }
 
-Tillåtna part-typer (INGA andra). Varje part MÅSTE ha type, content, display och label:
-- text: { "type": "text", "content": "...", "display": "inline", "label": "" }
-- latex: { "type": "latex", "content": "...", "display": "inline"|"block", "label": "" } — BARA LaTeX, utan $ eller $$
-- subproblem: { "type": "subproblem", "content": "", "display": "inline", "label": "a" }
+Tillåtna part-typer (INGA andra). Varje part MÅSTE ha type, content, display, label och caption:
+- text: { "type": "text", "content": "...", "display": "inline", "label": "", "caption": "" }
+- latex: { "type": "latex", "content": "...", "display": "inline"|"block", "label": "", "caption": "" } — BARA LaTeX, utan $ eller $$
+- subproblem: { "type": "subproblem", "content": "", "display": "inline", "label": "a", "caption": "" }
+
+caption (valfritt värdenamn inom en task):
+- Använd på text/latex när källan namnger flera resultat under SAMMA uppgift, t.ex. caption "Mgn" / "summa".
+- Tom sträng när värdet saknar namn.
+- ALDRIG task-bokstav (a/b/c) i caption — de hör hemma i subproblem.label.
+- label används BARA på subproblem (task-bokstav). På text/latex ska label alltid vara "".
+
+════════════════════════════════════════
+SUBPROBLEM = SKILD UPPGIFT / TASK
+════════════════════════════════════════
+Skapa subproblem ENDAST när källan har flera skilda uppgifter (olika saker studenten ska göra).
+En task = en del att lösa för sig (ofta märkt (a), (b), … eller tydligt parallella uttryck som var för sig ska beräknas).
+
+Skapa subproblem när:
+1) Explicit task-märkning: fristående (a), (b), a), b) före respektive del.
+2) Tydligt parallella tasks utan bokstav: samma instruktion gäller flera fristående uttryck som ska behandlas var för sig
+   (t.ex. "Skriv bråken X och Y i enklast form" → två tasks a=X, b=Y).
+   Avgör utifrån BETYDELSE (två uppgifter), inte utifrån att ordet "och"/"respektive" förekommer.
+
+Skapa INTE subproblem när:
+- Ett enda uttryck med flera termer (+, −, ·, /, =) — EN latex-part.
+- Flera lösningar/värden till SAMMA task: "x=0 och x=-2", "x=1 eller x=2", "x=±…"
+  → flera latex-parts UNDER SAMMA subproblem (eller utan subproblem om bara en task). INGEN ny task-bokstav.
+- Namngivna delfält i svaret (Mgn, summa, medelpunkt, radie) — använd caption, inte ny subproblem.
+- Parenteser i matten: "(a-2b+3c)", "(a+b)^2" är latex, inte label "a".
+- Ordproblem / en narrativ fråga — ingen subproblem; "och"/komma listar fakta, inte tasks.
+- Osäkerhet — hellre INGEN subproblem än påhittade a/b/c.
+
+Viktigt: Splitta ALDRIG bara för att du ser orden "och", "eller", "respektive", "resp."
+De orden används både mellan tasks OCH mellan värden inom en task. Fråga dig:
+  "Är detta två olika uppgifter, eller flera svar/värden till samma uppgift?"
+  → Olika uppgifter: ny subproblem. Samma uppgift: fler text/latex (caption om namngivna).
 
 KRITISKT — subproblem får ALDRIG stå ensamma:
-Efter varje { "type": "subproblem", "label": "a" } MÅSTE följa minst en text- eller latex-part med själva frågan/svaret för den deluppgiften.
-FEL (saknar innehåll):  [subproblem a, subproblem b]
-RÄTT:                   [subproblem a, latex/text..., subproblem b, latex/text...]
+Efter varje { "type": "subproblem", "label": "a" } MÅSTE följa minst en text- eller latex-part.
+FEL:  [subproblem a, subproblem b]
+RÄTT: [subproblem a, latex/text…, subproblem b, latex/text…]
 
-När ska du skapa deluppgifter (a, b, c, …)? ENDAST om källan tydligt har dem:
-A) Explicit märkning: fristående etiketter (a), (b), a), b) i källan — bokstav ensam i parentes/följt av ).
-B) Implicit lista: samma instruktion gäller flera matematiska uttryck kopplade med "och",
-   t.ex. "Skriv bråken X och Y i enklast form" → subproblem a=X, b=Y.
-   Gäller BARA när X och Y själva är uttryck som ska beräknas/förenklas var för sig.
-C) Svar med "respektive" / "resp." mellan parallella resultat → samma delning som frågan,
-   t.ex. "3/26 respektive 96/13" → subproblem a + latex, subproblem b + latex.
-   Ta BORT ordet "respektive"/"och" från parts — det ersätts av subproblem-etiketter.
-
-När ska du INTE skapa deluppgifter?
-- Ett enda uttryck med flera termer kopplade med matematiska operatorer (+, −, ·, /, =, osv.)
-  är EN uppgift — behåll allt i EN latex-part. Splitta ALDRIG på +/− mellan bråk/termer.
-- "Skriv uttrycket … på enkel form" / "Förenkla …" / "Utveckla …" med ETT uttryck → ingen subproblem.
-- Parenteser i matematiken är INTE deluppgifter: "(a - 2b + 3c)" / "(a+b)^2" / "(x)" är latex, inte label "a".
-  En deluppgiftsetikett är BARA bokstaven (t.ex. "(a)" eller "a)") — aldrig "(a - …)" eller "(a+…)".
-- Textuppgifter / ordproblem med EN fråga → ingen subproblem. Givna data i berättelsen
-  ("25 klarade I, 18 II och 3 ingen") är INTE deluppgifter — "och"/komma listar fakta, inte uppgifter.
-- Hitta ALDRIG på deluppgifter, omformuleringar eller extra frågor som inte finns i källan.
+════════════════════════════════════════
+FLERA SVAR UNDER EN TASK
+════════════════════════════════════════
+- Flera namngivna resultat: caption + latex/text
+  t.ex. Mgn=420, summa=2/15 → latex caption="Mgn" content="420", latex caption="summa" content="\\\\frac{2}{15}"
+- Flera onamngivna lösningar: flera latex utan caption
+  t.ex. x=0 och x=-2 → latex "x=0", latex "x=-2" (samma subproblem om det är task b)
+- Blanda inte in ord som "respektive"/"och" som egna text-parts mellan parallella task-svar — task-gränsen räcker.
+  Mellan värden inom samma task behövs ingen sammanbindande text (caption eller bara flera latex).
 
 Regler:
-1. problemNumber är basnumret UTAN bokstav (t.ex. "1.1", inte "1.1a").
-2. Gemensam ingress (t.ex. "Förenkla", "Skriv bråken … i enklast möjliga form.") kommer som text FÖRE första subproblem; upprepa den inte i varje deluppgift.
-3. question.parts och answer.parts MÅSTE ha samma subproblem-labels i samma ordning, och varje label ska ha innehåll efter sig.
-4. En enda uppgift utan parallella delar: ingen subproblem-part.
-5. Tom answer.parts endast om svar saknas i källan.
-6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp i LaTeX.
+1. problemNumber = basnummer UTAN "P" och UTAN bokstav (t.ex. "1.1", inte "P 1.1" / "1.1a").
+2. Gemensam ingress som text FÖRE första subproblem; upprepa den inte per task.
+3. question och answer ska ha samma task-labels i samma ordning; varje label måste ha innehåll efter sig.
+4. En enda task: ingen subproblem-part.
+5. Tom answer.parts endast om svar saknas i källan. Tom del i facit → text "Lösning saknas" under den tasken (inte tom subproblem).
+6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp (t.ex. "Ar ¨"→"Är", "där" ur \\\\mathrm{…}, "3 2"→"3/2" när det är bråk).
 7. Använd ALDRIG fillBlank, solution eller quickReplies.
-8. Tappa ALDRIG bort matematiska uttryck från frågan — varje ekvation/formel i råtexten MÅSTE bli en latex-part.
-9. Behåll HELA frågetexten (bakgrund + fråga). Klipp inte bort setup/givna data. Lägg inte till frågor som saknas i källan.
-10. Vid osäkerhet: hellre EN text/latex-part utan subproblem än påhittade a/b/c.
+8. Tappa ALDRIG bort matematiska uttryck — varje ekvation/formel i råtexten MÅSTE bli latex.
+9. Behåll HELA frågetexten. Hitta inte på tasks från givna data i berättelser.
+10. Mid-mening tasks: "divideras med (a) x-1 (b) x+2 (c) …" → subproblem a + latex "x-1", subproblem b + latex "x+2", …
+    Lägg ALDRIG kvar ", (b)" som text-part utan tillhörande latex.
 
-Exempel 1 — explicit (a)/(b):
+Exempel 1 — explicit tasks (a)/(b):
 Rå fråga: "Förenkla (a) a^2+b-c där c=1-a+2b (b) 3x^2-2x+1-y där y=..."
 Rått svar: "(a) a^2+a-b-1 (b) 4x^2-7x+6"
-→ question.parts:
-  text "Förenkla",
-  subproblem "a", latex "a^{2}+b-c", text "där", latex "c=1-a+2b",
-  subproblem "b", latex "...", text "där", latex "..."
-→ answer.parts:
-  subproblem "a", latex "a^{2}+a-b-1",
-  subproblem "b", latex "4x^{2}-7x+6"
+→ question: text "Förenkla", subproblem a, latex…, text "där", latex…, subproblem b, …
+→ answer: subproblem a, latex "a^{2}+a-b-1", subproblem b, latex "4x^{2}-7x+6"
 
-Exempel 2 — "och" / "respektive":
-Rå fråga: "Skriv bråken \\\\frac{\\\\frac{12}{13}}{8} och \\\\frac{12}{\\\\frac{13}{8}} i enklast möjliga form."
-Rått svar: "\\\\frac{3}{26} respektive \\\\frac{96}{13}"
-→ question.parts:
-  text "Skriv bråken",
-  subproblem "a", latex "\\\\frac{\\\\frac{12}{13}}{8}",
-  subproblem "b", latex "\\\\frac{12}{\\\\frac{13}{8}}",
-  text "i enklast möjliga form."
-→ answer.parts:
-  subproblem "a", latex "\\\\frac{3}{26}",
-  subproblem "b", latex "\\\\frac{96}{13}"
+Exempel 2 — parallella tasks (betydelse, inte ordet "och"):
+Rå fråga: "Skriv bråken X och Y i enklast möjliga form."
+Rått svar: "X' respektive Y'"
+→ två tasks a=X, b=Y (samma instruktion, två uttryck att förenkla var för sig)
+→ answer: subproblem a + latex X', subproblem b + latex Y' (utan ordet respektive)
 
-Exempel 3 — ETT uttryck med flera termer (INTE deluppgifter):
-Rå fråga: "Skriv uttrycket -\\\\frac{1}{x-2y} + \\\\frac{x-y}{x^{2}-4xy+4y^{2}} - \\\\frac{y}{(x-2y)^{2}} på så enkel form som möjligt."
-→ question.parts (INGA subproblem):
-  text "Skriv uttrycket",
-  latex "-\\\\frac{1}{x-2y}+\\\\frac{x-y}{x^{2}-4xy+4y^{2}}-\\\\frac{y}{(x-2y)^{2}}",
-  text "på så enkel form som möjligt."
-FEL: att lägga subproblem a/b/c runt varje bråk — +/− hör till uttrycket.
+Exempel 3 — FLERA SVAR, EN task (INTE ny subproblem):
+Rått svar: "(b) x = 0 och x = -2"
+→ subproblem b, latex "x=0", latex "x=-2"
+FEL: subproblem b, latex "x=0", subproblem b, latex "x=-2"
 
-Exempel 4 — parenteser i matten ≠ deluppgift; tappa inte latex:
-Rå fråga: "Utveckla (a - 2b + 3c)^{2} till en summa av produkter."
-Rått svar: "a^{2}-4ab+6ac+4b^{2}-12bc+9c^{2}"
-→ question.parts (INGA subproblem):
-  text "Utveckla",
-  latex "(a-2b+3c)^{2}",
-  text "till en summa av produkter."
-→ answer.parts:
-  latex "a^{2}-4ab+6ac+4b^{2}-12bc+9c^{2}"
-FEL: subproblem "a" + borttappad latex — "(a - 2b + 3c)" är matematik, inte etikett (a).
+Exempel 4 — namngivna resultat med caption:
+Rått svar: "(a) Mgn = 420 summa = 2/15"
+→ subproblem a,
+   latex caption="Mgn" content="420",
+   latex caption="summa" content="\\\\frac{2}{15}"
+FEL: att skapa subproblem för "Mgn" / "summa", eller bara texten "summa" utan caption-fältet.
 
-Exempel 5 — textuppgift / ordproblem (behåll hela texten, INGA påhittade deluppgifter):
-Rå fråga: "30 studenter läste en kurs där det krävdes godkänt på två deltentamina för att få godkänt på hela kursen. 25 klarade tentamen I, 18 tentamen II och 3 ingen tentamen. Hur många var godkända på kursen efter dessa tentamina?"
-Rått svar: "Så, antalet godkända studenter blev 16."
-→ question.parts (INGA subproblem — en enda text-part med HELA frågan):
-  text "30 studenter läste en kurs där det krävdes godkänt på två deltentamina för att få godkänt på hela kursen. 25 klarade tentamen I, 18 tentamen II och 3 ingen tentamen. Hur många var godkända på kursen efter dessa tentamina?"
-→ answer.parts:
-  text "Så, antalet godkända studenter blev 16."
-  (eller latex "16" om svaret bara är talet)
-FEL: att klippa bort bakgrunden och hitta på a/b/c om "antalet som klarade I/II/ingen" — det är givna data, inte frågor.`;
+Exempel 5 — ETT uttryck (INTE tasks):
+"Skriv uttrycket -1/(x-2y)+… på enkel form" → text + EN latex + text. Inga subproblem.
+
+Exempel 6 — parentes i matten ≠ task:
+"Utveckla (a-2b+3c)^2 …" → latex "(a-2b+3c)^{2}", INGEN subproblem "a".
+
+Exempel 7 — ordproblem:
+En narrativ fråga med en slutfråga → en text-part, inga subproblem.`;
 
 export const lumoProblemAgent = new Agent(components.agent, {
   name: "LumoProblemConverter",
@@ -138,18 +144,18 @@ export const convertRawProblem = internalAction({
         schema: lumoParsedProblemAzureSchema,
         schemaName: "LumoParsedProblem",
         schemaDescription:
-          "Lumo-problem: behåll hela frågan; subproblem endast vid tydliga (a)(b)/och-uttryck/respektive — aldrig påhittade a/b/c",
+          "Lumo-problem: subproblem endast för skilda tasks; flera svar under en task via flera latex/text med valfri caption (Mgn, summa); splitta aldrig på ord som och/respektive",
         prompt: `Konvertera detta råa problem till Lumo-språket.
 
 Viktigt:
-- Efter varje subproblem-label ska frågans/svarets latex eller text komma DIREKT efter — aldrig bara etiketter.
-- Splitta parallella matematiska uttryck kopplade med "och" till subproblem a, b, … (endast då).
-- Splitta svar kopplade med "respektive"/"resp." på samma sätt; ta bort själva ordet.
-- Splitta INTE ett enda matematiskt uttryck på +/− mellan termer/bråk — det är EN latex-part utan subproblem.
-- "(a - 2b + 3c)" / "(a+b)^2" är latex, INTE subproblem "a". Deluppgift = fristående (a)/(b) endast.
-- Behåll ALLA ekvationer från rå frågan som latex-parts — tappa aldrig bort dem.
-- Behåll HELA frågetexten (setup + fråga). Hitta inte på deluppgifter från givna tal i narrativ ("25 …, 18 … och 3 …").
-- Vid tveksamhet: ingen subproblem.
+- subproblem = skild UPPGIFT/task, aldrig bara för att orden "och"/"eller"/"respektive" förekommer.
+- Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
+- Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
+- Efter varje subproblem-label MÅSTE latex eller text komma direkt efter.
+- Mid-mening (a)/(b)/(c) med följande matematik: varje uttryck blir latex under sin task — tappa inte bort dem.
+- "(a-2b+3c)" / "(a+b)^2" är latex, INTE subproblem "a".
+- problemNumber utan "P" (t.ex. "1.1").
+- Behåll HELA frågan och ALLA ekvationer. Vid tveksamhet: ingen subproblem.
 
 Problemnummer (förslag): ${rawProblemNumber}
 
@@ -172,7 +178,7 @@ ${rawAnswer.length > 0 ? rawAnswer : "(inget svar i källan)"}
       problemNumber:
         normalized.problemNumber.length > 0
           ? normalized.problemNumber
-          : rawProblemNumber,
+          : normalizeProblemNumber(rawProblemNumber, rawProblemNumber),
     };
   },
 });

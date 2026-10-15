@@ -57,7 +57,7 @@ async function mapPool<T, R>(
  * 2. Otherwise POST the PDF to MinerU and cache the validated middle_json
  * 3. Split Problem / Svar sections into per-P-number chunks
  * 4. Run the raw problem agent on each chunk
- * 5. Convert each raw problem to Lumo (text + latex + subproblem only)
+ * 5. Convert each raw problem to Lumo (text + latex + subproblem; optional captions)
  */
 export const parseProblems = action({
   args: {
@@ -71,7 +71,9 @@ export const parseProblems = action({
       throw new Error("PDF-filen hittades inte i lagringen");
     }
 
-    const contentHash = await sha256Hex(await blob.arrayBuffer());
+    // Convex storage Blobs are streaming and single-read — buffer once for hash + upload.
+    const pdfBytes = await blob.arrayBuffer();
+    const contentHash = await sha256Hex(pdfBytes);
 
     const cached: {
       _id: Id<"mineruCache">;
@@ -100,7 +102,10 @@ export const parseProblems = action({
     }
 
     if (middleJson === null) {
-      middleJson = await fetchMineruMiddleJson(blob);
+      const pdfForUpload = new Blob([new Uint8Array(pdfBytes)], {
+        type: blob.type || "application/pdf",
+      });
+      middleJson = await fetchMineruMiddleJson(pdfForUpload);
       const middleJsonStorageId = await ctx.storage.store(
         new Blob([JSON.stringify(middleJson)], {
           type: "application/json",

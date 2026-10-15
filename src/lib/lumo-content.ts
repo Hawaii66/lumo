@@ -11,12 +11,16 @@ export const promptSpecSchema = z.object({
 export const textPartSchema = z.object({
   type: z.literal("text"),
   content: z.string(),
+  /** Optional name for this value within a task, e.g. "Mgn", "summa". */
+  caption: z.string().min(1).optional(),
 })
 
 export const latexPartSchema = z.object({
   type: z.literal("latex"),
   content: z.string(),
   display: z.enum(["inline", "block"]).optional(),
+  /** Optional name for this value within a task, e.g. "Mgn", "summa". */
+  caption: z.string().min(1).optional(),
 })
 
 export const fillBlankPartSchema = z.object({
@@ -255,7 +259,7 @@ export function parseLumoParsedProblems(input: string): {
 
     return {
       problems: [],
-      error: `Objekt ${i + 1}: förväntade problemNumber/question/answer (text|latex|subproblem).`,
+      error: `Objekt ${i + 1}: förväntade problemNumber/question/answer (text|latex|subproblem; valfri caption på text/latex).`,
     }
   }
 
