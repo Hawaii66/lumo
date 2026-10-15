@@ -101,29 +101,23 @@
       parts: [
         { label: "a", type: "subproblem" },
         {
-          caption: "Mgn",
-          content: "\\mathrm{Mgn} = 420",
+          content: "Mgn = 420",
           display: "inline",
           type: "latex",
         },
         {
-          caption: "summa",
-          content: "\\mathrm{summa} = \\frac{2}{15}",
+          content: "summa = \\frac{2}{15}",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          caption: "Mgn",
-          content:
-            "\\operatorname{Mgn} = (x^{2} + 1)(x + 1)(x - 1)",
+          content: "Mgn = (x^{2} + 1)(x + 1)(x - 1)",
           display: "inline",
           type: "latex",
         },
         {
-          caption: "summa",
-          content:
-            "\\mathrm{summa} = \\frac{2x}{(x + 1)(x^{2} + 1)}",
+          content: "summa = \\frac{2x}{(x + 1)(x^{2} + 1)}",
           display: "inline",
           type: "latex",
         },
@@ -169,7 +163,7 @@
         { content: "Skriv uttrycket", type: "text" },
         {
           content:
-            "-\\frac{1}{x-2y} + \\frac{x-y}{x^{2}-4xy+4y^{2}} - \\frac{y}{(x-2y)^{2}}",
+            "-\\frac{1}{x-2y}+\\frac{x-y}{x^{2}-4xy+4y^{2}}-\\frac{y}{(x-2y)^{2}}",
           display: "inline",
           type: "latex",
         },
@@ -197,7 +191,7 @@
       parts: [
         { content: "Utveckla", type: "text" },
         {
-          content: "(a-2b+3c)^{2}",
+          content: "(a - 2b + 3c)^{2}",
           display: "inline",
           type: "latex",
         },
@@ -259,29 +253,29 @@
       parts: [
         { content: "Bevisa formlerna", type: "text" },
         {
-          content: "x^{p} x^{q} = x^{p+q}",
+          content: "x^{p}x^{q}=x^{p+q}",
           display: "inline",
           type: "latex",
         },
         {
-          content: "\\frac{x^{p}}{x^{q}} = x^{p-q}",
+          content: "\\frac{x^{p}}{x^{q}}=x^{p-q}",
           display: "inline",
           type: "latex",
         },
         { content: "och", type: "text" },
         {
-          content: "x^{p} y^{p} = (xy)^{p}",
+          content: "x^{p}y^{p}=(xy)^{p}",
           display: "inline",
           type: "latex",
         },
         { content: "för alla reella tal", type: "text" },
         {
-          content: "x > 0",
+          content: "x>0",
           display: "inline",
           type: "latex",
         },
         {
-          content: "y > 0",
+          content: "y>0",
           display: "inline",
           type: "latex",
         },
@@ -299,27 +293,46 @@
         { label: "a", type: "subproblem" },
         {
           content:
-            "\\left(x + \\frac{5}{2}\\right)^{2} + \\frac{3}{4}",
-          display: "block",
+            "\\left(x+\\frac{5}{2}\\right)^{2}+\\frac{3}{4}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "minsta värde =", type: "text" },
+        {
+          content: "\\frac{3}{4}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "antas för", type: "text" },
+        {
+          content: "x=-\\frac{5}{2}",
+          display: "inline",
           type: "latex",
         },
         {
-          content:
-            "minsta värde = \\frac{3}{4} antas för x = -\\frac{5}{2}. Största värde saknas.",
+          content: ". Största värde saknas.",
           type: "text",
         },
         { label: "b", type: "subproblem" },
         {
           content:
             "\\frac{15}{2}-2\\left(x-\\frac{3}{2}\\right)^{2}",
-          display: "block",
+          display: "inline",
           type: "latex",
         },
+        { content: "största värde =", type: "text" },
         {
-          content:
-            "största värde = \\frac{15}{2} antas för x = \\frac{3}{2}. Minsta värde saknas.",
-          type: "text",
+          content: "\\frac{15}{2}",
+          display: "inline",
+          type: "latex",
         },
+        { content: "antas för", type: "text" },
+        {
+          content: "x=\\frac{3}{2}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: ". Minsta värde saknas.", type: "text" },
       ],
       version: 1,
     },
@@ -354,38 +367,39 @@
   {
     answer: {
       parts: [
-        { label: "1", type: "case" },
+        { label: "a", type: "subproblem" },
         {
-          content:
-            "a=2, b=\\frac{1}{2} : alla x \\neq \\frac{1}{2} är lösningar;",
+          content: "a=2, b=\\frac{1}{2}",
           display: "inline",
           type: "latex",
         },
-        { label: "2", type: "case" },
         {
           content:
-            "a=2, b \\neq \\frac{1}{2}; lösning saknas;",
+            ": alla x \\neq \\frac{1}{2} är lösningar;",
+          type: "text",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content: "a=2, b\\neq \\frac{1}{2}",
           display: "inline",
           type: "latex",
         },
-        { label: "3", type: "case" },
+        { content: "; lösning saknas;", type: "text" },
         {
-          content:
-            "a \\neq 0, a \\neq 2, b=\\frac{1}{a} ; lösning saknas;",
+          content: "a\\neq 0, a\\neq 2, b=\\frac{1}{a}",
           display: "inline",
           type: "latex",
         },
-        { label: "4", type: "case" },
+        { content: "; lösning saknas;", type: "text" },
         {
           content:
-            "a \\neq 0, a \\neq 2, b \\neq \\frac{1}{a} : x = \\frac{1 - 2b}{a - 2};",
+            "a\\neq 0, a\\neq 2, b\\neq \\frac{1}{a} : x=\\frac{1-2b}{a-2}",
           display: "inline",
           type: "latex",
         },
-        { label: "5", type: "case" },
         {
           content:
-            "a = 0, b \\in \\mathbb{R} : x = b - \\frac{1}{2}.",
+            "a=0, b\\in \\mathbb{R} : x=b-\\frac{1}{2}",
           display: "inline",
           type: "latex",
         },
@@ -403,9 +417,12 @@
         },
         {
           content:
-            "för alla värden på de reella konstanterna a och b.",
+            "för alla värden på de reella konstanterna",
           type: "text",
         },
+        { content: "a", display: "inline", type: "latex" },
+        { content: "och", type: "text" },
+        { content: "b", display: "inline", type: "latex" },
       ],
       version: 1,
     },
@@ -419,6 +436,7 @@
           display: "inline",
           type: "latex",
         },
+        { label: "b", type: "subproblem" },
         {
           content: "x=0",
           display: "inline",
@@ -439,15 +457,16 @@
           content: "Bestäm alla lösningar x till",
           type: "text",
         },
+        { label: "a", type: "subproblem" },
         {
           content: "x^{2}-1=(x+1)^{2}",
-          display: "block",
+          display: "inline",
           type: "latex",
         },
-        { content: "och", type: "text" },
+        { label: "b", type: "subproblem" },
         {
           content: "x^{3}=2x^{2}-x",
-          display: "block",
+          display: "inline",
           type: "latex",
         },
       ],
@@ -457,7 +476,7 @@
   {
     answer: {
       parts: [
-        { label: "1", type: "case" },
+        { label: "a", type: "subproblem" },
         {
           content: "x=\\frac{a + 1}{a - 3}",
           display: "inline",
@@ -465,27 +484,27 @@
         },
         { content: "om", type: "text" },
         {
-          content: "a \\neq 3",
+          content: "a\\neq 3",
           display: "inline",
           type: "latex",
         },
         { content: "och", type: "text" },
         {
-          content: "a \\neq 1",
+          content: "a\\neq 1",
           display: "inline",
           type: "latex",
         },
-        { label: "2", type: "case" },
+        { label: "1", type: "case" },
         { content: "ingen lösning", type: "text" },
         { content: "om", type: "text" },
         {
-          content: "a = 3",
+          content: "a=3",
           display: "inline",
           type: "latex",
         },
         { content: "eller", type: "text" },
         {
-          content: "a = 1",
+          content: "a=1",
           display: "inline",
           type: "latex",
         },
@@ -534,7 +553,8 @@
           type: "text",
         },
         {
-          content: "\\frac{1}{2x+2}+\\frac{5}{4x+3}=1",
+          content:
+            "\\frac{1}{2x + 2} + \\frac{5}{4x + 3} = 1",
           display: "inline",
           type: "latex",
         },
@@ -546,7 +566,7 @@
     answer: {
       parts: [
         {
-          content: "< \\frac{81}{4}",
+          content: "a<\\frac{81}{4}",
           display: "inline",
           type: "latex",
         },
@@ -562,7 +582,7 @@
           type: "text",
         },
         {
-          content: "x^{2} + 9x + a = 0",
+          content: "x^{2}+9x+a=0",
           display: "inline",
           type: "latex",
         },
@@ -599,6 +619,7 @@
           display: "inline",
           type: "latex",
         },
+        { label: "1", type: "case" },
         { content: "om", type: "text" },
         {
           content: "a\\neq 0",
@@ -611,11 +632,8 @@
           display: "inline",
           type: "latex",
         },
-        {
-          content: "x=0",
-          display: "inline",
-          type: "latex",
-        },
+        { label: "2", type: "case" },
+        { content: "x=0", type: "text" },
         { content: "om", type: "text" },
         {
           content: "a\\neq 0",
@@ -628,6 +646,7 @@
           display: "inline",
           type: "latex",
         },
+        { label: "3", type: "case" },
         { content: "eller", type: "text" },
         {
           content: "a=0",
@@ -640,7 +659,8 @@
           display: "inline",
           type: "latex",
         },
-        { content: "eller alla reella tal", type: "text" },
+        { label: "4", type: "case" },
+        { content: "alla reella tal", type: "text" },
         { content: "x", display: "inline", type: "latex" },
         { content: "om", type: "text" },
         {
@@ -664,7 +684,6 @@
           display: "inline",
           type: "latex",
         },
-        { content: "och", type: "text" },
         { label: "b", type: "subproblem" },
         {
           content: "abx^{2}+ab=a^{2}x+b^{2}x",
@@ -673,19 +692,16 @@
         },
         {
           content:
-            "för alla olika reella värden på konstanterna",
+            "för alla olika reella värden på konstanterna a och b.",
           type: "text",
         },
-        { content: "och", type: "text" },
       ],
       version: 1,
     },
   },
   {
     answer: {
-      parts: [
-        { content: "16", display: "inline", type: "latex" },
-      ],
+      parts: [{ content: "16", type: "text" }],
       version: 1,
     },
     problemNumber: "1.15",
@@ -746,46 +762,27 @@
         },
         { label: "a", type: "subproblem" },
         {
-          content: "P_{1} = (1,1),",
+          content:
+            "P_{1}=(1,1), P_{2}=(5,-5) och P_{3}=(-5,10)",
           display: "inline",
           type: "latex",
         },
         {
-          content: "P_{2} = (5,-5)",
-          display: "inline",
-          type: "latex",
+          content:
+            "P_{1} = (1,1), P_{2} = (5,-5) och P_{3} = (-5,10)",
+          type: "text",
         },
-        {
-          content: "och",
-          display: "inline",
-          type: "latex",
-        },
-        {
-          content: "P_{3} = (-5,10)",
-          display: "inline",
-          type: "latex",
-        },
-        { content: "och", type: "text" },
         { label: "b", type: "subproblem" },
         {
-          content: "P_{1} = (2,1),",
+          content:
+            "P_{1}=(2,1), P_{2}=(10,11) och P_{3}=( 2 0 , 2 1 )",
           display: "inline",
           type: "latex",
         },
         {
-          content: "P_{2} = (10,11)",
-          display: "inline",
-          type: "latex",
-        },
-        {
-          content: "och",
-          display: "inline",
-          type: "latex",
-        },
-        {
-          content: "P_{3} = (20,21)",
-          display: "inline",
-          type: "latex",
+          content:
+            "P_{1} = (2,1), P_{2} = (10,11) och P_{3} = (20,21)",
+          type: "text",
         },
       ],
       version: 1,
@@ -799,11 +796,12 @@
           type: "text",
         },
         {
-          content: "(2, 0)",
+          content: "(2,0)",
           display: "inline",
           type: "latex",
         },
-        { content: "och radie 2", type: "text" },
+        { content: "och radie", type: "text" },
+        { content: "2", display: "inline", type: "latex" },
       ],
       version: 1,
     },
@@ -816,7 +814,6 @@
           display: "inline",
           type: "latex",
         },
-        { content: "?", type: "text" },
       ],
       version: 1,
     },
@@ -856,7 +853,7 @@
           display: "inline",
           type: "latex",
         },
-        { content: ". Ingenting om", type: "text" },
+        { content: ". ingenting om", type: "text" },
         {
           content: "a^{2}+b^{2}-4c<0",
           display: "inline",
@@ -900,6 +897,7 @@
           display: "inline",
           type: "latex",
         },
+        { content: "?", type: "text" },
       ],
       version: 1,
     },
@@ -909,19 +907,18 @@
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "x = -1",
+          content: "x=-1",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          content: "x = 0",
+          content: "x=0",
           display: "inline",
           type: "latex",
         },
-        { content: "och", type: "text" },
         {
-          content: "x = -2",
+          content: "x=-2",
           display: "inline",
           type: "latex",
         },
@@ -939,20 +936,19 @@
         },
         { label: "a", type: "subproblem" },
         {
-          content: "\\sqrt{2x + 6} = 1 - x",
+          content: "\\sqrt{2x+6}=1-x",
           display: "inline",
           type: "latex",
         },
-        { content: "och", type: "text" },
         { label: "b", type: "subproblem" },
         {
-          content: "x + \\sqrt{1 - 4x} = 1",
+          content: "x+\\sqrt{1-4x}=1",
           display: "inline",
           type: "latex",
         },
         { label: "c", type: "subproblem" },
         {
-          content: "\\sqrt{5 - 8x} + 2 = 2x",
+          content: "\\sqrt{5-8x}+2=2x",
           display: "inline",
           type: "latex",
         },
@@ -1031,7 +1027,7 @@
         { content: "Ingen reell lösning", type: "text" },
         { label: "b", type: "subproblem" },
         {
-          content: "x = -3 \\pm \\sqrt{65}",
+          content: "x=-3\\pm\\sqrt{65}",
           display: "inline",
           type: "latex",
         },
@@ -1066,9 +1062,8 @@
   {
     answer: {
       parts: [
-        { content: "1", type: "text" },
         {
-          content: "\\leq x \\leq 2",
+          content: "1 \\leq x \\leq 2",
           display: "inline",
           type: "latex",
         },
@@ -1078,10 +1073,9 @@
     problemNumber: "1.22",
     question: {
       parts: [
-        {
-          content: "För vilka reella tal x är uttrycket",
-          type: "text",
-        },
+        { content: "För vilka reella tal", type: "text" },
+        { content: "x", display: "inline", type: "latex" },
+        { content: "är uttrycket", type: "text" },
         {
           content: "\\sqrt{1 - \\sqrt{2 - x}}",
           display: "inline",
@@ -1168,7 +1162,7 @@
         },
         { label: "b", type: "subproblem" },
         {
-          content: "x-5+\\frac{5-3x}{x^{2}-3x+1}",
+          content: "x - 5 + \\frac{5 - 3x}{x^{2} - 3x + 1}",
           display: "inline",
           type: "latex",
         },
@@ -1238,12 +1232,14 @@
           display: "inline",
           type: "latex",
         },
+        { content: "och", type: "text" },
         { label: "b", type: "subproblem" },
         {
           content: "x+2",
           display: "inline",
           type: "latex",
         },
+        { content: "och", type: "text" },
         { label: "c", type: "subproblem" },
         {
           content: "x^{2}-x",
@@ -1259,13 +1255,13 @@
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "(x - 7)(x + 9)",
+          content: "(x-7)(x+9)",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          content: "(x - 1)(x - 3)^{2}",
+          content: "(x-1)(x-3)^{2}",
           display: "inline",
           type: "latex",
         },
@@ -1282,7 +1278,7 @@
         },
         { label: "a", type: "subproblem" },
         {
-          content: "x^{2} + 2x - 63",
+          content: "x^{2}+2x-63",
           display: "inline",
           type: "latex",
         },
@@ -1298,40 +1294,26 @@
   },
   {
     answer: {
-      parts: [
-        { label: "a", type: "subproblem" },
-        { content: "Ja", display: "inline", type: "latex" },
-        { content: "Ja", type: "text" },
-        { label: "b", type: "subproblem" },
-        {
-          content: "Nej",
-          display: "inline",
-          type: "latex",
-        },
-        { content: "Nej", type: "text" },
-      ],
+      parts: [{ content: "(a) Ja (b) Nej", type: "text" }],
       version: 1,
     },
     problemNumber: "1.27",
     question: {
       parts: [
-        { content: "Är", type: "text" },
         {
-          content: "x=6",
-          display: "inline",
-          type: "latex",
+          content: "Är x = 6 en lösning till",
+          type: "text",
         },
-        { content: "lösning till", type: "text" },
         { label: "a", type: "subproblem" },
         {
           content: "x^{3}-5x^{2}-12x+36=0",
-          display: "block",
+          display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          content: "x^{3}-4x^{2}-17x+36=0?",
-          display: "block",
+          content: "x^{3}-4x^{2}-17x+36=0",
+          display: "inline",
           type: "latex",
         },
       ],
@@ -1364,7 +1346,7 @@
           type: "latex",
         },
         {
-          content: "x=\\frac{1 \\pm \\sqrt{17}}{4}",
+          content: "x=\\frac{1\\pm\\sqrt{17}}{4}",
           display: "inline",
           type: "latex",
         },
@@ -1396,7 +1378,7 @@
           type: "latex",
         },
         {
-          content: "x=-1 \\pm \\sqrt{6}",
+          content: "x=-1\\pm\\sqrt{6}",
           display: "inline",
           type: "latex",
         },
@@ -1448,13 +1430,13 @@
           type: "text",
         },
         {
-          content: "x = \\alpha_{1}",
+          content: "x=\\alpha_{1}",
           display: "inline",
           type: "latex",
         },
         { content: "och", type: "text" },
         {
-          content: "x = \\alpha_{2}",
+          content: "x=\\alpha_{2}",
           display: "inline",
           type: "latex",
         },
@@ -1463,7 +1445,7 @@
           type: "text",
         },
         {
-          content: "x^{2}+a x+b=0",
+          content: "x^{2}+ax+b=0",
           display: "inline",
           type: "latex",
         },
@@ -1472,29 +1454,16 @@
           type: "text",
         },
         {
-          content: "\\alpha_{1}+\\alpha_{2}=-a",
+          content:
+            "\\alpha_{1}+\\alpha_{2}=-a\\quad \\mathrm{och}\\quad \\alpha_{1}\\alpha_{2}=b",
           display: "inline",
           type: "latex",
         },
-        { content: "och", type: "text" },
         {
-          content: "\\alpha_{1}\\alpha_{2}=b",
-          display: "inline",
-          type: "latex",
+          content:
+            "(med \\alpha_{2}=\\alpha_{1} om \\alpha_{1} är en dubbelrot).",
+          type: "text",
         },
-        { content: "(med", type: "text" },
-        {
-          content: "\\alpha_{2}=\\alpha_{1}",
-          display: "inline",
-          type: "latex",
-        },
-        { content: "om", type: "text" },
-        {
-          content: "\\alpha_{1}",
-          display: "inline",
-          type: "latex",
-        },
-        { content: "är en dubbelrot).", type: "text" },
       ],
       version: 1,
     },
@@ -1504,19 +1473,20 @@
       parts: [
         {
           content:
-            "\\alpha_{1}+\\alpha_{2}+\\alpha_{3}=-a,",
-          display: "inline",
+            "\\alpha_{1} + \\alpha_{2} + \\alpha_{3} = -a",
+          display: "block",
           type: "latex",
         },
         {
           content:
-            "\\alpha_{1}\\alpha_{2}+\\alpha_{1}\\alpha_{3}+\\alpha_{2}\\alpha_{3}=b,",
-          display: "inline",
+            "\\alpha_{1} \\alpha_{2} + \\alpha_{1} \\alpha_{3} + \\alpha_{2} \\alpha_{3} = b",
+          display: "block",
           type: "latex",
         },
         {
-          content: "\\alpha_{1}\\alpha_{2}\\alpha_{3}=-c",
-          display: "inline",
+          content:
+            "\\alpha_{1} \\alpha_{2} \\alpha_{3} = -c",
+          display: "block",
           type: "latex",
         },
       ],
@@ -1526,27 +1496,8 @@
     question: {
       parts: [
         {
-          content: "Härled ett samband mellan rötterna",
-          type: "text",
-        },
-        {
           content:
-            "x=\\alpha_{1}, x=\\alpha_{2} \\text{ och } x=\\alpha_{3}",
-          display: "inline",
-          type: "latex",
-        },
-        {
-          content: "till en tredjegradsekvation",
-          type: "text",
-        },
-        {
-          content: "x^{3}+ax^{2}+bx+c=0",
-          display: "inline",
-          type: "latex",
-        },
-        {
-          content:
-            "och ekvationens koefficienter a, b och c.",
+            "Härled ett samband mellan rötterna x = \\alpha_{1}, x = \\alpha_{2} och x = \\alpha_{3} till en tredjegradsekvation x^{3}+ax^{2}+bx+c=0 och ekvationens koefficienter a, b och c.",
           type: "text",
         },
       ],
@@ -1586,14 +1537,14 @@
         { label: "a", type: "subproblem" },
         {
           content: "(x - 3)^{3} - (2x + 1)^{3} = 0",
-          display: "block",
+          display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
           content:
             "\\frac{4x - 3}{x^{3} - 1} + \\frac{3x - 4}{x^{2} - 1} = \\frac{3}{x}",
-          display: "block",
+          display: "inline",
           type: "latex",
         },
       ],
@@ -1603,28 +1554,33 @@
   {
     answer: {
       parts: [
+        { content: "x = y =", type: "text" },
         {
-          content: "x = y = \\pm \\frac{1}{\\sqrt{2}}",
-          display: "block",
-          type: "latex",
-        },
-        {
-          content: "x = \\frac{3}{\\sqrt{13}},",
+          content: "\\pm \\frac{1}{\\sqrt{2}}",
           display: "inline",
           type: "latex",
         },
+        { content: "x =", type: "text" },
         {
-          content: "y = - \\frac{2}{\\sqrt{13}}",
+          content: "\\frac{3}{\\sqrt{13}}",
           display: "inline",
           type: "latex",
         },
+        { content: "y =", type: "text" },
         {
-          content: "x = - \\frac{3}{\\sqrt{13}},",
+          content: "- \\frac{2}{\\sqrt{13}}",
           display: "inline",
           type: "latex",
         },
+        { content: "x =", type: "text" },
         {
-          content: "y = \\frac{2}{\\sqrt{13}}",
+          content: "- \\frac{3}{\\sqrt{13}}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "y =", type: "text" },
+        {
+          content: "\\frac{2}{\\sqrt{13}}",
           display: "inline",
           type: "latex",
         },
@@ -1671,23 +1627,22 @@
         },
         { label: "c", type: "subproblem" },
         {
-          content: "x \\geq 1",
+          content:
+            "x \\geq 1 \\quad \\text{eller} \\quad x < -1",
           display: "inline",
           type: "latex",
         },
+        { label: "d", type: "subproblem" },
         {
-          content: "x < -1",
+          content:
+            "x \\geq -\\sqrt{3} \\quad \\text{och} \\quad x \\leq \\sqrt{3}",
           display: "inline",
           type: "latex",
         },
         { label: "e", type: "subproblem" },
         {
-          content: "x \\geq \\sqrt{5}",
-          display: "inline",
-          type: "latex",
-        },
-        {
-          content: "x \\leq -\\sqrt{5}",
+          content:
+            "x \\geq \\sqrt{5} \\quad \\text{eller} \\quad x \\leq -\\sqrt{5}",
           display: "inline",
           type: "latex",
         },
@@ -1778,11 +1733,8 @@
           type: "latex",
         },
         {
-          content: "kan ha för reella tal x .",
-          type: "text",
-        },
-        {
-          content: "(Ledning: Kvadratkomplettering).",
+          content:
+            "kan ha för reella tal x. (Ledning: Kvadratkomplettering).",
           type: "text",
         },
       ],

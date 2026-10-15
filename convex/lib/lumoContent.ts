@@ -147,7 +147,7 @@ export const lumoStaticPartAzureSchema = z.object({
   content: z
     .string()
     .describe(
-      "Swedish only for text; LaTeX only for latex; empty for subproblem/case. Never mix Swedish and math.",
+      "Swedish only for text (never \\\\frac/TeX); LaTeX only for latex (keep full inequalities e.g. a<\\\\frac{81}{4}); empty for subproblem/case.",
     ),
   display: z
     .enum(["inline", "block"])
@@ -183,7 +183,7 @@ export const lumoParsedProblemAzureSchema = z.object({
     parts: z
       .array(lumoStaticPartAzureSchema)
       .describe(
-        "Svarets delar. Samma subproblem-labels som frågan om tasks finns; type=case för villkorsfall/else-grenar (INTE subproblem); caption för Mgn/summa; tom om saknas",
+        "Svarets delar. SPEGLA frågans subproblem a/b/… 1:1 (aldrig case i stället för (a)/(b)); case endast för villkorsgrenar inuti en task; caption för Mgn/summa; tom om saknas",
       ),
   }),
 });
