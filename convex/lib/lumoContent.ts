@@ -306,205 +306,10 @@ export function stripProblemNumberPrefix(text: string): string {
   return text.replace(/^\s*P\s*\d+\.\d+\s*/i, "").trim();
 }
 
-/** Signals that a fragment belongs in a latex part. */
-const LATEX_SIGNAL_RE =
-  /\\[a-zA-Z]+|[\^_]\{|\\frac|\\neq|\\leq|\\geq|\\in|\\mathbb|[≠≤≥]|[=+\-*/^_]/;
-
-/**
- * Multi-letter prose words (not single-letter math vars).
- * Avoid `\\b` — JS word boundaries ignore å/ä/ö.
- */
-const PROSE_WORD_RE =
-  /(^|[^A-Za-zÅÄÖåäö\\])([A-Za-zÅÄÖåäö]{2,}(?:\s+[A-Za-zÅÄÖåäö]{2,})*)/g;
-
-const MATH_FUNCTION_WORDS = new Set([
-  "sin",
-  "cos",
-  "tan",
-  "log",
-  "ln",
-  "lim",
-  "det",
-  "mod",
-  "min",
-  "max",
-  "exp",
-  "gcd",
-  "lcm",
-  "sup",
-  "inf",
-  "arcsin",
-  "arccos",
-  "arctan",
-]);
-
 /** Bare leftover task markers the model left as text, e.g. "(b)" or "divideras med (a)". */
 const BARE_TASK_MARKER_RE =
   /^(?:[,;.]?\s*)?(?:divideras med\s*)?\(?[a-d]\)?\.?$/i;
 const PUNCT_ONLY_RE = /^[.,;:]+$/;
-
-type ContentPart = Exclude<LumoStaticPart, { type: "subproblem" }>;
-
-function isMathFunctionPhrase(phrase: string): boolean {
-  return phrase
-    .toLowerCase()
-    .split(/\s+/)
-    .every((w) => MATH_FUNCTION_WORDS.has(w));
-}
-
-function findProseRanges(
-  content: string,
-): Array<{ start: number; end: number }> {
-  const ranges: Array<{ start: number; end: number }> = [];
-  for (const match of content.matchAll(PROSE_WORD_RE)) {
-    const prefix = match[1] ?? "";
-    const phrase = match[2] ?? "";
-    const start = (match.index ?? 0) + prefix.length;
-    if (phrase.length === 0) {
-      continue;
-    }
-    if (isMathFunctionPhrase(phrase)) {
-      continue;
-    }
-    let from = start;
-    let to = start + phrase.length;
-    while (from > 0 && /[\s:…]/.test(content[from - 1]!)) {
-      from -= 1;
-    }
-    while (to < content.length && /[\s.,;:!]/.test(content[to]!)) {
-      to += 1;
-    }
-    ranges.push({ start: from, end: to });
-  }
-
-  if (ranges.length === 0) {
-    return [];
-  }
-
-  ranges.sort((a, b) => a.start - b.start);
-  const merged: Array<{ start: number; end: number }> = [ranges[0]!];
-  for (let i = 1; i < ranges.length; i++) {
-    const cur = ranges[i]!;
-    const last = merged[merged.length - 1]!;
-    if (cur.start <= last.end) {
-      last.end = Math.max(last.end, cur.end);
-    } else {
-      merged.push(cur);
-    }
-  }
-  return merged;
-}
-
-/**
- * Split mixed Swedish+math into alternating text / latex parts.
- * Swedish prose → text; mathematics → latex. Fine-grained interleaving is OK.
- */
-export function splitMixedContent(
-  content: string,
-  caption?: string,
-): Array<ContentPart> {
-  const trimmed = content.trim();
-  if (trimmed.length === 0) {
-    return [];
-  }
-
-  const prose = findProseRanges(trimmed);
-  const hasLatexSignal = LATEX_SIGNAL_RE.test(trimmed);
-
-  if (prose.length === 0) {
-    if (hasLatexSignal || /^[\d\s.+\-*/=()[\]{}^_\\a-zA-Z,;|]+$/.test(trimmed)) {
-      return [
-        caption !== undefined
-          ? { type: "latex", content: trimmed, display: "inline", caption }
-          : { type: "latex", content: trimmed, display: "inline" },
-      ];
-    }
-    return [
-      caption !== undefined
-        ? { type: "text", content: trimmed, caption }
-        : { type: "text", content: trimmed },
-    ];
-  }
-
-  if (!hasLatexSignal && prose.length === 1 && prose[0]!.start === 0 && prose[0]!.end === trimmed.length) {
-    return [
-      caption !== undefined
-        ? { type: "text", content: trimmed, caption }
-        : { type: "text", content: trimmed },
-    ];
-  }
-
-  const out: Array<ContentPart> = [];
-  let cursor = 0;
-  let captionUsed = false;
-
-  const pushPart = (type: "text" | "latex", raw: string) => {
-    const piece = raw.trim();
-    if (piece.length === 0) return;
-    const useCaption = caption !== undefined && !captionUsed ? caption : undefined;
-    captionUsed = captionUsed || useCaption !== undefined;
-    if (type === "text") {
-      out.push(
-        useCaption !== undefined
-          ? { type: "text", content: piece, caption: useCaption }
-          : { type: "text", content: piece },
-      );
-    } else {
-      out.push(
-        useCaption !== undefined
-          ? { type: "latex", content: piece, display: "inline", caption: useCaption }
-          : { type: "latex", content: piece, display: "inline" },
-      );
-    }
-  };
-
-  for (const range of prose) {
-    if (cursor < range.start) {
-      pushPart("latex", trimmed.slice(cursor, range.start));
-    }
-    pushPart("text", trimmed.slice(range.start, range.end));
-    cursor = range.end;
-  }
-  if (cursor < trimmed.length) {
-    pushPart("latex", trimmed.slice(cursor));
-  }
-
-  return out.length > 0
-    ? out
-    : [{ type: "text", content: trimmed }];
-}
-
-/**
- * Enforce: Swedish in text parts, math in latex parts (split mixed blobs).
- */
-export function enforceTextLatexSeparation(
-  parts: Array<LumoStaticPart>,
-): Array<LumoStaticPart> {
-  const out: Array<LumoStaticPart> = [];
-  for (const part of parts) {
-    if (part.type === "subproblem") {
-      out.push(part);
-      continue;
-    }
-    if (part.type === "latex") {
-      // Also peel Swedish prose out of latex blobs.
-      const split = splitMixedContent(part.content, part.caption);
-      if (split.length === 0) continue;
-      if (split.length === 1 && split[0]!.type === "latex") {
-        out.push(
-          part.display !== undefined && split[0]!.type === "latex"
-            ? { ...split[0]!, display: part.display }
-            : split[0]!,
-        );
-      } else {
-        out.push(...split);
-      }
-      continue;
-    }
-    out.push(...splitMixedContent(part.content, part.caption));
-  }
-  return out;
-}
 
 function tidyExtractedLatex(raw: string): string {
   return raw
@@ -611,9 +416,7 @@ function finalizeStaticParts(
   parts: Array<LumoStaticPart>,
   rawText: string,
 ): Array<LumoStaticPart> {
-  return enforceTextLatexSeparation(
-    repairInlineTaskLatex(repairStaticParts(parts), rawText),
-  );
+  return repairInlineTaskLatex(repairStaticParts(parts), rawText);
 }
 
 export function normalizeLumoParsedProblem(
@@ -642,9 +445,7 @@ export function normalizeLumoParsedProblem(
     (answerParts.length === 0 || isOnlyLosningSaknas(answerParts))
   ) {
     // Model dropped a real facit — keep the raw answer rather than "Lösning saknas".
-    answerParts = enforceTextLatexSeparation([
-      { type: "text", content: salvagedAnswer },
-    ]);
+    answerParts = [{ type: "text", content: salvagedAnswer }];
   }
 
   return {
@@ -775,7 +576,7 @@ Tillåtna part-typer:
 - { "type": "quickReplies", "choices": [{ "id", "label" }] } — klickbara snabbval
 - { "type": "subproblem", "label": "a" } — deluppgift / skild task (inte värdenamn som Mgn)
 
-Hård regel: växla text/latex fritt (text, latex, text, latex, …). Blanda aldrig svenska och matte i samma part.
+Varje part: antingen bara svenska (text) eller bara matematik (latex). Växla gärna text/latex/text/latex. Aldrig \\\\text{svenska} inne i latex.
 
 Regler för luckor (fillBlank / solution.steps):
 - Använd MathLive-placeholders med TOM kropp: \\\\placeholder[id]{}

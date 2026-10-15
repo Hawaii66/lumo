@@ -14,14 +14,24 @@ const LUMO_PROBLEM_INSTRUCTIONS = `Du konverterar ett rått matematikproblem (fr
 Chunkarna är redan uppdelade per problemnummer — hitta inte på text, men normalisera uppenbart OCR-skräp.
 
 ════════════════════════════════════════
-HÅRD REGEL — SPRÅK vs MATEMATIK
+PART-INNEHÅLL (du bestämmer gränserna)
 ════════════════════════════════════════
-- ALL svensk prosa → type=text (instruktioner, "där", "för alla", "är lösningar", "lösning saknas", …)
-- ALL matematik → type=latex (uttryck, ekvationer, olikheter, tal, \\\\frac, \\\\neq, a=2, …)
-- Det är BRA och FÖRVÄNTAT att splitta en mening i många delar: text, latex, text, latex, …
-- BLANDA ALDRIG svenska och matte i samma part.
-- I latex: BARA LaTeX (inga svenska ord). Behöver du kort prosa inne i matte-läge, undvik det — lägg hellre en text-part bredvid.
-- I text: INGA TeX-kommandon (\\\\frac, \\\\neq, ^{}, …).
+Varje part är ANTINGEN bara svenska ELLER bara matematik — aldrig båda.
+
+type=text:
+- Endast svensk (eller annan naturlig) prosa.
+- Exempel: "Förenkla", "där", "för alla", "är lösningar", "lösning saknas", "Ja", "Nej".
+- Får INTE innehålla TeX (\\\\frac, \\\\neq, ^{}, _{}, \\mathrm, …) eller rena matematiska uttryck.
+
+type=latex:
+- Endast matematik som LaTeX (utan $ eller $$).
+- Exempel: "a^{2}+b-c", "\\\\frac{1}{2}", "x\\\\neq 0", "a=2", "16".
+- Får INTE innehålla svenska ord ("där", "alla", "är", "lösningar", …).
+- Använd INTE \\\\text{svenska} — lägg svenskan i en egen text-part bredvid.
+
+Interfoliering:
+- Splitta gärna en mening i många delar: text, latex, text, latex, …
+- Du avgör var gränsen går mellan prosa och matte. Var konsekvent och finfördelad hellre än att klumpa ihop.
 
 Returnera ETT JSON-objekt:
 {
@@ -93,7 +103,7 @@ Regler:
 4. En enda task: ingen subproblem-part.
 5. SVAR — tappa ALDRIG bort facit:
    - Om --- RÅTT SVAR --- har innehåll: konvertera DET till answer.parts (latex/text). Hitta ALDRIG på "Lösning saknas".
-   - Korta svar som "0", "16", "Ja", "Nej" är giltiga — gör dem till latex eller text.
+   - Korta svar: tal/uttryck → latex ("0", "16"); svenska ord → text ("Ja", "Nej").
    - Tom answer.parts ENDAST när rått svar är tomt / "(inget svar i källan)".
    - Texten "Lösning saknas" ENDAST om källan själv säger det för en viss task (t.ex. "(c) Lösning saknas"),
      och då bara under den tasken — aldrig som ersättning för hela svaret.
@@ -135,20 +145,20 @@ Exempel 7 — ordproblem:
 En narrativ fråga → en text-part, inga subproblem.
 
 Exempel 8 — faktiskt facit (FÅR INTE bli "Lösning saknas"):
-Rått svar: "0" → latex "0"; "16" → latex/text "16"
-Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3" → tre tasks med riktigt innehåll
+Rått svar: "0" → latex "0"; "16" → latex "16"; "Ja" → text "Ja"
+Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3"
+→ subproblem a + latex "x=1"; subproblem b + text "ingen lösning"; subproblem c + latex…
 FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.
 
-Exempel 9 — fallanalys (interfoliera text och latex):
-Rått svar: "a = 2, b = 1/2 : alla x ≠ 1/2 är lösningar; a = 2, b ≠ 1/2; lösning saknas; …"
+Exempel 9 — fallanalys (du interfolierar text och latex):
+Rått svar: "a = 2, b = 1/2 : alla x ≠ 1/2 är lösningar; …"
 → latex "a=2, b=\\\\frac{1}{2}",
    text "alla",
    latex "x\\\\neq\\\\frac{1}{2}",
    text "är lösningar;",
-   latex "a=2, b\\\\neq\\\\frac{1}{2}",
-   text "lösning saknas;",
    …
-FEL: en type=text med hela strängen (svenska + \\\\frac). FEL: en type=latex med svenska orden "alla"/"är lösningar".
+FEL: en type=text med både svenska och \\\\frac.
+FEL: en type=latex med svenska orden "alla" / "är lösningar" (inte ens via \\\\text{…}).
 
 Exempel 10 — divisor-tasks mid-mening:
 Rå fråga: "… polynomet P(x) divideras med (a) x-1 (b) x+2 (c) x^{2}-x."
@@ -197,7 +207,8 @@ export const convertProblemChunk = internalAction({
 Viktigt:
 - Om rått svar har innehåll: answer.parts MÅSTE spegla det. Skriv ALDRIG "Lösning saknas" som ersättning.
 - "Lösning saknas" endast när källan säger det för en specifik task.
-- HÅRD REGEL: svensk prosa → text; matematik → latex; splitta gärna i många text/latex/text/latex-delar. Blanda aldrig i samma part.
+- Varje part: ANTINGEN bara svenska (text) ELLER bara matematik (latex). Blanda aldrig. Splitta gärna fint: text, latex, text, latex, …
+- Använd inte \\\\text{…} för svenska inne i latex — egen text-part i stället.
 - subproblem = skild UPPGIFT/task, aldrig bara för att orden "och"/"eller"/"respektive" förekommer.
 - Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
 - Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
