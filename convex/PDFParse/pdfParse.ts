@@ -1,7 +1,6 @@
 import { v } from "convex/values";
-import { action, ActionCtx, mutation, MutationCtx, QueryCtx } from "../_generated/server";
-import { parseProblemPageInfo } from "./problemPageAgent";
-import { api, internal } from "../_generated/api";
+import { action, ActionCtx } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { MergePages, ProblemPageInfo } from "./types";
 import { Id } from "../_generated/dataModel";
 import { PDFDocument } from "pdf-lib"
@@ -12,19 +11,52 @@ export const parsePdf = action({
         userId: v.id("users"),
     },
     handler: async (ctx, args) => {
-        const problems = await ctx.runAction(internal.PDFParse.problemPageAgent.parseProblemPageInfo, {
+        const parsedProblems: { problems: ProblemPageInfo[]; pageCount: number } | null = await ctx.runAction(internal.PDFParse.problemPageAgent.parseProblemPageInfo, {
             fileId: args.fileId,
             userId: args.userId
         })
 
-        if (problems === null) {
+        if (parsedProblems === null) {
             return null;
         }
 
-        const mergePages = ProblemPagesToMergePages(problems);
+        const bufferedProblems = BufferPageNumberDueToInaccurateParsing(parsedProblems.problems, parsedProblems.pageCount);
+
+        const mergePages = ProblemPagesToMergePages(bufferedProblems);
         const splitPdfs = await SplitPdfByProblemPages(mergePages, args.fileId, ctx);
 
-        return splitPdfs
+        if (!splitPdfs) {
+            return null;
+        }
+
+        return Promise.all(splitPdfs.map(async (splitPdf) => {
+            const problemsWithText = await Promise.all(splitPdf.problems.map(async (problem) => {
+                const url = await ctx.storage.getUrl(splitPdf.fileId);
+                if (!url) {
+                    return {
+                        ...problem,
+                        question: "",
+                        answer: ""
+                    }
+                }
+
+                const questionAndAnswer: any = await ctx.runAction(internal.PDFParse.problemPageAgent.parseProblemText, {
+                    problemNumber: problem.problemNumber,
+                    url,
+                    userId: args.userId
+                });
+
+                return {
+                    ...problem,
+                    question: questionAndAnswer?.question ?? "",
+                    answer: questionAndAnswer?.answer ?? ""
+                }
+            }));
+            return {
+                ...splitPdf,
+                problems: problemsWithText
+            }
+        }));
     }
 })
 
@@ -40,7 +72,7 @@ async function SplitPdfByProblemPages(pages: MergePages[], fileId: Id<"_storage"
     const work = pages.map(async (pageRange) => {
         const rangedPdf = await PDFDocument.create();
 
-        const zeroIndexedRange = pageRange.pages.map((page) => page - 1);
+        const zeroIndexedRange = pageRange.pages.map((page) => page - 1)
         const copiedPages = await rangedPdf.copyPages(pdf, zeroIndexedRange);
 
         copiedPages.forEach((page) => rangedPdf.addPage(page));
@@ -55,6 +87,21 @@ async function SplitPdfByProblemPages(pages: MergePages[], fileId: Id<"_storage"
     });
 
     return Promise.all(work);
+}
+
+function BufferPageNumberDueToInaccurateParsing(problemPages: ProblemPageInfo[], maxPageCount: number): ProblemPageInfo[] {
+    return problemPages;
+
+    return problemPages.map((problem) => {
+        const bufferedQuestionPages = problem.questionPages.flatMap((page) => [page - 1, page, page + 1]).filter((page) => page > 0 && page <= maxPageCount);
+        const bufferedAnswerPages = problem.answerPages.flatMap((page) => [page - 1, page, page + 1]).filter((page) => page > 0 && page <= maxPageCount);
+
+        return {
+            ...problem,
+            questionPages: bufferedQuestionPages,
+            answerPages: bufferedAnswerPages
+        };
+    })
 }
 
 function ProblemPagesToMergePages(problemPages: ProblemPageInfo[]): MergePages[] {
