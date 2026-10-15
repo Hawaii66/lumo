@@ -62,6 +62,12 @@ export const subproblemPartSchema = z.object({
   label: z.string().min(1),
 })
 
+/** Answer-case / branch marker (not a task letter). */
+export const casePartSchema = z.object({
+  type: z.literal("case"),
+  label: z.string().optional(),
+})
+
 export const lumoPartSchema = z.discriminatedUnion("type", [
   textPartSchema,
   latexPartSchema,
@@ -69,6 +75,7 @@ export const lumoPartSchema = z.discriminatedUnion("type", [
   solutionPartSchema,
   quickRepliesPartSchema,
   subproblemPartSchema,
+  casePartSchema,
 ])
 
 export const lumoDocumentSchema = z.object({
@@ -76,11 +83,12 @@ export const lumoDocumentSchema = z.object({
   parts: z.array(lumoPartSchema).min(1),
 })
 
-/** Static textbook content from PDF parsing: text + latex + subproblem only. */
+/** Static textbook content from PDF parsing: text + latex + subproblem/case. */
 export const lumoStaticPartSchema = z.discriminatedUnion("type", [
   textPartSchema,
   latexPartSchema,
   subproblemPartSchema,
+  casePartSchema,
 ])
 
 export const lumoStaticDocumentSchema = z.object({
@@ -259,7 +267,7 @@ export function parseLumoParsedProblems(input: string): {
 
     return {
       problems: [],
-      error: `Objekt ${i + 1}: förväntade problemNumber/question/answer (text|latex|subproblem; valfri caption på text/latex).`,
+      error: `Objekt ${i + 1}: förväntade problemNumber/question/answer (text|latex|subproblem|case; valfri caption).`,
     }
   }
 

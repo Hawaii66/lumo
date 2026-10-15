@@ -63,6 +63,13 @@ export const subproblemPartSchema = z.object({
   label: z.string().min(1),
 });
 
+/** Answer-case / branch marker (condition cases), not a task letter. */
+export const casePartSchema = z.object({
+  type: z.literal("case"),
+  /** Optional short label ("1", "2", …); empty when unlabeled. */
+  label: z.string().optional(),
+});
+
 export const lumoPartSchema = z.discriminatedUnion("type", [
   textPartSchema,
   latexPartSchema,
@@ -70,6 +77,7 @@ export const lumoPartSchema = z.discriminatedUnion("type", [
   solutionPartSchema,
   quickRepliesPartSchema,
   subproblemPartSchema,
+  casePartSchema,
 ]);
 
 /** Zod schema for agent.generateObject — Lumo content envelope. */
@@ -82,13 +90,14 @@ export type LumoDocument = z.infer<typeof lumoDocumentSchema>;
 export type PromptSpec = z.infer<typeof promptSpecSchema>;
 
 /**
- * Static textbook content: text + latex + subproblem labels only.
+ * Static textbook content: text + latex + subproblem/case markers.
  * Used when converting parsed PDF problems (no interactive fillBlank/solution).
  */
 export const lumoStaticPartSchema = z.discriminatedUnion("type", [
   textPartSchema,
   latexPartSchema,
   subproblemPartSchema,
+  casePartSchema,
 ]);
 
 export const lumoStaticDocumentSchema = z.object({
@@ -112,10 +121,10 @@ export const lumoParsedProblemSchema = z.object({
     .min(1)
     .describe("Problemnummer utan bokstav, t.ex. '1.1' (inte '1.1a')"),
   question: lumoStaticDocumentSchema.describe(
-    "Frågan i Lumo-format. Deluppgifter markeras med type=subproblem.",
+    "Frågan i Lumo-format. Deluppgifter = subproblem; fallgrenar i svar = case.",
   ),
   answer: lumoStaticAnswerDocumentSchema.describe(
-    "Svaret i Lumo-format med samma subproblem-etiketter som frågan. Tom parts om saknas.",
+    "Svaret i Lumo-format. Samma subproblem-etiketter som frågan när det finns tasks; case för villkorsfall. Tom parts om saknas.",
   ),
 });
 
@@ -131,12 +140,14 @@ export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>;
  */
 export const lumoStaticPartAzureSchema = z.object({
   type: z
-    .enum(["text", "latex", "subproblem"])
-    .describe("Part type: text, latex, or subproblem"),
+    .enum(["text", "latex", "subproblem", "case"])
+    .describe(
+      "text=Swedish; latex=math; subproblem=task (a)/(b); case=answer-case/branch (not a task)",
+    ),
   content: z
     .string()
     .describe(
-      "Swedish prose only when type=text; LaTeX math only when type=latex; empty for subproblem. Never mix Swedish and math in one part.",
+      "Swedish only for text; LaTeX only for latex; empty for subproblem/case. Never mix Swedish and math.",
     ),
   display: z
     .enum(["inline", "block"])
@@ -144,12 +155,12 @@ export const lumoStaticPartAzureSchema = z.object({
   label: z
     .string()
     .describe(
-      "Task letter only (a, b, c) when type is subproblem; empty string otherwise — never put Mgn/summa here",
+      "subproblem: task letter a/b/c; case: optional '1'/'2'/… or empty; otherwise empty. Never Mgn/summa here",
     ),
   caption: z
     .string()
     .describe(
-      "Optional value name within a task (e.g. Mgn, summa) for text/latex; empty when unnamed or for subproblem",
+      "Optional value name (e.g. Mgn, summa) for text/latex; empty for subproblem/case",
     ),
 });
 
@@ -164,7 +175,7 @@ export const lumoParsedProblemAzureSchema = z.object({
       .array(lumoStaticPartAzureSchema)
       .min(1)
       .describe(
-        "Frågans delar. subproblem endast för skilda uppgifter; efter varje subproblem MÅSTE text/latex följa; flera svar under samma uppgift = flera text/latex (caption valfritt)",
+        "Frågans delar. subproblem endast för skilda tasks (a)/(b); indexerad matte som P_{1} i latex; efter varje subproblem MÅSTE text/latex följa",
       ),
   }),
   answer: z.object({
@@ -172,7 +183,7 @@ export const lumoParsedProblemAzureSchema = z.object({
     parts: z
       .array(lumoStaticPartAzureSchema)
       .describe(
-        "Svarets delar. Samma task-labels som frågan; flera resultat under en task = flera latex/text med valfri caption (Mgn, summa); tom om saknas",
+        "Svarets delar. Samma subproblem-labels som frågan om tasks finns; type=case för villkorsfall/else-grenar (INTE subproblem); caption för Mgn/summa; tom om saknas",
       ),
   }),
 });
@@ -212,12 +223,22 @@ export function normalizeLumoStaticPart(
       if (label.length === 0) return null;
       return { type: "subproblem", label };
     }
+    case "case": {
+      const label = part.label.trim();
+      return label.length > 0 ? { type: "case", label } : { type: "case" };
+    }
   }
 }
 
+function isSectionMarker(
+  part: LumoStaticPart,
+): part is Extract<LumoStaticPart, { type: "subproblem" | "case" }> {
+  return part.type === "subproblem" || part.type === "case";
+}
+
 /**
- * Drop orphan / duplicate task markers so every subproblem has following content
- * and each task letter appears at most once (extra markers are merged away).
+ * Drop orphan markers and duplicate subproblem letters.
+ * Cases are kept separately (each branch); subproblem letters appear at most once.
  */
 export function repairStaticParts(
   parts: Array<LumoStaticPart>,
@@ -227,24 +248,27 @@ export function repairStaticParts(
 
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i]!;
-    if (part.type !== "subproblem") {
+    if (!isSectionMarker(part)) {
       out.push(part);
       continue;
     }
 
     const next = parts[i + 1];
-    if (next === undefined || next.type === "subproblem") {
+    if (next === undefined || isSectionMarker(next)) {
       continue;
     }
-    if (seenTaskLabels.has(part.label)) {
-      // Duplicate task letter — keep following content under the first marker.
-      continue;
+
+    if (part.type === "subproblem") {
+      if (seenTaskLabels.has(part.label)) {
+        continue;
+      }
+      seenTaskLabels.add(part.label);
     }
-    seenTaskLabels.add(part.label);
+
     out.push(part);
   }
 
-  while (out.length > 0 && out[out.length - 1]!.type === "subproblem") {
+  while (out.length > 0 && isSectionMarker(out[out.length - 1]!)) {
     out.pop();
   }
   return out;
@@ -266,7 +290,7 @@ export function normalizeProblemNumber(
 const LOSNING_SAKNAS_RE = /^lösning saknas\.?$/i;
 
 function isOnlyLosningSaknas(parts: Array<LumoStaticPart>): boolean {
-  const content = parts.filter((p) => p.type !== "subproblem");
+  const content = parts.filter((p) => !isSectionMarker(p));
   return (
     content.length > 0 &&
     content.every(
@@ -288,10 +312,11 @@ export function dropSpuriousLosningSaknas(
     if (part.type === "text" && LOSNING_SAKNAS_RE.test(part.content.trim())) {
       const prev = out[out.length - 1];
       const next = parts[i + 1];
-      const soleForTask =
-        prev?.type === "subproblem" &&
-        (next === undefined || next.type === "subproblem");
-      if (soleForTask) {
+      const soleForSection =
+        prev !== undefined &&
+        isSectionMarker(prev) &&
+        (next === undefined || isSectionMarker(next));
+      if (soleForSection) {
         out.push(part);
       }
       continue;
@@ -394,7 +419,7 @@ export function repairInlineTaskLatex(
 
     let j = i + 1;
     let hasLatex = false;
-    while (j < cleaned.length && cleaned[j]!.type !== "subproblem") {
+    while (j < cleaned.length && !isSectionMarker(cleaned[j]!)) {
       if (cleaned[j]!.type === "latex") {
         hasLatex = true;
         break;
@@ -482,10 +507,16 @@ export const lumoSubproblemPartValidator = v.object({
   label: v.string(),
 });
 
+export const lumoCasePartValidator = v.object({
+  type: v.literal("case"),
+  label: v.optional(v.string()),
+});
+
 export const lumoStaticPartValidator = v.union(
   lumoTextPartValidator,
   lumoLatexPartValidator,
   lumoSubproblemPartValidator,
+  lumoCasePartValidator,
 );
 
 export const lumoStaticDocumentValidator = v.object({
@@ -575,6 +606,7 @@ Tillåtna part-typer:
 - { "type": "solution", "problemLatex": "...", "steps": [{ "id", "title", "hint", "latex", "prompts": [{ "id", "answer" }], "solvedLatex" }] }
 - { "type": "quickReplies", "choices": [{ "id", "label" }] } — klickbara snabbval
 - { "type": "subproblem", "label": "a" } — deluppgift / skild task (inte värdenamn som Mgn)
+- { "type": "case", "label"?: "1" } — villkorsfall / else-gren i svar (inte samma som subproblem)
 
 Varje part: antingen bara svenska (text) eller bara matematik (latex). Växla gärna text/latex/text/latex. Aldrig \\\\text{svenska} inne i latex.
 

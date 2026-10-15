@@ -47,6 +47,12 @@ function PartView({
           Deluppgift {part.label}
         </p>
       )
+    case "case":
+      return (
+        <p className="text-sm font-medium text-muted-foreground">
+          Fall{part.label ? ` ${part.label}` : ""}
+        </p>
+      )
     default: {
       const _exhaustive: never = part
       return _exhaustive

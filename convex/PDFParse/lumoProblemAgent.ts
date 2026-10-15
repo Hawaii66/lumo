@@ -25,12 +25,14 @@ type=text:
 
 type=latex:
 - Endast matematik som LaTeX (utan $ eller $$).
-- Exempel: "a^{2}+b-c", "\\\\frac{1}{2}", "x\\\\neq 0", "a=2", "16".
-- Får INTE innehålla svenska ord ("där", "alla", "är", "lösningar", …).
+- Exempel: "a^{2}+b-c", "\\\\frac{1}{2}", "x\\\\neq 0", "a=2", "16", "P_{1}", "\\\\alpha_{1}".
+- Indexerade symboler MÅSTE vara latex: P_1 / P1 / "P _ { 1 }" → "P_{1}" (aldrig kvar som text "P_1").
+- Får INTE innehålla svenska ord ("där", "alla", "är", "lösningar", "och", …).
 - Använd INTE \\\\text{svenska} — lägg svenskan i en egen text-part bredvid.
 
 Interfoliering:
 - Splitta gärna en mening i många delar: text, latex, text, latex, …
+- Exempel: text "Undersök om punkterna", latex "P_{1}", text ",", latex "P_{2}", text "och", latex "P_{3}", text "alla ligger …"
 - Du avgör var gränsen går mellan prosa och matte. Var konsekvent och finfördelad hellre än att klumpa ihop.
 
 Returnera ETT JSON-objekt:
@@ -41,15 +43,16 @@ Returnera ETT JSON-objekt:
 }
 
 Tillåtna part-typer (INGA andra). Varje part MÅSTE ha type, content, display, label och caption:
-- text: { "type": "text", "content": "...", "display": "inline", "label": "", "caption": "" } — endast svenska/prosa
-- latex: { "type": "latex", "content": "...", "display": "inline"|"block", "label": "", "caption": "" } — BARA LaTeX, utan $ eller $$
-- subproblem: { "type": "subproblem", "content": "", "display": "inline", "label": "a", "caption": "" }
+- text: { "type": "text", "content": "...", "display": "inline", "label": "", "caption": "" }
+- latex: { "type": "latex", "content": "...", "display": "inline"|"block", "label": "", "caption": "" }
+- subproblem: { "type": "subproblem", "content": "", "display": "inline", "label": "a", "caption": "" } — skild UPPGIFT
+- case: { "type": "case", "content": "", "display": "inline", "label": "1", "caption": "" } — villkorsFALL / else-gren (ofta i svar)
 
 caption (valfritt värdenamn inom en task):
 - Använd på text/latex när källan namnger flera resultat under SAMMA uppgift, t.ex. caption "Mgn" / "summa".
 - Tom sträng när värdet saknar namn.
-- ALDRIG task-bokstav (a/b/c) i caption — de hör hemma i subproblem.label.
-- label används BARA på subproblem (task-bokstav). På text/latex ska label alltid vara "".
+- ALDRIG task-bokstav eller fallnummer i caption.
+- label: task-bokstav på subproblem; valfritt "1"/"2"/… (eller "") på case; annars "".
 
 OCR-städning (lätt):
 - Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer.
@@ -70,31 +73,32 @@ Skapa subproblem när:
 
 Skapa INTE subproblem när:
 - Ett enda uttryck med flera termer (+, −, ·, /, =) — EN latex-part.
-- Flera lösningar/värden till SAMMA task: "x=0 och x=-2", "x=1 eller x=2", "x=±…"
-  → flera latex-parts UNDER SAMMA subproblem (eller utan subproblem om bara en task). INGEN ny task-bokstav.
-- Namngivna delfält i svaret (Mgn, summa, medelpunkt, radie) — använd caption, inte ny subproblem.
-- Parenteser i matten: "(a-2b+3c)", "(a+b)^2" är latex, inte label "a".
-- Ordproblem / en narrativ fråga — ingen subproblem; "och"/komma listar fakta, inte tasks.
+- Flera lösningar/värden till SAMMA task: "x=0 och x=-2" → flera latex under samma subproblem/case.
+- Namngivna delfält (Mgn, summa) — caption, inte subproblem.
+- Parenteser i matten: "(a-2b+3c)" är latex, inte label "a".
+- Ordproblem / en narrativ fråga — ingen subproblem.
+- Fallanalys i SVARET (olika villkor → olika resultat) — använd type=case, INTE subproblem.
 - Osäkerhet — hellre INGEN subproblem än påhittade a/b/c.
 
-Viktigt: Splitta ALDRIG bara för att du ser orden "och", "eller", "respektive", "resp."
-De orden används både mellan tasks OCH mellan värden inom en task. Fråga dig:
-  "Är detta två olika uppgifter, eller flera svar/värden till samma uppgift?"
-  → Olika uppgifter: ny subproblem. Samma uppgift: fler text/latex (caption om namngivna).
-
-KRITISKT — subproblem får ALDRIG stå ensamma:
-Efter varje { "type": "subproblem", "label": "a" } MÅSTE följa minst en text- eller latex-part.
-FEL:  [subproblem a, subproblem b]
-RÄTT: [subproblem a, latex/text…, subproblem b, latex/text…]
+KRITISKT — subproblem och case får ALDRIG stå ensamma:
+Efter varje subproblem/case MÅSTE följa minst en text- eller latex-part.
 
 ════════════════════════════════════════
-FLERA SVAR UNDER EN TASK
+CASE = VILLKORSFALL / ELSE-GREN (inte task)
 ════════════════════════════════════════
-- Flera namngivna resultat: caption + latex/text
-  t.ex. Mgn=420, summa=2/15 → latex caption="Mgn" content="420", latex caption="summa" content="\\\\frac{2}{15}"
-- Flera onamngivna lösningar: flera latex utan caption
-  t.ex. x=0 och x=-2 → latex "x=0", latex "x=-2" (samma subproblem om det är task b)
-- Blanda inte in ord som "respektive"/"och" som egna text-parts mellan parallella task-svar — task-gränsen räcker.
+Använd type=case när SVARET (eller frågan) delar upp sig i alternativa fall beroende på parametrar
+(t.ex. "om a=2 och b=1/2 …; om a=2 och b≠1/2 …; annars …").
+
+- case ≠ subproblem. Frågan har ofta INGA (a)/(b) — då ska svaret heller inte få subproblem a/b/c.
+- Efter varje case: villkor + resultat som text/latex-parts.
+- label på case: valfritt "1","2",… eller "".
+- Flera värden inom SAMMA fall: flera latex under samma case (inte ny case).
+
+════════════════════════════════════════
+FLERA SVAR UNDER EN TASK ELLER ETT FALL
+════════════════════════════════════════
+- Namngivna resultat: caption + latex/text (Mgn, summa).
+- Flera onamngivna lösningar: flera latex utan ny subproblem/case.
 
 Regler:
 1. problemNumber = basnummer UTAN "P" och UTAN bokstav (t.ex. "1.1", inte "P 1.1" / "1.1a").
@@ -109,11 +113,11 @@ Regler:
      och då bara under den tasken — aldrig som ersättning för hela svaret.
 6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp.
 7. Använd ALDRIG fillBlank, solution eller quickReplies.
-8. Växla fritt text/latex/text/latex. Fallanalys: latex för villkor, text för "är lösningar" / "lösning saknas", latex för nästa villkor, …
+8. Växla fritt text/latex. Indexerad matte (P_{1}, α_{1}) alltid latex — aldrig inne i text.
 9. Behåll HELA frågetexten. Hitta inte på tasks från givna data i berättelser.
 10. Mid-mening tasks: "divideras med (a) x-1 (b) x+2 (c) x^2-x"
-    → text "divideras med", subproblem a, latex "x-1", subproblem b, latex "x+2", subproblem c, latex "x^{2}-x".
-    FEL: text "(a)" / "(b)" / "(c)" utan latex efter, eller tappa divisorerna.
+    → text "divideras med", subproblem a, latex "x-1", …
+11. Fallanalys i facit utan (a)/(b) i frågan → type=case per gren, ALDRIG subproblem a/b/c.
 
 Exempel 1 — explicit tasks (a)/(b):
 Rå fråga: "Förenkla (a) a^2+b-c där c=1-a+2b (b) 3x^2-2x+1-y där y=..."
@@ -150,23 +154,25 @@ Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3"
 → subproblem a + latex "x=1"; subproblem b + text "ingen lösning"; subproblem c + latex…
 FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.
 
-Exempel 9 — fallanalys (du interfolierar text och latex):
-Rått svar: "a = 2, b = 1/2 : alla x ≠ 1/2 är lösningar; …"
-→ latex "a=2, b=\\\\frac{1}{2}",
-   text "alla",
-   latex "x\\\\neq\\\\frac{1}{2}",
-   text "är lösningar;",
-   …
-FEL: en type=text med både svenska och \\\\frac.
-FEL: en type=latex med svenska orden "alla" / "är lösningar" (inte ens via \\\\text{…}).
+Exempel 9 — fallanalys med type=case (INTE subproblem):
+Frågan har INGA (a)/(b). Rått svar: "a=2, b=1/2 : alla x≠1/2 är lösningar; a=2, b≠1/2; lösning saknas; …"
+→ case label "1",
+   latex "a=2, b=\\\\frac{1}{2}", text "alla", latex "x\\\\neq\\\\frac{1}{2}", text "är lösningar;",
+   case label "2",
+   latex "a=2, b\\\\neq\\\\frac{1}{2}", text "lösning saknas;",
+   case label "3", …
+FEL: subproblem a/b/c för dessa grenar.
+FEL: svenska + TeX i samma part.
 
-Exempel 10 — divisor-tasks mid-mening:
-Rå fråga: "… polynomet P(x) divideras med (a) x-1 (b) x+2 (c) x^{2}-x."
-→ text "Bestäm resten då polynomet", latex "P(x)", text "divideras med",
-   subproblem a, latex "x-1",
-   subproblem b, latex "x+2",
-   subproblem c, latex "x^{2}-x"
-FEL: text "divideras med (a)", subproblem a, text "(b)", subproblem b, text "(c)", subproblem c — utan divisor-latex.`;
+Exempel 10 — indexerade punkter måste vara latex:
+Rå fråga: "Undersök om punkterna P _ { 1 } , P _ { 2 } och P _ { 3 } alla ligger …"
+→ text "Undersök om punkterna", latex "P_{1}", text ",", latex "P_{2}", text "och", latex "P_{3}", text "alla ligger …"
+FEL: en text-part "… punkterna P_1, P_2 och P_3 …"
+
+Exempel 11 — divisor-tasks mid-mening:
+Rå fråga: "… divideras med (a) x-1 (b) x+2 (c) x^{2}-x."
+→ text "divideras med", subproblem a, latex "x-1", subproblem b, latex "x+2", subproblem c, latex "x^{2}-x"
+FEL: text "(b)" utan divisor-latex.`;
 
 export const lumoProblemAgent = new Agent(components.agent, {
   name: "LumoProblemConverter",
@@ -201,22 +207,23 @@ export const convertProblemChunk = internalAction({
         schema: lumoParsedProblemAzureSchema,
         schemaName: "LumoParsedProblem",
         schemaDescription:
-          "Lumo-problem från OCR-chunk: behåll alltid facit; subproblem endast för skilda tasks; caption för Mgn/summa",
+          "Lumo-problem: text=svenska, latex=matte (P_{1} m.m.); subproblem=tasks; case=villkorsfall i svar; caption för Mgn/summa",
         prompt: `Konvertera denna OCR-chunk till Lumo-språket (ett steg: städa lätt + strukturera).
 
 Viktigt:
 - Om rått svar har innehåll: answer.parts MÅSTE spegla det. Skriv ALDRIG "Lösning saknas" som ersättning.
 - "Lösning saknas" endast när källan säger det för en specifik task.
-- Varje part: ANTINGEN bara svenska (text) ELLER bara matematik (latex). Blanda aldrig. Splitta gärna fint: text, latex, text, latex, …
-- Använd inte \\\\text{…} för svenska inne i latex — egen text-part i stället.
-- subproblem = skild UPPGIFT/task, aldrig bara för att orden "och"/"eller"/"respektive" förekommer.
-- Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
-- Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
-- Efter varje subproblem-label MÅSTE latex eller text komma direkt efter.
-- Mid-mening (a) expr (b) expr: varje expr → latex under sin task. Inga text-parts som bara är "(b)".
-- "(a-2b+3c)" / "(a+b)^2" är latex, INTE subproblem "a".
-- problemNumber utan "P" (t.ex. "1.1").
-- Behåll HELA frågan och ALLA ekvationer. Vid tveksamhet: ingen subproblem.
+- Varje part: ANTINGEN bara svenska (text) ELLER bara matematik (latex). Blanda aldrig.
+- Indexerad matte (P_{1}, α_{1}, …) alltid latex — aldrig "P_1" inne i text.
+- Använd inte \\\\text{…} för svenska inne i latex.
+- subproblem = skild UPPGIFT (a)/(b). case = villkorsfall/else i svar — INTE samma sak.
+- Om frågan saknar (a)/(b): använd INTE subproblem i svaret för fallgrenar — använd case.
+- Flera lösningar till samma task/fall → flera latex under samma subproblem/case.
+- Namngivna delfält (Mgn, summa) → caption, inte ny subproblem/case.
+- Efter varje subproblem/case MÅSTE latex eller text komma direkt efter.
+- Mid-mening (a) expr (b) expr: varje expr → latex under sin task.
+- "(a-2b+3c)" är latex, INTE subproblem "a".
+- problemNumber utan "P". Behåll HELA frågan. Vid tveksamhet: ingen subproblem.
 
 Problemnummer (förslag): ${suggestedNumber}
 
