@@ -306,21 +306,163 @@ export function stripProblemNumberPrefix(text: string): string {
   return text.replace(/^\s*P\s*\d+\.\d+\s*/i, "").trim();
 }
 
+/** Text that still contains TeX commands should be latex parts. */
+const TEXT_HAS_LATEX_RE = /\\[a-zA-Z]+|[\^_]\{|\\frac|\\neq|\\leq|\\geq|\\in|\\mathbb/;
+
+/** Bare leftover task markers the model left as text, e.g. "(b)" or "divideras med (a)". */
+const BARE_TASK_MARKER_RE =
+  /^(?:[,;.]?\s*)?(?:divideras med\s*)?\(?[a-d]\)?\.?$/i;
+const PUNCT_ONLY_RE = /^[.,;:]+$/;
+
+function tidyExtractedLatex(raw: string): string {
+  return raw
+    .replace(/−/g, "-")
+    .replace(/\s*\.\s*$/, "")
+    .replace(/\s*\^\s*\{\s*/g, "^{")
+    .replace(/\s*_\s*\{\s*/g, "_{")
+    .replace(/\s+\}/g, "}")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/ ([+\-*=])/g, "$1")
+    .replace(/([+\-*=]) /g, "$1");
+}
+
+/**
+ * Pull "(a) expr (b) expr …" pairs from raw OCR (used when the model
+ * emitted task labels but dropped the following math).
+ */
+export function extractInlineTaskMath(
+  rawText: string,
+): Map<string, string> {
+  const map = new Map<string, string>();
+  const re = /\(([a-z])\)\s*((?:(?!\([a-z]\)).)+)/gi;
+  for (const match of rawText.matchAll(re)) {
+    const label = match[1]!.toLowerCase();
+    const math = tidyExtractedLatex(match[2] ?? "");
+    if (math.length === 0) continue;
+    // Skip math-looking parentheticals that are not task labels (e.g. already handled).
+    if (!map.has(label)) {
+      map.set(label, math);
+    }
+  }
+  return map;
+}
+
+export function promoteMathHeavyText(
+  parts: Array<LumoStaticPart>,
+): Array<LumoStaticPart> {
+  return parts.map((part) => {
+    if (part.type !== "text" || !TEXT_HAS_LATEX_RE.test(part.content)) {
+      return part;
+    }
+    return part.caption !== undefined
+      ? {
+          type: "latex" as const,
+          content: part.content,
+          display: "inline" as const,
+          caption: part.caption,
+        }
+      : {
+          type: "latex" as const,
+          content: part.content,
+          display: "inline" as const,
+        };
+  });
+}
+
+function dropBareTaskMarkerText(
+  parts: Array<LumoStaticPart>,
+): Array<LumoStaticPart> {
+  const out: Array<LumoStaticPart> = [];
+  for (const part of parts) {
+    if (part.type !== "text") {
+      out.push(part);
+      continue;
+    }
+    const trimmed = part.content.trim();
+    if (PUNCT_ONLY_RE.test(trimmed)) {
+      continue;
+    }
+    const divideras = trimmed.match(/^divideras med\s*\(?[a-z]\)?\.?$/i);
+    if (divideras) {
+      out.push({ type: "text", content: "divideras med" });
+      continue;
+    }
+    if (BARE_TASK_MARKER_RE.test(trimmed)) {
+      continue;
+    }
+    out.push(part);
+  }
+  return out;
+}
+
+/**
+ * When mid-sentence tasks lost their math (1.25-style), reinject latex from raw OCR.
+ */
+export function repairInlineTaskLatex(
+  parts: Array<LumoStaticPart>,
+  rawText: string,
+): Array<LumoStaticPart> {
+  const cleaned = dropBareTaskMarkerText(parts);
+  const taskMath = extractInlineTaskMath(rawText);
+  if (taskMath.size === 0) {
+    return cleaned;
+  }
+
+  const out: Array<LumoStaticPart> = [];
+  for (let i = 0; i < cleaned.length; i++) {
+    const part = cleaned[i]!;
+    out.push(part);
+    if (part.type !== "subproblem") {
+      continue;
+    }
+
+    let j = i + 1;
+    let hasLatex = false;
+    while (j < cleaned.length && cleaned[j]!.type !== "subproblem") {
+      if (cleaned[j]!.type === "latex") {
+        hasLatex = true;
+        break;
+      }
+      j += 1;
+    }
+    if (hasLatex) {
+      continue;
+    }
+    const math = taskMath.get(part.label);
+    if (math !== undefined && math.length > 0) {
+      out.push({ type: "latex", content: math, display: "inline" });
+    }
+  }
+  return out;
+}
+
+function finalizeStaticParts(
+  parts: Array<LumoStaticPart>,
+  rawText: string,
+): Array<LumoStaticPart> {
+  return promoteMathHeavyText(
+    repairInlineTaskLatex(repairStaticParts(parts), rawText),
+  );
+}
+
 export function normalizeLumoParsedProblem(
   raw: LumoParsedProblemAzure,
   fallbackQuestionText: string,
   rawAnswerText = "",
 ): LumoParsedProblem {
-  const questionParts = repairStaticParts(
+  let questionParts = finalizeStaticParts(
     raw.question.parts
       .map(normalizeLumoStaticPart)
       .filter((p): p is LumoStaticPart => p !== null),
+    fallbackQuestionText,
   );
   let answerParts = dropSpuriousLosningSaknas(
-    repairStaticParts(
+    finalizeStaticParts(
       raw.answer.parts
         .map(normalizeLumoStaticPart)
         .filter((p): p is LumoStaticPart => p !== null),
+      rawAnswerText,
     ),
   );
 
@@ -330,7 +472,9 @@ export function normalizeLumoParsedProblem(
     (answerParts.length === 0 || isOnlyLosningSaknas(answerParts))
   ) {
     // Model dropped a real facit — keep the raw answer rather than "Lösning saknas".
-    answerParts = [{ type: "text", content: salvagedAnswer }];
+    answerParts = promoteMathHeavyText([
+      { type: "text", content: salvagedAnswer },
+    ]);
   }
 
   return {

@@ -89,10 +89,12 @@ Regler:
      och då bara under den tasken — aldrig som ersättning för hela svaret.
 6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp.
 7. Använd ALDRIG fillBlank, solution eller quickReplies.
-8. Tappa ALDRIG bort matematiska uttryck — varje ekvation/formel i råtexten MÅSTE bli latex.
+8. MATEMATIK MÅSTE vara type=latex — ALDRIG lägg \\\\frac, \\\\neq, \\\\in, ^{}, _{}, = mellan uttryck osv. i type=text.
+   Blandad fallanalys: växla text (prosa) och latex (villkor/uttryck), eller en latex-part per fall.
 9. Behåll HELA frågetexten. Hitta inte på tasks från givna data i berättelser.
-10. Mid-mening tasks: "divideras med (a) x-1 (b) x+2 (c) …" → subproblem a + latex "x-1", subproblem b + latex "x+2", …
-    Lägg ALDRIG kvar ", (b)" som text-part utan tillhörande latex.
+10. Mid-mening tasks: "divideras med (a) x-1 (b) x+2 (c) x^2-x"
+    → text "divideras med", subproblem a, latex "x-1", subproblem b, latex "x+2", subproblem c, latex "x^{2}-x".
+    FEL: text "(a)" / "(b)" / "(c)" utan latex efter, eller tappa divisorerna.
 
 Exempel 1 — explicit tasks (a)/(b):
 Rå fråga: "Förenkla (a) a^2+b-c där c=1-a+2b (b) 3x^2-2x+1-y där y=..."
@@ -126,7 +128,21 @@ En narrativ fråga → en text-part, inga subproblem.
 Exempel 8 — faktiskt facit (FÅR INTE bli "Lösning saknas"):
 Rått svar: "0" → latex "0"; "16" → latex/text "16"
 Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3" → tre tasks med riktigt innehåll
-FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.`;
+FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.
+
+Exempel 9 — fallanalys i svaret (matte i latex, prosa i text):
+Rått svar: "a = 2, b = 1/2 : alla x ≠ 1/2 är lösningar; a = 2, b ≠ 1/2; lösning saknas; …"
+→ t.ex. latex "a=2, b=\\\\frac{1}{2}", text "alla", latex "x\\\\neq\\\\frac{1}{2}", text "är lösningar;", …
+  ELLER en latex-part per fall som innehåller matten (med \\\\text{…} för korta svenska bitar).
+FEL: en enda type=text med "\\\\frac" / "\\\\neq" inbakat.
+
+Exempel 10 — divisor-tasks mid-mening:
+Rå fråga: "… polynomet P(x) divideras med (a) x-1 (b) x+2 (c) x^{2}-x."
+→ text "Bestäm resten då polynomet", latex "P(x)", text "divideras med",
+   subproblem a, latex "x-1",
+   subproblem b, latex "x+2",
+   subproblem c, latex "x^{2}-x"
+FEL: text "divideras med (a)", subproblem a, text "(b)", subproblem b, text "(c)", subproblem c — utan divisor-latex.`;
 
 export const lumoProblemAgent = new Agent(components.agent, {
   name: "LumoProblemConverter",
@@ -167,11 +183,12 @@ export const convertProblemChunk = internalAction({
 Viktigt:
 - Om rått svar har innehåll: answer.parts MÅSTE spegla det. Skriv ALDRIG "Lösning saknas" som ersättning.
 - "Lösning saknas" endast när källan säger det för en specifik task.
+- Matematik (\\\\frac, \\\\neq, ^{}, likheter, …) MÅSTE vara type=latex — aldrig inne i type=text.
 - subproblem = skild UPPGIFT/task, aldrig bara för att orden "och"/"eller"/"respektive" förekommer.
 - Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
 - Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
 - Efter varje subproblem-label MÅSTE latex eller text komma direkt efter.
-- Mid-mening (a)/(b)/(c) med följande matematik: varje uttryck blir latex under sin task.
+- Mid-mening (a) expr (b) expr: varje expr → latex under sin task. Inga text-parts som bara är "(b)".
 - "(a-2b+3c)" / "(a+b)^2" är latex, INTE subproblem "a".
 - problemNumber utan "P" (t.ex. "1.1").
 - Behåll HELA frågan och ALLA ekvationer. Vid tveksamhet: ingen subproblem.
