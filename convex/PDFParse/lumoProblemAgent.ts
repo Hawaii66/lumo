@@ -13,6 +13,16 @@ import { openrouter } from "../agents/openrouter";
 const LUMO_PROBLEM_INSTRUCTIONS = `Du konverterar ett rått matematikproblem (från PDF/OCR-chunk) till Lumo-språket i ETT steg.
 Chunkarna är redan uppdelade per problemnummer — hitta inte på text, men normalisera uppenbart OCR-skräp.
 
+════════════════════════════════════════
+HÅRD REGEL — SPRÅK vs MATEMATIK
+════════════════════════════════════════
+- ALL svensk prosa → type=text (instruktioner, "där", "för alla", "är lösningar", "lösning saknas", …)
+- ALL matematik → type=latex (uttryck, ekvationer, olikheter, tal, \\\\frac, \\\\neq, a=2, …)
+- Det är BRA och FÖRVÄNTAT att splitta en mening i många delar: text, latex, text, latex, …
+- BLANDA ALDRIG svenska och matte i samma part.
+- I latex: BARA LaTeX (inga svenska ord). Behöver du kort prosa inne i matte-läge, undvik det — lägg hellre en text-part bredvid.
+- I text: INGA TeX-kommandon (\\\\frac, \\\\neq, ^{}, …).
+
 Returnera ETT JSON-objekt:
 {
   "problemNumber": "1.1",
@@ -21,7 +31,7 @@ Returnera ETT JSON-objekt:
 }
 
 Tillåtna part-typer (INGA andra). Varje part MÅSTE ha type, content, display, label och caption:
-- text: { "type": "text", "content": "...", "display": "inline", "label": "", "caption": "" }
+- text: { "type": "text", "content": "...", "display": "inline", "label": "", "caption": "" } — endast svenska/prosa
 - latex: { "type": "latex", "content": "...", "display": "inline"|"block", "label": "", "caption": "" } — BARA LaTeX, utan $ eller $$
 - subproblem: { "type": "subproblem", "content": "", "display": "inline", "label": "a", "caption": "" }
 
@@ -89,8 +99,7 @@ Regler:
      och då bara under den tasken — aldrig som ersättning för hela svaret.
 6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp.
 7. Använd ALDRIG fillBlank, solution eller quickReplies.
-8. MATEMATIK MÅSTE vara type=latex — ALDRIG lägg \\\\frac, \\\\neq, \\\\in, ^{}, _{}, = mellan uttryck osv. i type=text.
-   Blandad fallanalys: växla text (prosa) och latex (villkor/uttryck), eller en latex-part per fall.
+8. Växla fritt text/latex/text/latex. Fallanalys: latex för villkor, text för "är lösningar" / "lösning saknas", latex för nästa villkor, …
 9. Behåll HELA frågetexten. Hitta inte på tasks från givna data i berättelser.
 10. Mid-mening tasks: "divideras med (a) x-1 (b) x+2 (c) x^2-x"
     → text "divideras med", subproblem a, latex "x-1", subproblem b, latex "x+2", subproblem c, latex "x^{2}-x".
@@ -130,11 +139,16 @@ Rått svar: "0" → latex "0"; "16" → latex/text "16"
 Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3" → tre tasks med riktigt innehåll
 FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.
 
-Exempel 9 — fallanalys i svaret (matte i latex, prosa i text):
+Exempel 9 — fallanalys (interfoliera text och latex):
 Rått svar: "a = 2, b = 1/2 : alla x ≠ 1/2 är lösningar; a = 2, b ≠ 1/2; lösning saknas; …"
-→ t.ex. latex "a=2, b=\\\\frac{1}{2}", text "alla", latex "x\\\\neq\\\\frac{1}{2}", text "är lösningar;", …
-  ELLER en latex-part per fall som innehåller matten (med \\\\text{…} för korta svenska bitar).
-FEL: en enda type=text med "\\\\frac" / "\\\\neq" inbakat.
+→ latex "a=2, b=\\\\frac{1}{2}",
+   text "alla",
+   latex "x\\\\neq\\\\frac{1}{2}",
+   text "är lösningar;",
+   latex "a=2, b\\\\neq\\\\frac{1}{2}",
+   text "lösning saknas;",
+   …
+FEL: en type=text med hela strängen (svenska + \\\\frac). FEL: en type=latex med svenska orden "alla"/"är lösningar".
 
 Exempel 10 — divisor-tasks mid-mening:
 Rå fråga: "… polynomet P(x) divideras med (a) x-1 (b) x+2 (c) x^{2}-x."
@@ -183,7 +197,7 @@ export const convertProblemChunk = internalAction({
 Viktigt:
 - Om rått svar har innehåll: answer.parts MÅSTE spegla det. Skriv ALDRIG "Lösning saknas" som ersättning.
 - "Lösning saknas" endast när källan säger det för en specifik task.
-- Matematik (\\\\frac, \\\\neq, ^{}, likheter, …) MÅSTE vara type=latex — aldrig inne i type=text.
+- HÅRD REGEL: svensk prosa → text; matematik → latex; splitta gärna i många text/latex/text/latex-delar. Blanda aldrig i samma part.
 - subproblem = skild UPPGIFT/task, aldrig bara för att orden "och"/"eller"/"respektive" förekommer.
 - Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
 - Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
