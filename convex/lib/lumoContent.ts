@@ -263,20 +263,75 @@ export function normalizeProblemNumber(
   return trimmed.length > 0 ? trimmed : fallback.trim();
 }
 
+const LOSNING_SAKNAS_RE = /^lösning saknas\.?$/i;
+
+function isOnlyLosningSaknas(parts: Array<LumoStaticPart>): boolean {
+  const content = parts.filter((p) => p.type !== "subproblem");
+  return (
+    content.length > 0 &&
+    content.every(
+      (p) => p.type === "text" && LOSNING_SAKNAS_RE.test(p.content.trim()),
+    )
+  );
+}
+
+/**
+ * Keep "Lösning saknas" only as the sole content of a task (source said so).
+ * Drop it when the model invented it alongside real latex/text.
+ */
+export function dropSpuriousLosningSaknas(
+  parts: Array<LumoStaticPart>,
+): Array<LumoStaticPart> {
+  const out: Array<LumoStaticPart> = [];
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]!;
+    if (part.type === "text" && LOSNING_SAKNAS_RE.test(part.content.trim())) {
+      const prev = out[out.length - 1];
+      const next = parts[i + 1];
+      const soleForTask =
+        prev?.type === "subproblem" &&
+        (next === undefined || next.type === "subproblem");
+      if (soleForTask) {
+        out.push(part);
+      }
+      continue;
+    }
+    out.push(part);
+  }
+  return out;
+}
+
+/** Strip leading "P 1.2" / "P1.2" from raw answer text for salvage fallback. */
+export function stripProblemNumberPrefix(text: string): string {
+  return text.replace(/^\s*P\s*\d+\.\d+\s*/i, "").trim();
+}
+
 export function normalizeLumoParsedProblem(
   raw: LumoParsedProblemAzure,
   fallbackQuestionText: string,
+  rawAnswerText = "",
 ): LumoParsedProblem {
   const questionParts = repairStaticParts(
     raw.question.parts
       .map(normalizeLumoStaticPart)
       .filter((p): p is LumoStaticPart => p !== null),
   );
-  const answerParts = repairStaticParts(
-    raw.answer.parts
-      .map(normalizeLumoStaticPart)
-      .filter((p): p is LumoStaticPart => p !== null),
+  let answerParts = dropSpuriousLosningSaknas(
+    repairStaticParts(
+      raw.answer.parts
+        .map(normalizeLumoStaticPart)
+        .filter((p): p is LumoStaticPart => p !== null),
+    ),
   );
+
+  const salvagedAnswer = stripProblemNumberPrefix(rawAnswerText);
+  if (
+    salvagedAnswer.length > 0 &&
+    (answerParts.length === 0 || isOnlyLosningSaknas(answerParts))
+  ) {
+    // Model dropped a real facit — keep the raw answer rather than "Lösning saknas".
+    answerParts = [{ type: "text", content: salvagedAnswer }];
+  }
 
   return {
     problemNumber: normalizeProblemNumber(raw.problemNumber, fallbackQuestionText),

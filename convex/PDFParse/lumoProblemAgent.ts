@@ -77,7 +77,12 @@ Regler:
 2. Gemensam ingress som text FÖRE första subproblem; upprepa den inte per task.
 3. question och answer ska ha samma task-labels i samma ordning; varje label måste ha innehåll efter sig.
 4. En enda task: ingen subproblem-part.
-5. Tom answer.parts endast om svar saknas i källan. Tom del i facit → text "Lösning saknas" under den tasken (inte tom subproblem).
+5. SVAR — tappa ALDRIG bort facit:
+   - Om --- RÅTT SVAR --- har innehåll: konvertera DET till answer.parts (latex/text). Hitta ALDRIG på "Lösning saknas".
+   - Korta svar som "0", "16", "Ja", "Nej" är giltiga — gör dem till latex eller text.
+   - Tom answer.parts ENDAST när rått svar är tomt / "(inget svar i källan)".
+   - Texten "Lösning saknas" ENDAST om källan själv säger det för en viss task (t.ex. "(c) Lösning saknas"),
+     och då bara under den tasken — aldrig som ersättning för hela svaret.
 6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp (t.ex. "Ar ¨"→"Är", "där" ur \\\\mathrm{…}, "3 2"→"3/2" när det är bråk).
 7. Använd ALDRIG fillBlank, solution eller quickReplies.
 8. Tappa ALDRIG bort matematiska uttryck — varje ekvation/formel i råtexten MÅSTE bli latex.
@@ -116,7 +121,14 @@ Exempel 6 — parentes i matten ≠ task:
 "Utveckla (a-2b+3c)^2 …" → latex "(a-2b+3c)^{2}", INGEN subproblem "a".
 
 Exempel 7 — ordproblem:
-En narrativ fråga med en slutfråga → en text-part, inga subproblem.`;
+En narrativ fråga med en slutfråga → en text-part, inga subproblem.
+
+Exempel 8 — faktiskt facit (FÅR INTE bli "Lösning saknas"):
+Rått svar: "P 1.2 3/26 respektive 96/13" → subproblem a + latex, subproblem b + latex
+Rått svar: "0" → latex "0"
+Rått svar: "16" → latex "16" eller text "16"
+Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3" → tre tasks med riktigt innehåll
+FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.`;
 
 export const lumoProblemAgent = new Agent(components.agent, {
   name: "LumoProblemConverter",
@@ -144,10 +156,12 @@ export const convertRawProblem = internalAction({
         schema: lumoParsedProblemAzureSchema,
         schemaName: "LumoParsedProblem",
         schemaDescription:
-          "Lumo-problem: subproblem endast för skilda tasks; flera svar under en task via flera latex/text med valfri caption (Mgn, summa); splitta aldrig på ord som och/respektive",
+          "Lumo-problem: behåll alltid facit från rått svar; subproblem endast för skilda tasks; caption för Mgn/summa; hitta aldrig på Lösning saknas",
         prompt: `Konvertera detta råa problem till Lumo-språket.
 
 Viktigt:
+- Om rått svar har innehåll: answer.parts MÅSTE spegla det. Skriv ALDRIG "Lösning saknas" som ersättning.
+- "Lösning saknas" endast när källan säger det för en specifik task.
 - subproblem = skild UPPGIFT/task, aldrig bara för att orden "och"/"eller"/"respektive" förekommer.
 - Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
 - Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
@@ -172,7 +186,11 @@ ${rawAnswer.length > 0 ? rawAnswer : "(inget svar i källan)"}
       },
     );
 
-    const normalized = normalizeLumoParsedProblem(result.object, rawText);
+    const normalized = normalizeLumoParsedProblem(
+      result.object,
+      rawText,
+      rawAnswer,
+    );
     return {
       ...normalized,
       problemNumber:

@@ -32,7 +32,12 @@ export const problemPageAgent = new Agent(components.agent, {
 Returnera:
 - rawProblemNumber: problemnumret utan prefix "P" om möjligt (t.ex. "1.1")
 - rawText: hela problemtexten rå, med LaTeX/ekvationer bevarade; inkludera inte svaret
-- rawAnswer: tillhörande svar rått; tom sträng om saknas
+- rawAnswer: hela svarstexten rått inklusive matematik; tom sträng ENDAST om SVARSTEXT-sektionen är tom
+
+KRITISKT för rawAnswer:
+- Kopiera facit från SVARSTEXT så fullständigt som möjligt (även korta svar som "0", "16", "Ja").
+- Lämna INTE rawAnswer tomt om SVARSTEXT har innehåll.
+- Skriv inte "Lösning saknas" om inte källan säger det.
 
 Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer i ordning.
 Slå ihop radbrytningar som hör till samma problem, men hitta inte på text.
@@ -64,6 +69,8 @@ export const parseProblemChunk = internalAction({
 
 Förväntat problemnummer: ${args.problemNumber}
 
+Om SVARSTEXT har innehåll måste rawAnswer innehålla det (inte tomt, inte ersatt med "Lösning saknas").
+
 --- PROBLEMTEXT ---
 ${args.problemText}
 
@@ -78,13 +85,26 @@ ${args.answerText.length > 0 ? args.answerText : "(inget svar i källan)"}
     );
 
     const object = result.object;
+    const rawAnswer = object.rawAnswer.trim();
+    const chunkAnswer = args.answerText.trim();
+    // Prefer model extraction, but never drop a non-empty chunk facit.
+    const resolvedAnswer =
+      rawAnswer.length > 0
+        ? rawAnswer
+        : chunkAnswer.length > 0
+          ? chunkAnswer
+          : "";
+
     return {
       rawProblemNumber:
         object.rawProblemNumber.trim().length > 0
           ? object.rawProblemNumber.trim()
           : args.problemNumber,
-      rawText: object.rawText.trim(),
-      rawAnswer: object.rawAnswer.trim(),
+      rawText:
+        object.rawText.trim().length > 0
+          ? object.rawText.trim()
+          : args.problemText.trim(),
+      rawAnswer: resolvedAnswer,
     };
   },
 });
