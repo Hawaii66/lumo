@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
+import type { Id } from "../_generated/dataModel";
 import { action } from "../_generated/server";
 import {
   lumoParsedProblemValidator,
@@ -11,11 +12,19 @@ import {
   type ProblemChunk,
 } from "./middleJson";
 import { fetchMineruMiddleJson } from "./mineruClient";
+import { middleJsonSchema, type MiddleJson } from "./mineruSchema";
 
 /** Max concurrent per-problem agent calls. */
 const AGENT_CONCURRENCY = 5;
 
 const lumoProblemListValidator = v.array(lumoParsedProblemValidator);
+
+async function sha256Hex(data: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 async function mapPool<T, R>(
   items: T[],
@@ -44,10 +53,11 @@ async function mapPool<T, R>(
 /**
  * Parse a math PDF from Convex storage into Lumo-language problems.
  *
- * 1. POST the PDF to MinerU (middle_json)
- * 2. Split Problem / Svar sections into per-P-number chunks
- * 3. Run the raw problem agent on each chunk
- * 4. Convert each raw problem to Lumo (text + latex + subproblem only)
+ * 1. Hash PDF bytes; reuse cached MinerU middle_json when present
+ * 2. Otherwise POST the PDF to MinerU and cache the validated middle_json
+ * 3. Split Problem / Svar sections into per-P-number chunks
+ * 4. Run the raw problem agent on each chunk
+ * 5. Convert each raw problem to Lumo (text + latex + subproblem only)
  */
 export const parseProblems = action({
   args: {
@@ -61,7 +71,47 @@ export const parseProblems = action({
       throw new Error("PDF-filen hittades inte i lagringen");
     }
 
-    const middleJson = await fetchMineruMiddleJson(blob);
+    const contentHash = await sha256Hex(await blob.arrayBuffer());
+
+    const cached: {
+      _id: Id<"mineruCache">;
+      middleJsonStorageId: Id<"_storage">;
+    } | null = await ctx.runQuery(
+      internal.PDFParse.mineruCache.getByContentHash,
+      { contentHash },
+    );
+
+    let middleJson: MiddleJson | null = null;
+
+    if (cached !== null) {
+      const cachedBlob = await ctx.storage.get(cached.middleJsonStorageId);
+      if (cachedBlob !== null) {
+        try {
+          const parsed = middleJsonSchema.safeParse(
+            JSON.parse(await cachedBlob.text()),
+          );
+          if (parsed.success) {
+            middleJson = parsed.data;
+          }
+        } catch {
+          // Corrupt cache entry — fall through to MinerU.
+        }
+      }
+    }
+
+    if (middleJson === null) {
+      middleJson = await fetchMineruMiddleJson(blob);
+      const middleJsonStorageId = await ctx.storage.store(
+        new Blob([JSON.stringify(middleJson)], {
+          type: "application/json",
+        }),
+      );
+      await ctx.runMutation(internal.PDFParse.mineruCache.save, {
+        contentHash,
+        middleJsonStorageId,
+      });
+    }
+
     const { problemLines, answerLines } = flattenMiddleJson(middleJson);
     const chunks: ProblemChunk[] = splitIntoProblemChunks(
       problemLines,

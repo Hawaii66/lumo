@@ -10,6 +10,7 @@
 
 import type * as PDFParse_lumoProblemAgent from "../PDFParse/lumoProblemAgent.js";
 import type * as PDFParse_middleJson from "../PDFParse/middleJson.js";
+import type * as PDFParse_mineruCache from "../PDFParse/mineruCache.js";
 import type * as PDFParse_mineruClient from "../PDFParse/mineruClient.js";
 import type * as PDFParse_mineruSchema from "../PDFParse/mineruSchema.js";
 import type * as PDFParse_pdfParse from "../PDFParse/pdfParse.js";
@@ -39,6 +40,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "PDFParse/lumoProblemAgent": typeof PDFParse_lumoProblemAgent;
   "PDFParse/middleJson": typeof PDFParse_middleJson;
+  "PDFParse/mineruCache": typeof PDFParse_mineruCache;
   "PDFParse/mineruClient": typeof PDFParse_mineruClient;
   "PDFParse/mineruSchema": typeof PDFParse_mineruSchema;
   "PDFParse/pdfParse": typeof PDFParse_pdfParse;
