@@ -1,23 +1,4 @@
-/** Helpers for flattening MinerU middle_json and splitting into per-problem chunks. */
-
-type MiddleContentPart = {
-  type?: string;
-  content?: string | MiddleContentPart[];
-};
-
-type MiddleBlock = {
-  type?: string;
-  content?: string | MiddleContentPart[];
-};
-
-type MiddlePage = {
-  page_idx?: number;
-  blocks?: MiddleBlock[];
-};
-
-type MiddleJson = {
-  pages?: MiddlePage[];
-};
+import type { MiddleBlock, MiddleContentPart, MiddleJson } from "./mineruSchema";
 
 export type ProblemChunk = {
   problemNumber: string;
@@ -58,20 +39,16 @@ function blockToText(block: MiddleBlock): string {
 /**
  * Flatten middle_json pages into ordered plain-text lines, tagged by section.
  */
-export function flattenMiddleJson(middleJson: unknown): {
+export function flattenMiddleJson(middleJson: MiddleJson): {
   problemLines: string[];
   answerLines: string[];
 } {
-  const doc = middleJson as MiddleJson;
-  const pages = Array.isArray(doc.pages) ? doc.pages : [];
-
   const problemLines: string[] = [];
   const answerLines: string[] = [];
   let section: "problem" | "answer" | "unknown" = "unknown";
 
-  for (const page of pages) {
-    const blocks = Array.isArray(page.blocks) ? page.blocks : [];
-    for (const block of blocks) {
+  for (const page of middleJson.pages) {
+    for (const block of page.blocks) {
       const text = blockToText(block).replace(/\s+/g, " ").trim();
       if (text.length === 0) {
         continue;
@@ -166,35 +143,4 @@ export function splitIntoProblemChunks(
     problemText: problems.get(problemNumber) ?? "",
     answerText: answers.get(problemNumber) ?? "",
   }));
-}
-
-export function extractMiddleJsonFromParseResponse(
-  response: unknown,
-): unknown {
-  if (response === null || typeof response !== "object") {
-    throw new Error("MinerU-svaret är inte ett objekt");
-  }
-
-  const root = response as Record<string, unknown>;
-  const files = root.files;
-  if (!Array.isArray(files) || files.length === 0) {
-    throw new Error("MinerU-svaret saknar files");
-  }
-
-  const file = files[0] as Record<string, unknown>;
-  if (file.error !== null && file.error !== undefined) {
-    throw new Error(`MinerU-filfel: ${JSON.stringify(file.error)}`);
-  }
-
-  const content = file.content;
-  if (content !== null && typeof content === "object") {
-    const middle = (content as Record<string, unknown>).middle_json;
-    if (middle !== undefined && middle !== null) {
-      return middle;
-    }
-  }
-
-  throw new Error(
-    "MinerU-svaret saknar content.middle_json (kräver response_format=json)",
-  );
 }

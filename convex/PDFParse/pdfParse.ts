@@ -2,11 +2,16 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { action } from "../_generated/server";
 import {
-  extractMiddleJsonFromParseResponse,
   flattenMiddleJson,
   splitIntoProblemChunks,
   type ProblemChunk,
 } from "./middleJson";
+import {
+  extractMiddleJson,
+  parseMineruCompletedResponse,
+  parseMineruJobStatus,
+  type MineruJobStatus,
+} from "./mineruSchema";
 import { parsedProblemValidator } from "./problemPageAgent";
 
 const MINERU_PARSE_URL =
@@ -37,10 +42,8 @@ function resolveMinerUUrl(pathOrUrl: string): string {
   return `${MINERU_BASE_URL}/${pathOrUrl}`;
 }
 
-async function waitForMinerUResult(
-  initial: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  let current = initial;
+async function waitForMinerUResult(initial: unknown): Promise<unknown> {
+  let current: MineruJobStatus = parseMineruJobStatus(initial);
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
     const status = current.status;
     if (status === "completed") {
@@ -50,16 +53,11 @@ async function waitForMinerUResult(
       throw new Error(`MinerU-jobb misslyckades: ${JSON.stringify(status)}`);
     }
 
-    const statusUrl =
-      typeof current.status_url === "string"
-        ? current.status_url
-        : typeof current.result_url === "string"
-          ? current.result_url
-          : null;
+    const statusUrl = current.status_url ?? current.result_url ?? null;
 
     if (statusUrl === null) {
-      // Inline completed payload without explicit status.
-      if (Array.isArray(current.files)) {
+      // Inline payload without explicit status — try completed schema next.
+      if (Array.isArray(current.files) && current.files.length > 0) {
         return current;
       }
       throw new Error("MinerU-svar saknar status_url och completed status");
@@ -72,7 +70,7 @@ async function waitForMinerUResult(
         `MinerU status-poll misslyckades: ${res.status} ${await res.text()}`,
       );
     }
-    current = (await res.json()) as Record<string, unknown>;
+    current = parseMineruJobStatus(await res.json());
   }
   throw new Error("MinerU-jobb timeout");
 }
@@ -134,9 +132,9 @@ export const parseProblems = action({
       );
     }
 
-    const rawJson = (await parseResponse.json()) as Record<string, unknown>;
-    const completed = await waitForMinerUResult(rawJson);
-    const middleJson = extractMiddleJsonFromParseResponse(completed);
+    const completed = await waitForMinerUResult(await parseResponse.json());
+    const validated = parseMineruCompletedResponse(completed);
+    const middleJson = extractMiddleJson(validated);
     const { problemLines, answerLines } = flattenMiddleJson(middleJson);
     const chunks: ProblemChunk[] = splitIntoProblemChunks(
       problemLines,
