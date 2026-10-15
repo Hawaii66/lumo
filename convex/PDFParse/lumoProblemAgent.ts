@@ -9,9 +9,9 @@ import {
   normalizeProblemNumber,
 } from "../lib/lumoContent";
 import { openrouter } from "../agents/openrouter";
-import { parsedProblemValidator } from "./problemPageAgent";
 
-const LUMO_PROBLEM_INSTRUCTIONS = `Du konverterar ett rått matematikproblem (från PDF/OCR) till Lumo-språket.
+const LUMO_PROBLEM_INSTRUCTIONS = `Du konverterar ett rått matematikproblem (från PDF/OCR-chunk) till Lumo-språket i ETT steg.
+Chunkarna är redan uppdelade per problemnummer — hitta inte på text, men normalisera uppenbart OCR-skräp.
 
 Returnera ETT JSON-objekt:
 {
@@ -30,6 +30,11 @@ caption (valfritt värdenamn inom en task):
 - Tom sträng när värdet saknar namn.
 - ALDRIG task-bokstav (a/b/c) i caption — de hör hemma i subproblem.label.
 - label används BARA på subproblem (task-bokstav). På text/latex ska label alltid vara "".
+
+OCR-städning (lätt):
+- Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer.
+- Rätta bara uppenbart skräp i löptext (t.ex. "Ar ¨"→"Är", "där" ur \\\\mathrm{…}).
+- Ändra inte matematiken. Översätt inte.
 
 ════════════════════════════════════════
 SUBPROBLEM = SKILD UPPGIFT / TASK
@@ -70,7 +75,6 @@ FLERA SVAR UNDER EN TASK
 - Flera onamngivna lösningar: flera latex utan caption
   t.ex. x=0 och x=-2 → latex "x=0", latex "x=-2" (samma subproblem om det är task b)
 - Blanda inte in ord som "respektive"/"och" som egna text-parts mellan parallella task-svar — task-gränsen räcker.
-  Mellan värden inom samma task behövs ingen sammanbindande text (caption eller bara flera latex).
 
 Regler:
 1. problemNumber = basnummer UTAN "P" och UTAN bokstav (t.ex. "1.1", inte "P 1.1" / "1.1a").
@@ -83,7 +87,7 @@ Regler:
    - Tom answer.parts ENDAST när rått svar är tomt / "(inget svar i källan)".
    - Texten "Lösning saknas" ENDAST om källan själv säger det för en viss task (t.ex. "(c) Lösning saknas"),
      och då bara under den tasken — aldrig som ersättning för hela svaret.
-6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp (t.ex. "Ar ¨"→"Är", "där" ur \\\\mathrm{…}, "3 2"→"3/2" när det är bråk).
+6. Rätta inte matematiken. Behåll originalspråk. Normalisera uppenbart OCR-skräp.
 7. Använd ALDRIG fillBlank, solution eller quickReplies.
 8. Tappa ALDRIG bort matematiska uttryck — varje ekvation/formel i råtexten MÅSTE bli latex.
 9. Behåll HELA frågetexten. Hitta inte på tasks från givna data i berättelser.
@@ -99,20 +103,16 @@ Rått svar: "(a) a^2+a-b-1 (b) 4x^2-7x+6"
 Exempel 2 — parallella tasks (betydelse, inte ordet "och"):
 Rå fråga: "Skriv bråken X och Y i enklast möjliga form."
 Rått svar: "X' respektive Y'"
-→ två tasks a=X, b=Y (samma instruktion, två uttryck att förenkla var för sig)
-→ answer: subproblem a + latex X', subproblem b + latex Y' (utan ordet respektive)
+→ två tasks a=X, b=Y
+→ answer: subproblem a + latex X', subproblem b + latex Y'
 
 Exempel 3 — FLERA SVAR, EN task (INTE ny subproblem):
 Rått svar: "(b) x = 0 och x = -2"
 → subproblem b, latex "x=0", latex "x=-2"
-FEL: subproblem b, latex "x=0", subproblem b, latex "x=-2"
 
 Exempel 4 — namngivna resultat med caption:
 Rått svar: "(a) Mgn = 420 summa = 2/15"
-→ subproblem a,
-   latex caption="Mgn" content="420",
-   latex caption="summa" content="\\\\frac{2}{15}"
-FEL: att skapa subproblem för "Mgn" / "summa", eller bara texten "summa" utan caption-fältet.
+→ subproblem a, latex caption="Mgn" "420", latex caption="summa" "\\\\frac{2}{15}"
 
 Exempel 5 — ETT uttryck (INTE tasks):
 "Skriv uttrycket -1/(x-2y)+… på enkel form" → text + EN latex + text. Inga subproblem.
@@ -121,12 +121,10 @@ Exempel 6 — parentes i matten ≠ task:
 "Utveckla (a-2b+3c)^2 …" → latex "(a-2b+3c)^{2}", INGEN subproblem "a".
 
 Exempel 7 — ordproblem:
-En narrativ fråga med en slutfråga → en text-part, inga subproblem.
+En narrativ fråga → en text-part, inga subproblem.
 
 Exempel 8 — faktiskt facit (FÅR INTE bli "Lösning saknas"):
-Rått svar: "P 1.2 3/26 respektive 96/13" → subproblem a + latex, subproblem b + latex
-Rått svar: "0" → latex "0"
-Rått svar: "16" → latex "16" eller text "16"
+Rått svar: "0" → latex "0"; "16" → latex/text "16"
 Rått svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3" → tre tasks med riktigt innehåll
 FEL: answer.parts = [text "Lösning saknas"] när rått svar har matematik/text.`;
 
@@ -137,16 +135,23 @@ export const lumoProblemAgent = new Agent(components.agent, {
 });
 
 /**
- * Convert one raw parsed problem into Lumo-language question/answer documents.
+ * Convert one pre-split problem+answer chunk into a Lumo-language problem.
  */
-export const convertRawProblem = internalAction({
+export const convertProblemChunk = internalAction({
   args: {
     userId: v.id("users"),
-    raw: parsedProblemValidator,
+    problemNumber: v.string(),
+    problemText: v.string(),
+    answerText: v.string(),
   },
   returns: lumoParsedProblemValidator,
   handler: async (ctx, args) => {
-    const { rawProblemNumber, rawText, rawAnswer } = args.raw;
+    const problemText = args.problemText.trim();
+    const answerText = args.answerText.trim();
+    const suggestedNumber = normalizeProblemNumber(
+      args.problemNumber,
+      args.problemNumber,
+    );
 
     const result = await lumoProblemAgent.generateObject(
       ctx,
@@ -156,8 +161,8 @@ export const convertRawProblem = internalAction({
         schema: lumoParsedProblemAzureSchema,
         schemaName: "LumoParsedProblem",
         schemaDescription:
-          "Lumo-problem: behåll alltid facit från rått svar; subproblem endast för skilda tasks; caption för Mgn/summa; hitta aldrig på Lösning saknas",
-        prompt: `Konvertera detta råa problem till Lumo-språket.
+          "Lumo-problem från OCR-chunk: behåll alltid facit; subproblem endast för skilda tasks; caption för Mgn/summa",
+        prompt: `Konvertera denna OCR-chunk till Lumo-språket (ett steg: städa lätt + strukturera).
 
 Viktigt:
 - Om rått svar har innehåll: answer.parts MÅSTE spegla det. Skriv ALDRIG "Lösning saknas" som ersättning.
@@ -166,18 +171,18 @@ Viktigt:
 - Flera lösningar till samma task (x=0 och x=-2) → flera latex under SAMMA subproblem.
 - Namngivna delfält (Mgn, summa, …) → caption på latex/text, inte ny subproblem.
 - Efter varje subproblem-label MÅSTE latex eller text komma direkt efter.
-- Mid-mening (a)/(b)/(c) med följande matematik: varje uttryck blir latex under sin task — tappa inte bort dem.
+- Mid-mening (a)/(b)/(c) med följande matematik: varje uttryck blir latex under sin task.
 - "(a-2b+3c)" / "(a+b)^2" är latex, INTE subproblem "a".
 - problemNumber utan "P" (t.ex. "1.1").
 - Behåll HELA frågan och ALLA ekvationer. Vid tveksamhet: ingen subproblem.
 
-Problemnummer (förslag): ${rawProblemNumber}
+Problemnummer (förslag): ${suggestedNumber}
 
 --- RÅ FRÅGA ---
-${rawText}
+${problemText}
 
 --- RÅTT SVAR (kan vara tomt) ---
-${rawAnswer.length > 0 ? rawAnswer : "(inget svar i källan)"}
+${answerText.length > 0 ? answerText : "(inget svar i källan)"}
 `,
       },
       {
@@ -188,15 +193,15 @@ ${rawAnswer.length > 0 ? rawAnswer : "(inget svar i källan)"}
 
     const normalized = normalizeLumoParsedProblem(
       result.object,
-      rawText,
-      rawAnswer,
+      problemText,
+      answerText,
     );
     return {
       ...normalized,
       problemNumber:
         normalized.problemNumber.length > 0
           ? normalized.problemNumber
-          : normalizeProblemNumber(rawProblemNumber, rawProblemNumber),
+          : suggestedNumber,
     };
   },
 });

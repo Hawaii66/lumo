@@ -56,8 +56,7 @@ async function mapPool<T, R>(
  * 1. Hash PDF bytes; reuse cached MinerU middle_json when present
  * 2. Otherwise POST the PDF to MinerU and cache the validated middle_json
  * 3. Split Problem / Svar sections into per-P-number chunks
- * 4. Run the raw problem agent on each chunk
- * 5. Convert each raw problem to Lumo (text + latex + subproblem; optional captions)
+ * 4. Convert each chunk to Lumo with one agent (text + latex + subproblem; optional captions)
  */
 export const parseProblems = action({
   args: {
@@ -127,16 +126,12 @@ export const parseProblems = action({
       return [];
     }
 
-    const rawProblems = await mapPool(
+    return await mapPool(
       chunks,
       AGENT_CONCURRENCY,
-      async (chunk) => {
-        const parsed: {
-          rawProblemNumber: string;
-          rawText: string;
-          rawAnswer: string;
-        } = await ctx.runAction(
-          internal.PDFParse.problemPageAgent.parseProblemChunk,
+      async (chunk): Promise<LumoParsedProblem> => {
+        return await ctx.runAction(
+          internal.PDFParse.lumoProblemAgent.convertProblemChunk,
           {
             userId: args.userId,
             problemNumber: chunk.problemNumber,
@@ -144,25 +139,7 @@ export const parseProblems = action({
             answerText: chunk.answerText,
           },
         );
-        return parsed;
       },
     );
-
-    const problems: LumoParsedProblem[] = await mapPool(
-      rawProblems,
-      AGENT_CONCURRENCY,
-      async (raw): Promise<LumoParsedProblem> => {
-        const converted: LumoParsedProblem = await ctx.runAction(
-          internal.PDFParse.lumoProblemAgent.convertRawProblem,
-          {
-            userId: args.userId,
-            raw,
-          },
-        );
-        return converted;
-      },
-    );
-
-    return problems;
   },
 });
