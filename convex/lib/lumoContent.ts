@@ -77,6 +77,187 @@ export const lumoDocumentSchema = z.object({
 export type LumoDocument = z.infer<typeof lumoDocumentSchema>;
 export type PromptSpec = z.infer<typeof promptSpecSchema>;
 
+/**
+ * Static textbook content: text + latex + subproblem labels only.
+ * Used when converting parsed PDF problems (no interactive fillBlank/solution).
+ */
+export const lumoStaticPartSchema = z.discriminatedUnion("type", [
+  textPartSchema,
+  latexPartSchema,
+  subproblemPartSchema,
+]);
+
+export const lumoStaticDocumentSchema = z.object({
+  version: z.literal(1),
+  parts: z.array(lumoStaticPartSchema).min(1),
+});
+
+/** Answer may be empty when the source has no facit for a problem. */
+export const lumoStaticAnswerDocumentSchema = z.object({
+  version: z.literal(1),
+  parts: z.array(lumoStaticPartSchema),
+});
+
+/**
+ * One textbook problem in Lumo language: shared problem number with
+ * question/answer documents that use `subproblem` parts for (a)/(b)/…
+ */
+export const lumoParsedProblemSchema = z.object({
+  problemNumber: z
+    .string()
+    .min(1)
+    .describe("Problemnummer utan bokstav, t.ex. '1.1' (inte '1.1a')"),
+  question: lumoStaticDocumentSchema.describe(
+    "Frågan i Lumo-format. Deluppgifter markeras med type=subproblem.",
+  ),
+  answer: lumoStaticAnswerDocumentSchema.describe(
+    "Svaret i Lumo-format med samma subproblem-etiketter som frågan. Tom parts om saknas.",
+  ),
+});
+
+export type LumoStaticPart = z.infer<typeof lumoStaticPartSchema>;
+export type LumoStaticDocument = z.infer<typeof lumoStaticDocumentSchema>;
+export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>;
+
+/**
+ * Flat part schema for Azure/OpenAI structured output.
+ * - No discriminatedUnion → avoids JSON Schema `oneOf` (Azure rejects).
+ * - All fields required → Azure requires every key in `properties` to be in `required`.
+ *   Unused fields must be empty string (or "inline"/"block" for display).
+ */
+export const lumoStaticPartAzureSchema = z.object({
+  type: z
+    .enum(["text", "latex", "subproblem"])
+    .describe("Part type: text, latex, or subproblem"),
+  content: z
+    .string()
+    .describe(
+      "Text or LaTeX body when type is text/latex; empty string for subproblem",
+    ),
+  display: z
+    .enum(["inline", "block"])
+    .describe("Latex display mode; use inline when type is not latex"),
+  label: z
+    .string()
+    .describe(
+      "Subproblem letter (e.g. a, b) when type is subproblem; empty string otherwise",
+    ),
+});
+
+export const lumoParsedProblemAzureSchema = z.object({
+  problemNumber: z
+    .string()
+    .min(1)
+    .describe("Problemnummer utan bokstav, t.ex. '1.1' (inte '1.1a')"),
+  question: z.object({
+    version: z.literal(1),
+    parts: z
+      .array(lumoStaticPartAzureSchema)
+      .min(1)
+      .describe(
+        "Frågans delar. Efter varje subproblem MÅSTE text/latex följa. Splitta 'och'-listor till a,b,…",
+      ),
+  }),
+  answer: z.object({
+    version: z.literal(1),
+    parts: z
+      .array(lumoStaticPartAzureSchema)
+      .describe(
+        "Svarets delar. Efter varje subproblem MÅSTE latex/text följa. Splitta 'respektive' till a,b,…; tom om saknas",
+      ),
+  }),
+});
+
+export type LumoStaticPartAzure = z.infer<typeof lumoStaticPartAzureSchema>;
+export type LumoParsedProblemAzure = z.infer<
+  typeof lumoParsedProblemAzureSchema
+>;
+
+export function normalizeLumoStaticPart(
+  part: LumoStaticPartAzure,
+): LumoStaticPart | null {
+  switch (part.type) {
+    case "text": {
+      const content = part.content.trim();
+      if (content.length === 0) return null;
+      return { type: "text", content };
+    }
+    case "latex": {
+      const content = part.content.trim();
+      if (content.length === 0) return null;
+      return { type: "latex", content, display: part.display };
+    }
+    case "subproblem": {
+      const label = part.label.trim();
+      if (label.length === 0) return null;
+      return { type: "subproblem", label };
+    }
+  }
+}
+
+export function normalizeLumoParsedProblem(
+  raw: LumoParsedProblemAzure,
+  fallbackQuestionText: string,
+): LumoParsedProblem {
+  const questionParts = raw.question.parts
+    .map(normalizeLumoStaticPart)
+    .filter((p): p is LumoStaticPart => p !== null);
+  const answerParts = raw.answer.parts
+    .map(normalizeLumoStaticPart)
+    .filter((p): p is LumoStaticPart => p !== null);
+
+  return {
+    problemNumber: raw.problemNumber.trim(),
+    question: {
+      version: 1,
+      parts:
+        questionParts.length > 0
+          ? questionParts
+          : [{ type: "text", content: fallbackQuestionText }],
+    },
+    answer: {
+      version: 1,
+      parts: answerParts,
+    },
+  };
+}
+
+export const lumoTextPartValidator = v.object({
+  type: v.literal("text"),
+  content: v.string(),
+});
+
+export const lumoLatexPartValidator = v.object({
+  type: v.literal("latex"),
+  content: v.string(),
+  display: v.optional(v.union(v.literal("inline"), v.literal("block"))),
+});
+
+export const lumoSubproblemPartValidator = v.object({
+  type: v.literal("subproblem"),
+  label: v.string(),
+});
+
+export const lumoStaticPartValidator = v.union(
+  lumoTextPartValidator,
+  lumoLatexPartValidator,
+  lumoSubproblemPartValidator,
+);
+
+export const lumoStaticDocumentValidator = v.object({
+  version: v.literal(1),
+  parts: v.array(lumoStaticPartValidator),
+});
+
+export const lumoParsedProblemValidator = v.object({
+  problemNumber: v.string(),
+  question: v.object({
+    version: v.literal(1),
+    parts: v.array(lumoStaticPartValidator),
+  }),
+  answer: lumoStaticDocumentValidator,
+});
+
 export const helpLevelValidator = v.union(
   v.literal("minimal"),
   v.literal("explain"),

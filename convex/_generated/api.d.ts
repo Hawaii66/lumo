@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as PDFParse_lumoProblemAgent from "../PDFParse/lumoProblemAgent.js";
 import type * as PDFParse_middleJson from "../PDFParse/middleJson.js";
 import type * as PDFParse_mineruClient from "../PDFParse/mineruClient.js";
 import type * as PDFParse_mineruSchema from "../PDFParse/mineruSchema.js";
@@ -36,6 +37,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "PDFParse/lumoProblemAgent": typeof PDFParse_lumoProblemAgent;
   "PDFParse/middleJson": typeof PDFParse_middleJson;
   "PDFParse/mineruClient": typeof PDFParse_mineruClient;
   "PDFParse/mineruSchema": typeof PDFParse_mineruSchema;
