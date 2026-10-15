@@ -9,6 +9,8 @@
  */
 
 import type * as PDFParse_middleJson from "../PDFParse/middleJson.js";
+import type * as PDFParse_mineruClient from "../PDFParse/mineruClient.js";
+import type * as PDFParse_mineruSchema from "../PDFParse/mineruSchema.js";
 import type * as PDFParse_pdfParse from "../PDFParse/pdfParse.js";
 import type * as PDFParse_problemPageAgent from "../PDFParse/problemPageAgent.js";
 import type * as agents_openrouter from "../agents/openrouter.js";
@@ -19,6 +21,7 @@ import type * as authProviders_temp from "../authProviders/temp.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as lib_lumoContent from "../lib/lumoContent.js";
 import type * as lib_roomAuth from "../lib/roomAuth.js";
 import type * as lib_roomFiles from "../lib/roomFiles.js";
 import type * as rooms from "../rooms.js";
@@ -34,6 +37,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "PDFParse/middleJson": typeof PDFParse_middleJson;
+  "PDFParse/mineruClient": typeof PDFParse_mineruClient;
+  "PDFParse/mineruSchema": typeof PDFParse_mineruSchema;
   "PDFParse/pdfParse": typeof PDFParse_pdfParse;
   "PDFParse/problemPageAgent": typeof PDFParse_problemPageAgent;
   "agents/openrouter": typeof agents_openrouter;
@@ -44,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   health: typeof health;
   http: typeof http;
+  "lib/lumoContent": typeof lib_lumoContent;
   "lib/roomAuth": typeof lib_roomAuth;
   "lib/roomFiles": typeof lib_roomFiles;
   rooms: typeof rooms;

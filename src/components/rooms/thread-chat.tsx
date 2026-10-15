@@ -9,8 +9,12 @@ import { api } from "../../../convex/_generated/api"
 import type { FormEvent } from "react"
 import type { UIMessage } from "@convex-dev/agent/react"
 import type { Id } from "../../../convex/_generated/dataModel"
+import type { HelpLevel } from "~/lib/schemas"
+import { LumoParts } from "~/components/lumo/lumo-parts"
 import { Button } from "~/components/ui/button"
 import { Textarea } from "~/components/ui/textarea"
+import { parseLumoDocument } from "~/lib/lumo-content"
+import { useUiStore } from "~/stores/ui-store"
 import { cn } from "~/lib/utils"
 
 type ThreadChatProps = {
@@ -28,7 +32,43 @@ type PendingImage = {
 const MAX_IMAGES = 4
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
-function MessageContent({ message }: { message: UIMessage }) {
+const HELP_LEVELS: Array<{ value: HelpLevel; label: string }> = [
+  { value: "minimal", label: "Hitta fel" },
+  { value: "explain", label: "Förklara" },
+  { value: "solve", label: "Lös helt" },
+]
+
+function MessageContent({
+  message,
+  onQuickReply,
+  quickRepliesDisabled,
+}: {
+  message: UIMessage
+  onQuickReply?: (label: string) => void
+  quickRepliesDisabled?: boolean
+}) {
+  if (message.role === "assistant") {
+    const text =
+      message.text ||
+      message.parts
+        .filter((part): part is { type: "text"; text: string } => part.type === "text")
+        .map((part) => part.text)
+        .join("\n")
+
+    if (!text) {
+      return <span className="text-muted-foreground italic">…</span>
+    }
+
+    const doc = parseLumoDocument(text)
+    return (
+      <LumoParts
+        document={doc}
+        onQuickReply={onQuickReply}
+        quickRepliesDisabled={quickRepliesDisabled}
+      />
+    )
+  }
+
   if (message.parts.length === 0) {
     return message.text ? (
       message.text
@@ -48,10 +88,7 @@ function MessageContent({ message }: { message: UIMessage }) {
             </span>
           )
         }
-        if (
-          part.type === "file" &&
-          part.mediaType.startsWith("image/")
-        ) {
+        if (part.type === "file" && part.mediaType.startsWith("image/")) {
           return (
             <img
               key={key}
@@ -82,6 +119,9 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
       })
     },
   )
+
+  const helpLevel = useUiStore((s) => s.helpLevel)
+  const setHelpLevel = useUiStore((s) => s.setHelpLevel)
 
   const [prompt, setPrompt] = useState("")
   const [pendingImages, setPendingImages] = useState<Array<PendingImage>>([])
@@ -175,37 +215,42 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
     return { storageId, filename: file.name }
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    const trimmed = prompt.trim()
-    if ((!trimmed && pendingImages.length === 0) || pending) return
+  async function sendPrompt(text: string, images: Array<PendingImage> = []) {
+    const trimmed = text.trim()
+    if ((!trimmed && images.length === 0) || pending) return
 
-    const imagesToSend = pendingImages
     setError(null)
     setPending(true)
     setPrompt("")
     setPendingImages([])
 
     try {
-      const images = await Promise.all(
-        imagesToSend.map((image) => uploadImage(image.file)),
+      const uploaded = await Promise.all(
+        images.map((image) => uploadImage(image.file)),
       )
       await sendMessage({
         roomId,
         threadId,
         prompt: trimmed,
-        images: images.length > 0 ? images : undefined,
+        images: uploaded.length > 0 ? uploaded : undefined,
+        helpLevel,
       })
-      for (const image of imagesToSend) {
+      for (const image of images) {
         URL.revokeObjectURL(image.previewUrl)
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kunde inte skicka")
       setPrompt(trimmed)
-      setPendingImages(imagesToSend)
+      setPendingImages(images)
     } finally {
       setPending(false)
     }
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    const imagesToSend = pendingImages
+    await sendPrompt(prompt, imagesToSend)
   }
 
   return (
@@ -233,7 +278,13 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
                     : "bg-muted text-foreground",
                 )}
               >
-                <MessageContent message={message} />
+                <MessageContent
+                  message={message}
+                  onQuickReply={(label) => {
+                    void sendPrompt(label)
+                  }}
+                  quickRepliesDisabled={pending}
+                />
               </li>
             ))}
           </ul>
@@ -285,6 +336,21 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
             ))}
           </ul>
         ) : null}
+
+        <div className="flex flex-wrap gap-1.5">
+          {HELP_LEVELS.map((level) => (
+            <Button
+              key={level.value}
+              type="button"
+              size="sm"
+              variant={helpLevel === level.value ? "default" : "outline"}
+              disabled={pending}
+              onClick={() => setHelpLevel(level.value)}
+            >
+              {level.label}
+            </Button>
+          ))}
+        </div>
 
         <Textarea
           value={prompt}
