@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { convexQuery } from "@convex-dev/react-query"
 import { api } from "../../convex/_generated/api"
@@ -43,6 +43,14 @@ function Home() {
         <h1 className="text-4xl font-semibold tracking-tight">Lumo</h1>
         <p className="text-muted-foreground">
           Sokratisk studieplattform — Convex + TanStack Start är igång.
+        </p>
+        <p>
+          <Link
+            to="/preview"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            Problem preview (klistra in PDF-JSON) →
+          </Link>
         </p>
       </div>
 

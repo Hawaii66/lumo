@@ -53,4 +53,9 @@ export default defineSchema({
   })
     .index("by_room", ["roomId"])
     .index("by_thread", ["threadId"]),
+  /** Cached MinerU middle_json keyed by SHA-256 of PDF bytes. */
+  mineruCache: defineTable({
+    contentHash: v.string(),
+    middleJsonStorageId: v.id("_storage"),
+  }).index("by_contentHash", ["contentHash"]),
 });
