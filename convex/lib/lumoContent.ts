@@ -155,7 +155,7 @@ export const lumoParsedProblemAzureSchema = z.object({
       .array(lumoStaticPartAzureSchema)
       .min(1)
       .describe(
-        "Frågans delar. Efter varje subproblem MÅSTE text/latex följa. Splitta 'och'-listor till a,b,…",
+        "Frågans delar. Efter varje subproblem MÅSTE text/latex följa. Splitta 'och'-listor/(a)(b) till a,b,… — aldrig +/− inom ett uttryck",
       ),
   }),
   answer: z.object({
@@ -163,7 +163,7 @@ export const lumoParsedProblemAzureSchema = z.object({
     parts: z
       .array(lumoStaticPartAzureSchema)
       .describe(
-        "Svarets delar. Efter varje subproblem MÅSTE latex/text följa. Splitta 'respektive' till a,b,…; tom om saknas",
+        "Svarets delar. Efter varje subproblem MÅSTE latex/text följa. Splitta 'respektive' till a,b,…; inte +/− inom ett uttryck; tom om saknas",
       ),
   }),
 });
