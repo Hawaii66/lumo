@@ -239,6 +239,7 @@ function isSectionMarker(
 /**
  * Drop orphan markers and duplicate subproblem letters.
  * Cases are kept separately (each branch); subproblem letters appear at most once.
+ * subproblem immediately followed by case is valid (cases belong under that task).
  */
 export function repairStaticParts(
   parts: Array<LumoStaticPart>,
@@ -254,7 +255,11 @@ export function repairStaticParts(
     }
 
     const next = parts[i + 1];
-    if (next === undefined || isSectionMarker(next)) {
+    if (next === undefined) {
+      continue;
+    }
+    // Empty marker: next is also a marker, except subproblem → case (valid nesting).
+    if (isSectionMarker(next) && !(part.type === "subproblem" && next.type === "case")) {
       continue;
     }
 
