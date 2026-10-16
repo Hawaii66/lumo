@@ -206,7 +206,7 @@ Ex 11 — indexerade punkter → latex:
 
 export const lumoProblemAgent = new Agent(components.agent, {
   name: "LumoProblemConverter",
-  languageModel: openrouter("openai/gpt-4o-mini"),
+  languageModel: openrouter("openai/gpt-4.1-nano"),
   instructions: LUMO_PROBLEM_INSTRUCTIONS,
 });
 
