@@ -20,6 +20,7 @@
     problemNumber: "1.1",
     question: {
       parts: [
+        { content: "Förenkla", type: "text" },
         { label: "a", type: "subproblem" },
         {
           content: "a^{2}+b-c",
@@ -28,7 +29,7 @@
         },
         { content: "där", type: "text" },
         {
-          content: "c=1-a+2b",
+          content: "c=1 - a + 2b",
           display: "inline",
           type: "latex",
         },
@@ -46,7 +47,7 @@
         },
         { content: "och", type: "text" },
         {
-          content: "z=-2+x^{2}",
+          content: "z=-2 + x^{2}",
           display: "inline",
           type: "latex",
         },
@@ -86,7 +87,10 @@
           display: "inline",
           type: "latex",
         },
-        { content: "i enklast möjliga form", type: "text" },
+        {
+          content: "i enklast möjligt form.",
+          type: "text",
+        },
       ],
       version: 1,
     },
@@ -96,41 +100,52 @@
       parts: [
         { label: "a", type: "subproblem" },
         {
+          caption: "Mgn",
           content: "420",
           display: "inline",
           type: "latex",
         },
-        { content: "summa", type: "text" },
-        { label: "b", type: "subproblem" },
         {
-          content:
-            "\\left( x^{2} + 1 \\right) \\left( x + 1 \\right) \\left( x - 1 \\right)",
+          caption: "summa",
+          content: "\\frac{2}{15}",
           display: "inline",
           type: "latex",
         },
-        { content: "summa", type: "text" },
+        { label: "b", type: "subproblem" },
+        {
+          caption: "Mgn",
+          content: "(x^{2} + 1)(x + 1)(x - 1)",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          caption: "summa",
+          content: "\\frac{2x}{(x + 1)(x^{2} + 1)}",
+          display: "inline",
+          type: "latex",
+        },
       ],
       version: 1,
     },
     problemNumber: "1.3",
     question: {
       parts: [
+        {
+          content:
+            "Ange den minsta gemensamma nämnaren till följande bråk. Beräkna sedan summan av dem.",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content:
-            "\\frac{1}{20}, \\frac{1}{28}, \\frac{1}{21}",
+            "\\frac{1}{20},\\ \\frac{1}{28},\\ \\frac{1}{21}",
           display: "inline",
           type: "latex",
-        },
-        {
-          content:
-            "ange den minsta gemensamma nämnaren och beräkna sedan summan av bråken",
-          type: "text",
         },
         { label: "b", type: "subproblem" },
         {
           content:
-            "\\frac{x + 1}{x^{2} + 1}, \\frac{2x + 4}{x^{2} - 1}, \\frac{-3}{x - 1}",
+            "\\frac{x + 1}{x^{2} + 1},\\ \\frac{2x + 4}{x^{2} - 1},\\ \\frac{-3}{x - 1}",
           display: "inline",
           type: "latex",
         },
@@ -141,10 +156,6 @@
   {
     answer: {
       parts: [
-        {
-          content: "Det förenklade uttrycket är:",
-          type: "text",
-        },
         { content: "0", display: "inline", type: "latex" },
       ],
       version: 1,
@@ -152,15 +163,16 @@
     problemNumber: "1.4",
     question: {
       parts: [
-        {
-          content: "Skriv uttrycket så enkelt som möjligt:",
-          type: "text",
-        },
+        { content: "Skriv uttrycket", type: "text" },
         {
           content:
-            "-\\frac{1}{x - 2 y} + \\frac{x - y}{x^{2} - 4 x y + 4 y^{2}} - \\frac{y}{(x - 2 y)^{2}}",
+            "-\\frac{1}{x-2y}+\\frac{x-y}{x^{2}-4xy+4y^{2}}-\\frac{y}{(x-2y)^{2}}",
           display: "inline",
           type: "latex",
+        },
+        {
+          content: "på så enkel form som möjligt.",
+          type: "text",
         },
       ],
       version: 1,
@@ -197,10 +209,18 @@
   {
     answer: {
       parts: [
+        { label: "a", type: "subproblem" },
+        {
+          content: "x(x-1)(x+1)",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
         {
           content:
-            "(a) x(x - 1)(x + 1) (b) 3 x y ^ { 2 } ( x - 2 y ^ { 2 } ) ( x + 2 y ^ { 2 } ) ( x ^ { 2 } + 4 y ^ { 4 } )",
-          type: "text",
+            "3xy^{2}(x-2y^{2})(x+2y^{2})(x^{2}+4y^{4})",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -208,15 +228,20 @@
     problemNumber: "1.6",
     question: {
       parts: [
+        {
+          content:
+            "Dela upp följande uttryck i faktorer så långt det går:",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
-          content: "x^{3} - x",
+          content: "x^{3}-x",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          content: "3 x^{5} y^{2} - 48 x y^{10}",
+          content: "3x^{5}y^{2}-48xy^{10}",
           display: "inline",
           type: "latex",
         },
@@ -231,13 +256,12 @@
       parts: [
         { content: "Bevisa formlerna", type: "text" },
         {
-          content: "x^{p} \\cdot x^{q} = x^{p+q}",
+          content: "x^{p} x^{q} = x^{p+q}",
           display: "inline",
           type: "latex",
         },
-        { content: ", samt", type: "text" },
         {
-          content: "\\frac{x^{p}}{x^{q}} = x^{p - q}",
+          content: "\\frac{x^{p}}{x^{q}} = x^{p-q}",
           display: "inline",
           type: "latex",
         },
@@ -247,11 +271,21 @@
           display: "inline",
           type: "latex",
         },
+        { content: "för alla reella tal", type: "text" },
         {
-          content:
-            "för alla reella tal x > 0, y > 0 och alla heltal p och q.",
-          type: "text",
+          content: "x > 0",
+          display: "inline",
+          type: "latex",
         },
+        {
+          content: "y > 0",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "och alla heltal", type: "text" },
+        { content: "p", display: "inline", type: "latex" },
+        { content: "och", type: "text" },
+        { content: "q", display: "inline", type: "latex" },
       ],
       version: 1,
     },
@@ -266,9 +300,22 @@
           display: "inline",
           type: "latex",
         },
+        { content: "minsta värde =", type: "text" },
         {
-          content:
-            "minsta värde = \\frac{3}{4} antas för x = -\\frac{5}{2}",
+          caption: "minsta värde",
+          content: "\\frac{3}{4}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "antas för x =", type: "text" },
+        {
+          caption: "x",
+          content: "-\\frac{5}{2}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: ". Största värde saknas.",
           type: "text",
         },
         { label: "b", type: "subproblem" },
@@ -278,27 +325,36 @@
           display: "inline",
           type: "latex",
         },
+        { content: "största värde =", type: "text" },
         {
-          content:
-            "största värde = \\frac{15}{2} antas för x = \\frac{3}{2}",
-          type: "text",
+          caption: "största värde",
+          content: "\\frac{15}{2}",
+          display: "inline",
+          type: "latex",
         },
+        { content: "antas för x =", type: "text" },
+        {
+          caption: "x",
+          content: "\\frac{3}{2}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: ". Minsta värde saknas.", type: "text" },
       ],
       version: 1,
     },
     problemNumber: "1.8",
     question: {
       parts: [
+        {
+          content: "Kvadratkomplettera uttrycken",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content: "x^{2}+5x+7",
           display: "inline",
           type: "latex",
-        },
-        {
-          content:
-            "Kvadratkomplettera uttrycket och ange också minsta värde för detta uttryck samt för vilket x det antas.",
-          type: "text",
         },
         { label: "b", type: "subproblem" },
         {
@@ -308,7 +364,7 @@
         },
         {
           content:
-            "Kvadratkomplettera uttrycket och ange också maximalt värde för detta uttryck samt för vilket x det antas.",
+            "Ange också om möjligt största och minsta värde för dessa uttryck samt för vilka x dessa värden antas",
           type: "text",
         },
       ],
@@ -318,42 +374,63 @@
   {
     answer: {
       parts: [
-        { label: "a", type: "subproblem" },
+        { label: "1", type: "case" },
         {
-          content: "a=2, b=\\frac{1}{2}",
+          content: "a=2",
           display: "inline",
           type: "latex",
         },
         {
-          content:
-            ": alla x \\neq \\frac{1}{2} är lösningar;",
-          type: "text",
+          content: "b=\\frac{1}{2}",
+          display: "inline",
+          type: "latex",
         },
-        { label: "b", type: "subproblem" },
+        { content: ": alla", type: "text" },
         {
-          content: "a=2,\\;b\\neq\\frac{1}{2}",
+          content: "x\\neq \\frac{1}{2}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "är lösningar;", type: "text" },
+        { label: "2", type: "case" },
+        {
+          content: "a=2",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "b\\neq \\frac{1}{2}",
           display: "inline",
           type: "latex",
         },
         { content: "; lösning saknas;", type: "text" },
-        { label: "c", type: "subproblem" },
+        { label: "3", type: "case" },
         {
-          content:
-            "a\\neq 0, \\;a\\neq 2, \\;b=\\frac{1}{a}",
+          content: "a\\neq 0, a\\neq 2, b=\\frac{1}{a}",
           display: "inline",
           type: "latex",
         },
         { content: "; lösning saknas;", type: "text" },
-        { label: "d", type: "subproblem" },
+        { label: "4", type: "case" },
         {
           content:
-            "a\\neq 0, \\;a\\neq 2, \\;b\\neq \\frac{1}{a} \\Rightarrow x=\\frac{1-2b}{a-2}",
+            "a\\neq 0, a\\neq 2, b\\neq \\frac{1}{a}",
           display: "inline",
           type: "latex",
         },
         {
-          content:
-            "a=0, \\;b\\in\\mathbb{R} \\Rightarrow x=b-\\frac{1}{2}",
+          content: "x=\\frac{1 - 2 b}{a - 2}",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "5", type: "case" },
+        {
+          content: "a=0, b\\in \\mathbb{R}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=b-\\frac{1}{2}",
           display: "inline",
           type: "latex",
         },
@@ -371,33 +448,7 @@
         },
         {
           content:
-            "för alla värden på de reella konstanterna",
-          type: "text",
-        },
-        { content: "a", display: "inline", type: "latex" },
-        { content: "och", type: "text" },
-        { content: "b", display: "inline", type: "latex" },
-      ],
-      version: 1,
-    },
-  },
-  {
-    answer: {
-      parts: [
-        {
-          content:
-            "(a) $x = - 1 \\quad \\mathrm { ( b ) } \\quad x = 0 \\mathrm { , } \\quad x = 1$",
-          type: "text",
-        },
-      ],
-      version: 1,
-    },
-    problemNumber: "1.10",
-    question: {
-      parts: [
-        {
-          content:
-            "P 1.10 Bestäm alla lösningar x till (a) x^{2}-1=(x+1)^{2} \\qquad ( b ) x^{3}=2x^{2}-x.",
+            "för alla värden på de reella konstanterna a och b.",
           type: "text",
         },
       ],
@@ -409,35 +460,41 @@
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "\\frac{a + 1}{a - 3}",
+          content: "x=-1",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content: "x=0",
           display: "inline",
           type: "latex",
         },
         {
-          content: `om a } f6ver  e4; 3 och a 
-eq 1`,
-          type: "text",
+          content: "x=1",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
     },
-    problemNumber: "1.11",
+    problemNumber: "1.10",
     question: {
       parts: [
+        { content: "Bestäm alla lösningar", type: "text" },
+        { content: "x", display: "inline", type: "latex" },
+        { content: "till", type: "text" },
+        { label: "a", type: "subproblem" },
         {
-          content: "Bestäm alla lösningar x till",
-          type: "text",
-        },
-        {
-          content:
-            "\\frac{x - 1}{x + 1} = \\frac{x + 1}{x + a}",
-          display: "inline",
+          content: "x^{2}-1=(x+1)^{2}",
+          display: "block",
           type: "latex",
         },
+        { label: "b", type: "subproblem" },
         {
-          content:
-            "för alla reella värden på konstanten a.",
-          type: "text",
+          content: "x^{3}=2x^{2}-x",
+          display: "block",
+          type: "latex",
         },
       ],
       version: 1,
@@ -446,8 +503,60 @@ eq 1`,
   {
     answer: {
       parts: [
+        { content: "x =", type: "text" },
         {
-          content: "x=\\pm \\frac{\\sqrt{14}}{4}",
+          content: "\\frac{a + 1}{a - 3}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "om", type: "text" },
+        {
+          content: "a \\neq 3 \\text{ och } a \\neq 1",
+          display: "inline",
+          type: "latex",
+        },
+        { content: ", ingen lösning om", type: "text" },
+        {
+          content: "a = 3",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "eller", type: "text" },
+        {
+          content: "a = 1",
+          display: "inline",
+          type: "latex",
+        },
+      ],
+      version: 1,
+    },
+    problemNumber: "1.11",
+    question: {
+      parts: [
+        { content: "Bestäm alla lösningar", type: "text" },
+        { content: "x", display: "inline", type: "latex" },
+        { content: "till", type: "text" },
+        {
+          content:
+            "\\frac{x - 1}{x + 1} = \\frac{x + 1}{x + a}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "för alla reella värden på konstanten",
+          type: "text",
+        },
+        { content: "a", display: "inline", type: "latex" },
+      ],
+      version: 1,
+    },
+  },
+  {
+    answer: {
+      parts: [
+        { content: "x =", type: "text" },
+        {
+          content: "\\pm \\frac{\\sqrt{14}}{4}",
           display: "inline",
           type: "latex",
         },
@@ -486,10 +595,11 @@ eq 1`,
     question: {
       parts: [
         {
-          content:
-            "För vilka reella konstanter a har ekvationen",
+          content: "För vilka reella konstanter",
           type: "text",
         },
+        { content: "a", display: "inline", type: "latex" },
+        { content: "har ekvationen", type: "text" },
         {
           content: "x^{2} + 9x + a = 0",
           display: "inline",
@@ -508,35 +618,59 @@ eq 1`,
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "x=a, x=b",
+          content: "x=a",
           display: "inline",
           type: "latex",
         },
-        { label: "b", type: "subproblem" },
         {
-          content:
-            "x=\\frac{a}{b} , x=\\frac{b}{a} \\quad \\text{om} \\quad a \\neq 0 \\text{ och } b \\neq 0",
+          content: "x=b",
           display: "inline",
           type: "latex",
         },
         { label: "1", type: "case" },
         {
-          content:
-            "x=0 \\quad \\text{om} \\quad a \\neq 0 \\text{ och } b=0",
+          content: "x=\\frac{a}{b}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=\\frac{b}{a}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "om", type: "text" },
+        {
+          content: "a\\neq 0",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "och", type: "text" },
+        {
+          content: "b\\neq 0",
           display: "inline",
           type: "latex",
         },
         { label: "2", type: "case" },
         {
+          content: "x=0",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "om", type: "text" },
+        {
           content:
-            "x=0 \\quad \\text{om} \\quad a=0 \\text{ och } b \\neq 0",
+            "(a\\neq 0 \\text{ och } b=0) \\text{ eller } (a=0 \\text{ och } b\\neq 0)",
           display: "inline",
           type: "latex",
         },
         { label: "3", type: "case" },
+        { content: "alla reella tal", type: "text" },
+        { content: "x", display: "inline", type: "latex" },
+        { content: "om", type: "text" },
         {
-          content: "alla reella tal x om a=b=0",
-          type: "text",
+          content: "a=b=0",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -544,15 +678,15 @@ eq 1`,
     problemNumber: "1.14",
     question: {
       parts: [
+        {
+          content: "Bestäm alla lösningar till",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content: "x^{2}-(a+b)x+ab=0",
           display: "inline",
           type: "latex",
-        },
-        {
-          content: "Bestäm alla lösningar till",
-          type: "text",
         },
         { label: "b", type: "subproblem" },
         {
@@ -592,33 +726,57 @@ eq 1`,
     answer: {
       parts: [
         { label: "a", type: "subproblem" },
+        { content: "Ja, på linjen", type: "text" },
         {
-          content:
-            "Ja, på linjen y=-\\frac{3x}{2}+\\frac{5}{2}",
+          content: "y=-\\frac{3x}{2}+\\frac{5}{2}",
           display: "inline",
           type: "latex",
         },
-        { content: "(b) Nej", type: "text" },
+        { label: "b", type: "subproblem" },
+        {
+          content: "\\mathrm { N e j}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "Nej", type: "text" },
       ],
       version: 1,
     },
     problemNumber: "1.16",
     question: {
       parts: [
-        { label: "a", type: "subproblem" },
+        { content: "Undersök om punkterna", type: "text" },
         {
-          content: "P_{1} = (1,1)",
+          content: "P_{1}",
           display: "inline",
           type: "latex",
         },
         {
-          content: "P_{2} = (5,-5)",
+          content: "P_{2}",
           display: "inline",
           type: "latex",
         },
         { content: "och", type: "text" },
         {
-          content: "P_{3} = (-5,10)",
+          content: "P_{3}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "alla ligger på samma räta linje då",
+          type: "text",
+        },
+        { label: "a", type: "subproblem" },
+        {
+          content:
+            "P_{1}=(1,1),\\,P_{2}=(5,-5)\\,\\text{och}\\,P_{3}=(-5,10)",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content:
+            "P_{1}=(2,1),\\,P_{2}=(10,11)\\,\\text{och}\\,P_{3}=(20,21)",
           display: "inline",
           type: "latex",
         },
@@ -634,12 +792,11 @@ eq 1`,
           type: "text",
         },
         {
-          content: "(2, 0)",
+          content: "(2,0)",
           display: "inline",
           type: "latex",
         },
-        { content: "och radie", type: "text" },
-        { content: "2", display: "inline", type: "latex" },
+        { content: "och radie 2", type: "text" },
       ],
       version: 1,
     },
@@ -648,10 +805,11 @@ eq 1`,
       parts: [
         { content: "Vad betyder ekvationen", type: "text" },
         {
-          content: "x^{2} + y^{2} = 4x",
+          content: "x^{2}+y^{2}=4x",
           display: "inline",
           type: "latex",
         },
+        { content: "?", type: "text" },
       ],
       version: 1,
     },
@@ -659,33 +817,39 @@ eq 1`,
   {
     answer: {
       parts: [
-        { label: "a", type: "subproblem" },
+        { content: "Medelpunkt", type: "text" },
         {
           content:
-            "\\text{Medelpunkt} = \\left( - \\frac{a}{2}, - \\frac{b}{2} \\right)",
+            "\\left(-\\frac{a}{2}, -\\frac{b}{2}\\right)",
           display: "inline",
           type: "latex",
         },
+        { content: ", radie", type: "text" },
         {
-          content:
-            "\\text{Radie} = \\frac{\\sqrt{a^{2}+b^{2}-4c}}{2}",
+          content: "\\frac{\\sqrt{a^{2}+b^{2}-4c}}{2}",
           display: "inline",
           type: "latex",
         },
         { content: "om", type: "text" },
         {
-          content: "a^{2}+b^{2}-4c > 0",
+          content: "a^{2}+b^{2}-4c>0",
           display: "inline",
           type: "latex",
         },
-        { label: "b", type: "subproblem" },
+        { content: "Punkter", type: "text" },
         {
           content:
-            "\\text{Punkten} \\left( - \\frac{a}{2}, - \\frac{b}{2} \\right) \\text{om} \\ a^{2}+b^{2}-4c=0",
+            "\\left(-\\frac{a}{2}, -\\frac{b}{2}\\right)",
           display: "inline",
           type: "latex",
         },
-        { content: "ingenting om", type: "text" },
+        { content: "om", type: "text" },
+        {
+          content: "a^{2}+b^{2}-4c=0",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "Ingenting om", type: "text" },
         {
           content: "a^{2}+b^{2}-4c<0",
           display: "inline",
@@ -700,7 +864,7 @@ eq 1`,
         { content: "Visa att", type: "text" },
         {
           content: "x^{2}+y^{2}+ax+by+c=0",
-          display: "inline",
+          display: "block",
           type: "latex",
         },
         {
@@ -715,7 +879,7 @@ eq 1`,
         },
         {
           content:
-            ". Bestäm cirkelns medelpunkt och radie i så fall. Vad betyder ekvationen om",
+            "Bestäm cirkelns medelpunkt och radie i så fall. Vad betyder ekvationen om",
           type: "text",
         },
         {
@@ -729,6 +893,7 @@ eq 1`,
           display: "inline",
           type: "latex",
         },
+        { content: "?", type: "text" },
       ],
       version: 1,
     },
@@ -736,11 +901,25 @@ eq 1`,
   {
     answer: {
       parts: [
+        { label: "a", type: "subproblem" },
         {
-          content:
-            "(a) x = -1 \\quad ( b ) x = 0 och x = -2 \\quad ( c ) Lösning saknas",
-          type: "text",
+          content: "x = -1",
+          display: "inline",
+          type: "latex",
         },
+        { label: "b", type: "subproblem" },
+        {
+          content: "x = 0",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x = -2",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "c", type: "subproblem" },
+        { content: "Lösning saknas", type: "text" },
       ],
       version: 1,
     },
@@ -754,19 +933,19 @@ eq 1`,
         { label: "a", type: "subproblem" },
         {
           content: "\\sqrt{2x + 6} = 1 - x",
-          display: "inline",
+          display: "block",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
           content: "x + \\sqrt{1 - 4x} = 1",
-          display: "inline",
+          display: "block",
           type: "latex",
         },
         { label: "c", type: "subproblem" },
         {
           content: "\\sqrt{5 - 8x} + 2 = 2x",
-          display: "inline",
+          display: "block",
           type: "latex",
         },
       ],
@@ -778,26 +957,54 @@ eq 1`,
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "x=1",
+          content: "x = 1",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content: "ingen lösning",
           display: "inline",
           type: "latex",
         },
         { content: "ingen lösning", type: "text" },
+        { label: "c", type: "subproblem" },
+        {
+          content: "x = -1",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x = 3",
+          display: "inline",
+          type: "latex",
+        },
       ],
       version: 1,
     },
     problemNumber: "1.20",
     question: {
       parts: [
+        {
+          content: "Bestäm alla lösningar till",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
-          content: "\\sqrt{x^{2}+6x+9}=2x+2",
+          content: "\\sqrt{x^{2}+6x+9} = 2x + 2",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          content: "\\sqrt{x+1}+\\sqrt{9x+9}=2x+2",
+          content: "\\sqrt{x + 2} + \\sqrt{2x - 1} = 1",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "c", type: "subproblem" },
+        {
+          content:
+            "\\sqrt{x + 1} + \\sqrt{9x + 9} = 2x + 2",
           display: "inline",
           type: "latex",
         },
@@ -808,10 +1015,18 @@ eq 1`,
   {
     answer: {
       parts: [
+        { label: "a", type: "subproblem" },
         {
-          content:
-            "(a) Ingen reell lösning (b) x = - 3 \\pm { \\sqrt { 6 5 } }",
-          type: "text",
+          content: "Ingen reell lösning",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "Ingen reell lösning", type: "text" },
+        { label: "b", type: "subproblem" },
+        {
+          content: "x = -3 \\pm \\sqrt{65}",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -819,17 +1034,22 @@ eq 1`,
     problemNumber: "1.21",
     question: {
       parts: [
+        {
+          content:
+            "Bestäm alla reella lösningar till följande ekvationer:",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content:
             "\\sqrt{x + 1} - \\sqrt{x - 7} = \\sqrt{2x}",
-          display: "inline",
+          display: "block",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
           content: "x^{2}+6x+\\sqrt{x^{2}+6x+8}=64",
-          display: "inline",
+          display: "block",
           type: "latex",
         },
       ],
@@ -883,7 +1103,7 @@ eq 1`,
         },
         { label: "c", type: "subproblem" },
         {
-          content: "-\\frac{3x+5}{x^{2}-7}",
+          content: "\\frac{-3x+5}{x^{2}-7}",
           display: "inline",
           type: "latex",
         },
@@ -899,6 +1119,7 @@ eq 1`,
     problemNumber: "1.23",
     question: {
       parts: [
+        { content: "Dividera", type: "text" },
         { label: "a", type: "subproblem" },
         {
           content: "\\frac{x^{2}-1}{x^{2}+1}",
@@ -932,7 +1153,7 @@ eq 1`,
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "x^{2}+4x-5 - \\frac{7}{x-3}",
+          content: "x^{2}+4x-5-\\frac{7}{x-3}",
           display: "inline",
           type: "latex",
         },
@@ -948,13 +1169,17 @@ eq 1`,
     problemNumber: "1.24",
     question: {
       parts: [
+        {
+          content:
+            "Använd polynomdivision för att skriva om följande uttryck på en form där man tydligt kan läsa av kvot och rest:",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content: "\\frac{x^{3}+x^{2}-17x+8}{x-3}",
           display: "inline",
           type: "latex",
         },
-        { content: "och", type: "text" },
         { label: "b", type: "subproblem" },
         {
           content: "\\frac{x^{3}-8x^{2}+13x}{x^{2}-3x+1}",
@@ -968,10 +1193,19 @@ eq 1`,
   {
     answer: {
       parts: [
+        { label: "a", type: "subproblem" },
+        { content: "0", display: "inline", type: "latex" },
+        { label: "b", type: "subproblem" },
         {
-          content:
-            "(a) 0 (b) 2^{100}-2^{67}-2^{32}+2^{10}+1 (c) 1 - x",
-          type: "text",
+          content: "2^{100}-2^{67}-2^{32}+2^{10}+1",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "c", type: "subproblem" },
+        {
+          content: "1-x",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -1014,10 +1248,17 @@ eq 1`,
   {
     answer: {
       parts: [
+        { label: "a", type: "subproblem" },
         {
-          content:
-            "(a) (x - 7)(x + 9) (b) (x - 1)(x - 3)^{2}",
-          type: "text",
+          content: "(x-7)(x+9)",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content: "(x-1)(x-3)^{2}",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -1025,9 +1266,14 @@ eq 1`,
     problemNumber: "1.26",
     question: {
       parts: [
+        {
+          content:
+            "Dela upp följande polynom fullständigt som produkter av förstagradspolynom:",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
-          content: "x^{2} + 2x - 63",
+          content: "x^{2}+2x-63",
           display: "inline",
           type: "latex",
         },
@@ -1046,17 +1292,27 @@ eq 1`,
       parts: [
         { label: "a", type: "subproblem" },
         { content: "Ja", display: "inline", type: "latex" },
-        { content: "(b) Nej", type: "text" },
+        { content: "Ja", type: "text" },
+        { label: "b", type: "subproblem" },
+        {
+          content: "Nej",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "Nej", type: "text" },
       ],
       version: 1,
     },
     problemNumber: "1.27",
     question: {
       parts: [
+        { content: "Är", type: "text" },
         {
-          content: "Ar ¨ x = 6 lösning till",
-          type: "text",
+          content: "x=6",
+          display: "inline",
+          type: "latex",
         },
+        { content: "lösning till", type: "text" },
         { label: "a", type: "subproblem" },
         {
           content: "x^{3}-5x^{2}-12x+36=0",
@@ -1065,10 +1321,11 @@ eq 1`,
         },
         { label: "b", type: "subproblem" },
         {
-          content: "x^{3}-4x^{2}-17x+36=0?",
+          content: "x^{3}-4x^{2}-17x+36=0",
           display: "inline",
           type: "latex",
         },
+        { content: "?", display: "inline", type: "latex" },
       ],
       version: 1,
     },
@@ -1078,25 +1335,60 @@ eq 1`,
       parts: [
         { label: "a", type: "subproblem" },
         {
-          content: "x=1, x=2, x=-3",
+          content: "x=1",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=2",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=-3",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
         {
-          content: "x=2, x=\\frac{1 \\pm \\sqrt{17}}{4}",
+          content: "x=2",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=\\frac{1\\pm\\sqrt{17}}{4}",
           display: "inline",
           type: "latex",
         },
         { label: "c", type: "subproblem" },
         {
-          content: "x=2, x=3, x=-5",
+          content: "x=2",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=3",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=-5",
           display: "inline",
           type: "latex",
         },
         { label: "d", type: "subproblem" },
         {
-          content: "x=-1, x=2, x=-1 ±√6",
+          content: "x=-1",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=2",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x=-1\\pm\\sqrt{6}",
           display: "inline",
           type: "latex",
         },
@@ -1106,15 +1398,15 @@ eq 1`,
     problemNumber: "1.28",
     question: {
       parts: [
+        {
+          content: "Bestäm alla lösningar till",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content: "x^{3}-7x+6=0",
           display: "inline",
           type: "latex",
-        },
-        {
-          content: "bestäm alla lösningar till",
-          type: "text",
         },
         { label: "b", type: "subproblem" },
         {
@@ -1122,31 +1414,24 @@ eq 1`,
           display: "inline",
           type: "latex",
         },
-        {
-          content: "bestäm alla lösningar till",
-          type: "text",
-        },
         { label: "c", type: "subproblem" },
         {
           content: "x^{3}-8=19(x-2)",
           display: "inline",
           type: "latex",
         },
+        { label: "d", type: "subproblem" },
         {
-          content: "bestäm alla lösningar till",
-          type: "text",
+          content: "x^{4}+x^{3}-9x^{2}+x+10=0",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
     },
   },
   {
-    answer: {
-      parts: [
-        { content: "(inget svar i källan)", type: "text" },
-      ],
-      version: 1,
-    },
+    answer: { parts: [], version: 1 },
     problemNumber: "1.29",
     question: {
       parts: [
@@ -1175,25 +1460,31 @@ eq 1`,
           type: "latex",
         },
         {
-          content: "och ekvationens koefficienter a och b:",
+          content: "och ekvationens koefficienter",
           type: "text",
         },
-        {
-          content: "\\alpha_{1}+\\alpha_{2} = -a",
-          display: "block",
-          type: "latex",
-        },
+        { content: "a", display: "inline", type: "latex" },
         { content: "och", type: "text" },
-        {
-          content: "\\alpha_{1}\\alpha_{2} = b",
-          display: "block",
-          type: "latex",
-        },
+        { content: "b", display: "inline", type: "latex" },
         {
           content:
-            "(med \\alpha_{2} = \\alpha_{1} om α1 är en dubbelrot).",
-          type: "text",
+            "\\alpha_{1}+\\alpha_{2}=-a \\quad \\mathrm{och} \\quad \\alpha_{1}\\alpha_{2}=b",
+          display: "block",
+          type: "latex",
         },
+        { content: "(med", type: "text" },
+        {
+          content: "\\alpha_{2}=\\alpha_{1}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "om", type: "text" },
+        {
+          content: "\\alpha_{1}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "är en dubbelrot).", type: "text" },
       ],
       version: 1,
     },
@@ -1203,8 +1494,19 @@ eq 1`,
       parts: [
         {
           content:
-            "\\begin{array}{ c c c } \\alpha_{1} + \\alpha_{2} + \\alpha_{3} &= -a, \\\\ \\alpha_{1} \\alpha_{2} + \\alpha_{1} \\alpha_{3} + \\alpha_{2} \\alpha_{3} &= b, \\\\ \\alpha_{1} \\alpha_{2} \\alpha_{3} &= -c \\ \\end{array}",
-          display: "block",
+            "\\alpha_{1}+\\alpha_{2}+\\alpha_{3}=-a,",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content:
+            "\\alpha_{1}\\alpha_{2}+\\alpha_{1}\\alpha_{3}+\\alpha_{2}\\alpha_{3}=b,",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "\\alpha_{1}\\alpha_{2}\\alpha_{3}=-c",
+          display: "inline",
           type: "latex",
         },
       ],
@@ -1214,9 +1516,32 @@ eq 1`,
     question: {
       parts: [
         {
-          content:
-            "Härled ett samband mellan rötterna x = α₁, x = α₂ och x = α₃ till en tredjegradsekvation x³ + a x² + b x + c = 0 och ekvationens koefficienter a, b och c.",
+          content: "Härled ett samband mellan rötterna",
           type: "text",
+        },
+        {
+          content:
+            "x=\\alpha_{1},\\ x=\\alpha_{2}\\ \\text{och}\\ x=\\alpha_{3}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "till en tredjegradsekvation",
+          type: "text",
+        },
+        {
+          content: "x^{3}+ax^{2}+bx+c=0",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "och ekvationens koefficienter",
+          type: "text",
+        },
+        {
+          content: "a,\\ b\\ \\text{och}\\ c",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -1226,8 +1551,15 @@ eq 1`,
     answer: {
       parts: [
         { label: "a", type: "subproblem" },
+        { content: "x = -4,", type: "text" },
         {
-          content: "x=\\frac{1 \\pm i\\sqrt{3}}{2}",
+          content: "x = \\frac{1 \\pm i\\sqrt{3}}{2}",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content: "x=\\frac{3}{4}",
           display: "inline",
           type: "latex",
         },
@@ -1237,6 +1569,10 @@ eq 1`,
     problemNumber: "1.31",
     question: {
       parts: [
+        {
+          content: "Lös följande ekvationer:",
+          type: "text",
+        },
         { label: "a", type: "subproblem" },
         {
           content: "(x - 3)^{3} - (2x + 1)^{3} = 0",
@@ -1263,14 +1599,22 @@ eq 1`,
           type: "latex",
         },
         {
-          content:
-            "x = \\frac{3}{\\sqrt{13}} , \\quad y = -\\frac{2}{\\sqrt{13}}",
+          content: "x = \\frac{3}{\\sqrt{13}}",
           display: "inline",
           type: "latex",
         },
         {
-          content:
-            "x = -\\frac{3}{\\sqrt{13}} , \\quad y = \\frac{2}{\\sqrt{13}}",
+          content: "y = - \\frac{2}{\\sqrt{13}}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "x = - \\frac{3}{\\sqrt{13}}",
+          display: "inline",
+          type: "latex",
+        },
+        {
+          content: "y = \\frac{2}{\\sqrt{13}}",
           display: "inline",
           type: "latex",
         },
@@ -1280,16 +1624,15 @@ eq 1`,
     problemNumber: "1.32",
     question: {
       parts: [
-        { label: "a", type: "subproblem" },
         {
-          content: "(x - y)(2x + 3y) = 0",
-          display: "inline",
-          type: "latex",
+          content:
+            "Bestäm alla lösningar till ekvationssystemet",
+          type: "text",
         },
-        { content: "och", type: "text" },
         {
-          content: "x^{2} + y^{2} = 1",
-          display: "inline",
+          content:
+            "\\left\\{ \\begin{array} { r c l } {(x - y)(2 x + 3 y)} & = & 0 \\\\ x^{2} + y^{2} & = & 1 \\end{array} \\right.",
+          display: "block",
           type: "latex",
         },
       ],
@@ -1299,10 +1642,58 @@ eq 1`,
   {
     answer: {
       parts: [
+        { label: "a", type: "subproblem" },
         {
-          content:
-            "(a) \\begin{array} { l } x < 3 / 2 \\\\ - \\sqrt { 3 } < x < \\sqrt { 3 } \\end{array} (b) x < 4 (c) x \\geq 1 eller x < - 1 (d) (e) x \\geq { \\sqrt { 5 } } eller x ≤ −√5 (f) 1 \\leq x \\leq 3",
-          type: "text",
+          content: "x < \\frac{3}{2}",
+          display: "block",
+          type: "latex",
+        },
+        {
+          content: "- \\sqrt{3} < x < \\sqrt{3}",
+          display: "block",
+          type: "latex",
+        },
+        { label: "b", type: "subproblem" },
+        {
+          content: "x < 4",
+          display: "block",
+          type: "latex",
+        },
+        { label: "c", type: "subproblem" },
+        {
+          content: "x \\geq 1",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "eller", type: "text" },
+        {
+          content: "x < -1",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "d", type: "subproblem" },
+        {
+          content: "- \\sqrt{3} < x < \\sqrt{3}",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "e", type: "subproblem" },
+        {
+          content: "x \\geq \\sqrt{5}",
+          display: "inline",
+          type: "latex",
+        },
+        { content: "eller", type: "text" },
+        {
+          content: "x \\leq - \\sqrt{5}",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "f", type: "subproblem" },
+        {
+          content: "1 \\leq x \\leq 3",
+          display: "inline",
+          type: "latex",
         },
       ],
       version: 1,
@@ -1310,29 +1701,45 @@ eq 1`,
     problemNumber: "1.33",
     question: {
       parts: [
+        { content: "För vilka", type: "text" },
+        { content: "x", display: "inline", type: "latex" },
         {
-          content: "För vilka x gäller följande olikheter?",
+          content: "gäller följande olikheter?",
           type: "text",
         },
         { label: "a", type: "subproblem" },
-        { content: "eller", type: "text" },
         {
-          content: "-\\sqrt{3} < x < \\sqrt{3}",
+          content: "2x - 3 < 0",
           display: "inline",
           type: "latex",
         },
         { label: "b", type: "subproblem" },
-        { content: "eller", type: "text" },
         {
-          content: "x \\geq 1 \\text{ eller } x < -1",
+          content: "x + 3 > 2x - 1",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "c", type: "subproblem" },
+        {
+          content: "\\frac{x - 1}{x + 1} \\geq 0",
           display: "inline",
           type: "latex",
         },
         { label: "d", type: "subproblem" },
-        { content: "eller", type: "text" },
         {
-          content:
-            "x \\geq \\sqrt{5} \\text{ eller } x \\leq -\\sqrt{5}",
+          content: "x^{2} < 3",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "e", type: "subproblem" },
+        {
+          content: "x^{2} \\geq 5",
+          display: "inline",
+          type: "latex",
+        },
+        { label: "f", type: "subproblem" },
+        {
+          content: "(x - 2)^{2} \\leq 1",
           display: "inline",
           type: "latex",
         },
@@ -1343,15 +1750,15 @@ eq 1`,
   {
     answer: {
       parts: [
-        { label: "a", type: "subproblem" },
+        { content: "Minsta värdet är", type: "text" },
         {
           content: "-\\frac{5}{4}",
           display: "inline",
           type: "latex",
         },
-        { content: "för x=", type: "text" },
+        { content: "för", type: "text" },
         {
-          content: "\\frac{3}{2}",
+          content: "x=\\frac{3}{2}",
           display: "inline",
           type: "latex",
         },
@@ -1370,9 +1777,10 @@ eq 1`,
           display: "inline",
           type: "latex",
         },
+        { content: "kan ha för reella tal", type: "text" },
+        { content: "x", display: "inline", type: "latex" },
         {
-          content:
-            "kan ha för reella tal x. (Ledning: Kvadratkomplettering).",
+          content: "Ledning: Kvadratkomplettering",
           type: "text",
         },
       ],
