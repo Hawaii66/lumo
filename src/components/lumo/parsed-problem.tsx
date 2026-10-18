@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from "lucide-react"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
 import { StaticLumoParts } from "~/components/lumo/static-parts"
 import { cn } from "~/lib/utils"
@@ -6,18 +7,46 @@ type ParsedProblemViewProps = {
   problem: LumoParsedProblem
   className?: string
   showAnswer?: boolean
+  /** When true, shows a facit toggle in the top-right of the header. */
+  showFacitToggle?: boolean
+  onShowAnswerChange?: (show: boolean) => void
 }
 
 export function ParsedProblemView({
   problem,
   className,
   showAnswer = true,
+  showFacitToggle = false,
+  onShowAnswerChange,
 }: ParsedProblemViewProps) {
   return (
     <article className={cn("space-y-4", className)}>
-      <h2 className="text-xl font-semibold tracking-tight">
-        {problem.problemNumber}
-      </h2>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-xl font-semibold tracking-tight">
+          {problem.problemNumber}
+        </h2>
+
+        {showFacitToggle && onShowAnswerChange ? (
+          <button
+            type="button"
+            onClick={() => onShowAnswerChange(!showAnswer)}
+            aria-pressed={showAnswer}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors",
+              "hover:bg-muted/60 hover:text-foreground",
+              "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              showAnswer && "border-primary/40 bg-primary/5 text-primary",
+            )}
+          >
+            {showAnswer ? (
+              <EyeOff className="size-3.5" />
+            ) : (
+              <Eye className="size-3.5" />
+            )}
+            {showAnswer ? "Dölj facit" : "Visa facit"}
+          </button>
+        ) : null}
+      </div>
 
       <section className="space-y-2">
         <StaticLumoParts parts={problem.question.parts} />

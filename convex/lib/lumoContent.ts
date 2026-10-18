@@ -542,9 +542,10 @@ export const helpLevelValidator = v.union(
   v.literal("minimal"),
   v.literal("explain"),
   v.literal("solve"),
+  v.literal("practice"),
 );
 
-export type HelpLevel = "minimal" | "explain" | "solve";
+export type HelpLevel = "minimal" | "explain" | "solve" | "practice";
 
 export function extractPlaceholderIds(latex: string): Array<string> {
   const ids: Array<string> = [];
@@ -625,5 +626,6 @@ Hjälpnivå (ges i prompten):
 - minimal: ledtrådar + fillBlank / quickReplies — ge inte hela lösningen
 - explain: guidad solution med steg som studenten måste fylla i
 - solve: fullständig solution med interaktiva steg (fortfarande fill-in, inte bara facit)
+- practice: bara slutliga fillBlank-svarsrutor — ingen solution-genomgång, ingen facit-prosa
 
 Blanda gärna text + latex + fillBlank/solution i samma parts-array.`;

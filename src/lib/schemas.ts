@@ -1,6 +1,11 @@
 import { z } from "zod"
 
-export const helpLevelSchema = z.enum(["minimal", "explain", "solve"])
+export const helpLevelSchema = z.enum([
+  "minimal",
+  "explain",
+  "solve",
+  "practice",
+])
 
 export const createRoomSchema = z.object({
   name: z.string().min(1).max(100),

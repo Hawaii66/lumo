@@ -17,6 +17,7 @@ import {
 import { ThreadChat } from "~/components/rooms/thread-chat"
 import { Button } from "~/components/ui/button"
 import { uploadFileToStorage } from "~/lib/upload"
+import { useUiStore } from "~/stores/ui-store"
 
 export const Route = createFileRoute("/rooms/$roomId")({
   component: RoomPage,
@@ -44,6 +45,8 @@ function RoomPage() {
   const [creatingChat, setCreatingChat] = useState(false)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
+  const showFacit = useUiStore((s) => s.showFacit)
+  const setShowFacit = useUiStore((s) => s.setShowFacit)
 
   const selectedThread = useQuery(
     api.threads.get,
@@ -228,7 +231,9 @@ function RoomPage() {
               <div className="mt-4 min-h-0 overflow-y-auto">
                 <ParsedProblemView
                   problem={selectedProblem.problem}
-                  showAnswer={false}
+                  showAnswer={showFacit}
+                  showFacitToggle
+                  onShowAnswerChange={setShowFacit}
                 />
               </div>
               <div className="flex min-h-0 flex-1 items-center justify-center py-6">

@@ -24,6 +24,8 @@ function helpLevelHint(helpLevel: HelpLevel): string {
       return "Hjälpnivå: explain — guidad solution med steg studenten fyller i. Förklara tanken.";
     case "solve":
       return "Hjälpnivå: solve — fullständig solution med interaktiva steg (fortfarande fill-in i varje steg).";
+    case "practice":
+      return "Hjälpnivå: practice — skapa bara slutliga fillBlank-svarsrutor för uppgiften. Ingen solution-genomgång, ingen facit-prosa.";
   }
 }
 
