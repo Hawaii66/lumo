@@ -14,6 +14,7 @@ import type * as PDFParse_mineruCache from "../PDFParse/mineruCache.js";
 import type * as PDFParse_mineruClient from "../PDFParse/mineruClient.js";
 import type * as PDFParse_mineruSchema from "../PDFParse/mineruSchema.js";
 import type * as PDFParse_pdfParse from "../PDFParse/pdfParse.js";
+import type * as PDFParse_problems from "../PDFParse/problems.js";
 import type * as agents_openrouter from "../agents/openrouter.js";
 import type * as agents_roomAgent from "../agents/roomAgent.js";
 import type * as auth from "../auth.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   "PDFParse/mineruClient": typeof PDFParse_mineruClient;
   "PDFParse/mineruSchema": typeof PDFParse_mineruSchema;
   "PDFParse/pdfParse": typeof PDFParse_pdfParse;
+  "PDFParse/problems": typeof PDFParse_problems;
   "agents/openrouter": typeof agents_openrouter;
   "agents/roomAgent": typeof agents_roomAgent;
   auth: typeof auth;

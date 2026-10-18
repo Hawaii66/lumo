@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { lumoStaticDocumentValidator } from "./lib/lumoContent";
 
 export default defineSchema({
   ...authTables,
@@ -58,4 +59,12 @@ export default defineSchema({
     contentHash: v.string(),
     middleJsonStorageId: v.id("_storage"),
   }).index("by_contentHash", ["contentHash"]),
+  /** One Lumo-parsed problem per row, keyed by SHA-256 of PDF bytes. */
+  problems: defineTable({
+    pdfHash: v.string(),
+    row: v.number(),
+    problemNumber: v.string(),
+    problem: lumoStaticDocumentValidator,
+    answer: lumoStaticDocumentValidator,
+  }).index("by_pdfHash_and_row", ["pdfHash", "row"]),
 });
