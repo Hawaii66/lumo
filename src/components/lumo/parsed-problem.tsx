@@ -20,9 +20,6 @@ export function ParsedProblemView({
       </h2>
 
       <section className="space-y-2">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Fråga
-        </h3>
         <StaticLumoParts parts={problem.question.parts} />
       </section>
 

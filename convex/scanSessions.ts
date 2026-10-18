@@ -86,6 +86,8 @@ export const getStatus = query({
       status: statusValidator,
       expiresAt: v.number(),
       fileId: v.union(v.id("files"), v.null()),
+      storageId: v.union(v.id("_storage"), v.null()),
+      fileName: v.union(v.string(), v.null()),
     }),
     v.null(),
   ),
@@ -100,10 +102,17 @@ export const getStatus = query({
       return null;
     }
 
+    const file =
+      session.fileId !== undefined
+        ? await ctx.db.get("files", session.fileId)
+        : null;
+
     return {
       status: session.status,
       expiresAt: session.expiresAt,
       fileId: session.fileId ?? null,
+      storageId: file?.storageId ?? null,
+      fileName: file?.name ?? null,
     };
   },
 });

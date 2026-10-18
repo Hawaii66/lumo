@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "convex/react"
 import { Smartphone } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import QRCode from "react-qr-code"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -14,19 +14,46 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog"
 
-type PhoneUploadDialogProps = {
-  roomId: Id<"rooms">
+export type PhoneUploadCompletedFile = {
+  fileId: Id<"files">
+  storageId: Id<"_storage">
+  filename: string
 }
 
-export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
+type PhoneUploadDialogProps = {
+  roomId: Id<"rooms">
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  onCompleted?: (file: PhoneUploadCompletedFile) => void
+  showTrigger?: boolean
+  triggerLabel?: string
+}
+
+export function PhoneUploadDialog({
+  roomId,
+  open: controlledOpen,
+  onOpenChange,
+  onCompleted,
+  showTrigger = true,
+  triggerLabel = "Från telefon",
+}: PhoneUploadDialogProps) {
   const createSession = useMutation(api.scanSessions.create)
   const cancelSession = useMutation(api.scanSessions.cancel)
-  const [open, setOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const [sessionId, setSessionId] = useState<Id<"scanSessions"> | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [pageUrl, setPageUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
+  const completedForSessionRef = useRef<Id<"scanSessions"> | null>(null)
+  const startingRef = useRef(false)
+  const onCompletedRef = useRef(onCompleted)
+  onCompletedRef.current = onCompleted
+  const onOpenChangeRef = useRef(onOpenChange)
+  onOpenChangeRef.current = onOpenChange
+
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : uncontrolledOpen
 
   const status = useQuery(
     api.scanSessions.getStatus,
@@ -35,12 +62,32 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
 
   useEffect(() => {
     if (status?.status !== "completed") return
-    setOpen(false)
+    if (sessionId === null) return
+    if (completedForSessionRef.current === sessionId) return
+
+    completedForSessionRef.current = sessionId
+
+    if (
+      status.fileId !== null &&
+      status.storageId !== null &&
+      status.fileName !== null
+    ) {
+      onCompletedRef.current?.({
+        fileId: status.fileId,
+        storageId: status.storageId,
+        filename: status.fileName,
+      })
+    }
+
+    if (!isControlled) {
+      setUncontrolledOpen(false)
+    }
+    onOpenChangeRef.current?.(false)
     setSessionId(null)
     setToken(null)
     setPageUrl(null)
     setError(null)
-  }, [status?.status])
+  }, [status, sessionId, isControlled])
 
   useEffect(() => {
     if (token === null) {
@@ -50,9 +97,19 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
     setPageUrl(`${window.location.origin}/scan/${token}`)
   }, [token])
 
+  function setOpen(next: boolean) {
+    if (!isControlled) {
+      setUncontrolledOpen(next)
+    }
+    onOpenChangeRef.current?.(next)
+  }
+
   async function startSession() {
+    if (startingRef.current) return
+    startingRef.current = true
     setError(null)
     setStarting(true)
+    completedForSessionRef.current = null
     try {
       const session = await createSession({ roomId })
       setSessionId(session.sessionId)
@@ -61,14 +118,21 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
       setError(err instanceof Error ? err.message : "Kunde inte skapa QR-kod")
       setOpen(false)
     } finally {
+      startingRef.current = false
       setStarting(false)
     }
   }
 
+  useEffect(() => {
+    if (!open || sessionId !== null || startingRef.current) return
+    void startSession()
+    // Start a session whenever the dialog opens without one.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, sessionId])
+
   async function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       setOpen(true)
-      await startSession()
       return
     }
 
@@ -96,12 +160,14 @@ export function PhoneUploadDialog({ roomId }: PhoneUploadDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(next) => void handleOpenChange(next)}>
-      <DialogTrigger
-        render={<Button variant="outline" disabled={starting} />}
-      >
-        <Smartphone />
-        Från telefon
-      </DialogTrigger>
+      {showTrigger ? (
+        <DialogTrigger
+          render={<Button variant="outline" disabled={starting} />}
+        >
+          <Smartphone />
+          {triggerLabel}
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Skanna med telefonen</DialogTitle>

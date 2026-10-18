@@ -4,13 +4,19 @@ import { useMemo, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
+import {
+  ChatInput,
+  type ChatInputSubmitPayload,
+} from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
+import { ProblemHelpActions } from "~/components/rooms/problem-help-actions"
 import {
   RoomSidebar,
   type RoomSidebarSection,
 } from "~/components/rooms/room-sidebar"
 import { ThreadChat } from "~/components/rooms/thread-chat"
 import { Button } from "~/components/ui/button"
+import { uploadFileToStorage } from "~/lib/upload"
 
 export const Route = createFileRoute("/rooms/$roomId")({
   component: RoomPage,
@@ -28,12 +34,16 @@ function RoomPage() {
   })
 
   const createThread = useMutation(api.threads.create)
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+  const sendMessage = useMutation(api.threads.sendMessage)
 
   const [section, setSection] = useState<RoomSidebarSection>("chats")
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [selectedProblemId, setSelectedProblemId] =
     useState<Id<"problems"> | null>(null)
   const [creatingChat, setCreatingChat] = useState(false)
+  const [problemChatPending, setProblemChatPending] = useState(false)
+  const [problemChatError, setProblemChatError] = useState<string | null>(null)
 
   const selectedThread = useQuery(
     api.threads.get,
@@ -70,6 +80,12 @@ function RoomPage() {
     [problemGroups],
   )
 
+  function openThread(threadId: string) {
+    setSection("chats")
+    setSelectedThreadId(threadId)
+    setSelectedProblemId(null)
+  }
+
   async function handleNewChat(title?: string) {
     if (creatingChat) return
     setCreatingChat(true)
@@ -78,11 +94,51 @@ function RoomPage() {
         roomId: typedRoomId,
         title,
       })
-      setSection("chats")
-      setSelectedThreadId(result.threadId)
-      setSelectedProblemId(null)
+      openThread(result.threadId)
     } finally {
       setCreatingChat(false)
+    }
+  }
+
+  async function handleProblemChatSubmit(
+    problemNumber: string,
+    payload: ChatInputSubmitPayload,
+  ) {
+    if (problemChatPending) return
+
+    setProblemChatError(null)
+    setProblemChatPending(true)
+    try {
+      const result = await createThread({
+        roomId: typedRoomId,
+        title: `Uppgift ${problemNumber}`,
+      })
+
+      const uploaded = await Promise.all(
+        payload.images.map(async (image) => {
+          const storageId = await uploadFileToStorage(image.file, () =>
+            generateUploadUrl({ roomId: typedRoomId }),
+          )
+          return { storageId, filename: image.file.name }
+        }),
+      )
+
+      await sendMessage({
+        roomId: typedRoomId,
+        threadId: result.threadId,
+        prompt: payload.prompt,
+        images: uploaded.length > 0 ? uploaded : undefined,
+        helpLevel: payload.helpLevel,
+      })
+
+      openThread(result.threadId)
+    } catch (err: unknown) {
+      setProblemChatError(
+        err instanceof Error ? err.message : "Kunde inte starta chatt",
+      )
+      throw err
+    } finally {
+      setProblemChatPending(false)
     }
   }
 
@@ -133,15 +189,18 @@ function RoomPage() {
           setSection("problems")
           setSelectedProblemId(id as Id<"problems">)
           setSelectedThreadId(null)
+          setProblemChatError(null)
         }}
       />
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-6">
         {section === "files" ? (
-          <FilesGrid roomId={typedRoomId} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <FilesGrid roomId={typedRoomId} />
+          </div>
         ) : section === "problems" ? (
           selectedProblemId === null ? (
-            <>
+            <div className="overflow-y-auto">
               <h2 className="text-lg font-medium">Uppgifter</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
@@ -154,7 +213,7 @@ function RoomPage() {
                 </button>
                 .
               </p>
-            </>
+            </div>
           ) : selectedProblem === undefined ? (
             <p className="text-sm text-muted-foreground">Hämtar uppgift…</p>
           ) : selectedProblem === null ? (
@@ -162,26 +221,35 @@ function RoomPage() {
               Uppgiften hittades inte eller så saknar du åtkomst.
             </p>
           ) : (
-            <div className="mx-auto w-full max-w-3xl space-y-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <p className="text-sm text-muted-foreground">
-                  Från {selectedProblem.fileName}
-                </p>
-                <Button
-                  size="sm"
-                  disabled={creatingChat}
-                  onClick={() =>
-                    void handleNewChat(
-                      `Uppgift ${selectedProblem.problem.problemNumber}`,
-                    )
-                  }
-                >
-                  {creatingChat ? "Skapar…" : "Starta chatt"}
-                </Button>
+            <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
+              <p className="shrink-0 text-sm text-muted-foreground">
+                Från {selectedProblem.fileName}
+              </p>
+              <div className="mt-4 min-h-0 overflow-y-auto">
+                <ParsedProblemView
+                  problem={selectedProblem.problem}
+                  showAnswer={false}
+                />
               </div>
-              <ParsedProblemView
-                problem={selectedProblem.problem}
-                showAnswer={false}
+              <div className="flex min-h-0 flex-1 items-center justify-center py-6">
+                <ProblemHelpActions
+                  roomId={typedRoomId}
+                  problemNumber={selectedProblem.problem.problemNumber}
+                  onStarted={openThread}
+                />
+              </div>
+              <ChatInput
+                className="shrink-0"
+                showHelpLevels={false}
+                pending={problemChatPending}
+                error={problemChatError}
+                placeholder="Fråga om uppgiften…"
+                onSubmit={(payload) =>
+                  handleProblemChatSubmit(
+                    selectedProblem.problem.problemNumber,
+                    payload,
+                  )
+                }
               />
             </div>
           )

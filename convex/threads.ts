@@ -9,6 +9,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
+import { helpLevelValidator } from "./lib/lumoContent";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
@@ -220,6 +221,7 @@ export const sendMessage = mutation({
     threadId: v.string(),
     prompt: v.string(),
     images: v.optional(v.array(chatImageValidator)),
+    helpLevel: v.optional(helpLevelValidator),
   },
   handler: async (ctx, args) => {
     const prompt = args.prompt.trim();
@@ -319,6 +321,7 @@ export const sendMessage = mutation({
     await ctx.scheduler.runAfter(0, internal.agents.roomAgent.generateResponse, {
       threadId: args.threadId,
       promptMessageId: messageId,
+      helpLevel: args.helpLevel,
     });
 
     return { messageId };

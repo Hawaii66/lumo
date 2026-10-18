@@ -3,19 +3,14 @@ import {
   useUIMessages,
 } from "@convex-dev/agent/react"
 import { useMutation } from "convex/react"
-import { ImagePlus, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
-import type { FormEvent } from "react"
 import type { UIMessage } from "@convex-dev/agent/react"
 import type { Id } from "../../../convex/_generated/dataModel"
-import type { HelpLevel } from "~/lib/schemas"
+import { ChatInput, type ChatInputSubmitPayload } from "~/components/rooms/chat-input"
 import { LumoParts } from "~/components/lumo/lumo-parts"
-import { Button } from "~/components/ui/button"
-import { Textarea } from "~/components/ui/textarea"
 import { parseLumoDocument } from "~/lib/lumo-content"
 import { uploadFileToStorage } from "~/lib/upload"
-import { useUiStore } from "~/stores/ui-store"
 import { cn } from "~/lib/utils"
 
 type ThreadChatProps = {
@@ -23,21 +18,6 @@ type ThreadChatProps = {
   threadId: string
   title: string
 }
-
-type PendingImage = {
-  id: string
-  file: File
-  previewUrl: string
-}
-
-const MAX_IMAGES = 4
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024
-
-const HELP_LEVELS: Array<{ value: HelpLevel; label: string }> = [
-  { value: "minimal", label: "Hitta fel" },
-  { value: "explain", label: "Förklara" },
-  { value: "solve", label: "Lös helt" },
-]
 
 function MessageContent({
   message,
@@ -121,84 +101,15 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
     },
   )
 
-  const helpLevel = useUiStore((s) => s.helpLevel)
-  const setHelpLevel = useUiStore((s) => s.setHelpLevel)
-
-  const [prompt, setPrompt] = useState("")
-  const [pendingImages, setPendingImages] = useState<Array<PendingImage>>([])
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const pendingImagesRef = useRef(pendingImages)
-  pendingImagesRef.current = pendingImages
 
   const messages = [...results].reverse()
-  const canSend =
-    (prompt.trim().length > 0 || pendingImages.length > 0) && !pending
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages.length])
-
-  useEffect(() => {
-    return () => {
-      for (const image of pendingImagesRef.current) {
-        URL.revokeObjectURL(image.previewUrl)
-      }
-    }
-  }, [])
-
-  function addImages(fileList: FileList | null) {
-    if (!fileList || fileList.length === 0) return
-
-    setError(null)
-    const next: Array<PendingImage> = []
-    for (const file of Array.from(fileList)) {
-      if (!file.type.startsWith("image/")) {
-        setError("Endast bilder kan skickas just nu")
-        continue
-      }
-      if (file.size > MAX_IMAGE_BYTES) {
-        setError("Bilden är för stor (max 10 MB)")
-        continue
-      }
-      next.push({
-        id: crypto.randomUUID(),
-        file,
-        previewUrl: URL.createObjectURL(file),
-      })
-    }
-
-    setPendingImages((current) => {
-      const remaining = MAX_IMAGES - current.length
-      if (remaining <= 0) {
-        for (const image of next) URL.revokeObjectURL(image.previewUrl)
-        setError(`Du kan bifoga högst ${MAX_IMAGES} bilder`)
-        return current
-      }
-      if (next.length > remaining) {
-        for (const image of next.slice(remaining)) {
-          URL.revokeObjectURL(image.previewUrl)
-        }
-        setError(`Du kan bifoga högst ${MAX_IMAGES} bilder`)
-        return [...current, ...next.slice(0, remaining)]
-      }
-      return [...current, ...next]
-    })
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
-
-  function removeImage(id: string) {
-    setPendingImages((current) => {
-      const target = current.find((image) => image.id === id)
-      if (target) URL.revokeObjectURL(target.previewUrl)
-      return current.filter((image) => image.id !== id)
-    })
-  }
 
   async function uploadImage(file: File) {
     const storageId = await uploadFileToStorage(file, () =>
@@ -207,14 +118,16 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
     return { storageId, filename: file.name }
   }
 
-  async function sendPrompt(text: string, images: Array<PendingImage> = []) {
+  async function sendPrompt(
+    text: string,
+    images: ChatInputSubmitPayload["images"] = [],
+    helpLevel?: ChatInputSubmitPayload["helpLevel"],
+  ) {
     const trimmed = text.trim()
     if ((!trimmed && images.length === 0) || pending) return
 
     setError(null)
     setPending(true)
-    setPrompt("")
-    setPendingImages([])
 
     try {
       const uploaded = await Promise.all(
@@ -227,22 +140,12 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
         images: uploaded.length > 0 ? uploaded : undefined,
         helpLevel,
       })
-      for (const image of images) {
-        URL.revokeObjectURL(image.previewUrl)
-      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kunde inte skicka")
-      setPrompt(trimmed)
-      setPendingImages(images)
+      throw err
     } finally {
       setPending(false)
     }
-  }
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    const imagesToSend = pendingImages
-    await sendPrompt(prompt, imagesToSend)
   }
 
   return (
@@ -273,7 +176,7 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
                 <MessageContent
                   message={message}
                   onQuickReply={(label) => {
-                    void sendPrompt(label)
+                    void sendPrompt(label).catch(() => undefined)
                   }}
                   quickRepliesDisabled={pending}
                 />
@@ -284,108 +187,13 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
         <div ref={bottomRef} />
       </div>
 
-      <form
-        onSubmit={(event) => {
-          void handleSubmit(event)
+      <ChatInput
+        pending={pending}
+        error={error}
+        onSubmit={async ({ prompt, images, helpLevel }) => {
+          await sendPrompt(prompt, images, helpLevel)
         }}
-        className="flex flex-col gap-2 border-t border-border pt-4"
-        onPaste={(event) => {
-          const files = event.clipboardData.files
-          if (files.length === 0) return
-          const hasImage = Array.from(files).some((file) =>
-            file.type.startsWith("image/"),
-          )
-          if (hasImage) {
-            event.preventDefault()
-            addImages(files)
-          }
-        }}
-      >
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-        {pendingImages.length > 0 ? (
-          <ul className="flex flex-wrap gap-2">
-            {pendingImages.map((image) => (
-              <li
-                key={image.id}
-                className="relative size-16 overflow-hidden rounded-md border border-border"
-              >
-                <img
-                  src={image.previewUrl}
-                  alt={image.file.name}
-                  className="size-full object-cover"
-                />
-                <button
-                  type="button"
-                  className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
-                  onClick={() => removeImage(image.id)}
-                  aria-label={`Ta bort ${image.file.name}`}
-                  disabled={pending}
-                >
-                  <X className="size-3" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <div className="flex flex-wrap gap-1.5">
-          {HELP_LEVELS.map((level) => (
-            <Button
-              key={level.value}
-              type="button"
-              size="sm"
-              variant={helpLevel === level.value ? "default" : "outline"}
-              disabled={pending}
-              onClick={() => setHelpLevel(level.value)}
-            >
-              {level.label}
-            </Button>
-          ))}
-        </div>
-
-        <Textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Skriv ett meddelande…"
-          rows={2}
-          disabled={pending}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault()
-              e.currentTarget.form?.requestSubmit()
-            }
-          }}
-        />
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="sr-only"
-              disabled={pending}
-              onChange={(event) => {
-                addImages(event.target.files)
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={pending || pendingImages.length >= MAX_IMAGES}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <ImagePlus />
-              Bild
-            </Button>
-          </div>
-          <Button type="submit" disabled={!canSend}>
-            {pending ? "Skickar…" : "Skicka"}
-          </Button>
-        </div>
-      </form>
+      />
     </div>
   )
 }
