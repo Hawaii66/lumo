@@ -10,6 +10,7 @@ import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
 import { helpLevelValidator } from "./lib/lumoContent";
+import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
@@ -222,10 +223,18 @@ export const sendMessage = mutation({
     prompt: v.string(),
     images: v.optional(v.array(chatImageValidator)),
     helpLevel: v.optional(helpLevelValidator),
+    problemId: v.optional(v.id("problems")),
+    problemIds: v.optional(v.array(v.id("problems"))),
   },
   handler: async (ctx, args) => {
     const prompt = args.prompt.trim();
     const images = args.images ?? [];
+    const problemIds = [
+      ...new Set([
+        ...(args.problemIds ?? []),
+        ...(args.problemId !== undefined ? [args.problemId] : []),
+      ]),
+    ].slice(0, 20);
 
     if (prompt.length === 0 && images.length === 0) {
       throw new Error("Meddelandet får inte vara tomt");
@@ -318,10 +327,29 @@ export const sendMessage = mutation({
             metadata: { fileIds },
           });
 
+    if (problemIds.length > 0) {
+      const roomFiles = await ctx.db
+        .query("files")
+        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+        .take(MAX_FILES_PER_ROOM);
+      const hashes = new Set(roomFiles.map((file) => file.contentHash));
+      for (const problemId of problemIds) {
+        const problem = await ctx.db.get(problemId);
+        if (problem === null) {
+          throw new Error("Uppgiften hittades inte");
+        }
+        if (!hashes.has(problem.contentHash)) {
+          throw new Error("Uppgiften tillhör inte det här rummet");
+        }
+      }
+    }
+
     await ctx.scheduler.runAfter(0, internal.agents.roomAgent.generateResponse, {
       threadId: args.threadId,
       promptMessageId: messageId,
       helpLevel: args.helpLevel,
+      roomId: args.roomId,
+      problemIds: problemIds.length > 0 ? problemIds : undefined,
     });
 
     return { messageId };

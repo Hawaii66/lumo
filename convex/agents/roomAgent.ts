@@ -1,6 +1,6 @@
 import { Agent } from "@convex-dev/agent";
 import { v } from "convex/values";
-import { components } from "../_generated/api";
+import { components, internal } from "../_generated/api";
 import { internalAction } from "../_generated/server";
 import {
   LUMO_PROTOCOL_INSTRUCTIONS,
@@ -34,9 +34,33 @@ export const generateResponse = internalAction({
     threadId: v.string(),
     promptMessageId: v.string(),
     helpLevel: v.optional(helpLevelValidator),
+    roomId: v.optional(v.id("rooms")),
+    problemIds: v.optional(v.array(v.id("problems"))),
   },
   handler: async (ctx, args) => {
     const helpLevel: HelpLevel = args.helpLevel ?? "explain";
+
+    let problemContext = "";
+    if (
+      args.roomId !== undefined &&
+      args.problemIds !== undefined &&
+      args.problemIds.length > 0
+    ) {
+      const problems: Array<{
+        problemNumber: string;
+        questionText: string;
+      }> = await ctx.runQuery(internal.PDFParse.problems.getPromptContexts, {
+        roomId: args.roomId,
+        problemIds: args.problemIds,
+      });
+      if (problems.length > 0) {
+        const blocks = problems.map(
+          (problem) =>
+            `Uppgift ${problem.problemNumber}:\n${problem.questionText}`,
+        );
+        problemContext = `\n\nStudenten refererar till följande uppgifter (använd som kontext; visa inte facit om hjälpnivån förbjuder det):\n\n${blocks.join("\n\n")}`;
+      }
+    }
 
     await roomAgent.generateObject(
       ctx,
@@ -44,7 +68,7 @@ export const generateResponse = internalAction({
       {
         promptMessageId: args.promptMessageId,
         schema: lumoDocumentSchema,
-        system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${helpLevelHint(helpLevel)}`,
+        system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${helpLevelHint(helpLevel)}${problemContext}`,
       },
     );
   },

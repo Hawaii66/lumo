@@ -12,6 +12,7 @@ import { cn } from "~/lib/utils"
 
 type ProblemHelpActionsProps = {
   roomId: Id<"rooms">
+  problemId: Id<"problems">
   problemNumber: string
   onStarted: (threadId: string) => void
   className?: string
@@ -49,6 +50,7 @@ const ACTIONS: Array<{
 
 export function ProblemHelpActions({
   roomId,
+  problemId,
   problemNumber,
   onStarted,
   className,
@@ -83,6 +85,8 @@ export function ProblemHelpActions({
         prompt: args.prompt,
         images: args.images,
         helpLevel: args.helpLevel,
+        problemId,
+        problemIds: [problemId],
       })
 
       onStarted(result.threadId)

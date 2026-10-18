@@ -596,6 +596,32 @@ export function stringifyLumoDocument(doc: LumoDocument): string {
   return JSON.stringify(doc);
 }
 
+/** Flatten static textbook parts into a prompt-friendly string for the agent. */
+export function serializeStaticDocumentForPrompt(
+  doc: LumoStaticDocument | { version: 1; parts: Array<LumoStaticPart> },
+): string {
+  const chunks: Array<string> = [];
+  for (const part of doc.parts) {
+    switch (part.type) {
+      case "text":
+        chunks.push(part.content);
+        break;
+      case "latex":
+        chunks.push(`$${part.content}$`);
+        break;
+      case "subproblem":
+        chunks.push(`\n(${part.label})\n`);
+        break;
+      case "case":
+        chunks.push(
+          part.label ? `\n[Fall ${part.label}]\n` : "\n[Fall]\n",
+        );
+        break;
+    }
+  }
+  return chunks.join("").trim();
+}
+
 export const LUMO_PROTOCOL_INSTRUCTIONS = `Du är Lumo, en sokratisk studieassistent. Svara på svenska om användaren skriver på svenska.
 
 Du MÅSTE svara med ett enda JSON-objekt (inga markdown-staket, ingen prosa utanför JSON) enligt detta schema:

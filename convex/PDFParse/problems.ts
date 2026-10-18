@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import {
   lumoParsedProblemValidator,
   lumoStaticDocumentValidator,
+  serializeStaticDocumentForPrompt,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
 import { MAX_FILES_PER_ROOM } from "../lib/roomFiles";
@@ -101,21 +102,20 @@ export const listGroupedByRoom = query({
   },
 });
 
+const roomProblemResultValidator = v.object({
+  id: v.id("problems"),
+  fileId: v.id("files"),
+  fileName: v.string(),
+  problem: lumoParsedProblemValidator,
+});
+
 /** Single problem for room detail view; null if missing or not in this room. */
 export const getForRoom = query({
   args: {
     roomId: v.id("rooms"),
     problemId: v.id("problems"),
   },
-  returns: v.union(
-    v.object({
-      id: v.id("problems"),
-      fileId: v.id("files"),
-      fileName: v.string(),
-      problem: lumoParsedProblemValidator,
-    }),
-    v.null(),
-  ),
+  returns: v.union(roomProblemResultValidator, v.null()),
   handler: async (ctx, args) => {
     if (!(await isRoomMember(ctx, args.roomId))) {
       return null;
@@ -149,6 +149,55 @@ export const getForRoom = query({
   },
 });
 
+const MAX_PROBLEMS_PER_GET_MANY = 20;
+
+/** Several problems for chat embeds; preserves request order, skips missing. */
+export const getManyForRoom = query({
+  args: {
+    roomId: v.id("rooms"),
+    problemIds: v.array(v.id("problems")),
+  },
+  returns: v.array(roomProblemResultValidator),
+  handler: async (ctx, args) => {
+    if (!(await isRoomMember(ctx, args.roomId))) {
+      return [];
+    }
+
+    const ids = args.problemIds.slice(0, MAX_PROBLEMS_PER_GET_MANY);
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+
+    const fileByHash = new Map(
+      files.map((file) => [file.contentHash, file] as const),
+    );
+
+    const results = [];
+    for (const problemId of ids) {
+      const row = await ctx.db.get(problemId);
+      if (row === null) continue;
+      const file = fileByHash.get(row.contentHash);
+      if (file === undefined) continue;
+      results.push({
+        id: row._id,
+        fileId: file._id,
+        fileName: file.name,
+        problem: {
+          problemNumber: row.problemNumber,
+          question: row.problem,
+          answer: row.answer,
+        } satisfies LumoParsedProblem,
+      });
+    }
+    return results;
+  },
+});
+
 /**
  * Resolve file id → contentHash → cached problems.
  * Null when the file is missing or has no saved problems.
@@ -179,6 +228,48 @@ export const listByFileId = query({
         answer: r.answer,
       }),
     );
+  },
+});
+
+/**
+ * Problem texts for the room agent. Skips ids that are missing or not in room.
+ */
+export const getPromptContexts = internalQuery({
+  args: {
+    roomId: v.id("rooms"),
+    problemIds: v.array(v.id("problems")),
+  },
+  returns: v.array(
+    v.object({
+      problemNumber: v.string(),
+      questionText: v.string(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const ids = args.problemIds.slice(0, MAX_PROBLEMS_PER_GET_MANY);
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    const fileByHash = new Map(
+      files.map((file) => [file.contentHash, file] as const),
+    );
+
+    const results = [];
+    for (const problemId of ids) {
+      const row = await ctx.db.get(problemId);
+      if (row === null) continue;
+      if (!fileByHash.has(row.contentHash)) continue;
+      results.push({
+        problemNumber: row.problemNumber,
+        questionText: serializeStaticDocumentForPrompt(row.problem),
+      });
+    }
+    return results;
   },
 });
 

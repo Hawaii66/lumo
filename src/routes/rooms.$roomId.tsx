@@ -126,12 +126,22 @@ function RoomPage() {
         }),
       )
 
+      const problemIds =
+        payload.problemIds ??
+        (payload.problemId
+          ? [payload.problemId]
+          : selectedProblemId
+            ? [selectedProblemId]
+            : undefined)
+
       await sendMessage({
         roomId: typedRoomId,
         threadId: result.threadId,
         prompt: payload.prompt,
         images: uploaded.length > 0 ? uploaded : undefined,
         helpLevel: payload.helpLevel,
+        problemIds,
+        problemId: problemIds?.[0],
       })
 
       openThread(result.threadId)
@@ -239,16 +249,19 @@ function RoomPage() {
               <div className="flex min-h-0 flex-1 items-center justify-center py-6">
                 <ProblemHelpActions
                   roomId={typedRoomId}
+                  problemId={selectedProblem.id}
                   problemNumber={selectedProblem.problem.problemNumber}
                   onStarted={openThread}
                 />
               </div>
               <ChatInput
+                roomId={typedRoomId}
+                defaultProblemId={selectedProblem.id}
                 className="shrink-0"
                 showHelpLevels={false}
                 pending={problemChatPending}
                 error={problemChatError}
-                placeholder="Fråga om uppgiften…"
+                placeholder="Fråga om uppgiften… eller @1.2"
                 onSubmit={(payload) =>
                   handleProblemChatSubmit(
                     selectedProblem.problem.problemNumber,
