@@ -64,17 +64,31 @@ async function loadFile(
   return file;
 }
 
+type StatusReporter = (
+  message: string,
+  options?: { replaceLast?: boolean },
+) => Promise<void>;
+
 async function appendJobStatus(
   ctx: ActionCtx,
   jobId: Id<"pdfParseJobs">,
   message: string,
-  status?: "pending" | "running" | "done" | "failed",
+  options?: {
+    status?: "pending" | "running" | "done" | "failed";
+    replaceLast?: boolean;
+  },
 ): Promise<void> {
   await ctx.runMutation(internal.PDFParse.jobs.appendStatus, {
     jobId,
     message,
-    status,
+    status: options?.status,
+    replaceLast: options?.replaceLast,
   });
+}
+
+function formatAgentProgress(completed: number, total: number): string {
+  const percent = total === 0 ? 100 : Math.round((completed / total) * 100);
+  return `Tolkar uppgifter med AI… ${completed}/${total} (${percent}%)`;
 }
 
 async function saveParsedProblems(
@@ -149,16 +163,30 @@ async function convertChunksToProblems(
   ctx: ActionCtx,
   userId: Id<"users">,
   chunks: ProblemChunk[],
+  onStatus?: StatusReporter,
 ): Promise<LumoParsedProblem[]> {
   if (chunks.length === 0) {
     return [];
   }
 
-  return await mapPool(
+  const total = chunks.length;
+  let completed = 0;
+  // Serialize status writes so concurrent workers don't reorder progress.
+  let statusChain: Promise<void> = Promise.resolve();
+
+  const reportProgress = (done: number, replaceLast: boolean) => {
+    statusChain = statusChain.then(async () => {
+      await onStatus?.(formatAgentProgress(done, total), { replaceLast });
+    });
+  };
+
+  reportProgress(0, false);
+
+  const results = await mapPool(
     chunks,
     AGENT_CONCURRENCY,
     async (chunk): Promise<LumoParsedProblem> => {
-      return await ctx.runAction(
+      const problem = await ctx.runAction(
         internal.PDFParse.lumoProblemAgent.convertProblemChunk,
         {
           userId,
@@ -167,8 +195,14 @@ async function convertChunksToProblems(
           answerText: chunk.answerText,
         },
       );
+      completed += 1;
+      reportProgress(completed, true);
+      return problem;
     },
   );
+
+  await statusChain;
+  return results;
 }
 
 async function parsePdfBytesToProblems(
@@ -177,24 +211,21 @@ async function parsePdfBytesToProblems(
   pdfBytes: ArrayBuffer,
   contentHash: string,
   blobType: string,
-  onStatus?: (message: string) => Promise<void>,
+  onStatus?: StatusReporter,
 ): Promise<LumoParsedProblem[]> {
   const middleJson = await getOrFetchMiddleJson(
     ctx,
     pdfBytes,
     contentHash,
     blobType,
-    onStatus,
+    async (message) => {
+      await onStatus?.(message);
+    },
   );
   await onStatus?.("Delar upp uppgifter…");
   const { problemLines, answerLines } = flattenMiddleJson(middleJson);
   const chunks = splitIntoProblemChunks(problemLines, answerLines);
-  await onStatus?.(
-    chunks.length === 1
-      ? "Tolkar 1 uppgift med AI…"
-      : `Tolkar ${chunks.length} uppgifter med AI…`,
-  );
-  return await convertChunksToProblems(ctx, userId, chunks);
+  return await convertChunksToProblems(ctx, userId, chunks, onStatus);
 }
 
 /**
@@ -217,7 +248,9 @@ export const runParseJob = internalAction({
     }
 
     try {
-      await appendJobStatus(ctx, args.jobId, "Hämtar PDF…", "running");
+      await appendJobStatus(ctx, args.jobId, "Hämtar PDF…", {
+        status: "running",
+      });
 
       const file = await loadFile(ctx, job.fileId);
       const existingCount: number = await ctx.runQuery(
@@ -243,8 +276,8 @@ export const runParseJob = internalAction({
         await blob.arrayBuffer(),
         file.contentHash,
         blob.type,
-        async (message) => {
-          await appendJobStatus(ctx, args.jobId, message);
+        async (message, options) => {
+          await appendJobStatus(ctx, args.jobId, message, options);
         },
       );
 

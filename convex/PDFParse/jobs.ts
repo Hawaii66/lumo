@@ -45,6 +45,19 @@ async function hasProblemsForHash(
   return row.length > 0;
 }
 
+async function countProblemsForHash(
+  ctx: QueryCtx | MutationCtx,
+  contentHash: string,
+): Promise<number> {
+  const rows = await ctx.db
+    .query("problems")
+    .withIndex("by_contentHash_and_row", (q) =>
+      q.eq("contentHash", contentHash),
+    )
+    .collect();
+  return rows.length;
+}
+
 function isActiveStatus(
   status: Doc<"pdfParseJobs">["status"],
 ): status is "pending" | "running" {
@@ -96,6 +109,7 @@ export const getParseStatus = query({
     v.object({
       fileName: v.string(),
       alreadyParsed: v.boolean(),
+      problemCount: v.number(),
       job: v.union(jobSummaryValidator, v.null()),
     }),
   ),
@@ -106,7 +120,8 @@ export const getParseStatus = query({
     }
     await requireRoomMember(ctx, file.roomId);
 
-    const alreadyParsed = await hasProblemsForHash(ctx, file.contentHash);
+    const problemCount = await countProblemsForHash(ctx, file.contentHash);
+    const alreadyParsed = problemCount > 0;
     const active = await activeJobForContentHash(ctx, file.contentHash);
 
     // Active jobs always show. Failed jobs show only when not already parsed.
@@ -124,6 +139,7 @@ export const getParseStatus = query({
     return {
       fileName: file.name,
       alreadyParsed,
+      problemCount,
       job,
     };
   },
@@ -207,6 +223,8 @@ export const appendStatus = internalMutation({
     jobId: v.id("pdfParseJobs"),
     message: v.string(),
     status: v.optional(jobStatusValidator),
+    /** When true, overwrite the last status line instead of appending. */
+    replaceLast: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -215,10 +233,11 @@ export const appendStatus = internalMutation({
       return null;
     }
 
-    const statusUpdates = [
-      ...job.statusUpdates,
-      { message: args.message, at: Date.now() },
-    ].slice(-MAX_STATUS_UPDATES);
+    const entry = { message: args.message, at: Date.now() };
+    const statusUpdates =
+      args.replaceLast === true && job.statusUpdates.length > 0
+        ? [...job.statusUpdates.slice(0, -1), entry]
+        : [...job.statusUpdates, entry].slice(-MAX_STATUS_UPDATES);
 
     await ctx.db.patch(args.jobId, {
       statusUpdates,

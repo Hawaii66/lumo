@@ -28,6 +28,25 @@ function formatTime(at: number) {
   })
 }
 
+/** Matches "Tolkar uppgifter med AI… 3/12 (25%)" from the job runner. */
+function parseAgentProgress(
+  updates: { message: string }[],
+): { completed: number; total: number; percent: number } | null {
+  for (let i = updates.length - 1; i >= 0; i--) {
+    const match = updates[i]?.message.match(
+      /(\d+)\s*\/\s*(\d+)\s*\((\d+)%\)/,
+    )
+    if (match) {
+      return {
+        completed: Number(match[1]),
+        total: Number(match[2]),
+        percent: Number(match[3]),
+      }
+    }
+  }
+  return null
+}
+
 export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
   const [open, setOpen] = useState(false)
   const [starting, setStarting] = useState(false)
@@ -41,9 +60,12 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
 
   const job = status?.job ?? null
   const alreadyParsed = status?.alreadyParsed ?? false
+  const problemCount = status?.problemCount ?? 0
   const jobActive =
     job !== null && (job.status === "pending" || job.status === "running")
   const canStart = status !== undefined && !alreadyParsed && !jobActive
+  const agentProgress =
+    job !== null ? parseAgentProgress(job.statusUpdates) : null
 
   async function handleStart() {
     setError(null)
@@ -81,8 +103,10 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
           <p className="text-sm text-muted-foreground">Hämtar status…</p>
         ) : alreadyParsed ? (
           <p className="text-sm text-muted-foreground">
-            Denna PDF är redan tolkad (samma innehållshash). Uppgifterna sparas
-            per hash och visas inte här.
+            Denna PDF är redan tolkad.{" "}
+            {problemCount === 1
+              ? "1 uppgift skapades från PDF:en."
+              : `${problemCount} uppgifter skapades från PDF:en.`}
           </p>
         ) : (
           <div className="flex flex-col gap-3">
@@ -97,7 +121,9 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
                     ? "Misslyckades"
                     : job.status === "pending"
                       ? "Väntar…"
-                      : "Pågår…"}
+                      : agentProgress !== null
+                        ? `Pågår… ${agentProgress.completed}/${agentProgress.total} (${agentProgress.percent}%)`
+                        : "Pågår…"}
                 </p>
                 <ul className="max-h-48 space-y-1.5 overflow-y-auto rounded-md border border-border bg-muted/30 p-3">
                   {job.statusUpdates.map((update, index) => (
