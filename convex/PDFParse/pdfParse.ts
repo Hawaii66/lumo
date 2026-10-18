@@ -64,6 +64,19 @@ async function loadFile(
   return file;
 }
 
+async function appendJobStatus(
+  ctx: ActionCtx,
+  jobId: Id<"pdfParseJobs">,
+  message: string,
+  status?: "pending" | "running" | "done" | "failed",
+): Promise<void> {
+  await ctx.runMutation(internal.PDFParse.jobs.appendStatus, {
+    jobId,
+    message,
+    status,
+  });
+}
+
 async function saveParsedProblems(
   ctx: ActionCtx,
   contentHash: string,
@@ -89,6 +102,7 @@ async function getOrFetchMiddleJson(
   pdfBytes: ArrayBuffer,
   contentHash: string,
   blobType: string,
+  onStatus?: (message: string) => Promise<void>,
 ): Promise<MiddleJson> {
   const cached: {
     _id: Id<"mineruCache">;
@@ -106,6 +120,7 @@ async function getOrFetchMiddleJson(
           JSON.parse(await cachedBlob.text()),
         );
         if (parsed.success) {
+          await onStatus?.("Använder cachad MinerU-tolkning");
           return parsed.data;
         }
       } catch {
@@ -114,6 +129,7 @@ async function getOrFetchMiddleJson(
     }
   }
 
+  await onStatus?.("Tolkar PDF med MinerU…");
   const pdfForUpload = new Blob([new Uint8Array(pdfBytes)], {
     type: blobType || "application/pdf",
   });
@@ -162,17 +178,95 @@ async function parsePdfBytesToProblems(
   pdfBytes: ArrayBuffer,
   contentHash: string,
   blobType: string,
+  onStatus?: (message: string) => Promise<void>,
 ): Promise<LumoParsedProblem[]> {
   const middleJson = await getOrFetchMiddleJson(
     ctx,
     pdfBytes,
     contentHash,
     blobType,
+    onStatus,
   );
+  await onStatus?.("Delar upp uppgifter…");
   const { problemLines, answerLines } = flattenMiddleJson(middleJson);
   const chunks = splitIntoProblemChunks(problemLines, answerLines);
+  await onStatus?.(
+    chunks.length === 1
+      ? "Tolkar 1 uppgift med AI…"
+      : `Tolkar ${chunks.length} uppgifter med AI…`,
+  );
   return await convertChunksToProblems(ctx, userId, chunks);
 }
+
+/**
+ * Background job runner: updates `pdfParseJobs.statusUpdates` as it progresses.
+ */
+export const runParseJob = internalAction({
+  args: {
+    jobId: v.id("pdfParseJobs"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const job = await ctx.runQuery(internal.PDFParse.jobs.getInternal, {
+      jobId: args.jobId,
+    });
+    if (job === null) {
+      return null;
+    }
+    if (job.status === "done" || job.status === "failed") {
+      return null;
+    }
+
+    try {
+      await appendJobStatus(ctx, args.jobId, "Hämtar PDF…", "running");
+
+      const file = await loadFile(ctx, job.fileId);
+      const existingCount: number = await ctx.runQuery(
+        internal.PDFParse.problems.countByContentHash,
+        { contentHash: file.contentHash },
+      );
+      if (existingCount > 0) {
+        await ctx.runMutation(internal.PDFParse.jobs.markDone, {
+          jobId: args.jobId,
+          problemCount: existingCount,
+        });
+        return null;
+      }
+
+      const blob = await ctx.storage.get(file.storageId);
+      if (blob === null) {
+        throw new Error("PDF-filen hittades inte i lagringen");
+      }
+
+      const problems = await parsePdfBytesToProblems(
+        ctx,
+        job.createdBy,
+        await blob.arrayBuffer(),
+        file.contentHash,
+        blob.type,
+        async (message) => {
+          await appendJobStatus(ctx, args.jobId, message);
+        },
+      );
+
+      await appendJobStatus(ctx, args.jobId, "Sparar uppgifter…");
+      await saveParsedProblems(ctx, file.contentHash, problems);
+      await ctx.runMutation(internal.PDFParse.jobs.markDone, {
+        jobId: args.jobId,
+        problemCount: problems.length,
+      });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Okänt fel vid tolkning";
+      await ctx.runMutation(internal.PDFParse.jobs.markFailed, {
+        jobId: args.jobId,
+        error: message,
+      });
+    }
+
+    return null;
+  },
+});
 
 /**
  * Parse a math PDF into Lumo problems.

@@ -21,6 +21,7 @@ import {
   isImageFile,
 } from "~/components/rooms/image-viewer-sheet"
 import { PdfPreview } from "~/components/rooms/pdf-preview"
+import { ParsePdfDialog } from "~/components/rooms/parse-pdf-dialog"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { PdfViewerSheet, isPdfFile } from "~/components/rooms/pdf-viewer-sheet"
 import { Button } from "~/components/ui/button"
@@ -239,17 +240,23 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                   </span>
                   <span className="flex shrink-0 items-center gap-1.5">
                     {pdf ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!file.url}
-                        onClick={() =>
-                          setViewingPdf({ name: file.name, url: file.url })
-                        }
-                      >
-                        <Eye />
-                        Visa
-                      </Button>
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!file.url}
+                          onClick={() =>
+                            setViewingPdf({ name: file.name, url: file.url })
+                          }
+                        >
+                          <Eye />
+                          Visa
+                        </Button>
+                        <ParsePdfDialog
+                          fileId={file._id}
+                          fileName={file.name}
+                        />
+                      </>
                     ) : null}
                     {image ? (
                       <Button

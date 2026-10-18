@@ -69,4 +69,31 @@ export default defineSchema({
     problem: lumoStaticDocumentValidator,
     answer: lumoStaticDocumentValidator,
   }).index("by_contentHash_and_row", ["contentHash", "row"]),
+  /**
+   * Async PDF → problems parse jobs.
+   * `statusUpdates` is a short progress log the workflow appends to.
+   */
+  pdfParseJobs: defineTable({
+    fileId: v.id("files"),
+    roomId: v.id("rooms"),
+    contentHash: v.string(),
+    createdBy: v.id("users"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("done"),
+      v.literal("failed"),
+    ),
+    statusUpdates: v.array(
+      v.object({
+        message: v.string(),
+        at: v.number(),
+      }),
+    ),
+    error: v.optional(v.string()),
+    problemCount: v.optional(v.number()),
+  })
+    .index("by_file", ["fileId"])
+    .index("by_contentHash", ["contentHash"])
+    .index("by_room", ["roomId"]),
 });

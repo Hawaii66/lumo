@@ -5,7 +5,7 @@ import {
   type LumoParsedProblem,
 } from "../lib/lumoContent";
 import { requireRoomMember } from "../lib/roomAuth";
-import { internalMutation, query } from "../_generated/server";
+import { internalMutation, internalQuery, query } from "../_generated/server";
 
 /** Upper bound of problems expected from a single PDF. */
 const MAX_PROBLEMS_PER_PDF = 500;
@@ -49,6 +49,21 @@ export const listByFileId = query({
         answer: r.answer,
       }),
     );
+  },
+});
+
+/** Count cached problems for a content hash (no auth — internal only). */
+export const countByContentHash = internalQuery({
+  args: { contentHash: v.string() },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("problems")
+      .withIndex("by_contentHash_and_row", (q) =>
+        q.eq("contentHash", args.contentHash),
+      )
+      .take(MAX_PROBLEMS_PER_PDF);
+    return rows.length;
   },
 });
 
