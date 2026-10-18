@@ -29,3 +29,17 @@ export function isAllowedRoomFile(
   }
   return false;
 }
+
+export function isPdfFile(
+  name: string,
+  contentType: string | null | undefined,
+): boolean {
+  const ct = (contentType ?? "").toLowerCase();
+  if (ct === "application/pdf") {
+    return true;
+  }
+  if (!ct || ct === "application/octet-stream") {
+    return extensionOf(name) === ".pdf";
+  }
+  return false;
+}

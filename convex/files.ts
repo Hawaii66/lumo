@@ -1,14 +1,20 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import {
+  internalAction,
+  internalMutation,
+  internalQuery,
   mutation,
   query,
   type MutationCtx,
   type QueryCtx,
 } from "./_generated/server";
+import { sha256Hex } from "./lib/hash";
 import {
   isAllowedRoomFile,
+  isPdfFile,
   ROOM_FILE_TYPE_ERROR,
 } from "./lib/roomFiles";
 
@@ -42,6 +48,7 @@ export const generateUploadUrl = mutation({
   args: {
     roomId: v.id("rooms"),
   },
+  returns: v.string(),
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
     return await ctx.storage.generateUploadUrl();
@@ -54,6 +61,7 @@ export const save = mutation({
     name: v.string(),
     storageId: v.id("_storage"),
   },
+  returns: v.id("files"),
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
 
@@ -77,11 +85,91 @@ export const save = mutation({
       throw new Error(ROOM_FILE_TYPE_ERROR);
     }
 
-    return await ctx.db.insert("files", {
+    const fileId = await ctx.db.insert("files", {
       roomId: args.roomId,
       name,
       storageId: args.storageId,
     });
+
+    if (isPdfFile(name, metadata.contentType)) {
+      await ctx.scheduler.runAfter(0, internal.files.computeContentHash, {
+        fileId,
+      });
+    }
+
+    return fileId;
+  },
+});
+
+export const getInternal = internalQuery({
+  args: { fileId: v.id("files") },
+  returns: v.union(
+    v.object({
+      _id: v.id("files"),
+      roomId: v.id("rooms"),
+      name: v.string(),
+      storageId: v.id("_storage"),
+      contentHash: v.optional(v.string()),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    const file = await ctx.db.get(args.fileId);
+    if (file === null) {
+      return null;
+    }
+    return {
+      _id: file._id,
+      roomId: file.roomId,
+      name: file.name,
+      storageId: file.storageId,
+      contentHash: file.contentHash,
+    };
+  },
+});
+
+export const setContentHash = internalMutation({
+  args: {
+    fileId: v.id("files"),
+    contentHash: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const file = await ctx.db.get(args.fileId);
+    if (file === null) {
+      return null;
+    }
+    if (file.contentHash === args.contentHash) {
+      return null;
+    }
+    await ctx.db.patch(args.fileId, { contentHash: args.contentHash });
+    return null;
+  },
+});
+
+/** Hash PDF bytes in storage and store on the files row. */
+export const computeContentHash = internalAction({
+  args: { fileId: v.id("files") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const file = await ctx.runQuery(internal.files.getInternal, {
+      fileId: args.fileId,
+    });
+    if (file === null || file.contentHash !== undefined) {
+      return null;
+    }
+
+    const blob = await ctx.storage.get(file.storageId);
+    if (blob === null) {
+      return null;
+    }
+
+    const contentHash = await sha256Hex(await blob.arrayBuffer());
+    await ctx.runMutation(internal.files.setContentHash, {
+      fileId: args.fileId,
+      contentHash,
+    });
+    return null;
   },
 });
 
@@ -89,6 +177,15 @@ export const listByRoom = query({
   args: {
     roomId: v.id("rooms"),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id("files"),
+      _creationTime: v.number(),
+      name: v.string(),
+      url: v.union(v.string(), v.null()),
+      contentHash: v.optional(v.string()),
+    }),
+  ),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -120,6 +217,7 @@ export const listByRoom = query({
         _creationTime: file._creationTime,
         name: file.name,
         url,
+        contentHash: file.contentHash,
       });
     }
     return result;
@@ -130,6 +228,7 @@ export const remove = mutation({
   args: {
     fileId: v.id("files"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const file = await ctx.db.get(args.fileId);
     if (file === null) {
@@ -140,5 +239,6 @@ export const remove = mutation({
 
     await ctx.storage.delete(file.storageId);
     await ctx.db.delete(args.fileId);
+    return null;
   },
 });

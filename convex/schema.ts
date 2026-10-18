@@ -24,6 +24,8 @@ export default defineSchema({
     roomId: v.id("rooms"),
     name: v.string(),
     storageId: v.id("_storage"),
+    /** SHA-256 of file bytes; set for PDFs on upload (optional for images / legacy). */
+    contentHash: v.optional(v.string()),
   }).index("by_room", ["roomId"]),
   scanSessions: defineTable({
     token: v.string(),

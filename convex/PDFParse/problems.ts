@@ -17,16 +17,22 @@ const problemRowValidator = v.object({
 });
 
 /**
- * Returns cached problems for a PDF hash, ordered by `row`.
- * Null when none exist (caller should run AI parse).
+ * Resolve file id → contentHash → cached problems (ordered by `row`).
+ * Null when the file is missing, has no hash yet, or has no saved problems.
  */
-export const listByPdfHash = internalQuery({
-  args: { pdfHash: v.string() },
+export const listByFileId = internalQuery({
+  args: { fileId: v.id("files") },
   returns: v.union(v.array(lumoParsedProblemValidator), v.null()),
   handler: async (ctx, args) => {
+    const file = await ctx.db.get(args.fileId);
+    if (file === null || file.contentHash === undefined) {
+      return null;
+    }
+    const pdfHash = file.contentHash;
+
     const rows = await ctx.db
       .query("problems")
-      .withIndex("by_pdfHash_and_row", (q) => q.eq("pdfHash", args.pdfHash))
+      .withIndex("by_pdfHash_and_row", (q) => q.eq("pdfHash", pdfHash))
       .take(MAX_PROBLEMS_PER_PDF);
 
     if (rows.length === 0) {

@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { action, type ActionCtx } from "../_generated/server";
+import { sha256Hex } from "../lib/hash";
 import {
   lumoParsedProblemValidator,
   type LumoParsedProblem,
@@ -18,13 +19,6 @@ import { middleJsonSchema, type MiddleJson } from "./mineruSchema";
 const AGENT_CONCURRENCY = 5;
 
 const lumoProblemListValidator = v.array(lumoParsedProblemValidator);
-
-async function sha256Hex(data: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 async function mapPool<T, R>(
   items: T[],
@@ -50,13 +44,39 @@ async function mapPool<T, R>(
   return results;
 }
 
-async function loadCachedProblems(
+async function loadFile(
   ctx: ActionCtx,
-  pdfHash: string,
-): Promise<LumoParsedProblem[] | null> {
-  return await ctx.runQuery(internal.PDFParse.problems.listByPdfHash, {
-    pdfHash,
+  fileId: Id<"files">,
+): Promise<{
+  _id: Id<"files">;
+  storageId: Id<"_storage">;
+  contentHash?: string;
+}> {
+  const file = await ctx.runQuery(internal.files.getInternal, { fileId });
+  if (file === null) {
+    throw new Error("PDF-filen hittades inte");
+  }
+  return file;
+}
+
+/**
+ * Resolve content hash for a files row (from column, or compute + backfill).
+ */
+async function resolvePdfHash(
+  ctx: ActionCtx,
+  fileId: Id<"files">,
+  pdfBytes: ArrayBuffer,
+  existingHash: string | undefined,
+): Promise<string> {
+  if (existingHash !== undefined) {
+    return existingHash;
+  }
+  const pdfHash = await sha256Hex(pdfBytes);
+  await ctx.runMutation(internal.files.setContentHash, {
+    fileId,
+    contentHash: pdfHash,
   });
+  return pdfHash;
 }
 
 async function saveParsedProblems(
@@ -172,31 +192,48 @@ async function parsePdfBytesToProblems(
 /**
  * Production: parse a math PDF into Lumo problems.
  *
- * 1. Hash PDF bytes; reuse rows in `problems` when present (skip AI)
- * 2. Otherwise reuse/fetch MinerU middle_json, convert via agents, save rows
+ * 1. Resolve files row → contentHash (column or compute)
+ * 2. Reuse problems for that hash when present (skip AI)
+ * 3. Otherwise MinerU + agents, then save problems keyed by hash
  */
 export const parseProblems = action({
   args: {
-    fileId: v.id("_storage"),
+    fileId: v.id("files"),
     userId: v.id("users"),
   },
   returns: lumoProblemListValidator,
-  handler: async (ctx, args) => {
-    const blob = await ctx.storage.get(args.fileId);
+  handler: async (ctx, args): Promise<LumoParsedProblem[]> => {
+    const file: {
+      _id: Id<"files">;
+      storageId: Id<"_storage">;
+      contentHash?: string;
+    } = await loadFile(ctx, args.fileId);
+
+    // Fast path: hash already on the file row — skip loading PDF bytes.
+    if (file.contentHash !== undefined) {
+      const cached: LumoParsedProblem[] | null = await ctx.runQuery(
+        internal.PDFParse.problems.listByFileId,
+        { fileId: args.fileId },
+      );
+      if (cached !== null) {
+        return cached;
+      }
+    }
+
+    const blob = await ctx.storage.get(file.storageId);
     if (blob === null) {
       throw new Error("PDF-filen hittades inte i lagringen");
     }
 
-    // Convex storage Blobs are streaming and single-read — buffer once for hash + upload.
     const pdfBytes = await blob.arrayBuffer();
-    const pdfHash = await sha256Hex(pdfBytes);
+    const pdfHash: string = await resolvePdfHash(
+      ctx,
+      args.fileId,
+      pdfBytes,
+      file.contentHash,
+    );
 
-    const cachedProblems = await loadCachedProblems(ctx, pdfHash);
-    if (cachedProblems !== null) {
-      return cachedProblems;
-    }
-
-    const problems = await parsePdfBytesToProblems(
+    const problems: LumoParsedProblem[] = await parsePdfBytesToProblems(
       ctx,
       args.userId,
       pdfBytes,
@@ -211,22 +248,32 @@ export const parseProblems = action({
 /**
  * Internal tester for iterating on parse prompts.
  * Uses MinerU middle_json cache, but never reads or writes the `problems` table —
- * always re-runs the AI conversion.
+ * always re-runs the AI conversion. Still ensures files.contentHash is set.
  */
 export const problemParserTester = action({
   args: {
-    fileId: v.id("_storage"),
+    fileId: v.id("files"),
     userId: v.id("users"),
   },
   returns: lumoProblemListValidator,
-  handler: async (ctx, args) => {
-    const blob = await ctx.storage.get(args.fileId);
+  handler: async (ctx, args): Promise<LumoParsedProblem[]> => {
+    const file: {
+      _id: Id<"files">;
+      storageId: Id<"_storage">;
+      contentHash?: string;
+    } = await loadFile(ctx, args.fileId);
+    const blob = await ctx.storage.get(file.storageId);
     if (blob === null) {
       throw new Error("PDF-filen hittades inte i lagringen");
     }
 
     const pdfBytes = await blob.arrayBuffer();
-    const pdfHash = await sha256Hex(pdfBytes);
+    const pdfHash: string = await resolvePdfHash(
+      ctx,
+      args.fileId,
+      pdfBytes,
+      file.contentHash,
+    );
 
     return await parsePdfBytesToProblems(
       ctx,
