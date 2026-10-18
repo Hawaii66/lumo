@@ -41,6 +41,7 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
 
   const job = status?.job ?? null
   const alreadyParsed = status?.alreadyParsed ?? false
+  const problemCount = status?.problemCount ?? 0
   const jobActive =
     job !== null && (job.status === "pending" || job.status === "running")
   const canStart = status !== undefined && !alreadyParsed && !jobActive
@@ -81,8 +82,10 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
           <p className="text-sm text-muted-foreground">Hämtar status…</p>
         ) : alreadyParsed ? (
           <p className="text-sm text-muted-foreground">
-            Denna PDF är redan tolkad (samma innehållshash). Uppgifterna sparas
-            per hash och visas inte här.
+            Denna PDF är redan tolkad.{" "}
+            {problemCount === 1
+              ? "1 uppgift skapades från PDF:en."
+              : `${problemCount} uppgifter skapades från PDF:en.`}
           </p>
         ) : (
           <div className="flex flex-col gap-3">
