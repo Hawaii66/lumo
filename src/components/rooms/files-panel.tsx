@@ -5,12 +5,15 @@ import {
   Eye,
   File as FileIcon,
   FolderOpen,
+  Pencil,
   Trash2,
   Upload,
 } from "lucide-react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import {
+  fileExtension,
+  MAX_FILE_NAME_LENGTH,
   ROOM_FILE_ACCEPT,
   ROOM_FILE_TYPE_ERROR,
   isAllowedRoomFile,
@@ -34,6 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
+import { Input } from "~/components/ui/input"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
 
@@ -130,6 +134,147 @@ type ViewingFile = {
 type PendingDelete = {
   id: Id<"files">
   name: string
+}
+
+function fileBaseName(name: string): string {
+  const extension = fileExtension(name)
+  if (extension.length === 0) return name
+  return name.slice(0, -extension.length)
+}
+
+function FileNameEditor({
+  fileId,
+  name,
+}: {
+  fileId: Id<"files">
+  name: string
+}) {
+  const renameFile = useMutation(api.files.rename)
+  const extension = fileExtension(name)
+  const baseName = fileBaseName(name)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(baseName)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const skipBlurSave = useRef(false)
+
+  useEffect(() => {
+    if (!editing) {
+      setDraft(baseName)
+      setError(null)
+    }
+  }, [baseName, editing])
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editing])
+
+  function startEdit() {
+    setDraft(baseName)
+    setError(null)
+    setEditing(true)
+  }
+
+  function cancelEdit() {
+    skipBlurSave.current = true
+    setEditing(false)
+    setDraft(baseName)
+    setError(null)
+  }
+
+  async function commitEdit() {
+    const nextBase = draft.trim()
+    const next = `${nextBase}${extension}`
+    if (next === name) {
+      setEditing(false)
+      setError(null)
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    try {
+      await renameFile({ fileId, name: next })
+      setEditing(false)
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Kunde inte byta namn på filen",
+      )
+      inputRef.current?.focus()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <span className="flex min-w-0 flex-1 items-center gap-1">
+        <button
+          type="button"
+          className="min-w-0 truncate text-left text-sm font-medium hover:underline"
+          title={`${name} — klicka för att byta namn`}
+          onClick={startEdit}
+        >
+          {name}
+        </button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="size-7 shrink-0 px-0"
+          title="Byt namn"
+          onClick={startEdit}
+        >
+          <Pencil className="size-3.5" />
+          <span className="sr-only">Byt namn</span>
+        </Button>
+      </span>
+    )
+  }
+
+  return (
+    <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 items-center gap-1.5">
+        <Input
+          ref={inputRef}
+          value={draft}
+          maxLength={Math.max(1, MAX_FILE_NAME_LENGTH - extension.length)}
+          disabled={saving}
+          aria-label="Filnamn"
+          aria-invalid={error !== null}
+          className="h-7 min-w-0 flex-1 text-sm"
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault()
+              void commitEdit()
+            } else if (event.key === "Escape") {
+              event.preventDefault()
+              cancelEdit()
+            }
+          }}
+          onBlur={() => {
+            if (skipBlurSave.current) {
+              skipBlurSave.current = false
+              return
+            }
+            void commitEdit()
+          }}
+        />
+        {extension ? (
+          <span className="shrink-0 text-sm text-muted-foreground">
+            {extension}
+          </span>
+        ) : null}
+      </div>
+      {error ? (
+        <p className="mt-1 text-xs text-destructive">{error}</p>
+      ) : null}
+    </div>
+  )
 }
 
 export function FilesGrid({ roomId }: FilesPanelProps) {
@@ -231,14 +376,9 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                     <FileIcon className="size-10 text-muted-foreground" />
                   </div>
                 )}
-                <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-                  <span
-                    className="min-w-0 truncate text-sm font-medium"
-                    title={file.name}
-                  >
-                    {file.name}
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1.5">
+                <div className="flex flex-col gap-2 px-3 py-2.5">
+                  <FileNameEditor fileId={file._id} name={file.name} />
+                  <div className="flex flex-wrap items-center gap-1.5">
                     {pdf ? (
                       <>
                         <Button
@@ -303,7 +443,7 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
                       <Trash2 />
                       Ta bort
                     </Button>
-                  </span>
+                  </div>
                 </div>
               </li>
             )

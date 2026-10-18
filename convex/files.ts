@@ -6,7 +6,13 @@ import {
   query,
 } from "./_generated/server";
 import { requireRoomMember } from "./lib/roomAuth";
-import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
+import {
+  fileExtension,
+  isAllowedRoomFileName,
+  MAX_FILE_NAME_LENGTH,
+  MAX_FILES_PER_ROOM,
+  ROOM_FILE_TYPE_ERROR,
+} from "./lib/roomFiles";
 import { saveRoomFile } from "./lib/saveRoomFile";
 
 export const generateUploadUrl = mutation({
@@ -106,6 +112,47 @@ export const listByRoom = query({
       });
     }
     return result;
+  },
+});
+
+export const rename = mutation({
+  args: {
+    fileId: v.id("files"),
+    name: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const file = await ctx.db.get(args.fileId);
+    if (file === null) {
+      throw new Error("Filen hittades inte");
+    }
+
+    await requireRoomMember(ctx, file.roomId);
+
+    const name = args.name.trim();
+    if (name.length === 0) {
+      throw new Error("Filnamnet får inte vara tomt");
+    }
+    if (name.length > MAX_FILE_NAME_LENGTH) {
+      throw new Error(
+        `Filnamnet får vara högst ${MAX_FILE_NAME_LENGTH} tecken`,
+      );
+    }
+    if (!isAllowedRoomFileName(name)) {
+      throw new Error(ROOM_FILE_TYPE_ERROR);
+    }
+
+    const previousExtension = fileExtension(file.name);
+    const nextExtension = fileExtension(name);
+    if (previousExtension !== nextExtension) {
+      throw new Error(`Filändelsen måste förbli ${previousExtension}`);
+    }
+
+    if (name !== file.name) {
+      // Only the display name changes; contentHash stays tied to file bytes.
+      await ctx.db.patch(args.fileId, { name });
+    }
+    return null;
   },
 });
 

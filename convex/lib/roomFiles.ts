@@ -8,7 +8,7 @@ export const ROOM_FILE_TYPE_ERROR =
 export const MAX_FILES_PER_ROOM = 200;
 export const MAX_FILE_NAME_LENGTH = 200;
 
-function extensionOf(name: string): string {
+export function fileExtension(name: string): string {
   const lower = name.toLowerCase();
   const dot = lower.lastIndexOf(".");
   if (dot === -1) return "";
@@ -16,7 +16,7 @@ function extensionOf(name: string): string {
 }
 
 export function isAllowedRoomFileName(name: string): boolean {
-  return ALLOWED_EXTENSIONS.has(extensionOf(name));
+  return ALLOWED_EXTENSIONS.has(fileExtension(name));
 }
 
 export function isAllowedRoomFile(
@@ -42,7 +42,7 @@ export function isPdfFile(
     return true;
   }
   if (!ct || ct === "application/octet-stream") {
-    return extensionOf(name) === ".pdf";
+    return fileExtension(name) === ".pdf";
   }
   return false;
 }
