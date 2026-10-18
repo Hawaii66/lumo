@@ -51,10 +51,8 @@ async function countProblemsForHash(
 ): Promise<number> {
   const rows = await ctx.db
     .query("problems")
-    .withIndex("by_contentHash_and_row", (q) =>
-      q.eq("contentHash", contentHash),
-    )
-    .collect();
+    .withIndex("by_contentHash", (q) => q.eq("contentHash", contentHash))
+    .take(500);
   return rows.length;
 }
 

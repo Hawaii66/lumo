@@ -1,36 +1,90 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { useQuery } from "convex/react"
-import { ArrowLeft } from "lucide-react"
-import { useState } from "react"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { useMutation, useQuery } from "convex/react"
+import { useMemo, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
+import { ParsedProblemView } from "~/components/lumo/parsed-problem"
+import { FilesGrid } from "~/components/rooms/files-panel"
 import {
-  FilesGrid,
-  RoomFilesTabBar,
-} from "~/components/rooms/files-panel"
+  RoomSidebar,
+  type RoomSidebarSection,
+} from "~/components/rooms/room-sidebar"
 import { ThreadChat } from "~/components/rooms/thread-chat"
-import { ThreadsPanel } from "~/components/rooms/threads-panel"
 import { Button } from "~/components/ui/button"
 
 export const Route = createFileRoute("/rooms/$roomId")({
   component: RoomPage,
 })
 
-type MainView = "thread" | "files"
-
 function RoomPage() {
   const { roomId } = Route.useParams()
   const typedRoomId = roomId as Id<"rooms">
+  const navigate = useNavigate()
+
   const room = useQuery(api.rooms.get, { roomId: typedRoomId })
+  const threads = useQuery(api.threads.listByRoom, { roomId: typedRoomId })
+  const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
+    roomId: typedRoomId,
+  })
+
+  const createThread = useMutation(api.threads.create)
+
+  const [section, setSection] = useState<RoomSidebarSection>("chats")
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
-  const [mainView, setMainView] = useState<MainView>("thread")
+  const [selectedProblemId, setSelectedProblemId] =
+    useState<Id<"problems"> | null>(null)
+  const [creatingChat, setCreatingChat] = useState(false)
 
   const selectedThread = useQuery(
     api.threads.get,
-    selectedThreadId && mainView === "thread"
+    selectedThreadId && section === "chats"
       ? { roomId: typedRoomId, threadId: selectedThreadId }
       : "skip",
   )
+
+  const selectedProblem = useQuery(
+    api.PDFParse.problems.getForRoom,
+    selectedProblemId && section === "problems"
+      ? { roomId: typedRoomId, problemId: selectedProblemId }
+      : "skip",
+  )
+
+  const chatItems = useMemo(
+    () =>
+      (threads ?? []).map((thread) => ({
+        id: thread.threadId,
+        title: thread.title,
+      })),
+    [threads],
+  )
+
+  const problemGroupItems = useMemo(
+    () =>
+      (problemGroups ?? []).map((group) => ({
+        fileName: group.fileName,
+        problems: group.problems.map((problem) => ({
+          id: problem.id,
+          problemNumber: problem.problemNumber,
+        })),
+      })),
+    [problemGroups],
+  )
+
+  async function handleNewChat(title?: string) {
+    if (creatingChat) return
+    setCreatingChat(true)
+    try {
+      const result = await createThread({
+        roomId: typedRoomId,
+        title,
+      })
+      setSection("chats")
+      setSelectedThreadId(result.threadId)
+      setSelectedProblemId(null)
+    } finally {
+      setCreatingChat(false)
+    }
+  }
 
   if (room === undefined) {
     return (
@@ -53,54 +107,89 @@ function RoomPage() {
 
   return (
     <div className="flex h-svh bg-background">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-        <div className="border-b border-sidebar-border p-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mb-3 w-full justify-start gap-1.5"
-            render={<Link to="/" />}
-          >
-            <ArrowLeft />
-            Tillbaka
-          </Button>
-          <h1 className="truncate text-base font-medium leading-snug">
-            {room.name}
-          </h1>
-          <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">
-            {room.description}
-          </p>
-        </div>
-
-        <div className="px-3 pt-3">
-          <h2 className="px-2.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Trådar
-          </h2>
-        </div>
-
-        <ThreadsPanel
-          roomId={typedRoomId}
-          selectedThreadId={mainView === "thread" ? selectedThreadId : null}
-          onSelectThread={(threadId) => {
-            setSelectedThreadId(threadId)
-            setMainView("thread")
-          }}
-        />
-
-        <RoomFilesTabBar
-          filesActive={mainView === "files"}
-          onShowFiles={() => setMainView("files")}
-        />
-      </aside>
+      <RoomSidebar
+        roomName={room.name}
+        roomDescription={room.description}
+        section={section}
+        onSectionChange={(next) => {
+          setSection(next)
+          if (next !== "chats") setSelectedThreadId(null)
+          if (next !== "problems") setSelectedProblemId(null)
+        }}
+        onBack={() => void navigate({ to: "/" })}
+        onNewChat={() => void handleNewChat()}
+        chats={chatItems}
+        selectedChatId={section === "chats" ? selectedThreadId : null}
+        onSelectChat={(threadId) => {
+          setSection("chats")
+          setSelectedThreadId(threadId)
+          setSelectedProblemId(null)
+        }}
+        problemGroups={problemGroupItems}
+        selectedProblemId={
+          section === "problems" ? selectedProblemId : null
+        }
+        onSelectProblem={(id) => {
+          setSection("problems")
+          setSelectedProblemId(id as Id<"problems">)
+          setSelectedThreadId(null)
+        }}
+      />
 
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
-        {mainView === "files" ? (
+        {section === "files" ? (
           <FilesGrid roomId={typedRoomId} />
+        ) : section === "problems" ? (
+          selectedProblemId === null ? (
+            <>
+              <h2 className="text-lg font-medium">Uppgifter</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
+                <button
+                  type="button"
+                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                  onClick={() => setSection("files")}
+                >
+                  Filer
+                </button>
+                .
+              </p>
+            </>
+          ) : selectedProblem === undefined ? (
+            <p className="text-sm text-muted-foreground">Hämtar uppgift…</p>
+          ) : selectedProblem === null ? (
+            <p className="text-sm text-muted-foreground">
+              Uppgiften hittades inte eller så saknar du åtkomst.
+            </p>
+          ) : (
+            <div className="mx-auto w-full max-w-3xl space-y-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <p className="text-sm text-muted-foreground">
+                  Från {selectedProblem.fileName}
+                </p>
+                <Button
+                  size="sm"
+                  disabled={creatingChat}
+                  onClick={() =>
+                    void handleNewChat(
+                      `Uppgift ${selectedProblem.problem.problemNumber}`,
+                    )
+                  }
+                >
+                  {creatingChat ? "Skapar…" : "Starta chatt"}
+                </Button>
+              </div>
+              <ParsedProblemView
+                problem={selectedProblem.problem}
+                showAnswer={false}
+              />
+            </div>
+          )
         ) : selectedThreadId === null ? (
           <>
-            <h2 className="text-lg font-medium">Trådar</h2>
+            <h2 className="text-lg font-medium">Chattar</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Skapa en ny tråd eller välj en i listan till vänster.
+              Skapa en ny chatt eller välj en i listan till vänster.
             </p>
           </>
         ) : selectedThread === undefined ? (

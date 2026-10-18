@@ -1,19 +1,152 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import {
   lumoParsedProblemValidator,
   lumoStaticDocumentValidator,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
+import { MAX_FILES_PER_ROOM } from "../lib/roomFiles";
 import { requireRoomMember } from "../lib/roomAuth";
 import { internalMutation, internalQuery, query } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
+import type { QueryCtx } from "../_generated/server";
 
 /** Upper bound of problems expected from a single PDF. */
 const MAX_PROBLEMS_PER_PDF = 500;
+
+async function isRoomMember(
+  ctx: QueryCtx,
+  roomId: Id<"rooms">,
+): Promise<boolean> {
+  const userId = await getAuthUserId(ctx);
+  if (userId === null) {
+    return false;
+  }
+  const membership = await ctx.db
+    .query("roomMembers")
+    .withIndex("by_user_and_room", (q) =>
+      q.eq("userId", userId).eq("roomId", roomId),
+    )
+    .unique();
+  return membership !== null;
+}
+
+function compareProblemNumbers(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+}
 
 const problemRowValidator = v.object({
   problemNumber: v.string(),
   problem: lumoStaticDocumentValidator,
   answer: lumoStaticDocumentValidator,
+});
+
+/**
+ * All parsed problems in a room, grouped by source file.
+ * Files with no cached problems are omitted.
+ */
+export const listGroupedByRoom = query({
+  args: { roomId: v.id("rooms") },
+  returns: v.array(
+    v.object({
+      fileId: v.id("files"),
+      fileName: v.string(),
+      problems: v.array(
+        v.object({
+          id: v.id("problems"),
+          problemNumber: v.string(),
+        }),
+      ),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    if (!(await isRoomMember(ctx, args.roomId))) {
+      return [];
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .order("desc")
+      .take(MAX_FILES_PER_ROOM);
+
+    const groups = [];
+    for (const file of files) {
+      const rows = await ctx.db
+        .query("problems")
+        .withIndex("by_contentHash", (q) =>
+          q.eq("contentHash", file.contentHash),
+        )
+        .take(MAX_PROBLEMS_PER_PDF);
+
+      if (rows.length === 0) {
+        continue;
+      }
+
+      const problems = rows
+        .map((row) => ({
+          id: row._id,
+          problemNumber: row.problemNumber,
+        }))
+        .sort((a, b) => compareProblemNumbers(a.problemNumber, b.problemNumber));
+
+      groups.push({
+        fileId: file._id,
+        fileName: file.name,
+        problems,
+      });
+    }
+
+    return groups;
+  },
+});
+
+/** Single problem for room detail view; null if missing or not in this room. */
+export const getForRoom = query({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+  },
+  returns: v.union(
+    v.object({
+      id: v.id("problems"),
+      fileId: v.id("files"),
+      fileName: v.string(),
+      problem: lumoParsedProblemValidator,
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    if (!(await isRoomMember(ctx, args.roomId))) {
+      return null;
+    }
+
+    const row = await ctx.db.get(args.problemId);
+    if (row === null) {
+      return null;
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+
+    const file = files.find((f) => f.contentHash === row.contentHash);
+    if (file === undefined) {
+      return null;
+    }
+
+    return {
+      id: row._id,
+      fileId: file._id,
+      fileName: file.name,
+      problem: {
+        problemNumber: row.problemNumber,
+        question: row.problem,
+        answer: row.answer,
+      } satisfies LumoParsedProblem,
+    };
+  },
 });
 
 /**

@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as PreviewIndexRouteImport } from './routes/preview.index'
+import { Route as PreviewSidebarRouteImport } from './routes/preview.sidebar'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms.$roomId'
 import { Route as ScanTokenRouteImport } from './routes/scan.$token'
 
@@ -23,6 +25,16 @@ const PreviewRoute = PreviewRouteImport.update({
   id: '/preview',
   path: '/preview',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewIndexRoute = PreviewIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewSidebarRoute = PreviewSidebarRouteImport.update({
+  id: '/sidebar',
+  path: '/sidebar',
+  getParentRoute: () => PreviewRoute,
 } as any)
 const RoomsRoomIdRoute = RoomsRoomIdRouteImport.update({
   id: '/rooms/$roomId',
@@ -37,34 +49,52 @@ const ScanTokenRoute = ScanTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewRouteWithChildren
+  '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
+  '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/preview': typeof PreviewRoute
+  '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
+  '/preview': typeof PreviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewRouteWithChildren
+  '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
+  '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/preview' | '/rooms/$roomId' | '/scan/$token'
+  fullPaths:
+    | '/'
+    | '/preview'
+    | '/preview/sidebar'
+    | '/rooms/$roomId'
+    | '/scan/$token'
+    | '/preview/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/preview' | '/rooms/$roomId' | '/scan/$token'
-  id: '__root__' | '/' | '/preview' | '/rooms/$roomId' | '/scan/$token'
+  to: '/' | '/preview/sidebar' | '/rooms/$roomId' | '/scan/$token' | '/preview'
+  id:
+    | '__root__'
+    | '/'
+    | '/preview'
+    | '/preview/sidebar'
+    | '/rooms/$roomId'
+    | '/scan/$token'
+    | '/preview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PreviewRoute: typeof PreviewRoute
+  PreviewRoute: typeof PreviewRouteWithChildren
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
   ScanTokenRoute: typeof ScanTokenRoute
 }
@@ -85,6 +115,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preview/': {
+      id: '/preview/'
+      path: '/'
+      fullPath: '/preview/'
+      preLoaderRoute: typeof PreviewIndexRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/sidebar': {
+      id: '/preview/sidebar'
+      path: '/sidebar'
+      fullPath: '/preview/sidebar'
+      preLoaderRoute: typeof PreviewSidebarRouteImport
+      parentRoute: typeof PreviewRoute
+    }
     '/rooms/$roomId': {
       id: '/rooms/$roomId'
       path: '/rooms/$roomId'
@@ -102,9 +146,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PreviewRouteChildren {
+  PreviewSidebarRoute: typeof PreviewSidebarRoute
+  PreviewIndexRoute: typeof PreviewIndexRoute
+}
+
+const PreviewRouteChildren: PreviewRouteChildren = {
+  PreviewSidebarRoute: PreviewSidebarRoute,
+  PreviewIndexRoute: PreviewIndexRoute,
+}
+
+const PreviewRouteWithChildren =
+  PreviewRoute._addFileChildren(PreviewRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PreviewRoute: PreviewRoute,
+  PreviewRoute: PreviewRouteWithChildren,
   RoomsRoomIdRoute: RoomsRoomIdRoute,
   ScanTokenRoute: ScanTokenRoute,
 }
