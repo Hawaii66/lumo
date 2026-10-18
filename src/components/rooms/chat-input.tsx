@@ -7,6 +7,7 @@ import type { Id } from "../../../convex/_generated/dataModel"
 import { StaticMath } from "~/components/lumo/static-math"
 import { ComposerTextarea } from "~/components/rooms/composer-textarea"
 import { MathInputDialog } from "~/components/rooms/math-input-dialog"
+import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { Button } from "~/components/ui/button"
 import {
   composePromptWithMath,
@@ -57,8 +58,6 @@ type ChatInputProps = {
   showHelpLevels?: boolean
   /** When set (e.g. problem detail view), used if the prompt has no @mention. */
   defaultProblemId?: Id<"problems">
-  /** Live @mention resolution for chat-area embeds. */
-  onDraftMentionsChange?: (mentions: Array<ResolvedDraftMention>) => void
 }
 
 const MAX_IMAGES = 4
@@ -80,7 +79,6 @@ export function ChatInput({
   className,
   showHelpLevels = true,
   defaultProblemId,
-  onDraftMentionsChange,
 }: ChatInputProps) {
   const helpLevel = useUiStore((s) => s.helpLevel)
   const setHelpLevel = useUiStore((s) => s.setHelpLevel)
@@ -124,16 +122,6 @@ export function ChatInput({
     () => resolveDraftMentions(prompt, problemOptions),
     [prompt, problemOptions],
   )
-
-  useEffect(() => {
-    onDraftMentionsChange?.(draftMentions)
-  }, [draftMentions, onDraftMentionsChange])
-
-  useEffect(() => {
-    return () => {
-      onDraftMentionsChange?.([])
-    }
-  }, [onDraftMentionsChange])
 
   const mentionQuery = useMemo(
     () => findMentionQueryAtCursor(prompt, cursor),
@@ -492,6 +480,16 @@ export function ChatInput({
 
   return (
     <div className={cn("flex flex-col gap-2 border-t border-border pt-4", className)}>
+      {draftMentions.length > 0 ? (
+        <div className="max-h-56 overflow-y-auto">
+          <MentionedProblems
+            roomId={roomId}
+            mentions={draftMentions}
+            draft
+          />
+        </div>
+      ) : null}
+
     <form
       onSubmit={(event) => {
         void handleSubmit(event)

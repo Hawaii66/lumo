@@ -14,7 +14,6 @@ import {
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { UserMessageText } from "~/components/rooms/user-message-text"
 import { LumoParts } from "~/components/lumo/lumo-parts"
-import type { ResolvedDraftMention } from "~/lib/chat-composer"
 import { parseLumoDocument } from "~/lib/lumo-content"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
@@ -119,7 +118,7 @@ function UserMessageGroup({
       .join("\n")
 
   return (
-    <>
+    <li className="flex flex-col gap-2">
       {text ? (
         <MentionedProblems
           roomId={roomId}
@@ -127,15 +126,15 @@ function UserMessageGroup({
           problemOptions={problemOptions}
         />
       ) : null}
-      <li
+      <div
         className={cn(
           "max-w-[85%] rounded-lg px-3 py-2 text-sm",
           "ml-auto bg-primary text-primary-foreground",
         )}
       >
         <MessageContent message={message} />
-      </li>
-    </>
+      </div>
+    </li>
   )
 }
 
@@ -160,9 +159,6 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
 
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [draftMentions, setDraftMentions] = useState<Array<ResolvedDraftMention>>(
-    [],
-  )
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const messages = [...results].reverse()
@@ -180,7 +176,7 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages.length, draftMentions])
+  }, [messages.length])
 
   async function uploadImage(file: File) {
     const storageId = await uploadFileToStorage(file, () =>
@@ -231,7 +227,7 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
       <div className="min-h-0 flex-1 overflow-y-auto py-4">
         {status === "LoadingFirstPage" ? (
           <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
-        ) : messages.length === 0 && draftMentions.length === 0 ? (
+        ) : messages.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Skriv ett meddelande eller bifoga en bild för att börja.
           </p>
@@ -260,13 +256,6 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
                 </li>
               ),
             )}
-            {draftMentions.length > 0 ? (
-              <MentionedProblems
-                roomId={roomId}
-                mentions={draftMentions}
-                draft
-              />
-            ) : null}
           </ul>
         )}
         <div ref={bottomRef} />
@@ -276,7 +265,6 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
         roomId={roomId}
         pending={pending}
         error={error}
-        onDraftMentionsChange={setDraftMentions}
         onSubmit={async ({ prompt, images, helpLevel, problemIds }) => {
           await sendPrompt(prompt, images, helpLevel, problemIds)
         }}

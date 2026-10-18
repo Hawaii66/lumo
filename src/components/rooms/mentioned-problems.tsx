@@ -33,10 +33,10 @@ function ProblemChatBubble({
   draft?: boolean
 }) {
   return (
-    <li
+    <div
       className={cn(
-        "max-w-[85%] rounded-lg px-3 py-2 text-sm bg-muted text-foreground",
-        draft && "opacity-90 ring-1 ring-dashed ring-border",
+        "rounded-lg px-3 py-2 text-sm bg-muted text-foreground",
+        draft ? "max-w-full ring-1 ring-dashed ring-border" : "max-w-[85%]",
       )}
     >
       <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -45,7 +45,7 @@ function ProblemChatBubble({
         {draft ? " · utkast" : ""}
       </p>
       {children}
-    </li>
+    </div>
   )
 }
 
@@ -91,7 +91,7 @@ export function MentionedProblems({
   if (mentions.length === 0) return null
 
   return (
-    <div className={cn("contents", className)}>
+    <div className={cn("flex flex-col gap-2", className)}>
       {mentions.map((mention) => {
         if (mention.status === "missing") {
           return (
