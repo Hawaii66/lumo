@@ -6,13 +6,8 @@ import {
   query,
 } from "./_generated/server";
 import { requireRoomMember } from "./lib/roomAuth";
-import {
-  isAllowedRoomFile,
-  ROOM_FILE_TYPE_ERROR,
-} from "./lib/roomFiles";
-
-const MAX_FILES_PER_ROOM = 200;
-const MAX_FILE_NAME_LENGTH = 200;
+import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
+import { saveRoomFile } from "./lib/saveRoomFile";
 
 export const generateUploadUrl = mutation({
   args: {
@@ -34,33 +29,7 @@ export const save = mutation({
   returns: v.id("files"),
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
-
-    const name = args.name.trim();
-    if (name.length === 0) {
-      throw new Error("Filnamnet får inte vara tomt");
-    }
-    if (name.length > MAX_FILE_NAME_LENGTH) {
-      throw new Error(
-        `Filnamnet får vara högst ${MAX_FILE_NAME_LENGTH} tecken`,
-      );
-    }
-
-    const metadata = await ctx.db.system.get("_storage", args.storageId);
-    if (metadata === null) {
-      throw new Error("Filen hittades inte i lagringen");
-    }
-
-    if (!isAllowedRoomFile(name, metadata.contentType)) {
-      await ctx.storage.delete(args.storageId);
-      throw new Error(ROOM_FILE_TYPE_ERROR);
-    }
-
-    return await ctx.db.insert("files", {
-      roomId: args.roomId,
-      name,
-      storageId: args.storageId,
-      contentHash: metadata.sha256,
-    });
+    return await saveRoomFile(ctx, args);
   },
 });
 

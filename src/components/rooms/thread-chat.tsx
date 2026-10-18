@@ -14,6 +14,7 @@ import { LumoParts } from "~/components/lumo/lumo-parts"
 import { Button } from "~/components/ui/button"
 import { Textarea } from "~/components/ui/textarea"
 import { parseLumoDocument } from "~/lib/lumo-content"
+import { uploadFileToStorage } from "~/lib/upload"
 import { useUiStore } from "~/stores/ui-store"
 import { cn } from "~/lib/utils"
 
@@ -200,18 +201,9 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
   }
 
   async function uploadImage(file: File) {
-    const uploadUrl = await generateUploadUrl({ roomId })
-    const result = await fetch(uploadUrl, {
-      method: "POST",
-      headers: { "Content-Type": file.type || "application/octet-stream" },
-      body: file,
-    })
-    if (!result.ok) {
-      throw new Error(`Kunde inte ladda upp ${file.name}`)
-    }
-    const { storageId } = (await result.json()) as {
-      storageId: Id<"_storage">
-    }
+    const storageId = await uploadFileToStorage(file, () =>
+      generateUploadUrl({ roomId }),
+    )
     return { storageId, filename: file.name }
   }
 

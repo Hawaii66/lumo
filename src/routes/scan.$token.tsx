@@ -3,8 +3,8 @@ import { useMutation, useQuery } from "convex/react"
 import { Camera, CheckCircle2, ImagePlus, Loader2 } from "lucide-react"
 import { useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
-import type { Id } from "../../convex/_generated/dataModel"
 import { Button } from "~/components/ui/button"
+import { uploadFileToStorage } from "~/lib/upload"
 
 export const Route = createFileRoute("/scan/$token")({
   component: PhoneScanPage,
@@ -34,18 +34,11 @@ function PhoneScanPage() {
     setError(null)
     setUploading(true)
     try {
-      const uploadUrl = await generateUploadUrl({ token })
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type || "image/jpeg" },
-        body: file,
-      })
-      if (!result.ok) {
-        throw new Error("Kunde inte ladda upp bilden")
-      }
-      const { storageId } = (await result.json()) as {
-        storageId: Id<"_storage">
-      }
+      const storageId = await uploadFileToStorage(
+        file,
+        () => generateUploadUrl({ token }),
+        { fallbackContentType: "image/jpeg" },
+      )
       await completeUpload({
         token,
         name: file.name || `foto-${Date.now()}.jpg`,

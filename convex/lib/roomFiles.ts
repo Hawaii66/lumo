@@ -5,6 +5,9 @@ export const ROOM_FILE_ACCEPT = "application/pdf,.pdf,image/jpeg,.jpeg,.jpg";
 export const ROOM_FILE_TYPE_ERROR =
   "Endast PDF-, JPEG- och JPG-filer är tillåtna";
 
+export const MAX_FILES_PER_ROOM = 200;
+export const MAX_FILE_NAME_LENGTH = 200;
+
 function extensionOf(name: string): string {
   const lower = name.toLowerCase();
   const dot = lower.lastIndexOf(".");

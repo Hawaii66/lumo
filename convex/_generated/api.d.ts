@@ -26,6 +26,7 @@ import type * as http from "../http.js";
 import type * as lib_lumoContent from "../lib/lumoContent.js";
 import type * as lib_roomAuth from "../lib/roomAuth.js";
 import type * as lib_roomFiles from "../lib/roomFiles.js";
+import type * as lib_saveRoomFile from "../lib/saveRoomFile.js";
 import type * as rooms from "../rooms.js";
 import type * as scanSessions from "../scanSessions.js";
 import type * as threads from "../threads.js";
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   "lib/lumoContent": typeof lib_lumoContent;
   "lib/roomAuth": typeof lib_roomAuth;
   "lib/roomFiles": typeof lib_roomFiles;
+  "lib/saveRoomFile": typeof lib_saveRoomFile;
   rooms: typeof rooms;
   scanSessions: typeof scanSessions;
   threads: typeof threads;

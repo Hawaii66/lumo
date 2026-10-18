@@ -33,6 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
+import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
 
 type FilesPanelProps = {
@@ -81,18 +82,9 @@ function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
         if (!isAllowedRoomFile(file.name, file.type)) {
           throw new Error(ROOM_FILE_TYPE_ERROR)
         }
-        const uploadUrl = await generateUploadUrl({ roomId })
-        const result = await fetch(uploadUrl, {
-          method: "POST",
-          headers: { "Content-Type": file.type || "application/octet-stream" },
-          body: file,
-        })
-        if (!result.ok) {
-          throw new Error(`Kunde inte ladda upp ${file.name}`)
-        }
-        const { storageId } = (await result.json()) as {
-          storageId: Id<"_storage">
-        }
+        const storageId = await uploadFileToStorage(file, () =>
+          generateUploadUrl({ roomId }),
+        )
         await saveFile({ roomId, name: file.name, storageId })
       }
     } catch (err: unknown) {

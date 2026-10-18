@@ -1,22 +1,16 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import type { Id } from "./_generated/dataModel";
 import {
   internalMutation,
   mutation,
   query,
   type MutationCtx,
-  type QueryCtx,
 } from "./_generated/server";
-import {
-  isAllowedRoomFile,
-  ROOM_FILE_TYPE_ERROR,
-} from "./lib/roomFiles";
+import { requireRoomMember } from "./lib/roomAuth";
+import { saveRoomFile } from "./lib/saveRoomFile";
 
 const SESSION_TTL_MS = 10 * 60 * 1000;
-const MAX_FILE_NAME_LENGTH = 200;
-const MAX_FILES_PER_ROOM = 200;
 const TOKEN_BYTES = 24;
 
 const statusValidator = v.union(
@@ -31,29 +25,6 @@ function randomToken(): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
     "",
   );
-}
-
-async function requireRoomMember(
-  ctx: QueryCtx | MutationCtx,
-  roomId: Id<"rooms">,
-): Promise<Id<"users">> {
-  const userId = await getAuthUserId(ctx);
-  if (userId === null) {
-    throw new Error("Du måste vara inloggad");
-  }
-
-  const membership = await ctx.db
-    .query("roomMembers")
-    .withIndex("by_user_and_room", (q) =>
-      q.eq("userId", userId).eq("roomId", roomId),
-    )
-    .unique();
-
-  if (membership === null) {
-    throw new Error("Du saknar åtkomst till rummet");
-  }
-
-  return userId;
 }
 
 async function getValidPendingSession(ctx: MutationCtx, token: string) {
@@ -223,40 +194,10 @@ export const complete = mutation({
   handler: async (ctx, args) => {
     const session = await getValidPendingSession(ctx, args.token);
 
-    const name = args.name.trim();
-    if (name.length === 0) {
-      throw new Error("Filnamnet får inte vara tomt");
-    }
-    if (name.length > MAX_FILE_NAME_LENGTH) {
-      throw new Error(
-        `Filnamnet får vara högst ${MAX_FILE_NAME_LENGTH} tecken`,
-      );
-    }
-
-    const metadata = await ctx.db.system.get("_storage", args.storageId);
-    if (metadata === null) {
-      throw new Error("Filen hittades inte i lagringen");
-    }
-
-    if (!isAllowedRoomFile(name, metadata.contentType)) {
-      await ctx.storage.delete(args.storageId);
-      throw new Error(ROOM_FILE_TYPE_ERROR);
-    }
-
-    const existingFiles = await ctx.db
-      .query("files")
-      .withIndex("by_room", (q) => q.eq("roomId", session.roomId))
-      .take(MAX_FILES_PER_ROOM);
-
-    if (existingFiles.length >= MAX_FILES_PER_ROOM) {
-      throw new Error("Rummet har för många filer");
-    }
-
-    const fileId = await ctx.db.insert("files", {
+    const fileId = await saveRoomFile(ctx, {
       roomId: session.roomId,
-      name,
+      name: args.name,
       storageId: args.storageId,
-      contentHash: metadata.sha256,
     });
 
     await ctx.db.patch("scanSessions", session._id, {
