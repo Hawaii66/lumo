@@ -11,7 +11,6 @@ import {
 } from "./_generated/server";
 import {
   isAllowedRoomFile,
-  isPdfFile,
   ROOM_FILE_TYPE_ERROR,
 } from "./lib/roomFiles";
 
@@ -257,13 +256,8 @@ export const complete = mutation({
       roomId: session.roomId,
       name,
       storageId: args.storageId,
+      contentHash: metadata.sha256,
     });
-
-    if (isPdfFile(name, metadata.contentType)) {
-      await ctx.scheduler.runAfter(0, internal.files.computeContentHash, {
-        fileId,
-      });
-    }
 
     await ctx.db.patch("scanSessions", session._id, {
       status: "completed",

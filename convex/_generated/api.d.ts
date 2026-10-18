@@ -23,7 +23,6 @@ import type * as authProviders_temp from "../authProviders/temp.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
-import type * as lib_hash from "../lib/hash.js";
 import type * as lib_lumoContent from "../lib/lumoContent.js";
 import type * as lib_roomAuth from "../lib/roomAuth.js";
 import type * as lib_roomFiles from "../lib/roomFiles.js";
@@ -54,7 +53,6 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   health: typeof health;
   http: typeof http;
-  "lib/hash": typeof lib_hash;
   "lib/lumoContent": typeof lib_lumoContent;
   "lib/roomAuth": typeof lib_roomAuth;
   "lib/roomFiles": typeof lib_roomFiles;

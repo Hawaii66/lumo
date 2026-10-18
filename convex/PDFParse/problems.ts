@@ -4,7 +4,8 @@ import {
   lumoStaticDocumentValidator,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
-import { internalMutation, internalQuery } from "../_generated/server";
+import { requireRoomMember } from "../lib/roomAuth";
+import { internalMutation, query } from "../_generated/server";
 
 /** Upper bound of problems expected from a single PDF. */
 const MAX_PROBLEMS_PER_PDF = 500;
@@ -18,21 +19,23 @@ const problemRowValidator = v.object({
 
 /**
  * Resolve file id → contentHash → cached problems (ordered by `row`).
- * Null when the file is missing, has no hash yet, or has no saved problems.
+ * Null when the file is missing or has no saved problems.
  */
-export const listByFileId = internalQuery({
+export const listByFileId = query({
   args: { fileId: v.id("files") },
   returns: v.union(v.array(lumoParsedProblemValidator), v.null()),
   handler: async (ctx, args) => {
     const file = await ctx.db.get(args.fileId);
-    if (file === null || file.contentHash === undefined) {
+    if (file === null) {
       return null;
     }
-    const pdfHash = file.contentHash;
+    await requireRoomMember(ctx, file.roomId);
 
     const rows = await ctx.db
       .query("problems")
-      .withIndex("by_pdfHash_and_row", (q) => q.eq("pdfHash", pdfHash))
+      .withIndex("by_contentHash_and_row", (q) =>
+        q.eq("contentHash", file.contentHash),
+      )
       .take(MAX_PROBLEMS_PER_PDF);
 
     if (rows.length === 0) {
@@ -49,19 +52,19 @@ export const listByFileId = internalQuery({
   },
 });
 
-/**
- * Replace all problems for a PDF hash (delete existing, insert new rows).
- */
-export const replaceForPdfHash = internalMutation({
+/** Replace all problems for a content hash (delete existing, insert new rows). */
+export const replaceForContentHash = internalMutation({
   args: {
-    pdfHash: v.string(),
+    contentHash: v.string(),
     problems: v.array(problemRowValidator),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("problems")
-      .withIndex("by_pdfHash_and_row", (q) => q.eq("pdfHash", args.pdfHash))
+      .withIndex("by_contentHash_and_row", (q) =>
+        q.eq("contentHash", args.contentHash),
+      )
       .take(MAX_PROBLEMS_PER_PDF);
 
     for (const row of existing) {
@@ -70,7 +73,7 @@ export const replaceForPdfHash = internalMutation({
 
     for (const problem of args.problems) {
       await ctx.db.insert("problems", {
-        pdfHash: args.pdfHash,
+        contentHash: args.contentHash,
         row: problem.row,
         problemNumber: problem.problemNumber,
         problem: problem.problem,

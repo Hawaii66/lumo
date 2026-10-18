@@ -24,8 +24,8 @@ export default defineSchema({
     roomId: v.id("rooms"),
     name: v.string(),
     storageId: v.id("_storage"),
-    /** SHA-256 of file bytes; set for PDFs on upload (optional for images / legacy). */
-    contentHash: v.optional(v.string()),
+    /** SHA-256 from Convex storage metadata, set on upload. */
+    contentHash: v.string(),
   }).index("by_room", ["roomId"]),
   scanSessions: defineTable({
     token: v.string(),
@@ -61,12 +61,12 @@ export default defineSchema({
     contentHash: v.string(),
     middleJsonStorageId: v.id("_storage"),
   }).index("by_contentHash", ["contentHash"]),
-  /** One Lumo-parsed problem per row, keyed by SHA-256 of PDF bytes. */
+  /** One Lumo-parsed problem per row, keyed by content hash of PDF bytes. */
   problems: defineTable({
-    pdfHash: v.string(),
+    contentHash: v.string(),
     row: v.number(),
     problemNumber: v.string(),
     problem: lumoStaticDocumentValidator,
     answer: lumoStaticDocumentValidator,
-  }).index("by_pdfHash_and_row", ["pdfHash", "row"]),
+  }).index("by_contentHash_and_row", ["contentHash", "row"]),
 });
