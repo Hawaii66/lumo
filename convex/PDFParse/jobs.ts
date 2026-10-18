@@ -225,6 +225,8 @@ export const appendStatus = internalMutation({
     jobId: v.id("pdfParseJobs"),
     message: v.string(),
     status: v.optional(jobStatusValidator),
+    /** When true, overwrite the last status line instead of appending. */
+    replaceLast: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -233,10 +235,11 @@ export const appendStatus = internalMutation({
       return null;
     }
 
-    const statusUpdates = [
-      ...job.statusUpdates,
-      { message: args.message, at: Date.now() },
-    ].slice(-MAX_STATUS_UPDATES);
+    const entry = { message: args.message, at: Date.now() };
+    const statusUpdates =
+      args.replaceLast === true && job.statusUpdates.length > 0
+        ? [...job.statusUpdates.slice(0, -1), entry]
+        : [...job.statusUpdates, entry].slice(-MAX_STATUS_UPDATES);
 
     await ctx.db.patch(args.jobId, {
       statusUpdates,
