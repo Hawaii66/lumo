@@ -61,14 +61,13 @@ export default defineSchema({
     contentHash: v.string(),
     middleJsonStorageId: v.id("_storage"),
   }).index("by_contentHash", ["contentHash"]),
-  /** One Lumo-parsed problem per row, keyed by content hash of PDF bytes. */
+  /** One Lumo-parsed problem per document, keyed by content hash of PDF bytes. */
   problems: defineTable({
     contentHash: v.string(),
-    row: v.number(),
     problemNumber: v.string(),
     problem: lumoStaticDocumentValidator,
     answer: lumoStaticDocumentValidator,
-  }).index("by_contentHash_and_row", ["contentHash", "row"]),
+  }).index("by_contentHash", ["contentHash"]),
   /**
    * Async PDF → problems parse jobs.
    * `statusUpdates` is a short progress log the workflow appends to.

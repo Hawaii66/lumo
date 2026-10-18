@@ -84,8 +84,7 @@ async function saveParsedProblems(
 ): Promise<void> {
   await ctx.runMutation(internal.PDFParse.problems.replaceForContentHash, {
     contentHash,
-    problems: problems.map((p, index) => ({
-      row: index,
+    problems: problems.map((p) => ({
       problemNumber: p.problemNumber,
       problem: p.question,
       answer: p.answer,

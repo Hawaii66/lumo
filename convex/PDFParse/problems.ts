@@ -11,14 +11,13 @@ import { internalMutation, internalQuery, query } from "../_generated/server";
 const MAX_PROBLEMS_PER_PDF = 500;
 
 const problemRowValidator = v.object({
-  row: v.number(),
   problemNumber: v.string(),
   problem: lumoStaticDocumentValidator,
   answer: lumoStaticDocumentValidator,
 });
 
 /**
- * Resolve file id → contentHash → cached problems (ordered by `row`).
+ * Resolve file id → contentHash → cached problems.
  * Null when the file is missing or has no saved problems.
  */
 export const listByFileId = query({
@@ -33,9 +32,7 @@ export const listByFileId = query({
 
     const rows = await ctx.db
       .query("problems")
-      .withIndex("by_contentHash_and_row", (q) =>
-        q.eq("contentHash", file.contentHash),
-      )
+      .withIndex("by_contentHash", (q) => q.eq("contentHash", file.contentHash))
       .take(MAX_PROBLEMS_PER_PDF);
 
     if (rows.length === 0) {
@@ -59,9 +56,7 @@ export const countByContentHash = internalQuery({
   handler: async (ctx, args) => {
     const rows = await ctx.db
       .query("problems")
-      .withIndex("by_contentHash_and_row", (q) =>
-        q.eq("contentHash", args.contentHash),
-      )
+      .withIndex("by_contentHash", (q) => q.eq("contentHash", args.contentHash))
       .take(MAX_PROBLEMS_PER_PDF);
     return rows.length;
   },
@@ -77,9 +72,7 @@ export const replaceForContentHash = internalMutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("problems")
-      .withIndex("by_contentHash_and_row", (q) =>
-        q.eq("contentHash", args.contentHash),
-      )
+      .withIndex("by_contentHash", (q) => q.eq("contentHash", args.contentHash))
       .take(MAX_PROBLEMS_PER_PDF);
 
     for (const row of existing) {
@@ -89,7 +82,6 @@ export const replaceForContentHash = internalMutation({
     for (const problem of args.problems) {
       await ctx.db.insert("problems", {
         contentHash: args.contentHash,
-        row: problem.row,
         problemNumber: problem.problemNumber,
         problem: problem.problem,
         answer: problem.answer,

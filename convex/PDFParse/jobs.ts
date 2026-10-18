@@ -40,9 +40,7 @@ async function hasProblemsForHash(
 ): Promise<boolean> {
   const row = await ctx.db
     .query("problems")
-    .withIndex("by_contentHash_and_row", (q) =>
-      q.eq("contentHash", contentHash),
-    )
+    .withIndex("by_contentHash", (q) => q.eq("contentHash", contentHash))
     .take(1);
   return row.length > 0;
 }
