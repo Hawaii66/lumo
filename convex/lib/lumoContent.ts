@@ -264,7 +264,7 @@ export function normalizeLumoPart(part: LumoPartAzure): LumoPart | null {
         : { type: "latex", content, display: part.display };
     }
     case "fillBlank": {
-      const latex = part.latex.trim();
+      const latex = repairPlaceholderLatex(part.latex.trim());
       const prompts = normalizePromptSpecs(part.prompts);
       if (latex.length === 0 || prompts.length === 0) return null;
       const prompt = part.prompt.trim();
@@ -276,7 +276,7 @@ export function normalizeLumoPart(part: LumoPartAzure): LumoPart | null {
       const steps = [];
       for (const step of part.steps) {
         const id = step.id.trim();
-        const latex = step.latex.trim();
+        const latex = repairPlaceholderLatex(step.latex.trim());
         const prompts = normalizePromptSpecs(step.prompts);
         const solvedLatex = step.solvedLatex.trim();
         if (id.length === 0 || latex.length === 0 || prompts.length === 0) {
@@ -838,9 +838,23 @@ export function computeDeleteAt(
   return now + DELETION_EXPIRY_MS[expiry];
 }
 
+/**
+ * MathLive requires `\placeholder[id]{}` (empty body group).
+ * Models often emit `\placeholder[id]` which parses as doubled empty
+ * boxes / stray squares inside fractions.
+ */
+export function repairPlaceholderLatex(latex: string): string {
+  return latex.replace(
+    /\\placeholder\[([^\]]*)\](?!\s*\{)/g,
+    "\\placeholder[$1]{}",
+  );
+}
+
 export function extractPlaceholderIds(latex: string): Array<string> {
   const ids: Array<string> = [];
-  for (const match of latex.matchAll(PLACEHOLDER_ID_RE)) {
+  for (const match of repairPlaceholderLatex(latex).matchAll(
+    PLACEHOLDER_ID_RE,
+  )) {
     const id = match[1];
     if (id && !ids.includes(id)) ids.push(id);
   }
@@ -1036,11 +1050,16 @@ fillBlank = en svarsruta (en ekvation/uttryck med en eller flera luckor).
 solution  = flera steg där varje steg är en fillBlank-liknande lucka.
 
 GEMENSAMMA REGLER FÖR LUCKOR:
-1. Placeholder med TOM kropp: \\\\placeholder[id]{}
+1. Placeholder med TOM kropp: \\\\placeholder[id]{}  — {} är OBLIGATORISK
+   ✗ "\\\\frac{\\\\placeholder[b]}{\\\\placeholder[c]}"  ← saknar {} → trasiga rutor
+   ✓ "\\\\frac{\\\\placeholder[b]{}}{\\\\placeholder[c]{}}"
 2. Rätt svar BARA i prompts[].answer (bare LaTeX: "2x", "\\\\frac{1}{2}", "3")
 3. Varje id i latex ↔ exakt en prompt (inga överblivna)
 4. Visa ALDRIG facit i text/hint/title samtidigt som luckan — studenten ska fylla i själv
 5. En lucka = en sak studenten ska skriva (inte hela lösningen i en ruta om läget är guidad)
+6. Undvik \\\\div inuti \\\\frac — det blir klumpigt. Visa division som snedstreck:
+   ✗ "\\\\frac{12 \\\\div 4}{104 \\\\div 4}"
+   ✓ "\\\\frac{12/4}{104/4}"
 
 NÄR du ska använda vad (chattläget nedan styr — följ det strikt):
   • Ledtråd utan facit          → text (+ ev. quickReplies)
@@ -1132,9 +1151,10 @@ Ex 5 — normal (förklaring utan tvingade luckor):
      quickReplies choices=[{id:"t1", label:"Visa ett tips"}, {id:"t2", label:"Visa en lucka"}]
   ✗ tvinga solution/fillBlank när läget är normal och studenten bara ställde en kort fråga
 
-Ex 6 — placeholder-id måste matcha:
+Ex 6 — placeholder-id måste matcha + {} obligatorisk:
   ✓ latex="\\\\frac{\\\\placeholder[num]{}}{\\\\placeholder[den]{}}"
       prompts=[{id:"num", answer:"1"}, {id:"den", answer:"2"}]
+  ✗ latex="\\\\frac{\\\\placeholder[num]}{\\\\placeholder[den]}"  ← saknar {}
   ✗ latex med [num] men prompts bara [{id:"den", …}]
   ✗ prompts med id som inte finns i latex
 

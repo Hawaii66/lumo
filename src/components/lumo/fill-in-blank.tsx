@@ -1,6 +1,7 @@
 import { createElement, useEffect, useRef, useState } from "react"
 import type { MathfieldElement } from "mathlive"
 import type { FillBlankPart, PromptSpec } from "~/lib/lumo-content"
+import { repairPlaceholderLatex } from "~/lib/lumo-content"
 import { latexEquals } from "~/lib/latex-equals"
 import { cn } from "~/lib/utils"
 
@@ -50,7 +51,7 @@ export function FillInBlank({
       const el = fieldRef.current
       if (cancelled || !el) return
       el.readOnly = true
-      el.value = latex
+      el.value = repairPlaceholderLatex(latex)
       for (const p of prompts) {
         el.setPromptState(p.id, undefined, false)
       }

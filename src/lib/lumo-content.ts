@@ -132,9 +132,23 @@ export type LumoStaticPart = z.infer<typeof lumoStaticPartSchema>
 export type LumoStaticDocument = z.infer<typeof lumoStaticDocumentSchema>
 export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>
 
+/**
+ * MathLive requires `\placeholder[id]{}` (empty body group).
+ * Models often emit `\placeholder[id]` which parses as doubled empty
+ * boxes / stray squares inside fractions.
+ */
+export function repairPlaceholderLatex(latex: string): string {
+  return latex.replace(
+    /\\placeholder\[([^\]]*)\](?!\s*\{)/g,
+    "\\placeholder[$1]{}",
+  )
+}
+
 export function extractPlaceholderIds(latex: string): Array<string> {
   const ids: Array<string> = []
-  for (const match of latex.matchAll(PLACEHOLDER_ID_RE)) {
+  for (const match of repairPlaceholderLatex(latex).matchAll(
+    PLACEHOLDER_ID_RE,
+  )) {
     const id = match[1]
     if (id && !ids.includes(id)) ids.push(id)
   }
@@ -259,7 +273,9 @@ function normalizeFlatPart(part: Record<string, unknown>): LumoPart | null {
         : { type: "latex", content, display }
     }
     case "fillBlank": {
-      const latex = typeof part.latex === "string" ? part.latex.trim() : ""
+      const latex = repairPlaceholderLatex(
+        typeof part.latex === "string" ? part.latex.trim() : "",
+      )
       const prompts = asPromptSpecs(part.prompts)
       if (latex.length === 0 || prompts.length === 0) return null
       const prompt =
@@ -275,10 +291,11 @@ function normalizeFlatPart(part: Record<string, unknown>): LumoPart | null {
         if (typeof step !== "object" || step === null) continue
         const id =
           "id" in step && typeof step.id === "string" ? step.id.trim() : ""
-        const latex =
+        const latex = repairPlaceholderLatex(
           "latex" in step && typeof step.latex === "string"
             ? step.latex.trim()
-            : ""
+            : "",
+        )
         const prompts = asPromptSpecs(
           "prompts" in step ? step.prompts : undefined,
         )

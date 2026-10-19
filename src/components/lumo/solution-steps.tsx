@@ -7,6 +7,7 @@ import {
 } from "react"
 import type { MathfieldElement } from "mathlive"
 import type { HintPart, SolutionPart, SolutionStep } from "~/lib/lumo-content"
+import { repairPlaceholderLatex } from "~/lib/lumo-content"
 import { StaticMath } from "~/components/lumo/static-math"
 import { StaticLumoParts } from "~/components/lumo/static-parts"
 import { latexEquals } from "~/lib/latex-equals"
@@ -58,7 +59,7 @@ function ActiveStepField({
       const el = ref.current
       if (cancelled || !el) return
       el.readOnly = true
-      el.value = step.latex
+      el.value = repairPlaceholderLatex(step.latex)
       for (const prompt of step.prompts) {
         el.setPromptState(prompt.id, undefined, false)
       }

@@ -14,7 +14,7 @@ import { openrouter } from "./openrouter";
 
 export const roomAgent = new Agent(components.agent, {
   name: "Lumo",
-  languageModel: openrouter("openai/gpt-4o-mini"),
+  languageModel: openrouter("openai/gpt-4.1-mini"),
   instructions: LUMO_PROTOCOL_INSTRUCTIONS,
 });
 
