@@ -124,18 +124,19 @@ function UserMessageGroup({
       .join("\n")
 
   return (
-    <li className="flex flex-col gap-2">
+    <li className="flex flex-col items-end gap-2">
       {text ? (
         <MentionedProblems
           roomId={roomId}
           text={text}
           problemOptions={problemOptions}
+          className="w-full items-end"
         />
       ) : null}
       <div
         className={cn(
           "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-          "ml-auto bg-primary text-primary-foreground",
+          "bg-primary text-primary-foreground",
         )}
       >
         <MessageContent message={message} />
@@ -174,7 +175,7 @@ export function ThreadChat({
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const messages = [...results].reverse()
+  const messages = results
 
   const problemOptions = useMemo(() => {
     if (!problemGroups) return []

@@ -36,7 +36,9 @@ function ProblemChatBubble({
     <div
       className={cn(
         "rounded-lg px-3 py-2 text-sm bg-muted text-foreground",
-        draft ? "max-w-full ring-1 ring-dashed ring-border" : "max-w-[85%]",
+        draft
+          ? "max-w-full ring-1 ring-dashed ring-border"
+          : "ml-auto max-w-[85%]",
       )}
     >
       <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
