@@ -243,6 +243,7 @@ export const getPromptContexts = internalQuery({
     v.object({
       problemNumber: v.string(),
       questionText: v.string(),
+      answerText: v.string(),
     }),
   ),
   handler: async (ctx, args) => {
@@ -267,6 +268,7 @@ export const getPromptContexts = internalQuery({
       results.push({
         problemNumber: row.problemNumber,
         questionText: serializeStaticDocumentForPrompt(row.problem),
+        answerText: serializeStaticDocumentForPrompt(row.answer),
       });
     }
     return results;

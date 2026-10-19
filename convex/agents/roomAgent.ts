@@ -64,15 +64,19 @@ export const generateResponse = internalAction({
       const problems: Array<{
         problemNumber: string;
         questionText: string;
+        answerText: string;
       }> = await ctx.runQuery(internal.PDFParse.problems.getPromptContexts, {
         roomId: args.roomId,
         problemIds: args.problemIds,
       });
       if (problems.length > 0) {
-        const blocks = problems.map(
-          (problem) =>
-            `Uppgift ${problem.problemNumber}:\n${problem.questionText}`,
-        );
+        const blocks = problems.map((problem) => {
+          const answer =
+            problem.answerText.length > 0
+              ? problem.answerText
+              : "(inget facit i källan)";
+          return `Uppgift ${problem.problemNumber}:\nFråga: ${problem.questionText}\nFacit (sträva mot detta; visa inte om läget förbjuder det): ${answer}`;
+        });
         problemContext = `\n\nStudenten refererar till följande uppgifter (använd som kontext; visa inte facit om läget förbjuder det):\n\n${blocks.join("\n\n")}`;
       }
     }
