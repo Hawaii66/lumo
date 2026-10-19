@@ -31,10 +31,23 @@ export const fillBlankPartSchema = z.object({
   prompts: z.array(promptSpecSchema).min(1),
 });
 
+/** Hint body: same text/latex split as other Lumo prose (no captions). */
+export const hintPartSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("text"),
+    content: z.string(),
+  }),
+  z.object({
+    type: z.literal("latex"),
+    content: z.string(),
+    display: z.enum(["inline", "block"]).optional(),
+  }),
+]);
+
 export const solutionStepSchema = z.object({
   id: z.string().min(1),
   title: z.string(),
-  hint: z.string(),
+  hint: z.array(hintPartSchema),
   latex: z.string(),
   prompts: z.array(promptSpecSchema).min(1),
   solvedLatex: z.string(),
@@ -89,6 +102,7 @@ export const lumoDocumentSchema = z.object({
 export type LumoDocument = z.infer<typeof lumoDocumentSchema>;
 export type LumoPart = z.infer<typeof lumoPartSchema>;
 export type PromptSpec = z.infer<typeof promptSpecSchema>;
+export type HintPart = z.infer<typeof hintPartSchema>;
 
 /**
  * Flat part schema for OpenAI/OpenRouter structured output.
@@ -100,10 +114,28 @@ export const lumoPromptSpecAzureSchema = z.object({
   answer: z.string().describe("Bare LaTeX answer; empty when unused"),
 });
 
+export const lumoHintPartAzureSchema = z.object({
+  type: z
+    .enum(["text", "latex"])
+    .describe("text=Swedish prose; latex=math (no $)"),
+  content: z
+    .string()
+    .describe(
+      "Swedish only for text (never \\\\frac/TeX); LaTeX only for latex; empty when unused",
+    ),
+  display: z
+    .enum(["inline", "block"])
+    .describe("Latex display; use inline when type is not latex"),
+});
+
 export const lumoSolutionStepAzureSchema = z.object({
   id: z.string().describe("Step id; empty when unused"),
   title: z.string().describe("Step title; empty when unused"),
-  hint: z.string().describe("Step hint; empty when unused"),
+  hint: z
+    .array(lumoHintPartAzureSchema)
+    .describe(
+      "Step hint as text/latex parts (split math like top-level parts); empty [] when unused",
+    ),
   latex: z
     .string()
     .describe("Step latex with \\placeholder[id]{}; empty when unused"),
@@ -192,6 +224,26 @@ function normalizePromptSpecs(
   return out;
 }
 
+function normalizeHintParts(
+  parts: Array<z.infer<typeof lumoHintPartAzureSchema>>,
+): Array<HintPart> {
+  const out: Array<HintPart> = [];
+  for (const part of parts) {
+    const content = part.content.trim();
+    if (content.length === 0) continue;
+    if (part.type === "text") {
+      out.push({ type: "text", content });
+    } else {
+      out.push({
+        type: "latex",
+        content,
+        display: part.display === "block" ? "block" : "inline",
+      });
+    }
+  }
+  return out;
+}
+
 /** Convert flat OpenAI structured-output parts into the stored Lumo shape. */
 export function normalizeLumoPart(part: LumoPartAzure): LumoPart | null {
   switch (part.type) {
@@ -233,7 +285,7 @@ export function normalizeLumoPart(part: LumoPartAzure): LumoPart | null {
         steps.push({
           id,
           title: step.title.trim(),
-          hint: step.hint.trim(),
+          hint: normalizeHintParts(step.hint),
           latex,
           prompts,
           solvedLatex,
@@ -924,11 +976,16 @@ type=solution  — guidad flerstegslösning där VARJE steg har luckor
   steps : [{
     "id": "s1",
     "title": "Isolera x",
-    "hint": "Flytta konstanten till högerledet.",
+    "hint": [
+      { "type": "text", "content": "Flytta konstanten till högerledet.", "display": "inline" }
+    ],
     "latex": "x+3=\\\\placeholder[a]{}",
     "prompts": [{ "id": "a", "answer": "7" }],
     "solvedLatex": "x+3=7"
   }]
+  hint : array av text/latex-delar (samma split-regler som top-level).
+         Matematik i ledtråd MÅSTE vara type=latex — ALDRIG TeX i type=text.
+         Tom [] om ingen ledtråd. Varje hint-part har type, content, display.
   Minst ett steg. Varje steg MÅSTE ha minst en \\\\placeholder[id]{} + matchande prompt.
   Ge INTE hela facit i title/hint — bara ledtråd.
   content, label, prompt, latex, caption : ""
@@ -960,10 +1017,12 @@ TEXT vs LATEX — DELA ALLTID UPP
 ════════════════════════════════════════
 Varje bråk (\\\\frac) och varje matematisk symbol MÅSTE vara type=latex.
 Prosa runt matematik → splitta: text / latex / text / latex / …
+Gäller både top-level parts OCH steps[].hint.
 
   RÄTT: text "Vi får", latex "x=\\\\frac{3}{4}", text "när", latex "t=2"
   FEL:  text "Vi får x=\\\\frac{3}{4} när t=2"
   FEL:  latex "\\\\text{Vi får }x=\\\\frac{3}{4}"
+  FEL:  hint:[{type:"text", content:"… multiplicera med \\\\frac{1}{8}."}]
 
 • Tappa ALDRIG vänsterledet: "a < 81/4" → latex "a<\\\\frac{81}{4}"
 • Indexerade symboler (P_{1}, α_{1}) → alltid type=latex.
@@ -1044,13 +1103,20 @@ Ex 3 — solution (guidade steg, läge fillBlank):
   ✓ type=solution,
       problemLatex="2x+3=11",
       steps=[
-        { id:"s1", title:"Flytta konstanten", hint:"Subtrahera 3 från båda led.",
+        { id:"s1", title:"Flytta konstanten",
+          hint:[{type:"text", content:"Subtrahera 3 från båda led.", display:"inline"}],
           latex="2x=\\\\placeholder[a]{}", prompts:[{id:"a", answer:"8"}],
           solvedLatex:"2x=8" },
-        { id:"s2", title:"Isolera x", hint:"Dividera med koefficienten framför x.",
+        { id:"s2", title:"Isolera x",
+          hint:[
+            {type:"text", content:"Dividera med", display:"inline"},
+            {type:"latex", content:"\\\\frac{1}{8}", display:"inline"},
+            {type:"text", content:"är samma sak som att multiplicera.", display:"inline"}
+          ],
           latex="x=\\\\placeholder[b]{}", prompts:[{id:"b", answer:"4"}],
           solvedLatex:"x=4" }
       ]
+  ✗ hint som en sträng "… \\\\frac{1}{8} …"  ← hint MÅSTE vara text/latex-array
   ✗ ett enda steg med hela lösningen redan ifylld i hint
   ✗ type=text "Först blir 2x=8, sedan x=4" i fillBlank-läge
 

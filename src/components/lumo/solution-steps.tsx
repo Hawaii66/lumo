@@ -6,10 +6,21 @@ import {
   useState,
 } from "react"
 import type { MathfieldElement } from "mathlive"
-import type { SolutionPart, SolutionStep } from "~/lib/lumo-content"
+import type { HintPart, SolutionPart, SolutionStep } from "~/lib/lumo-content"
 import { StaticMath } from "~/components/lumo/static-math"
+import { StaticLumoParts } from "~/components/lumo/static-parts"
 import { latexEquals } from "~/lib/latex-equals"
 import { cn } from "~/lib/utils"
+
+function StepHint({ hint }: { hint: Array<HintPart> }) {
+  if (hint.length === 0) return null
+  return (
+    <StaticLumoParts
+      parts={hint}
+      className="mt-1 gap-0 text-sm text-muted-foreground"
+    />
+  )
+}
 
 type StepState = "locked" | "active" | "correct" | "incorrect"
 
@@ -222,7 +233,7 @@ export function SolutionSteps({
                 className={cn("rounded-lg border-2 p-4", borderFor("correct"))}
               >
                 <p className="text-sm font-medium">{step.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{step.hint}</p>
+                <StepHint hint={step.hint} />
                 <div className="mt-3">
                   <StaticMath latex={step.solvedLatex} />
                 </div>
@@ -246,7 +257,7 @@ export function SolutionSteps({
               )}
             >
               <p className="text-sm font-medium">{step.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{step.hint}</p>
+              <StepHint hint={step.hint} />
               <div className="mt-3">
                 <ActiveStepField
                   step={step}

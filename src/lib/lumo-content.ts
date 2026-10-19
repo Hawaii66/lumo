@@ -30,10 +30,23 @@ export const fillBlankPartSchema = z.object({
   prompts: z.array(promptSpecSchema).min(1),
 })
 
+/** Hint body: same text/latex split as other Lumo prose (no captions). */
+export const hintPartSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("text"),
+    content: z.string(),
+  }),
+  z.object({
+    type: z.literal("latex"),
+    content: z.string(),
+    display: z.enum(["inline", "block"]).optional(),
+  }),
+])
+
 export const solutionStepSchema = z.object({
   id: z.string().min(1),
   title: z.string(),
-  hint: z.string(),
+  hint: z.array(hintPartSchema),
   latex: z.string(),
   prompts: z.array(promptSpecSchema).min(1),
   solvedLatex: z.string(),
@@ -108,6 +121,7 @@ export const lumoParsedProblemSchema = z.object({
 })
 
 export type PromptSpec = z.infer<typeof promptSpecSchema>
+export type HintPart = z.infer<typeof hintPartSchema>
 export type LumoPart = z.infer<typeof lumoPartSchema>
 export type LumoDocument = z.infer<typeof lumoDocumentSchema>
 export type FillBlankPart = z.infer<typeof fillBlankPartSchema>
@@ -193,6 +207,36 @@ function asPromptSpecs(raw: unknown): Array<PromptSpec> {
   return out
 }
 
+/** Accept new text/latex hint arrays; also tolerate legacy plain-string hints. */
+function asHintParts(raw: unknown): Array<HintPart> {
+  if (typeof raw === "string") {
+    const content = raw.trim()
+    return content.length > 0 ? [{ type: "text", content }] : []
+  }
+  if (!Array.isArray(raw)) return []
+  const out: Array<HintPart> = []
+  for (const item of raw) {
+    if (typeof item !== "object" || item === null) continue
+    const type =
+      "type" in item && (item.type === "text" || item.type === "latex")
+        ? item.type
+        : null
+    const content =
+      "content" in item && typeof item.content === "string"
+        ? item.content.trim()
+        : ""
+    if (type === null || content.length === 0) continue
+    if (type === "text") {
+      out.push({ type: "text", content })
+    } else {
+      const display =
+        "display" in item && item.display === "block" ? "block" : "inline"
+      out.push({ type: "latex", content, display })
+    }
+  }
+  return out
+}
+
 /** Normalize flat OpenAI structured-output parts (all fields present). */
 function normalizeFlatPart(part: Record<string, unknown>): LumoPart | null {
   const type = part.type
@@ -247,10 +291,7 @@ function normalizeFlatPart(part: Record<string, unknown>): LumoPart | null {
             "title" in step && typeof step.title === "string"
               ? step.title.trim()
               : "",
-          hint:
-            "hint" in step && typeof step.hint === "string"
-              ? step.hint.trim()
-              : "",
+          hint: asHintParts("hint" in step ? step.hint : undefined),
           latex,
           prompts,
           solvedLatex:

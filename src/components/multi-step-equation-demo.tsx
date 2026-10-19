@@ -17,7 +17,11 @@ const STEPS: Array<SolutionStep> = [
   {
     id: "expand",
     title: "Steg 1 — Expandera parentesen",
-    hint: "Räkna ut 3(x − 2). Vad blir det?",
+    hint: [
+      { type: "text", content: "Räkna ut" },
+      { type: "latex", content: "3(x-2)", display: "inline" },
+      { type: "text", content: ". Vad blir det?" },
+    ],
     latex:
       "3(x - 2) + 4 = 2x + 11 \\Rightarrow \\placeholder[expand]{} + 4 = 2x + 11",
     prompts: [{ id: "expand", answer: "3x-6" }],
@@ -26,7 +30,13 @@ const STEPS: Array<SolutionStep> = [
   {
     id: "combine",
     title: "Steg 2 — Förenkla vänsterledet",
-    hint: "Räkna ihop −6 + 4. Vad står kvar med 3x?",
+    hint: [
+      { type: "text", content: "Räkna ihop" },
+      { type: "latex", content: "-6+4", display: "inline" },
+      { type: "text", content: ". Vad står kvar med" },
+      { type: "latex", content: "3x", display: "inline" },
+      { type: "text", content: "?" },
+    ],
     latex:
       "3x - 6 + 4 = 2x + 11 \\Rightarrow 3x \\placeholder[combine]{} = 2x + 11",
     prompts: [{ id: "combine", answer: "-2" }],
@@ -35,7 +45,11 @@ const STEPS: Array<SolutionStep> = [
   {
     id: "isolate",
     title: "Steg 3 — Flytta över x-termer",
-    hint: "Dra bort 2x från båda led. Vad blir det nya vänsterledet?",
+    hint: [
+      { type: "text", content: "Dra bort" },
+      { type: "latex", content: "2x", display: "inline" },
+      { type: "text", content: "från båda led. Vad blir det nya vänsterledet?" },
+    ],
     latex: "3x - 2 = 2x + 11 \\Rightarrow \\placeholder[left]{} = 11",
     prompts: [{ id: "left", answer: "x-2" }],
     solvedLatex: "x - 2 = 11",
@@ -43,7 +57,13 @@ const STEPS: Array<SolutionStep> = [
   {
     id: "constant",
     title: "Steg 4 — Isolera x",
-    hint: "Flytta över −2. Vad blir x?",
+    hint: [
+      { type: "text", content: "Flytta över" },
+      { type: "latex", content: "-2", display: "inline" },
+      { type: "text", content: ". Vad blir" },
+      { type: "latex", content: "x", display: "inline" },
+      { type: "text", content: "?" },
+    ],
     latex: "x - 2 = 11 \\Rightarrow x = \\placeholder[solution]{}",
     prompts: [{ id: "solution", answer: "13" }],
     solvedLatex: "x = 13",
