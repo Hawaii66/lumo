@@ -86,9 +86,9 @@ type ChatInputProps = {
   className?: string
   /** When set (e.g. problem detail view), used if the prompt has no @mention. */
   defaultProblemId?: Id<"problems">
-  /** Current chat mode (thread). Used to highlight selection in /mode. */
+  /** Current chat mode (thread). Used to highlight selection in /läge. */
   mode?: ChatMode
-  /** Persist mode change (thread). Optional — /mode still works locally for draft. */
+  /** Persist mode change (thread). Optional — /läge still works locally for draft. */
   onModeChange?: (mode: ChatMode) => void | Promise<void>
 }
 
@@ -103,7 +103,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       onSubmit,
       pending = false,
       error = null,
-      placeholder = "Skriv ett meddelande… @1.2, /formel eller /mode",
+      placeholder = "Skriv ett meddelande… @1.2, /formel eller /läge",
       className,
       defaultProblemId,
       mode,
@@ -519,7 +519,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       }
     }
 
-    // Exact `/mode` or `/formel` + Enter opens even if typeahead was dismissed.
+    // Exact `/läge` or `/formel` + Enter opens even if typeahead was dismissed.
     if (event.key === "Enter" && !event.shiftKey && slashQuery) {
       const exact = filterSlashCommands(slashQuery.query)
       if (exact.length === 1 && exact[0]!.command === slashQuery.query) {

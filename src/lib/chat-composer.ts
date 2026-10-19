@@ -119,8 +119,8 @@ export const SLASH_COMMANDS: Array<SlashCommand> = [
   },
   {
     id: "mode",
-    command: "mode",
-    label: "/mode",
+    command: "läge",
+    label: "/läge",
     description: "Byt chattläge",
   },
 ]
@@ -143,7 +143,7 @@ export function findSlashQueryAtCursor(
   cursor: number,
 ): { start: number; query: string } | null {
   const before = text.slice(0, cursor)
-  const match = before.match(/(?:^|[\s])\/([a-z]*)$/i)
+  const match = before.match(/(?:^|[\s])\/([a-zåäö]*)$/i)
   if (!match || match.index === undefined) return null
   // Point at `/`, not the leading whitespace.
   const slashIndex = before.lastIndexOf("/")
