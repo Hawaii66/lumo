@@ -2,9 +2,9 @@ import {
   optimisticallySendMessage,
   useUIMessages,
 } from "@convex-dev/agent/react"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { Pencil } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { UIMessage } from "@convex-dev/agent/react"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -14,6 +14,7 @@ import {
 } from "~/components/rooms/chat-input"
 import { ChatDeletionExpiryPicker } from "~/components/rooms/chat-deletion-expiry-picker"
 import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
+import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { UserMessageText } from "~/components/rooms/user-message-text"
 import { LumoParts } from "~/components/lumo/lumo-parts"
 import { Button } from "~/components/ui/button"
@@ -22,6 +23,11 @@ import {
   DEFAULT_CHAT_DELETION_EXPIRY,
   type ChatDeletionExpiry,
 } from "~/lib/chat-deletion-expiry"
+import {
+  resolveDraftMentions,
+  type ProblemMentionOption,
+  type ResolvedDraftMention,
+} from "~/lib/chat-composer"
 import {
   DEFAULT_CHAT_MODE,
   type ChatMode,
@@ -39,6 +45,41 @@ type ThreadChatProps = {
   mode?: ChatMode
   deletionExpiry?: ChatDeletionExpiry
   deleteAt?: number | null
+  mentionedProblemNumbers?: string[]
+}
+
+function collectThreadMentions(
+  messages: Array<UIMessage>,
+  problemOptions: Array<ProblemMentionOption>,
+  mentionedProblemNumbers: string[],
+): Array<ResolvedDraftMention> {
+  const byKey = new Map<string, ResolvedDraftMention>()
+
+  function addFromText(text: string) {
+    for (const mention of resolveDraftMentions(text, problemOptions)) {
+      const key =
+        mention.status === "resolved"
+          ? `id:${mention.problemId}`
+          : `num:${mention.problemNumber.toLowerCase()}`
+      if (!byKey.has(key)) byKey.set(key, mention)
+    }
+  }
+
+  for (const message of messages) {
+    if (message.role !== "user") continue
+    const text = messageText(message)
+    if (text) addFromText(text)
+  }
+
+  for (const problemNumber of mentionedProblemNumbers) {
+    const already = [...byKey.values()].some(
+      (mention) =>
+        mention.problemNumber.toLowerCase() === problemNumber.toLowerCase(),
+    )
+    if (!already) addFromText(`@${problemNumber}`)
+  }
+
+  return [...byKey.values()]
 }
 
 function messageText(message: UIMessage): string {
@@ -265,12 +306,16 @@ export function ThreadChat({
   mode = DEFAULT_CHAT_MODE,
   deletionExpiry = DEFAULT_CHAT_DELETION_EXPIRY,
   deleteAt = null,
+  mentionedProblemNumbers = [],
 }: ThreadChatProps) {
   const { results, status } = useUIMessages(
     api.threads.listMessages,
     { roomId, threadId },
     { initialNumItems: 50 },
   )
+  const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
+    roomId,
+  })
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const setMode = useMutation(api.threads.setMode)
   const setDeletionExpiry = useMutation(api.threads.setDeletionExpiry)
@@ -290,6 +335,23 @@ export function ThreadChat({
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const messages = results
+
+  const problemOptions = useMemo(() => {
+    if (!problemGroups) return []
+    return problemGroups.flatMap((group) =>
+      group.problems.map((problem) => ({
+        id: problem.id,
+        problemNumber: problem.problemNumber,
+        fileName: group.fileName,
+      })),
+    )
+  }, [problemGroups])
+
+  const threadMentions = useMemo(
+    () =>
+      collectThreadMentions(messages, problemOptions, mentionedProblemNumbers),
+    [mentionedProblemNumbers, messages, problemOptions],
+  )
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -367,7 +429,7 @@ export function ThreadChat({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-border pb-4">
+      <div className="space-y-3 border-b border-border pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <ThreadTitleEditor
             roomId={roomId}
@@ -392,6 +454,14 @@ export function ThreadChat({
             />
           </div>
         </div>
+        {threadMentions.length > 0 ? (
+          <MentionedProblems
+            roomId={roomId}
+            mentions={threadMentions}
+            align="start"
+            className="max-h-64 overflow-y-auto"
+          />
+        ) : null}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto py-4 pr-3">

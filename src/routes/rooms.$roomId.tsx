@@ -331,6 +331,7 @@ function RoomPage() {
             mode={selectedThread.mode}
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}
+            mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
           />
         )}
       </main>
