@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "parts": [
+    {
+      "type": "solution",
+      "content": "",
+      "display": "inline",
+      "caption": "",
+      "label": "",
+      "prompt": "",
+      "latex": "",
+      "prompts": [],
+      "problemLatex": "\\frac{\\frac{12}{13}}{8}",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "Förenkla bråket",
+          "hint": "Kom ihåg att dividera med 8 är detsamma som att multiplicera med \\frac{1}{8}.",
+          "latex": "\\frac{12}{13} \\cdot \\placeholder[a]{}",
+          "prompts": [
+            {
+              "id": "a",
+              "answer": "\\frac{1}{8}"
+            }
+          ],
+          "solvedLatex": "\\frac{12}{13} \\cdot \\frac{1}{8} = \\frac{12}{104}"
+        },
+        {
+          "id": "s2",
+          "title": "Förenkla bråket ytterligare",
+          "hint": "Detta kan förenklas genom att dividera med 4.",
+          "latex": "\\frac{12 \\div 4}{104 \\div 4} = \\frac{\\placeholder[b]}{\\placeholder[c]}",
+          "prompts": [
+            {
+              "id": "b",
+              "answer": "3"
+            },
+            {
+              "id": "c",
+              "answer": "26"
+            }
+          ],
+          "solvedLatex": "\\frac{3}{26}"
+        }
+      ],
+      "choices": []
+    },
+    {
+      "type": "solution",
+      "content": "",
+      "display": "inline",
+      "caption": "",
+      "label": "",
+      "prompt": "",
+      "latex": "",
+      "prompts": [],
+      "problemLatex": "\\frac{12}{\\frac{13}{8}}",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "Förenkla bråket",
+          "hint": "Kom ihåg att dividera med \\frac{13}{8} är detsamma som att multiplicera med \\frac{8}{13}.",
+          "latex": "12 \\cdot \\placeholder[a]{}",
+          "prompts": [
+            {
+              "id": "a",
+              "answer": "\\frac{8}{13}"
+            }
+          ],
+          "solvedLatex": "12 \\cdot \\frac{8}{13} = \\frac{96}{13}"
+        }
+      ],
+      "choices": []
+    }
+  ]
+}
