@@ -529,6 +529,7 @@ export function ThreadChat({
         images: allImages.length > 0 ? allImages : undefined,
         problemIds,
         problemId: problemIds?.[0],
+        debugSolve: import.meta.env.DEV,
       })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kunde inte skicka")

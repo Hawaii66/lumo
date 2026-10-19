@@ -2,47 +2,16 @@
   "version": 1,
   "parts": [
     {
-      "type": "solution",
+      "type": "subproblem",
       "content": "",
       "display": "inline",
       "caption": "",
-      "label": "",
+      "label": "a",
       "prompt": "",
       "latex": "",
       "prompts": [],
-      "problemLatex": "\\frac{\\frac{12}{13}}{8}",
-      "steps": [
-        {
-          "id": "s1",
-          "title": "Förenkla bråket",
-          "hint": "Kom ihåg att dividera med 8 är detsamma som att multiplicera med \\frac{1}{8}.",
-          "latex": "\\frac{12}{13} \\cdot \\placeholder[a]{}",
-          "prompts": [
-            {
-              "id": "a",
-              "answer": "\\frac{1}{8}"
-            }
-          ],
-          "solvedLatex": "\\frac{12}{13} \\cdot \\frac{1}{8} = \\frac{12}{104}"
-        },
-        {
-          "id": "s2",
-          "title": "Förenkla bråket ytterligare",
-          "hint": "Detta kan förenklas genom att dividera med 4.",
-          "latex": "\\frac{12 \\div 4}{104 \\div 4} = \\frac{\\placeholder[b]}{\\placeholder[c]}",
-          "prompts": [
-            {
-              "id": "b",
-              "answer": "3"
-            },
-            {
-              "id": "c",
-              "answer": "26"
-            }
-          ],
-          "solvedLatex": "\\frac{3}{26}"
-        }
-      ],
+      "problemLatex": "",
+      "steps": [],
       "choices": []
     },
     {
@@ -52,22 +21,227 @@
       "caption": "",
       "label": "",
       "prompt": "",
-      "latex": "",
+      "latex": "a^{2}+b - c \\quad\\text{där}\\quad c=1 - a + 2b",
       "prompts": [],
-      "problemLatex": "\\frac{12}{\\frac{13}{8}}",
+      "problemLatex": "a^{2}+b-c \\text{ där } c=1 - a + 2b",
       "steps": [
         {
           "id": "s1",
-          "title": "Förenkla bråket",
-          "hint": "Kom ihåg att dividera med \\frac{13}{8} är detsamma som att multiplicera med \\frac{8}{13}.",
-          "latex": "12 \\cdot \\placeholder[a]{}",
+          "title": "Substituera in c",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Ersätt c med uttrycket",
+              "display": "inline"
+            }
+          ],
+          "latex": "a^{2}+b - \\placeholder[x]{}",
+          "prompts": [
+            {
+              "id": "x",
+              "answer": "1 - a + 2b"
+            }
+          ],
+          "solvedLatex": "a^{2}+b - (1 - a + 2b)"
+        },
+        {
+          "id": "s2",
+          "title": "Ta bort parentes",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Var noga med minustecknet framför parentesen.",
+              "display": "inline"
+            }
+          ],
+          "latex": "a^{2}+b - 1 + \\placeholder[y]{} - \\placeholder[z]{}",
+          "prompts": [
+            {
+              "id": "y",
+              "answer": "a"
+            },
+            {
+              "id": "z",
+              "answer": "2b"
+            }
+          ],
+          "solvedLatex": "a^{2}+b - 1 + a - 2b"
+        },
+        {
+          "id": "s3",
+          "title": "Förenkla termer",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Samla termer med b.",
+              "display": "inline"
+            }
+          ],
+          "latex": "a^{2} + \\placeholder[m]{} - \\placeholder[n]{}",
+          "prompts": [
+            {
+              "id": "m",
+              "answer": "a"
+            },
+            {
+              "id": "n",
+              "answer": "b + 1"
+            }
+          ],
+          "solvedLatex": "a^{2} + a - b - 1"
+        }
+      ],
+      "choices": []
+    },
+    {
+      "type": "subproblem",
+      "content": "",
+      "display": "inline",
+      "caption": "",
+      "label": "b",
+      "prompt": "",
+      "latex": "",
+      "prompts": [],
+      "problemLatex": "",
+      "steps": [],
+      "choices": []
+    },
+    {
+      "type": "solution",
+      "content": "",
+      "display": "inline",
+      "caption": "",
+      "label": "",
+      "prompt": "",
+      "latex": "3x^{2} - 2x + 1 - y \\quad \\text{där} \\quad y = 5x - 7 - z \\quad \\text{och} \\quad z = -2 + x^{2}",
+      "prompts": [],
+      "problemLatex": "3x^{2} - 2x + 1 - y \\text{ där } y = 5x - 7 - z \\text{ och } z = -2 + x^{2}",
+      "steps": [
+        {
+          "id": "s1",
+          "title": "Substituera in z i y",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Byt ut z i uttrycket för y.",
+              "display": "inline"
+            }
+          ],
+          "latex": "y = 5x - 7 - \\placeholder[z]{}",
+          "prompts": [
+            {
+              "id": "z",
+              "answer": "-2 + x^{2}"
+            }
+          ],
+          "solvedLatex": "y = 5x - 7 - (-2 + x^{2})"
+        },
+        {
+          "id": "s2",
+          "title": "Ta bort parentes i y",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Var noga med minustecknet.",
+              "display": "inline"
+            }
+          ],
+          "latex": "y = 5x - 7 + \\placeholder[a]{} - \\placeholder[b]{}",
           "prompts": [
             {
               "id": "a",
-              "answer": "\\frac{8}{13}"
+              "answer": "2"
+            },
+            {
+              "id": "b",
+              "answer": "x^{2}"
             }
           ],
-          "solvedLatex": "12 \\cdot \\frac{8}{13} = \\frac{96}{13}"
+          "solvedLatex": "y = 5x - 7 + 2 - x^{2}"
+        },
+        {
+          "id": "s3",
+          "title": "Förenkla y",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Samla konstanter.",
+              "display": "inline"
+            }
+          ],
+          "latex": "y = 5x - \\placeholder[c]{}",
+          "prompts": [
+            {
+              "id": "c",
+              "answer": "5 + x^{2}"
+            }
+          ],
+          "solvedLatex": "y = 5x - 5 - x^{2}"
+        },
+        {
+          "id": "s4",
+          "title": "Sätt in y i huvuduttrycket",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Ersätt y med det förenklade uttrycket.",
+              "display": "inline"
+            }
+          ],
+          "latex": "3x^{2} - 2x + 1 - \\left(\\placeholder[d]\\right)",
+          "prompts": [
+            {
+              "id": "d",
+              "answer": "5x - 5 - x^{2}"
+            }
+          ],
+          "solvedLatex": "3x^{2} - 2x + 1 - \\left(5x - 5 - x^{2}\\right)"
+        },
+        {
+          "id": "s5",
+          "title": "Ta bort parentes i huvuduttrycket",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Var noga med minustecknet utanför parentesen.",
+              "display": "inline"
+            }
+          ],
+          "latex": "3x^{2} - 2x + 1 - 5x + 5 + \\placeholder[e]{}",
+          "prompts": [
+            {
+              "id": "e",
+              "answer": "x^{2}"
+            }
+          ],
+          "solvedLatex": "3x^{2} - 2x + 1 - 5x + 5 + x^{2}"
+        },
+        {
+          "id": "s6",
+          "title": "Förenkla uttrycket",
+          "hint": [
+            {
+              "type": "text",
+              "content": "Samla termer med x² och x samt konstanter.",
+              "display": "inline"
+            }
+          ],
+          "latex": "\\placeholder[f]x^{2} + \\placeholder[g]x + \\placeholder[h]{}",
+          "prompts": [
+            {
+              "id": "f",
+              "answer": "4"
+            },
+            {
+              "id": "g",
+              "answer": "-7"
+            },
+            {
+              "id": "h",
+              "answer": "6"
+            }
+          ],
+          "solvedLatex": "4x^{2} - 7x + 6"
         }
       ],
       "choices": []

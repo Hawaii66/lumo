@@ -10,14 +10,16 @@ import {
   chatModeValidator,
   formatModeHint,
   lumoDocumentAzureSchema,
+  normalizeLumoDocument,
   serializeWorkedSolutionForPrompt,
   solveModeHint,
+  stringifyLumoDocument,
   workedSolutionSchema,
 } from "../lib/lumoContent";
-import type { ChatMode, WorkedSolution } from "../lib/lumoContent";
+import type { ChatMode, LumoDocument, WorkedSolution } from "../lib/lumoContent";
 import { openrouter } from "./openrouter";
 
-/** Pass 1: solve math only (not saved to the thread). */
+/** Pass 1: solve math only. */
 export const roomSolveAgent = new Agent(components.agent, {
   name: "LumoSolve",
   languageModel: openrouter("openai/gpt-4.1-mini"),
@@ -49,6 +51,37 @@ function buildProblemContext(
   return `\n\nStudenten refererar till följande uppgifter:\n\n${blocks.join("\n\n")}`;
 }
 
+function parseFormatDocument(formatText: string): LumoDocument {
+  try {
+    const json: unknown = JSON.parse(formatText);
+    const azure = lumoDocumentAzureSchema.safeParse(json);
+    if (azure.success) return normalizeLumoDocument(azure.data);
+  } catch {
+    // fall through
+  }
+  return {
+    version: 1,
+    parts: [{ type: "text", content: formatText }],
+  };
+}
+
+/** Append pass-1 output as one text part on the format document (not a second envelope). */
+function withWorkedSolutionTextPart(
+  formatDoc: LumoDocument,
+  solution: WorkedSolution,
+): LumoDocument {
+  return {
+    version: 1,
+    parts: [
+      ...formatDoc.parts,
+      {
+        type: "text",
+        content: JSON.stringify(solution, null, 2),
+      },
+    ],
+  };
+}
+
 export const generateResponse = internalAction({
   args: {
     threadId: v.string(),
@@ -56,6 +89,7 @@ export const generateResponse = internalAction({
     mode: v.optional(chatModeValidator),
     roomId: v.optional(v.id("rooms")),
     problemIds: v.optional(v.array(v.id("problems"))),
+    debugSolve: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -79,7 +113,7 @@ export const generateResponse = internalAction({
       problemContext = buildProblemContext(problems);
     }
 
-    // Pass 1 — silent solve (depth from mode; facit when present).
+    // Pass 1 — solve (depth from mode; facit when present).
     const solved = await roomSolveAgent.generateObject(
       ctx,
       { threadId: args.threadId },
@@ -119,6 +153,30 @@ export const generateResponse = internalAction({
     );
 
     await result.consumeStream();
+
+    if (args.debugSolve === true) {
+      const formatText = await result.text;
+      const combined = withWorkedSolutionTextPart(
+        parseFormatDocument(formatText),
+        workedSolution,
+      );
+      const combinedText = stringifyLumoDocument(combined);
+
+      const savedAssistant = [...(result.savedMessages ?? [])]
+        .reverse()
+        .find((message) => message.message?.role === "assistant");
+
+      if (savedAssistant !== undefined) {
+        await roomAgent.updateMessage(ctx, {
+          messageId: savedAssistant._id,
+          patch: {
+            message: { role: "assistant", content: combinedText },
+            status: "success",
+          },
+        });
+      }
+    }
+
     return null;
   },
 });
