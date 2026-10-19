@@ -18,6 +18,8 @@ export type MentionedProblemsProps = {
   problemOptions?: Array<ProblemMentionOption>
   /** Dim draft embeds that are not sent yet. */
   draft?: boolean
+  /** Bubble alignment. Defaults to end (outgoing) unless draft. */
+  align?: "start" | "end"
   className?: string
 }
 
@@ -26,11 +28,13 @@ function ProblemChatBubble({
   problemNumber,
   children,
   draft,
+  align = "end",
 }: {
   fileName?: string
   problemNumber: string
   children: ReactNode
   draft?: boolean
+  align?: "start" | "end"
 }) {
   return (
     <div
@@ -38,7 +42,7 @@ function ProblemChatBubble({
         "rounded-lg px-3 py-2 text-sm bg-muted text-foreground",
         draft
           ? "max-w-full ring-1 ring-dashed ring-border"
-          : "ml-auto max-w-[85%]",
+          : cn("max-w-[85%]", align === "end" ? "ml-auto" : "mr-auto"),
       )}
     >
       <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -58,8 +62,10 @@ export function MentionedProblems({
   text,
   problemOptions = [],
   draft = false,
+  align,
   className,
 }: MentionedProblemsProps) {
+  const bubbleAlign = align ?? (draft ? "start" : "end")
   const mentions = useMemo(() => {
     if (mentionsProp) return mentionsProp
     if (text) return resolveDraftMentions(text, problemOptions)
@@ -101,6 +107,7 @@ export function MentionedProblems({
               key={`missing-${mention.problemNumber}`}
               problemNumber={mention.problemNumber}
               draft={draft}
+              align={bubbleAlign}
             >
               <p className="text-muted-foreground">
                 Ingen uppgift matchar @{mention.problemNumber}
@@ -114,6 +121,7 @@ export function MentionedProblems({
               key={`ambiguous-${mention.problemNumber}`}
               problemNumber={mention.problemNumber}
               draft={draft}
+              align={bubbleAlign}
             >
               <p className="text-muted-foreground">
                 Flera uppgifter heter {mention.problemNumber} — välj fil i
@@ -130,6 +138,7 @@ export function MentionedProblems({
             problemNumber={mention.problemNumber}
             fileName={loaded?.fileName ?? mention.fileName}
             draft={draft}
+            align={bubbleAlign}
           >
             {problems === undefined && !loaded ? (
               <p className="text-muted-foreground">Hämtar uppgift…</p>

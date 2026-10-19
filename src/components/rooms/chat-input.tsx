@@ -1,5 +1,5 @@
 import { useQuery } from "convex/react"
-import { ImagePlus, Sigma, Smartphone, X } from "lucide-react"
+import { Sigma, X } from "lucide-react"
 import {
   forwardRef,
   useEffect,
@@ -12,19 +12,21 @@ import type { FormEvent, KeyboardEvent } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { StaticMath } from "~/components/lumo/static-math"
+import {
+  ChatFilePickerDialog,
+  ChatFilePickerTrigger,
+  type ChatFilePickerSelectedFile,
+} from "~/components/rooms/chat-file-picker-dialog"
 import { ComposerTextarea } from "~/components/rooms/composer-textarea"
 import { MathInputDialog } from "~/components/rooms/math-input-dialog"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
-import {
-  PhoneUploadDialog,
-  type PhoneUploadCompletedFile,
-} from "~/components/rooms/phone-upload-dialog"
 import { Button } from "~/components/ui/button"
 import {
   appendUserTextToPrompt,
   composePromptWithMath,
   filterProblemOptions,
   filterSlashCommands,
+  findAllMentions,
   findMentionQueryAtCursor,
   findSlashQueryAtCursor,
   formatMathRef,
@@ -126,12 +128,11 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
   const [modeMenuOpen, setModeMenuOpen] = useState(false)
   const [modeMenuIndex, setModeMenuIndex] = useState(0)
   const [draftMode, setDraftMode] = useState<ChatMode | undefined>(undefined)
-  const [phoneUploadOpen, setPhoneUploadOpen] = useState(false)
+  const [filePickerOpen, setFilePickerOpen] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
   const [typeaheadIndex, setTypeaheadIndex] = useState(0)
   const [typeaheadOpen, setTypeaheadOpen] = useState(true)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const typeaheadOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const modeOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -409,14 +410,14 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       return [...current, ...next]
     })
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
   }
 
-  function addPhoneUpload(file: PhoneUploadCompletedFile) {
+  function addStorageFile(file: ChatFilePickerSelectedFile) {
     setLocalError(null)
     setPendingStorageImages((current) => {
+      if (current.some((image) => image.storageId === file.storageId)) {
+        return current
+      }
       const total = current.length + pendingImagesRef.current.length
       if (total >= MAX_IMAGES) {
         setLocalError(`Du kan bifoga högst ${MAX_IMAGES} bilder`)
@@ -432,6 +433,10 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       ]
     })
   }
+
+  const attachedStorageIds = useMemo(() => {
+    return new Set(pendingStorageImages.map((image) => image.storageId))
+  }, [pendingStorageImages])
 
   function removeImage(id: string) {
     setPendingImages((current) => {
@@ -589,7 +594,28 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       return
     }
 
-    const mentions = resolveDraftMentions(composed, problemOptions)
+    let promptToSend = composed
+    // Ensure default problem appears as an @mention so it renders in the chat.
+    if (defaultProblemId) {
+      const defaultOption = problemOptions.find(
+        (option) => option.id === defaultProblemId,
+      )
+      if (
+        defaultOption &&
+        !findAllMentions(promptToSend).some(
+          (mention) =>
+            mention.number.toLowerCase() ===
+            defaultOption.problemNumber.toLowerCase(),
+        )
+      ) {
+        promptToSend = appendUserTextToPrompt(
+          `@${defaultOption.problemNumber}`,
+          promptToSend,
+        )
+      }
+    }
+
+    const mentions = resolveDraftMentions(promptToSend, problemOptions)
     const ambiguous = mentions.find((m) => m.status === "ambiguous")
     if (ambiguous) {
       setLocalError(
@@ -625,7 +651,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
 
     try {
       await onSubmit({
-        prompt: composed,
+        prompt: promptToSend,
         images: imagesToSend,
         storageImages:
           storageImagesToSend.length > 0
@@ -908,37 +934,10 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1.5">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            disabled={pending}
-            onChange={(event) => {
-              addImages(event.target.files)
-            }}
+          <ChatFilePickerTrigger
+            disabled={pending || imagesFull}
+            onClick={() => setFilePickerOpen(true)}
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={pending || imagesFull}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <ImagePlus />
-            Bild
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={pending || imagesFull}
-            onClick={() => setPhoneUploadOpen(true)}
-          >
-            <Smartphone />
-            Telefon
-          </Button>
           <Button
             type="button"
             variant="outline"
@@ -956,12 +955,14 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       </div>
     </form>
 
-      <PhoneUploadDialog
+      <ChatFilePickerDialog
         roomId={roomId}
-        open={phoneUploadOpen}
-        onOpenChange={setPhoneUploadOpen}
-        onCompleted={addPhoneUpload}
-        showTrigger={false}
+        open={filePickerOpen}
+        onOpenChange={setFilePickerOpen}
+        disabled={pending || imagesFull}
+        onPickLocalFiles={addImages}
+        onPickStorageFile={addStorageFile}
+        excludeStorageIds={attachedStorageIds}
       />
 
       <MathInputDialog

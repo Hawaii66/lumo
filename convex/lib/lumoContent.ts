@@ -563,6 +563,35 @@ export type ChatMode =
 
 export const DEFAULT_CHAT_MODE: ChatMode = "normal";
 
+/** How long until a chat is eligible for deletion. Missing → infinite. */
+export const chatDeletionExpiryValidator = v.union(
+  v.literal("1h"),
+  v.literal("3h"),
+  v.literal("infinite"),
+);
+
+export type ChatDeletionExpiry = "1h" | "3h" | "infinite";
+
+export const DEFAULT_CHAT_DELETION_EXPIRY: ChatDeletionExpiry = "infinite";
+export const PROBLEM_CHAT_DELETION_EXPIRY: ChatDeletionExpiry = "3h";
+
+const DELETION_EXPIRY_MS: Record<
+  Exclude<ChatDeletionExpiry, "infinite">,
+  number
+> = {
+  "1h": 60 * 60 * 1000,
+  "3h": 3 * 60 * 60 * 1000,
+};
+
+/** Absolute delete-at timestamp, or undefined when the chat is kept forever. */
+export function computeDeleteAt(
+  expiry: ChatDeletionExpiry,
+  now = Date.now(),
+): number | undefined {
+  if (expiry === "infinite") return undefined;
+  return now + DELETION_EXPIRY_MS[expiry];
+}
+
 export function extractPlaceholderIds(latex: string): Array<string> {
   const ids: Array<string> = [];
   for (const match of latex.matchAll(PLACEHOLDER_ID_RE)) {

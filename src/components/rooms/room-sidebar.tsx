@@ -22,8 +22,8 @@ export type RoomSidebarChatItem = {
   title: string
   /** Remaining time label, e.g. "2h kvar". Omit when kept forever. */
   ttlLabel?: string
-  /** Problem number badge when chat is linked to a problem */
-  problemNumber?: string
+  /** @-mentioned problem numbers shown as badges */
+  problemNumbers?: string[]
 }
 
 export type RoomSidebarProblemGroup = {
@@ -221,11 +221,14 @@ function ChatList({
             >
               <span className="line-clamp-2 font-medium">{chat.title}</span>
               <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                {chat.problemNumber ? (
-                  <span className="rounded bg-sidebar-accent/80 px-1.5 py-0.5 font-medium text-sidebar-accent-foreground">
-                    {chat.problemNumber}
+                {(chat.problemNumbers ?? []).map((problemNumber) => (
+                  <span
+                    key={problemNumber}
+                    className="rounded bg-sidebar-accent/80 px-1.5 py-0.5 font-medium text-sidebar-accent-foreground"
+                  >
+                    {problemNumber}
                   </span>
-                ) : null}
+                ))}
                 {chat.ttlLabel ? (
                   <span className="inline-flex items-center gap-0.5">
                     <Clock className="size-3" />

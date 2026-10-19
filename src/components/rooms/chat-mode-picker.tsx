@@ -16,33 +16,37 @@ export function ChatModePicker({
 }: ChatModePickerProps) {
   return (
     <div
-      className={cn("flex flex-wrap gap-1.5", className)}
+      className={cn(
+        "flex flex-wrap items-center gap-2 rounded-lg border border-border/80 bg-muted/40 px-2.5 py-1.5",
+        className,
+      )}
       role="group"
       aria-label="Chattläge"
     >
-      {CHAT_MODES.map((mode) => {
-        const selected = value === mode.value
-        return (
-          <button
+      <span className="text-xs font-medium text-muted-foreground">Läge</span>
+      <select
+        value={value}
+        disabled={disabled}
+        aria-label="Chattläge"
+        onChange={(event) => {
+          onChange(event.target.value as ChatMode)
+        }}
+        className={cn(
+          "h-7 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground",
+          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          "disabled:pointer-events-none disabled:opacity-50",
+        )}
+      >
+        {CHAT_MODES.map((mode) => (
+          <option
             key={mode.value}
-            type="button"
-            disabled={disabled}
+            value={mode.value}
             title={mode.description}
-            aria-pressed={selected}
-            onClick={() => onChange(mode.value)}
-            className={cn(
-              "rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
-              "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-              "disabled:pointer-events-none disabled:opacity-50",
-              selected
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-            )}
           >
             {mode.label}
-          </button>
-        )
-      })}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

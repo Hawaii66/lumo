@@ -2,6 +2,7 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
+  chatDeletionExpiryValidator,
   chatModeValidator,
   lumoStaticDocumentValidator,
 } from "./lib/lumoContent";
@@ -58,6 +59,17 @@ export default defineSchema({
     createdBy: v.id("users"),
     /** Interaction mode for the chat. Missing on older threads → treat as normal. */
     mode: v.optional(chatModeValidator),
+    /**
+     * Auto-delete preference. Missing on older threads → infinite.
+     * `deleteAt` is the absolute deadline when not infinite (deletion not wired yet).
+     */
+    deletionExpiry: v.optional(chatDeletionExpiryValidator),
+    deleteAt: v.optional(v.number()),
+    /**
+     * Distinct @-mentioned problem numbers seen in this chat (display order).
+     * Updated as messages are sent; missing on older threads.
+     */
+    mentionedProblemNumbers: v.optional(v.array(v.string())),
   })
     .index("by_room", ["roomId"])
     .index("by_thread", ["threadId"]),

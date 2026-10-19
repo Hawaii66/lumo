@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery } from "convex/react"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
@@ -14,6 +14,10 @@ import {
   ProblemHelpActions,
   type ProblemHelpStartDraft,
 } from "~/components/rooms/problem-help-actions"
+import {
+  formatSidebarTimeLeft,
+  PROBLEM_CHAT_DELETION_EXPIRY,
+} from "~/lib/chat-deletion-expiry"
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
 import {
   RoomSidebar,
@@ -53,6 +57,18 @@ function RoomPage() {
   const problemChatInputRef = useRef<ChatInputHandle>(null)
   const showFacit = useUiStore((s) => s.showFacit)
   const setShowFacit = useUiStore((s) => s.setShowFacit)
+  const [now, setNow] = useState(() => Date.now())
+
+  const hasTimedChats = useMemo(
+    () => (threads ?? []).some((thread) => thread.deleteAt != null),
+    [threads],
+  )
+
+  useEffect(() => {
+    if (!hasTimedChats) return
+    const id = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(id)
+  }, [hasTimedChats])
 
   const selectedThread = useQuery(
     api.threads.get,
@@ -73,8 +89,13 @@ function RoomPage() {
       (threads ?? []).map((thread) => ({
         id: thread.threadId,
         title: thread.title,
+        problemNumbers: thread.mentionedProblemNumbers,
+        ttlLabel:
+          thread.deleteAt != null
+            ? formatSidebarTimeLeft(thread.deleteAt, now)
+            : undefined,
       })),
-    [threads],
+    [now, threads],
   )
 
   const problemGroupItems = useMemo(
@@ -122,6 +143,8 @@ function RoomPage() {
         roomId: typedRoomId,
         title: `Uppgift ${problemNumber}`,
         mode: payload.mode ?? DEFAULT_CHAT_MODE,
+        deletionExpiry: PROBLEM_CHAT_DELETION_EXPIRY,
+        mentionedProblemNumbers: [problemNumber],
       })
 
       const uploaded = await Promise.all(
@@ -306,6 +329,8 @@ function RoomPage() {
             threadId={selectedThread.threadId}
             title={selectedThread.title}
             mode={selectedThread.mode}
+            deletionExpiry={selectedThread.deletionExpiry}
+            deleteAt={selectedThread.deleteAt}
           />
         )}
       </main>

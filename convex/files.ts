@@ -75,6 +75,7 @@ export const listByRoom = query({
       _id: v.id("files"),
       _creationTime: v.number(),
       name: v.string(),
+      storageId: v.id("_storage"),
       url: v.union(v.string(), v.null()),
     }),
   ),
@@ -108,6 +109,7 @@ export const listByRoom = query({
         _id: file._id,
         _creationTime: file._creationTime,
         name: file.name,
+        storageId: file.storageId,
         url,
       });
     }

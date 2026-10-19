@@ -14,13 +14,13 @@ const MOCK_CHATS = [
   {
     id: "c1",
     title: "Hjälp med partialbråk",
-    problemNumber: "1.3",
+    problemNumbers: ["1.3"],
     ttlLabel: "2h kvar",
   },
   {
     id: "c2",
     title: "Varför blir derivatan noll?",
-    problemNumber: "2.1a",
+    problemNumbers: ["2.1a", "2.2"],
     ttlLabel: "45m kvar",
   },
   {
@@ -31,7 +31,7 @@ const MOCK_CHATS = [
   {
     id: "c4",
     title: "Integral med substitution",
-    problemNumber: "3.4",
+    problemNumbers: ["3.4"],
     ttlLabel: "22h kvar",
   },
 ]

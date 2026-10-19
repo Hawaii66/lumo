@@ -2,8 +2,9 @@ import {
   optimisticallySendMessage,
   useUIMessages,
 } from "@convex-dev/agent/react"
-import { useMutation, useQuery } from "convex/react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMutation } from "convex/react"
+import { Pencil } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { UIMessage } from "@convex-dev/agent/react"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -11,10 +12,16 @@ import {
   ChatInput,
   type ChatInputSubmitPayload,
 } from "~/components/rooms/chat-input"
+import { ChatDeletionExpiryPicker } from "~/components/rooms/chat-deletion-expiry-picker"
 import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
-import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { UserMessageText } from "~/components/rooms/user-message-text"
 import { LumoParts } from "~/components/lumo/lumo-parts"
+import { Button } from "~/components/ui/button"
+import { Input } from "~/components/ui/input"
+import {
+  DEFAULT_CHAT_DELETION_EXPIRY,
+  type ChatDeletionExpiry,
+} from "~/lib/chat-deletion-expiry"
 import {
   DEFAULT_CHAT_MODE,
   type ChatMode,
@@ -23,11 +30,27 @@ import { parseLumoDocument } from "~/lib/lumo-content"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
 
+const MAX_TITLE_LENGTH = 80
+
 type ThreadChatProps = {
   roomId: Id<"rooms">
   threadId: string
   title: string
   mode?: ChatMode
+  deletionExpiry?: ChatDeletionExpiry
+  deleteAt?: number | null
+}
+
+function messageText(message: UIMessage): string {
+  return (
+    message.text ||
+    message.parts
+      .filter(
+        (part): part is { type: "text"; text: string } => part.type === "text",
+      )
+      .map((part) => part.text)
+      .join("\n")
+  )
 }
 
 function MessageContent({
@@ -40,14 +63,7 @@ function MessageContent({
   quickRepliesDisabled?: boolean
 }) {
   if (message.role === "assistant") {
-    const text =
-      message.text ||
-      message.parts
-        .filter(
-          (part): part is { type: "text"; text: string } => part.type === "text",
-        )
-        .map((part) => part.text)
-        .join("\n")
+    const text = messageText(message)
 
     if (!text) {
       return <span className="text-muted-foreground italic">…</span>
@@ -63,14 +79,7 @@ function MessageContent({
     )
   }
 
-  const text =
-    message.text ||
-    message.parts
-      .filter(
-        (part): part is { type: "text"; text: string } => part.type === "text",
-      )
-      .map((part) => part.text)
-      .join("\n")
+  const text = messageText(message)
 
   const images = message.parts.filter(
     (
@@ -101,47 +110,151 @@ function MessageContent({
   )
 }
 
-function UserMessageGroup({
-  message,
+function ThreadTitleEditor({
   roomId,
-  problemOptions,
+  threadId,
+  title,
 }: {
-  message: UIMessage
   roomId: Id<"rooms">
-  problemOptions: Array<{
-    id: string
-    problemNumber: string
-    fileName: string
-  }>
+  threadId: string
+  title: string
 }) {
-  const text =
-    message.text ||
-    message.parts
-      .filter(
-        (part): part is { type: "text"; text: string } => part.type === "text",
-      )
-      .map((part) => part.text)
-      .join("\n")
+  const setTitle = useMutation(api.threads.setTitle)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(title)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!editing) {
+      setDraft(title)
+      setError(null)
+    }
+  }, [editing, title])
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editing])
+
+  function startEdit() {
+    setDraft(title)
+    setError(null)
+    setEditing(true)
+  }
+
+  function cancelEdit() {
+    setEditing(false)
+    setDraft(title)
+    setError(null)
+  }
+
+  async function commitEdit() {
+    const next = draft.trim().slice(0, MAX_TITLE_LENGTH)
+    if (next.length === 0) {
+      setError("Titeln får inte vara tom")
+      inputRef.current?.focus()
+      return
+    }
+    if (next === title) {
+      setEditing(false)
+      setError(null)
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    try {
+      await setTitle({ roomId, threadId, title: next })
+      setEditing(false)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Kunde inte byta titel")
+      inputRef.current?.focus()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div className="flex min-w-0 items-center gap-1.5">
+        <button
+          type="button"
+          className="min-w-0 truncate text-left text-lg font-medium hover:underline"
+          title={`${title} — klicka för att byta titel`}
+          onClick={startEdit}
+        >
+          {title}
+        </button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="size-7 shrink-0 px-0"
+          title="Byt titel"
+          onClick={startEdit}
+        >
+          <Pencil className="size-3.5" />
+          <span className="sr-only">Byt titel</span>
+        </Button>
+      </div>
+    )
+  }
 
   return (
-    <li className="flex flex-col items-end gap-2">
-      {text ? (
-        <MentionedProblems
-          roomId={roomId}
-          text={text}
-          problemOptions={problemOptions}
-          className="w-full items-end"
+    <div className="min-w-0 flex-1 space-y-1">
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <Input
+          ref={inputRef}
+          value={draft}
+          maxLength={MAX_TITLE_LENGTH}
+          disabled={saving}
+          aria-label="Chattitel"
+          aria-invalid={error !== null}
+          className="h-9 min-w-0 flex-1 text-lg font-medium"
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault()
+              void commitEdit()
+            } else if (event.key === "Escape") {
+              event.preventDefault()
+              cancelEdit()
+            }
+          }}
         />
-      ) : null}
-      <div
-        className={cn(
-          "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-          "bg-primary text-primary-foreground",
-        )}
-      >
-        <MessageContent message={message} />
+        <Button
+          type="button"
+          size="sm"
+          disabled={saving || draft.trim().length === 0}
+          onClick={() => {
+            void commitEdit()
+          }}
+        >
+          {saving ? "Sparar…" : "Spara"}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={saving}
+          onClick={cancelEdit}
+        >
+          Avbryt
+        </Button>
       </div>
-    </li>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground">
+          Enter sparar · Esc avbryter
+        </p>
+        <p className="text-xs text-muted-foreground tabular-nums">
+          {draft.length}/{MAX_TITLE_LENGTH}
+        </p>
+      </div>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
   )
 }
 
@@ -150,17 +263,17 @@ export function ThreadChat({
   threadId,
   title,
   mode = DEFAULT_CHAT_MODE,
+  deletionExpiry = DEFAULT_CHAT_DELETION_EXPIRY,
+  deleteAt = null,
 }: ThreadChatProps) {
   const { results, status } = useUIMessages(
     api.threads.listMessages,
     { roomId, threadId },
     { initialNumItems: 50 },
   )
-  const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
-    roomId,
-  })
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const setMode = useMutation(api.threads.setMode)
+  const setDeletionExpiry = useMutation(api.threads.setDeletionExpiry)
   const sendMessage = useMutation(api.threads.sendMessage).withOptimisticUpdate(
     (store, args) => {
       optimisticallySendMessage(api.threads.listMessages)(store, {
@@ -172,21 +285,11 @@ export function ThreadChat({
 
   const [pending, setPending] = useState(false)
   const [modePending, setModePending] = useState(false)
+  const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const messages = results
-
-  const problemOptions = useMemo(() => {
-    if (!problemGroups) return []
-    return problemGroups.flatMap((group) =>
-      group.problems.map((problem) => ({
-        id: problem.id,
-        problemNumber: problem.problemNumber,
-        fileName: group.fileName,
-      })),
-    )
-  }, [problemGroups])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -247,22 +350,48 @@ export function ThreadChat({
     }
   }
 
+  async function handleDeletionExpiryChange(next: ChatDeletionExpiry) {
+    if (next === deletionExpiry || expiryPending) return
+    setExpiryPending(true)
+    setError(null)
+    try {
+      await setDeletionExpiry({ roomId, threadId, deletionExpiry: next })
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Kunde inte byta raderingstid",
+      )
+    } finally {
+      setExpiryPending(false)
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="space-y-3 border-b border-border pb-4">
+      <div className="border-b border-border pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <h2 className="text-lg font-medium">{title}</h2>
-          <ChatModePicker
-            value={mode}
-            onChange={(next) => {
-              void handleModeChange(next)
-            }}
-            disabled={modePending || pending}
+          <ThreadTitleEditor
+            roomId={roomId}
+            threadId={threadId}
+            title={title}
           />
+          <div className="flex flex-wrap items-center gap-2">
+            <ChatModePicker
+              value={mode}
+              onChange={(next) => {
+                void handleModeChange(next)
+              }}
+              disabled={modePending || pending}
+            />
+            <ChatDeletionExpiryPicker
+              value={deletionExpiry}
+              deleteAt={deleteAt}
+              onChange={(next) => {
+                void handleDeletionExpiryChange(next)
+              }}
+              disabled={expiryPending || pending}
+            />
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Läget gäller hela chatten och kan bytas när som helst.
-        </p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto py-4 pr-3">
@@ -276,12 +405,16 @@ export function ThreadChat({
           <ul className="flex flex-col gap-3">
             {messages.map((message) =>
               message.role === "user" ? (
-                <UserMessageGroup
-                  key={message.key}
-                  message={message}
-                  roomId={roomId}
-                  problemOptions={problemOptions}
-                />
+                <li key={message.key} className="flex flex-col items-end gap-2">
+                  <div
+                    className={cn(
+                      "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                      "bg-primary text-primary-foreground",
+                    )}
+                  >
+                    <MessageContent message={message} />
+                  </div>
+                </li>
               ) : (
                 <li
                   key={message.key}

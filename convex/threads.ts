@@ -4,14 +4,19 @@ import {
   getThreadMetadata,
   listUIMessages,
   saveMessage,
+  updateThreadMetadata,
 } from "@convex-dev/agent";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
 import {
+  DEFAULT_CHAT_DELETION_EXPIRY,
   DEFAULT_CHAT_MODE,
+  chatDeletionExpiryValidator,
   chatModeValidator,
+  computeDeleteAt,
+  type ChatDeletionExpiry,
   type ChatMode,
 } from "./lib/lumoContent";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
@@ -26,6 +31,43 @@ const MAX_PROMPT_LENGTH = 4000;
 const MAX_IMAGES_PER_MESSAGE = 4;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGE_FILENAME_LENGTH = 200;
+const MAX_MENTIONED_PROBLEM_NUMBERS = 20;
+
+/** `@1.2` / `@2.1a` tokens in prompt text (same shape as client composer). */
+const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*[a-z]?)/gi;
+
+function extractMentionedProblemNumbers(text: string): Array<string> {
+  const numbers: Array<string> = [];
+  const seen = new Set<string>();
+  for (const match of text.matchAll(PROBLEM_MENTION_RE)) {
+    const number = match[1];
+    if (number === undefined) continue;
+    const key = number.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    numbers.push(number);
+  }
+  return numbers;
+}
+
+function mergeMentionedProblemNumbers(
+  existing: Array<string> | undefined,
+  incoming: Array<string>,
+): Array<string> | undefined {
+  if (incoming.length === 0) {
+    return existing !== undefined && existing.length > 0 ? existing : undefined;
+  }
+  const merged: Array<string> = [];
+  const seen = new Set<string>();
+  for (const number of [...(existing ?? []), ...incoming]) {
+    const key = number.trim().toLowerCase();
+    if (key.length === 0 || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(number.trim());
+    if (merged.length >= MAX_MENTIONED_PROBLEM_NUMBERS) break;
+  }
+  return merged.length > 0 ? merged : undefined;
+}
 
 const chatImageValidator = v.object({
   storageId: v.id("_storage"),
@@ -87,6 +129,10 @@ export const listByRoom = query({
       title: thread.title,
       createdBy: thread.createdBy,
       mode: (thread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
+      deletionExpiry: (thread.deletionExpiry ??
+        DEFAULT_CHAT_DELETION_EXPIRY) as ChatDeletionExpiry,
+      deleteAt: thread.deleteAt ?? null,
+      mentionedProblemNumbers: thread.mentionedProblemNumbers ?? [],
     }));
   },
 });
@@ -96,12 +142,21 @@ export const create = mutation({
     roomId: v.id("rooms"),
     title: v.optional(v.string()),
     mode: v.optional(chatModeValidator),
+    deletionExpiry: v.optional(chatDeletionExpiryValidator),
+    mentionedProblemNumbers: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const userId = await requireRoomMember(ctx, args.roomId);
 
     const title = (args.title?.trim() || "Ny tråd").slice(0, MAX_TITLE_LENGTH);
     const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
+    const deletionExpiry: ChatDeletionExpiry =
+      args.deletionExpiry ?? DEFAULT_CHAT_DELETION_EXPIRY;
+    const deleteAt = computeDeleteAt(deletionExpiry);
+    const mentionedProblemNumbers = mergeMentionedProblemNumbers(
+      undefined,
+      args.mentionedProblemNumbers ?? [],
+    );
 
     const threadId = await createThread(ctx, components.agent, {
       userId,
@@ -114,9 +169,49 @@ export const create = mutation({
       title,
       createdBy: userId,
       mode,
+      deletionExpiry,
+      ...(deleteAt !== undefined ? { deleteAt } : {}),
+      ...(mentionedProblemNumbers !== undefined
+        ? { mentionedProblemNumbers }
+        : {}),
     });
 
-    return { roomThreadId, threadId, title, mode };
+    return {
+      roomThreadId,
+      threadId,
+      title,
+      mode,
+      deletionExpiry,
+      deleteAt: deleteAt ?? null,
+      mentionedProblemNumbers: mentionedProblemNumbers ?? [],
+    };
+  },
+});
+
+export const setTitle = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+    title: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { roomThread } = await requireRoomThread(
+      ctx,
+      args.roomId,
+      args.threadId,
+    );
+    const title = args.title.trim().slice(0, MAX_TITLE_LENGTH);
+    if (title.length === 0) {
+      throw new Error("Titeln får inte vara tom");
+    }
+
+    await ctx.db.patch(roomThread._id, { title });
+    await updateThreadMetadata(ctx, components.agent, {
+      threadId: args.threadId,
+      patch: { title },
+    });
+
+    return { title };
   },
 });
 
@@ -134,6 +229,30 @@ export const setMode = mutation({
     );
     await ctx.db.patch(roomThread._id, { mode: args.mode });
     return { mode: args.mode };
+  },
+});
+
+export const setDeletionExpiry = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+    deletionExpiry: chatDeletionExpiryValidator,
+  },
+  handler: async (ctx, args) => {
+    const { roomThread } = await requireRoomThread(
+      ctx,
+      args.roomId,
+      args.threadId,
+    );
+    const deleteAt = computeDeleteAt(args.deletionExpiry);
+    await ctx.db.patch(roomThread._id, {
+      deletionExpiry: args.deletionExpiry,
+      deleteAt,
+    });
+    return {
+      deletionExpiry: args.deletionExpiry,
+      deleteAt: deleteAt ?? null,
+    };
   },
 });
 
@@ -179,6 +298,10 @@ export const get = query({
       title: roomThread.title,
       createdBy: roomThread.createdBy,
       mode: (roomThread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
+      deletionExpiry: (roomThread.deletionExpiry ??
+        DEFAULT_CHAT_DELETION_EXPIRY) as ChatDeletionExpiry,
+      deleteAt: roomThread.deleteAt ?? null,
+      mentionedProblemNumbers: roomThread.mentionedProblemNumbers ?? [],
       summary: metadata.summary ?? null,
     };
   },
@@ -353,6 +476,7 @@ export const sendMessage = mutation({
             metadata: { fileIds },
           });
 
+    const problemNumbersFromIds: Array<string> = [];
     if (problemIds.length > 0) {
       const roomFiles = await ctx.db
         .query("files")
@@ -367,6 +491,29 @@ export const sendMessage = mutation({
         if (!hashes.has(problem.contentHash)) {
           throw new Error("Uppgiften tillhör inte det här rummet");
         }
+        problemNumbersFromIds.push(problem.problemNumber);
+      }
+    }
+
+    const mentionedProblemNumbers = mergeMentionedProblemNumbers(
+      roomThread.mentionedProblemNumbers,
+      [
+        ...extractMentionedProblemNumbers(prompt),
+        ...problemNumbersFromIds,
+      ],
+    );
+    if (
+      mentionedProblemNumbers !== undefined &&
+      mentionedProblemNumbers !== roomThread.mentionedProblemNumbers
+    ) {
+      const previous = roomThread.mentionedProblemNumbers ?? [];
+      const changed =
+        mentionedProblemNumbers.length !== previous.length ||
+        mentionedProblemNumbers.some(
+          (number, index) => number !== previous[index],
+        );
+      if (changed) {
+        await ctx.db.patch(roomThread._id, { mentionedProblemNumbers });
       }
     }
 
