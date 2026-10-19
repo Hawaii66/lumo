@@ -21,13 +21,25 @@ export const roomAgent = new Agent(components.agent, {
 function chatModeHint(mode: ChatMode): string {
   switch (mode) {
     case "normal":
-      return "Chattläge: normal — svara naturligt enligt protokollet. Inget tvunget interaktionsformat.";
+      return `Chattläge: normal
+• text + latex (sokratiskt). quickReplies OK.
+• fillBlank/solution BARA om studenten ber om luckor/övning.
+• Dumpa inte hela facit på en öppen fråga.`;
     case "fillBlank":
-      return "Chattläge: fillBlank — skapa guidad solution med steg och fillBlank-luckor studenten fyller i. Ge inte hela facit i klartext.";
+      return `Chattläge: fillBlank
+• MÅSTE använda solution (2–5 steg med luckor) eller fillBlank.
+• Kort text-hint OK — FÖRBJUDET att skriva facit i text/title/hint.
+• Facit endast i prompts[].answer / solvedLatex.`;
     case "thoughtProcess":
-      return "Chattläge: thoughtProcess — förklara tankegången steg för steg (gärna med interaktiva steg). Fokus på hur man tänker.";
+      return `Chattläge: thoughtProcess
+• Förklara HUR man tänker (text + latex).
+• Lägg fillBlank/solution på kritiska mellansteg.
+• Resonemang först — inte bara svarsrutor.`;
     case "answerBoxes":
-      return "Chattläge: answerBoxes — skapa bara slutliga fillBlank-svarsrutor för uppgiften. Ingen solution-genomgång, ingen facit-prosa.";
+      return `Chattläge: answerBoxes
+• BARA fillBlank-svarsrutor (en per deluppgift om (a)/(b)).
+• Max 1–2 korta textmeningar som intro.
+• FÖRBJUDET: type=solution, lång genomgång, facit i text.`;
   }
 }
 
@@ -78,7 +90,7 @@ export const generateResponse = internalAction({
           description:
             "Lumo-svar: text/latex/fillBlank/solution/quickReplies/subproblem/case. Oanvända fält = tom sträng eller tom array.",
         }),
-        system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${chatModeHint(mode)}${problemContext}\n\nViktigt för JSON-schemat: fyll BARA fält som hör till part-typen; övriga fält ska vara "" eller [].`,
+        system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${chatModeHint(mode)}${problemContext}`,
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
