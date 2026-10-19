@@ -9,7 +9,11 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
-import { helpLevelValidator } from "./lib/lumoContent";
+import {
+  DEFAULT_CHAT_MODE,
+  chatModeValidator,
+  type ChatMode,
+} from "./lib/lumoContent";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
@@ -82,6 +86,7 @@ export const listByRoom = query({
       threadId: thread.threadId,
       title: thread.title,
       createdBy: thread.createdBy,
+      mode: (thread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
     }));
   },
 });
@@ -90,11 +95,13 @@ export const create = mutation({
   args: {
     roomId: v.id("rooms"),
     title: v.optional(v.string()),
+    mode: v.optional(chatModeValidator),
   },
   handler: async (ctx, args) => {
     const userId = await requireRoomMember(ctx, args.roomId);
 
     const title = (args.title?.trim() || "Ny tråd").slice(0, MAX_TITLE_LENGTH);
+    const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
 
     const threadId = await createThread(ctx, components.agent, {
       userId,
@@ -106,9 +113,27 @@ export const create = mutation({
       threadId,
       title,
       createdBy: userId,
+      mode,
     });
 
-    return { roomThreadId, threadId, title };
+    return { roomThreadId, threadId, title, mode };
+  },
+});
+
+export const setMode = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+    mode: chatModeValidator,
+  },
+  handler: async (ctx, args) => {
+    const { roomThread } = await requireRoomThread(
+      ctx,
+      args.roomId,
+      args.threadId,
+    );
+    await ctx.db.patch(roomThread._id, { mode: args.mode });
+    return { mode: args.mode };
   },
 });
 
@@ -153,6 +178,7 @@ export const get = query({
       threadId: roomThread.threadId,
       title: roomThread.title,
       createdBy: roomThread.createdBy,
+      mode: (roomThread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
       summary: metadata.summary ?? null,
     };
   },
@@ -222,7 +248,6 @@ export const sendMessage = mutation({
     threadId: v.string(),
     prompt: v.string(),
     images: v.optional(v.array(chatImageValidator)),
-    helpLevel: v.optional(helpLevelValidator),
     problemId: v.optional(v.id("problems")),
     problemIds: v.optional(v.array(v.id("problems"))),
   },
@@ -248,11 +273,12 @@ export const sendMessage = mutation({
       );
     }
 
-    const { userId } = await requireRoomThread(
+    const { userId, roomThread } = await requireRoomThread(
       ctx,
       args.roomId,
       args.threadId,
     );
+    const mode: ChatMode = roomThread.mode ?? DEFAULT_CHAT_MODE;
 
     const fileIds: Array<string> = [];
     const content: Array<
@@ -347,7 +373,7 @@ export const sendMessage = mutation({
     await ctx.scheduler.runAfter(0, internal.agents.roomAgent.generateResponse, {
       threadId: args.threadId,
       promptMessageId: messageId,
-      helpLevel: args.helpLevel,
+      mode,
       roomId: args.roomId,
       problemIds: problemIds.length > 0 ? problemIds : undefined,
     });

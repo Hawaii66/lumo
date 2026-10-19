@@ -11,9 +11,14 @@ import {
   ChatInput,
   type ChatInputSubmitPayload,
 } from "~/components/rooms/chat-input"
+import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { UserMessageText } from "~/components/rooms/user-message-text"
 import { LumoParts } from "~/components/lumo/lumo-parts"
+import {
+  DEFAULT_CHAT_MODE,
+  type ChatMode,
+} from "~/lib/chat-mode"
 import { parseLumoDocument } from "~/lib/lumo-content"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
@@ -22,6 +27,7 @@ type ThreadChatProps = {
   roomId: Id<"rooms">
   threadId: string
   title: string
+  mode?: ChatMode
 }
 
 function MessageContent({
@@ -138,7 +144,12 @@ function UserMessageGroup({
   )
 }
 
-export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
+export function ThreadChat({
+  roomId,
+  threadId,
+  title,
+  mode = DEFAULT_CHAT_MODE,
+}: ThreadChatProps) {
   const { results, status } = useUIMessages(
     api.threads.listMessages,
     { roomId, threadId },
@@ -148,6 +159,7 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
     roomId,
   })
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+  const setMode = useMutation(api.threads.setMode)
   const sendMessage = useMutation(api.threads.sendMessage).withOptimisticUpdate(
     (store, args) => {
       optimisticallySendMessage(api.threads.listMessages)(store, {
@@ -158,6 +170,7 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
   )
 
   const [pending, setPending] = useState(false)
+  const [modePending, setModePending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -188,11 +201,13 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
   async function sendPrompt(
     text: string,
     images: ChatInputSubmitPayload["images"] = [],
-    helpLevel?: ChatInputSubmitPayload["helpLevel"],
     problemIds?: ChatInputSubmitPayload["problemIds"],
+    storageImages?: ChatInputSubmitPayload["storageImages"],
   ) {
     const trimmed = text.trim()
-    if ((!trimmed && images.length === 0) || pending) return
+    const readyStorage = storageImages ?? []
+    if ((!trimmed && images.length === 0 && readyStorage.length === 0) || pending)
+      return
 
     setError(null)
     setPending(true)
@@ -201,12 +216,12 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
       const uploaded = await Promise.all(
         images.map((image) => uploadImage(image.file)),
       )
+      const allImages = [...readyStorage, ...uploaded]
       await sendMessage({
         roomId,
         threadId,
         prompt: trimmed,
-        images: uploaded.length > 0 ? uploaded : undefined,
-        helpLevel,
+        images: allImages.length > 0 ? allImages : undefined,
         problemIds,
         problemId: problemIds?.[0],
       })
@@ -218,10 +233,35 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
     }
   }
 
+  async function handleModeChange(next: ChatMode) {
+    if (next === mode || modePending) return
+    setModePending(true)
+    setError(null)
+    try {
+      await setMode({ roomId, threadId, mode: next })
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Kunde inte byta läge")
+    } finally {
+      setModePending(false)
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-border pb-4">
-        <h2 className="text-lg font-medium">{title}</h2>
+      <div className="space-y-3 border-b border-border pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h2 className="text-lg font-medium">{title}</h2>
+          <ChatModePicker
+            value={mode}
+            onChange={(next) => {
+              void handleModeChange(next)
+            }}
+            disabled={modePending || pending}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Läget gäller hela chatten och kan bytas när som helst.
+        </p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto py-4">
@@ -265,8 +305,10 @@ export function ThreadChat({ roomId, threadId, title }: ThreadChatProps) {
         roomId={roomId}
         pending={pending}
         error={error}
-        onSubmit={async ({ prompt, images, helpLevel, problemIds }) => {
-          await sendPrompt(prompt, images, helpLevel, problemIds)
+        mode={mode}
+        onModeChange={handleModeChange}
+        onSubmit={async ({ prompt, images, problemIds, storageImages }) => {
+          await sendPrompt(prompt, images, problemIds, storageImages)
         }}
       />
     </div>

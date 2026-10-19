@@ -1,15 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery } from "convex/react"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
 import {
   ChatInput,
+  type ChatInputHandle,
   type ChatInputSubmitPayload,
 } from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
-import { ProblemHelpActions } from "~/components/rooms/problem-help-actions"
+import {
+  ProblemHelpActions,
+  type ProblemHelpStartDraft,
+} from "~/components/rooms/problem-help-actions"
+import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
 import {
   RoomSidebar,
   type RoomSidebarSection,
@@ -45,6 +50,7 @@ function RoomPage() {
   const [creatingChat, setCreatingChat] = useState(false)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
+  const problemChatInputRef = useRef<ChatInputHandle>(null)
   const showFacit = useUiStore((s) => s.showFacit)
   const setShowFacit = useUiStore((s) => s.setShowFacit)
 
@@ -115,6 +121,7 @@ function RoomPage() {
       const result = await createThread({
         roomId: typedRoomId,
         title: `Uppgift ${problemNumber}`,
+        mode: payload.mode ?? DEFAULT_CHAT_MODE,
       })
 
       const uploaded = await Promise.all(
@@ -125,6 +132,10 @@ function RoomPage() {
           return { storageId, filename: image.file.name }
         }),
       )
+      const images = [
+        ...(payload.storageImages ?? []),
+        ...uploaded,
+      ]
 
       const problemIds =
         payload.problemIds ??
@@ -138,8 +149,7 @@ function RoomPage() {
         roomId: typedRoomId,
         threadId: result.threadId,
         prompt: payload.prompt,
-        images: uploaded.length > 0 ? uploaded : undefined,
-        helpLevel: payload.helpLevel,
+        images: images.length > 0 ? images : undefined,
         problemIds,
         problemId: problemIds?.[0],
       })
@@ -249,19 +259,25 @@ function RoomPage() {
               <div className="flex min-h-0 flex-1 items-center justify-center py-6">
                 <ProblemHelpActions
                   roomId={typedRoomId}
-                  problemId={selectedProblem.id}
                   problemNumber={selectedProblem.problem.problemNumber}
-                  onStarted={openThread}
+                  pending={problemChatPending}
+                  onSelect={async (draft: ProblemHelpStartDraft) => {
+                    await problemChatInputRef.current?.submitStartDraft({
+                      prompt: draft.prompt,
+                      mode: draft.mode,
+                      storageImages: draft.images,
+                    })
+                  }}
                 />
               </div>
               <ChatInput
+                ref={problemChatInputRef}
                 roomId={typedRoomId}
                 defaultProblemId={selectedProblem.id}
                 className="shrink-0"
-                showHelpLevels={false}
                 pending={problemChatPending}
                 error={problemChatError}
-                placeholder="Fråga om uppgiften… eller @1.2"
+                placeholder="Lägg till en anteckning… eller skicka direkt"
                 onSubmit={(payload) =>
                   handleProblemChatSubmit(
                     selectedProblem.problem.problemNumber,
@@ -289,6 +305,7 @@ function RoomPage() {
             roomId={typedRoomId}
             threadId={selectedThread.threadId}
             title={selectedThread.title}
+            mode={selectedThread.mode}
           />
         )}
       </main>

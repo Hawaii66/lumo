@@ -1,6 +1,13 @@
 import { useQuery } from "convex/react"
 import { ImagePlus, Sigma, X } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import type { FormEvent, KeyboardEvent } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -10,6 +17,7 @@ import { MathInputDialog } from "~/components/rooms/math-input-dialog"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { Button } from "~/components/ui/button"
 import {
+  appendUserTextToPrompt,
   composePromptWithMath,
   filterProblemOptions,
   filterSlashCommands,
@@ -26,8 +34,7 @@ import {
   type ResolvedDraftMention,
   type SlashCommand,
 } from "~/lib/chat-composer"
-import type { HelpLevel } from "~/lib/schemas"
-import { useUiStore } from "~/stores/ui-store"
+import { CHAT_MODES, type ChatMode } from "~/lib/chat-mode"
 import { cn } from "~/lib/utils"
 
 export type ChatInputImage = {
@@ -36,12 +43,34 @@ export type ChatInputImage = {
   previewUrl: string
 }
 
+export type ChatInputStorageImage = {
+  id: string
+  storageId: Id<"_storage">
+  filename: string
+}
+
 export type ChatInputSubmitPayload = {
   prompt: string
   images: Array<ChatInputImage>
-  helpLevel: HelpLevel
+  storageImages?: Array<{ storageId: Id<"_storage">; filename: string }>
+  /** Set when starting a chat from a problem action button. */
+  mode?: ChatMode
   problemId?: Id<"problems">
   problemIds?: Array<Id<"problems">>
+}
+
+export type ChatStartDraft = {
+  prompt: string
+  mode: ChatMode
+  storageImages?: Array<{ storageId: Id<"_storage">; filename: string }>
+}
+
+export type ChatInputHandle = {
+  /**
+   * Prepend an auto-generated start prompt, append any text/images already in
+   * the composer, and submit immediately with a chat mode.
+   */
+  submitStartDraft: (draft: ChatStartDraft) => Promise<void>
 }
 
 type MathDraft = MathRefDraft & {
@@ -55,39 +84,44 @@ type ChatInputProps = {
   error?: string | null
   placeholder?: string
   className?: string
-  showHelpLevels?: boolean
   /** When set (e.g. problem detail view), used if the prompt has no @mention. */
   defaultProblemId?: Id<"problems">
+  /** Current chat mode (thread). Used to highlight selection in /mode. */
+  mode?: ChatMode
+  /** Persist mode change (thread). Optional — /mode still works locally for draft. */
+  onModeChange?: (mode: ChatMode) => void | Promise<void>
 }
 
 const MAX_IMAGES = 4
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_MATH_CHIPS = 4
 
-const HELP_LEVELS: Array<{ value: HelpLevel; label: string }> = [
-  { value: "minimal", label: "Hitta fel" },
-  { value: "explain", label: "Förklara" },
-  { value: "solve", label: "Lös helt" },
-]
-
-export function ChatInput({
-  roomId,
-  onSubmit,
-  pending = false,
-  error = null,
-  placeholder = "Skriv ett meddelande… @1.2 eller /formel",
-  className,
-  showHelpLevels = true,
-  defaultProblemId,
-}: ChatInputProps) {
-  const helpLevel = useUiStore((s) => s.helpLevel)
-  const setHelpLevel = useUiStore((s) => s.setHelpLevel)
-
+export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
+  function ChatInput(
+    {
+      roomId,
+      onSubmit,
+      pending = false,
+      error = null,
+      placeholder = "Skriv ett meddelande… @1.2, /formel eller /mode",
+      className,
+      defaultProblemId,
+      mode,
+      onModeChange,
+    },
+    ref,
+  ) {
   const [prompt, setPrompt] = useState("")
   const [pendingImages, setPendingImages] = useState<Array<ChatInputImage>>([])
+  const [pendingStorageImages, setPendingStorageImages] = useState<
+    Array<ChatInputStorageImage>
+  >([])
   const [mathDrafts, setMathDrafts] = useState<Array<MathDraft>>([])
   const [mathDialogOpen, setMathDialogOpen] = useState(false)
   const [editingMathId, setEditingMathId] = useState<string | null>(null)
+  const [modeMenuOpen, setModeMenuOpen] = useState(false)
+  const [modeMenuIndex, setModeMenuIndex] = useState(0)
+  const [draftMode, setDraftMode] = useState<ChatMode | undefined>(undefined)
   const [localError, setLocalError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
   const [typeaheadIndex, setTypeaheadIndex] = useState(0)
@@ -95,9 +129,12 @@ export function ChatInput({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const typeaheadOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const modeOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const mathInsertCursorRef = useRef(0)
   const pendingImagesRef = useRef(pendingImages)
   pendingImagesRef.current = pendingImages
+
+  const activeMode = mode ?? draftMode
 
   const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
     roomId,
@@ -171,10 +208,28 @@ export function ChatInput({
     slashOptions.length,
   ])
 
+  useEffect(() => {
+    if (!modeMenuOpen) return
+    const selectedIndex = CHAT_MODES.findIndex(
+      (item) => item.value === activeMode,
+    )
+    setModeMenuIndex(selectedIndex >= 0 ? selectedIndex : 0)
+  }, [modeMenuOpen, activeMode])
+
+  useEffect(() => {
+    if (!modeMenuOpen) return
+    modeOptionRefs.current[modeMenuIndex]?.scrollIntoView({
+      block: "nearest",
+    })
+  }, [modeMenuOpen, modeMenuIndex])
+
   const displayError = localError ?? error
   const hasMath = mathDrafts.some((draft) => draft.latex.trim().length > 0)
   const canSend =
-    (prompt.trim().length > 0 || pendingImages.length > 0 || hasMath) &&
+    (prompt.trim().length > 0 ||
+      pendingImages.length > 0 ||
+      pendingStorageImages.length > 0 ||
+      hasMath) &&
     !pending
 
   const editingDraft = editingMathId
@@ -220,11 +275,38 @@ export function ChatInput({
     mathInsertCursorRef.current = nextCursor
   }
 
+  function openModeMenu() {
+    setModeMenuOpen(true)
+    setTypeaheadOpen(false)
+    setLocalError(null)
+  }
+
+  async function selectMode(next: ChatMode) {
+    setModeMenuOpen(false)
+    setDraftMode(next)
+    setLocalError(null)
+    if (onModeChange) {
+      try {
+        await onModeChange(next)
+      } catch (err: unknown) {
+        setLocalError(
+          err instanceof Error ? err.message : "Kunde inte byta läge",
+        )
+      }
+    }
+    focusTextareaAt(cursor)
+  }
+
   function runSlashCommand(command: SlashCommand) {
-    stripSlashCommandFromPrompt()
     setTypeaheadOpen(false)
     if (command.id === "formel") {
+      stripSlashCommandFromPrompt()
       openMathDialog()
+      return
+    }
+    if (command.id === "mode") {
+      stripSlashCommandFromPrompt()
+      openModeMenu()
     }
   }
 
@@ -377,6 +459,34 @@ export function ChatInput({
       }
     }
 
+    if (modeMenuOpen) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault()
+        setModeMenuIndex((i) => (i + 1 >= CHAT_MODES.length ? 0 : i + 1))
+        return
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault()
+        setModeMenuIndex((i) =>
+          i - 1 < 0 ? CHAT_MODES.length - 1 : i - 1,
+        )
+        return
+      }
+      if (event.key === "Enter" || event.key === "Tab") {
+        const option = CHAT_MODES[modeMenuIndex]
+        if (option) {
+          event.preventDefault()
+          void selectMode(option.value)
+          return
+        }
+      }
+      if (event.key === "Escape") {
+        event.preventDefault()
+        setModeMenuOpen(false)
+        return
+      }
+    }
+
     if (showSlashTypeahead) {
       if (event.key === "ArrowDown") {
         event.preventDefault()
@@ -409,7 +519,7 @@ export function ChatInput({
       }
     }
 
-    // Exact `/formel` + Enter opens even if typeahead was dismissed.
+    // Exact `/mode` or `/formel` + Enter opens even if typeahead was dismissed.
     if (event.key === "Enter" && !event.shiftKey && slashQuery) {
       const exact = filterSlashCommands(slashQuery.query)
       if (exact.length === 1 && exact[0]!.command === slashQuery.query) {
@@ -425,12 +535,32 @@ export function ChatInput({
     }
   }
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
-    const composed = composePromptWithMath(prompt, mathDrafts)
-    if ((!composed && pendingImages.length === 0) || pending) return
+  async function sendPromptText(
+    composed: string,
+    options?: {
+      mode?: ChatMode
+      extraStorageImages?: Array<{
+        storageId: Id<"_storage">
+        filename: string
+      }>
+    },
+  ) {
+    const extraStorage = (options?.extraStorageImages ?? []).map((image) => ({
+      id: crypto.randomUUID(),
+      storageId: image.storageId,
+      filename: image.filename,
+    }))
+    const storageForSend = [...pendingStorageImages, ...extraStorage]
 
-    const ambiguous = draftMentions.find((m) => m.status === "ambiguous")
+    if (
+      (!composed && pendingImages.length === 0 && storageForSend.length === 0) ||
+      pending
+    ) {
+      return
+    }
+
+    const mentions = resolveDraftMentions(composed, problemOptions)
+    const ambiguous = mentions.find((m) => m.status === "ambiguous")
     if (ambiguous) {
       setLocalError(
         `Flera uppgifter heter ${ambiguous.problemNumber}. Välj en i listan (@).`,
@@ -438,7 +568,7 @@ export function ChatInput({
       return
     }
 
-    const resolvedIds = draftMentions
+    const resolvedIds = mentions
       .filter(
         (m): m is Extract<ResolvedDraftMention, { status: "resolved" }> =>
           m.status === "resolved",
@@ -453,18 +583,28 @@ export function ChatInput({
           : undefined
 
     const imagesToSend = pendingImages
+    const storageImagesToSend = storageForSend
     const promptSnapshot = prompt
     const mathSnapshot = mathDrafts
+    const storageSnapshot = pendingStorageImages
     setLocalError(null)
     setPrompt("")
     setMathDrafts([])
     setPendingImages([])
+    setPendingStorageImages([])
 
     try {
       await onSubmit({
         prompt: composed,
         images: imagesToSend,
-        helpLevel,
+        storageImages:
+          storageImagesToSend.length > 0
+            ? storageImagesToSend.map((image) => ({
+                storageId: image.storageId,
+                filename: image.filename,
+              }))
+            : undefined,
+        mode: options?.mode ?? draftMode,
         problemId: problemIds?.[0],
         problemIds,
       })
@@ -475,8 +615,25 @@ export function ChatInput({
       setPrompt(promptSnapshot)
       setMathDrafts(mathSnapshot)
       setPendingImages(imagesToSend)
+      setPendingStorageImages(storageSnapshot)
     }
   }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    await sendPromptText(composePromptWithMath(prompt, mathDrafts))
+  }
+
+  useImperativeHandle(ref, () => ({
+    async submitStartDraft(draft) {
+      const userText = composePromptWithMath(prompt, mathDrafts)
+      const combined = appendUserTextToPrompt(draft.prompt, userText)
+      await sendPromptText(combined, {
+        mode: draft.mode,
+        extraStorageImages: draft.storageImages,
+      })
+    },
+  }))
 
   return (
     <div className={cn("flex flex-col gap-2 border-t border-border pt-4", className)}>
@@ -511,7 +668,7 @@ export function ChatInput({
         <p className="text-sm text-destructive">{displayError}</p>
       ) : null}
 
-      {pendingImages.length > 0 ? (
+      {pendingImages.length > 0 || pendingStorageImages.length > 0 ? (
         <ul className="flex flex-wrap gap-2">
           {pendingImages.map((image) => (
             <li
@@ -528,6 +685,29 @@ export function ChatInput({
                 className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
                 onClick={() => removeImage(image.id)}
                 aria-label={`Ta bort ${image.file.name}`}
+                disabled={pending}
+              >
+                <X className="size-3" />
+              </button>
+            </li>
+          ))}
+          {pendingStorageImages.map((image) => (
+            <li
+              key={image.id}
+              className="relative flex size-16 items-center justify-center overflow-hidden rounded-md border border-border bg-muted/40 px-1"
+            >
+              <span className="line-clamp-3 text-center text-[10px] leading-tight text-muted-foreground">
+                {image.filename}
+              </span>
+              <button
+                type="button"
+                className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
+                onClick={() =>
+                  setPendingStorageImages((current) =>
+                    current.filter((item) => item.id !== image.id),
+                  )
+                }
+                aria-label={`Ta bort ${image.filename}`}
                 disabled={pending}
               >
                 <X className="size-3" />
@@ -564,23 +744,6 @@ export function ChatInput({
             </li>
           ))}
         </ul>
-      ) : null}
-
-      {showHelpLevels ? (
-        <div className="flex flex-wrap gap-1.5">
-          {HELP_LEVELS.map((level) => (
-            <Button
-              key={level.value}
-              type="button"
-              size="sm"
-              variant={helpLevel === level.value ? "default" : "outline"}
-              disabled={pending}
-              onClick={() => setHelpLevel(level.value)}
-            >
-              {level.label}
-            </Button>
-          ))}
-        </div>
       ) : null}
 
       <div className="relative">
@@ -669,6 +832,48 @@ export function ChatInput({
             ))}
           </ul>
         ) : null}
+        {modeMenuOpen ? (
+          <ul
+            className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+            role="listbox"
+            aria-label="Välj chattläge"
+          >
+            {CHAT_MODES.map((option, index) => {
+              const selected = activeMode === option.value
+              const highlighted = index === modeMenuIndex
+              return (
+                <li key={option.value}>
+                  <button
+                    type="button"
+                    ref={(el) => {
+                      modeOptionRefs.current[index] = el
+                    }}
+                    role="option"
+                    aria-selected={selected}
+                    className={cn(
+                      "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm",
+                      highlighted
+                        ? "bg-accent text-accent-foreground"
+                        : "hover:bg-muted",
+                    )}
+                    onMouseDown={(event) => {
+                      event.preventDefault()
+                      void selectMode(option.value)
+                    }}
+                  >
+                    <span className="font-medium">
+                      {option.label}
+                      {selected ? " · aktiv" : ""}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {option.description}
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
       </div>
 
       <div className="flex items-center justify-between gap-2">
@@ -724,4 +929,4 @@ export function ChatInput({
       />
     </div>
   )
-}
+})

@@ -3,11 +3,12 @@ import { v } from "convex/values";
 import { components, internal } from "../_generated/api";
 import { internalAction } from "../_generated/server";
 import {
+  DEFAULT_CHAT_MODE,
   LUMO_PROTOCOL_INSTRUCTIONS,
-  helpLevelValidator,
+  chatModeValidator,
   lumoDocumentSchema,
 } from "../lib/lumoContent";
-import type { HelpLevel } from "../lib/lumoContent";
+import type { ChatMode } from "../lib/lumoContent";
 import { openrouter } from "./openrouter";
 
 export const roomAgent = new Agent(components.agent, {
@@ -16,16 +17,16 @@ export const roomAgent = new Agent(components.agent, {
   instructions: LUMO_PROTOCOL_INSTRUCTIONS,
 });
 
-function helpLevelHint(helpLevel: HelpLevel): string {
-  switch (helpLevel) {
-    case "minimal":
-      return "Hjälpnivå: minimal — ge ledtrådar, fillBlank och/eller quickReplies. Ge inte hela lösningen.";
-    case "explain":
-      return "Hjälpnivå: explain — guidad solution med steg studenten fyller i. Förklara tanken.";
-    case "solve":
-      return "Hjälpnivå: solve — fullständig solution med interaktiva steg (fortfarande fill-in i varje steg).";
-    case "practice":
-      return "Hjälpnivå: practice — skapa bara slutliga fillBlank-svarsrutor för uppgiften. Ingen solution-genomgång, ingen facit-prosa.";
+function chatModeHint(mode: ChatMode): string {
+  switch (mode) {
+    case "normal":
+      return "Chattläge: normal — svara naturligt enligt protokollet. Inget tvunget interaktionsformat.";
+    case "fillBlank":
+      return "Chattläge: fillBlank — skapa guidad solution med steg och fillBlank-luckor studenten fyller i. Ge inte hela facit i klartext.";
+    case "thoughtProcess":
+      return "Chattläge: thoughtProcess — förklara tankegången steg för steg (gärna med interaktiva steg). Fokus på hur man tänker.";
+    case "answerBoxes":
+      return "Chattläge: answerBoxes — skapa bara slutliga fillBlank-svarsrutor för uppgiften. Ingen solution-genomgång, ingen facit-prosa.";
   }
 }
 
@@ -33,12 +34,12 @@ export const generateResponse = internalAction({
   args: {
     threadId: v.string(),
     promptMessageId: v.string(),
-    helpLevel: v.optional(helpLevelValidator),
+    mode: v.optional(chatModeValidator),
     roomId: v.optional(v.id("rooms")),
     problemIds: v.optional(v.array(v.id("problems"))),
   },
   handler: async (ctx, args) => {
-    const helpLevel: HelpLevel = args.helpLevel ?? "explain";
+    const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
 
     let problemContext = "";
     if (
@@ -58,7 +59,7 @@ export const generateResponse = internalAction({
           (problem) =>
             `Uppgift ${problem.problemNumber}:\n${problem.questionText}`,
         );
-        problemContext = `\n\nStudenten refererar till följande uppgifter (använd som kontext; visa inte facit om hjälpnivån förbjuder det):\n\n${blocks.join("\n\n")}`;
+        problemContext = `\n\nStudenten refererar till följande uppgifter (använd som kontext; visa inte facit om läget förbjuder det):\n\n${blocks.join("\n\n")}`;
       }
     }
 
@@ -68,7 +69,7 @@ export const generateResponse = internalAction({
       {
         promptMessageId: args.promptMessageId,
         schema: lumoDocumentSchema,
-        system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${helpLevelHint(helpLevel)}${problemContext}`,
+        system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${chatModeHint(mode)}${problemContext}`,
       },
     );
   },

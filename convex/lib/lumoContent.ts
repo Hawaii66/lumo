@@ -547,6 +547,22 @@ export const helpLevelValidator = v.union(
 
 export type HelpLevel = "minimal" | "explain" | "solve" | "practice";
 
+/** Per-chat interaction mode (stored on the thread). */
+export const chatModeValidator = v.union(
+  v.literal("normal"),
+  v.literal("fillBlank"),
+  v.literal("thoughtProcess"),
+  v.literal("answerBoxes"),
+);
+
+export type ChatMode =
+  | "normal"
+  | "fillBlank"
+  | "thoughtProcess"
+  | "answerBoxes";
+
+export const DEFAULT_CHAT_MODE: ChatMode = "normal";
+
 export function extractPlaceholderIds(latex: string): Array<string> {
   const ids: Array<string> = [];
   for (const match of latex.matchAll(PLACEHOLDER_ID_RE)) {

@@ -1,182 +1,155 @@
-import { useMutation } from "convex/react"
-import { CheckCircle2, Lightbulb, PenLine, ScanSearch } from "lucide-react"
+import {
+  Lightbulb,
+  PenLine,
+  ScanSearch,
+  SquarePen,
+} from "lucide-react"
 import { useState } from "react"
-import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
-import type { HelpLevel } from "~/lib/schemas"
+import {
+  buildModeStartPrompt,
+  type ChatMode,
+} from "~/lib/chat-mode"
 import {
   PhoneUploadDialog,
   type PhoneUploadCompletedFile,
 } from "~/components/rooms/phone-upload-dialog"
 import { cn } from "~/lib/utils"
 
+export type ProblemHelpStartDraft = {
+  mode: ChatMode
+  prompt: string
+  images?: Array<{ storageId: Id<"_storage">; filename: string }>
+}
+
 type ProblemHelpActionsProps = {
   roomId: Id<"rooms">
-  problemId: Id<"problems">
   problemNumber: string
-  onStarted: (threadId: string) => void
+  onSelect: (draft: ProblemHelpStartDraft) => void | Promise<void>
+  pending?: boolean
   className?: string
 }
 
 const ACTIONS: Array<{
-  value: HelpLevel
+  id: Exclude<ChatMode, "normal"> | "scan"
   label: string
   description: string
-  icon: typeof ScanSearch
+  icon: typeof Lightbulb
   needsPhoto: boolean
 }> = [
   {
-    value: "minimal",
-    label: "Skanna mitt arbete",
-    description: "Ladda upp från telefon",
-    icon: ScanSearch,
-    needsPhoto: true,
+    id: "fillBlank",
+    label: "Fyll i luckorna",
+    description: "Guidad lösning med luckor",
+    icon: SquarePen,
+    needsPhoto: false,
   },
   {
-    value: "explain",
-    label: "Förklara tankegången",
+    id: "thoughtProcess",
+    label: "Tankegång",
     description: "Hur man tänker steg för steg",
     icon: Lightbulb,
     needsPhoto: false,
   },
   {
-    value: "solve",
-    label: "Visa hela lösningen",
-    description: "Steg för steg med svar",
-    icon: CheckCircle2,
+    id: "answerBoxes",
+    label: "Svarsrutor",
+    description: "Svara själv i rutor",
+    icon: PenLine,
     needsPhoto: false,
+  },
+  {
+    id: "scan",
+    label: "Skanna mitt arbete",
+    description: "Ladda upp från telefon",
+    icon: ScanSearch,
+    needsPhoto: true,
   },
 ]
 
 export function ProblemHelpActions({
   roomId,
-  problemId,
   problemNumber,
-  onStarted,
+  onSelect,
+  pending = false,
   className,
 }: ProblemHelpActionsProps) {
-  const createThread = useMutation(api.threads.create)
-  const sendMessage = useMutation(api.threads.sendMessage)
-
-  const [pendingLevel, setPendingLevel] = useState<HelpLevel | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [localPending, setLocalPending] = useState<ChatMode | "scan" | null>(
+    null,
+  )
 
-  const pending = pendingLevel !== null
-
-  async function startChat(args: {
-    helpLevel: HelpLevel
-    prompt: string
-    images?: Array<{ storageId: Id<"_storage">; filename: string }>
-  }) {
-    if (pending) return
-
-    setError(null)
-    setPendingLevel(args.helpLevel)
+  async function start(draft: ProblemHelpStartDraft, pendingKey: ChatMode | "scan") {
+    if (pending || localPending !== null) return
+    setLocalPending(pendingKey)
     try {
-      const result = await createThread({
-        roomId,
-        title: `Uppgift ${problemNumber}`,
-      })
-
-      await sendMessage({
-        roomId,
-        threadId: result.threadId,
-        prompt: args.prompt,
-        images: args.images,
-        helpLevel: args.helpLevel,
-        problemId,
-        problemIds: [problemId],
-      })
-
-      onStarted(result.threadId)
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte starta chatt")
+      await onSelect(draft)
     } finally {
-      setPendingLevel(null)
+      setLocalPending(null)
     }
   }
 
-  function handleActionClick(action: (typeof ACTIONS)[number]) {
-    if (pending) return
+  const busy = pending || localPending !== null
 
+  function handleActionClick(action: (typeof ACTIONS)[number]) {
+    if (busy) return
     if (action.needsPhoto) {
-      setError(null)
       setQrOpen(true)
       return
     }
-
-    void startChat({
-      helpLevel: action.value,
-      prompt: "Hjälp mig med den här uppgiften.",
-    })
+    const mode = action.id as Exclude<ChatMode, "normal">
+    void start(
+      {
+        mode,
+        prompt: buildModeStartPrompt(mode, problemNumber),
+      },
+      mode,
+    )
   }
 
   function handlePhotoUploaded(file: PhoneUploadCompletedFile) {
-    void startChat({
-      helpLevel: "minimal",
-      prompt: "Här är mitt arbete hittills — hjälp mig utifrån det.",
-      images: [{ storageId: file.storageId, filename: file.filename }],
-    })
+    const mention = problemNumber.trim() ? `@${problemNumber.trim()}` : ""
+    void start(
+      {
+        mode: "normal",
+        prompt: [mention, "Här är mitt arbete hittills — hjälp mig utifrån det."]
+          .filter((part) => part.length > 0)
+          .join(" "),
+        images: [{ storageId: file.storageId, filename: file.filename }],
+      },
+      "scan",
+    )
   }
-
-  const practicePending = pendingLevel === "practice"
 
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
-      <div className="flex w-full max-w-3xl flex-col gap-3">
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-stretch sm:justify-center">
-          {ACTIONS.map((action) => {
-            const Icon = action.icon
-            const isThisPending = pendingLevel === action.value
-            return (
-              <button
-                key={action.value}
-                type="button"
-                disabled={pending}
-                onClick={() => handleActionClick(action)}
-                className={cn(
-                  "flex min-h-28 flex-1 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary transition-colors",
-                  "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/40",
-                  "disabled:pointer-events-none disabled:opacity-50",
-                )}
-              >
-                <Icon className="size-8 stroke-[1.75]" />
-                <span className="text-lg font-semibold tracking-tight">
-                  {isThisPending ? "Startar…" : action.label}
-                </span>
-                <span className="text-sm text-primary/80">
-                  {action.description}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() =>
-            void startChat({
-              helpLevel: "practice",
-              prompt:
-                "Jag vill svara själv — ge mig svarsrutor för den här uppgiften.",
-            })
-          }
-          className={cn(
-            "flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-primary bg-background px-5 py-3 text-primary transition-colors",
-            "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/40",
-            "disabled:pointer-events-none disabled:opacity-50",
-          )}
-        >
-          <PenLine className="size-5 shrink-0 stroke-[1.75]" />
-          <span className="text-base font-semibold tracking-tight">
-            {practicePending ? "Startar…" : "Svara själv"}
-          </span>
-        </button>
+      <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
+        {ACTIONS.map((action) => {
+          const Icon = action.icon
+          const isThisPending = localPending === action.id
+          return (
+            <button
+              key={action.id}
+              type="button"
+              disabled={busy}
+              onClick={() => handleActionClick(action)}
+              className={cn(
+                "flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary transition-colors",
+                "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/40",
+                "disabled:pointer-events-none disabled:opacity-50",
+              )}
+            >
+              <Icon className="size-8 stroke-[1.75]" />
+              <span className="text-lg font-semibold tracking-tight">
+                {isThisPending ? "Startar…" : action.label}
+              </span>
+              <span className="text-sm text-primary/80">
+                {action.description}
+              </span>
+            </button>
+          )
+        })}
       </div>
-
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <PhoneUploadDialog
         roomId={roomId}

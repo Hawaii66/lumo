@@ -117,7 +117,25 @@ export const SLASH_COMMANDS: Array<SlashCommand> = [
     label: "/formel",
     description: "Öppna formelredigeraren",
   },
+  {
+    id: "mode",
+    command: "mode",
+    label: "/mode",
+    description: "Byt chattläge",
+  },
 ]
+
+/** Append freeform chat-box text after an auto-generated start prompt. */
+export function appendUserTextToPrompt(
+  autoPrompt: string,
+  userText: string,
+): string {
+  const base = autoPrompt.trim()
+  const extra = userText.trim()
+  if (!extra) return base
+  if (!base) return extra
+  return `${base} ${extra}`
+}
 
 /** Slash command fragment at the cursor (`/`, `/f`, `/formel`). */
 export function findSlashQueryAtCursor(

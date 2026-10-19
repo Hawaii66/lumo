@@ -1,7 +1,10 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { lumoStaticDocumentValidator } from "./lib/lumoContent";
+import {
+  chatModeValidator,
+  lumoStaticDocumentValidator,
+} from "./lib/lumoContent";
 
 export default defineSchema({
   ...authTables,
@@ -53,6 +56,8 @@ export default defineSchema({
     threadId: v.string(),
     title: v.string(),
     createdBy: v.id("users"),
+    /** Interaction mode for the chat. Missing on older threads → treat as normal. */
+    mode: v.optional(chatModeValidator),
   })
     .index("by_room", ["roomId"])
     .index("by_thread", ["threadId"]),
