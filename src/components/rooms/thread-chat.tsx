@@ -4,7 +4,7 @@ import {
   useUIMessages,
 } from "@convex-dev/agent/react"
 import { useMutation, useQuery } from "convex/react"
-import { Pencil } from "lucide-react"
+import { Check, Copy, Pencil } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { UIMessage } from "@convex-dev/agent/react"
@@ -92,6 +92,61 @@ function messageText(message: UIMessage): string {
       )
       .map((part) => part.text)
       .join("\n")
+  )
+}
+
+function formatRawAssistantJson(messages: Array<UIMessage>): string | null {
+  const assistantTexts = messages
+    .filter((message) => message.role === "assistant")
+    .map((message) => messageText(message))
+    .filter((text) => text.length > 0)
+  if (assistantTexts.length === 0) return null
+
+  const pretty = assistantTexts.map((text) => {
+    try {
+      return JSON.parse(text) as unknown
+    } catch {
+      return text
+    }
+  })
+
+  return JSON.stringify(pretty.length === 1 ? pretty[0] : pretty, null, 2)
+}
+
+function CopyRawJsonButton({ messages }: { messages: Array<UIMessage> }) {
+  const [copied, setCopied] = useState(false)
+  const raw = useMemo(() => formatRawAssistantJson(messages), [messages])
+
+  async function handleCopy() {
+    if (!raw) return
+    try {
+      await navigator.clipboard.writeText(raw)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // Clipboard may be denied; ignore.
+    }
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="size-7 shrink-0 px-0"
+      title="Kopiera rå JSON"
+      disabled={!raw}
+      onClick={() => {
+        void handleCopy()
+      }}
+    >
+      {copied ? (
+        <Check className="size-3.5" />
+      ) : (
+        <Copy className="size-3.5" />
+      )}
+      <span className="sr-only">Kopiera rå JSON</span>
+    </Button>
   )
 }
 
@@ -480,11 +535,16 @@ export function ThreadChat({
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="space-y-3 border-b border-border pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <ThreadTitleEditor
-            roomId={roomId}
-            threadId={threadId}
-            title={title}
-          />
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <ThreadTitleEditor
+              roomId={roomId}
+              threadId={threadId}
+              title={title}
+            />
+            {import.meta.env.DEV ? (
+              <CopyRawJsonButton messages={messages} />
+            ) : null}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <ChatModePicker
               value={mode}
