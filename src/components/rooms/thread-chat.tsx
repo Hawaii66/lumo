@@ -265,7 +265,7 @@ export function ThreadChat({
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto py-4 pr-3">
         {status === "LoadingFirstPage" ? (
           <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
         ) : messages.length === 0 ? (
