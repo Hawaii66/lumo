@@ -1,5 +1,5 @@
 import { useQuery } from "convex/react"
-import { ImagePlus, Sigma, X } from "lucide-react"
+import { ImagePlus, Sigma, Smartphone, X } from "lucide-react"
 import {
   forwardRef,
   useEffect,
@@ -15,6 +15,10 @@ import { StaticMath } from "~/components/lumo/static-math"
 import { ComposerTextarea } from "~/components/rooms/composer-textarea"
 import { MathInputDialog } from "~/components/rooms/math-input-dialog"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
+import {
+  PhoneUploadDialog,
+  type PhoneUploadCompletedFile,
+} from "~/components/rooms/phone-upload-dialog"
 import { Button } from "~/components/ui/button"
 import {
   appendUserTextToPrompt,
@@ -122,6 +126,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
   const [modeMenuOpen, setModeMenuOpen] = useState(false)
   const [modeMenuIndex, setModeMenuIndex] = useState(0)
   const [draftMode, setDraftMode] = useState<ChatMode | undefined>(undefined)
+  const [phoneUploadOpen, setPhoneUploadOpen] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
   const [typeaheadIndex, setTypeaheadIndex] = useState(0)
@@ -133,8 +138,13 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
   const mathInsertCursorRef = useRef(0)
   const pendingImagesRef = useRef(pendingImages)
   pendingImagesRef.current = pendingImages
+  const pendingStorageImagesRef = useRef(pendingStorageImages)
+  pendingStorageImagesRef.current = pendingStorageImages
 
   const activeMode = mode ?? draftMode
+  const attachedImageCount =
+    pendingImages.length + pendingStorageImages.length
+  const imagesFull = attachedImageCount >= MAX_IMAGES
 
   const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
     roomId,
@@ -382,7 +392,8 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     }
 
     setPendingImages((current) => {
-      const remaining = MAX_IMAGES - current.length
+      const remaining =
+        MAX_IMAGES - (current.length + pendingStorageImagesRef.current.length)
       if (remaining <= 0) {
         for (const image of next) URL.revokeObjectURL(image.previewUrl)
         setLocalError(`Du kan bifoga högst ${MAX_IMAGES} bilder`)
@@ -401,6 +412,25 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
+  }
+
+  function addPhoneUpload(file: PhoneUploadCompletedFile) {
+    setLocalError(null)
+    setPendingStorageImages((current) => {
+      const total = current.length + pendingImagesRef.current.length
+      if (total >= MAX_IMAGES) {
+        setLocalError(`Du kan bifoga högst ${MAX_IMAGES} bilder`)
+        return current
+      }
+      return [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          storageId: file.storageId,
+          filename: file.filename,
+        },
+      ]
+    })
   }
 
   function removeImage(id: string) {
@@ -893,11 +923,21 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             type="button"
             variant="outline"
             size="sm"
-            disabled={pending || pendingImages.length >= MAX_IMAGES}
+            disabled={pending || imagesFull}
             onClick={() => fileInputRef.current?.click()}
           >
             <ImagePlus />
             Bild
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={pending || imagesFull}
+            onClick={() => setPhoneUploadOpen(true)}
+          >
+            <Smartphone />
+            Telefon
           </Button>
           <Button
             type="button"
@@ -915,6 +955,14 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
         </Button>
       </div>
     </form>
+
+      <PhoneUploadDialog
+        roomId={roomId}
+        open={phoneUploadOpen}
+        onOpenChange={setPhoneUploadOpen}
+        onCompleted={addPhoneUpload}
+        showTrigger={false}
+      />
 
       <MathInputDialog
         open={mathDialogOpen}
