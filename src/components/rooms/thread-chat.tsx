@@ -47,6 +47,7 @@ type ThreadChatProps = {
   deletionExpiry?: ChatDeletionExpiry
   deleteAt?: number | null
   mentionedProblemNumbers?: string[]
+  onDeleted?: () => void
 }
 
 function collectThreadMentions(
@@ -400,6 +401,7 @@ export function ThreadChat({
   deletionExpiry = DEFAULT_CHAT_DELETION_EXPIRY,
   deleteAt = null,
   mentionedProblemNumbers = [],
+  onDeleted,
 }: ThreadChatProps) {
   const { results, status } = useUIMessages(
     api.threads.listMessages,
@@ -412,6 +414,7 @@ export function ThreadChat({
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const setMode = useMutation(api.threads.setMode)
   const setDeletionExpiry = useMutation(api.threads.setDeletionExpiry)
+  const removeThread = useMutation(api.threads.remove)
   const sendMessage = useMutation(api.threads.sendMessage).withOptimisticUpdate(
     (store, args) => {
       optimisticallySendMessage(api.threads.listMessages)(store, {
@@ -535,6 +538,17 @@ export function ThreadChat({
     }
   }
 
+  async function handleDeleteNow() {
+    setError(null)
+    try {
+      await removeThread({ roomId, threadId })
+      onDeleted?.()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Kunde inte radera chatten")
+      throw err
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="space-y-3 border-b border-border pb-4">
@@ -563,6 +577,7 @@ export function ThreadChat({
               onChange={(next) => {
                 void handleDeletionExpiryChange(next)
               }}
+              onDeleteNow={handleDeleteNow}
               disabled={expiryPending || pending}
             />
           </div>

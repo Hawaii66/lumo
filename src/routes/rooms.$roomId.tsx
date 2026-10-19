@@ -332,6 +332,7 @@ function RoomPage() {
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
+            onDeleted={() => setSelectedThreadId(null)}
           />
         )}
       </main>

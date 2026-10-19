@@ -61,7 +61,7 @@ export default defineSchema({
     mode: v.optional(chatModeValidator),
     /**
      * Auto-delete preference. Missing on older threads → infinite.
-     * `deleteAt` is the absolute deadline when not infinite (deletion not wired yet).
+     * `deleteAt` is the absolute deadline when not infinite; purged by cron.
      */
     deletionExpiry: v.optional(chatDeletionExpiryValidator),
     deleteAt: v.optional(v.number()),
@@ -72,7 +72,8 @@ export default defineSchema({
     mentionedProblemNumbers: v.optional(v.array(v.string())),
   })
     .index("by_room", ["roomId"])
-    .index("by_thread", ["threadId"]),
+    .index("by_thread", ["threadId"])
+    .index("by_deleteAt", ["deleteAt"]),
   /** Cached MinerU middle_json keyed by SHA-256 of PDF bytes. */
   mineruCache: defineTable({
     contentHash: v.string(),

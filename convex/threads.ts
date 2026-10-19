@@ -22,13 +22,14 @@ import {
   type ChatMode,
 } from "./lib/lumoContent";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
-import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import { internalMutation, mutation, query } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 
 const MAX_TITLE_LENGTH = 80;
 const MAX_THREADS_PER_ROOM = 100;
+const EXPIRED_THREAD_PURGE_BATCH = 25;
 const MAX_PROMPT_LENGTH = 4000;
 const MAX_IMAGES_PER_MESSAGE = 4;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -258,6 +259,46 @@ export const setDeletionExpiry = mutation({
   },
 });
 
+export const remove = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { roomThread } = await requireRoomThread(
+      ctx,
+      args.roomId,
+      args.threadId,
+    );
+    await deleteRoomThread(ctx, roomThread);
+    return null;
+  },
+});
+
+/** Purge timed chats whose `deleteAt` has passed. Scheduled every 5 minutes. */
+export const purgeExpired = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const now = Date.now();
+    const expired = await ctx.db
+      .query("roomThreads")
+      .withIndex("by_deleteAt", (q) => q.lte("deleteAt", now))
+      .take(EXPIRED_THREAD_PURGE_BATCH);
+
+    for (const roomThread of expired) {
+      await deleteRoomThread(ctx, roomThread);
+    }
+
+    if (expired.length === EXPIRED_THREAD_PURGE_BATCH) {
+      await ctx.scheduler.runAfter(0, internal.threads.purgeExpired, {});
+    }
+
+    return null;
+  },
+});
+
 export const get = query({
   args: {
     roomId: v.id("rooms"),
@@ -326,6 +367,17 @@ async function requireRoomThread(
   }
 
   return { userId, roomThread };
+}
+
+/** Drop the room mapping, then delete agent thread data asynchronously. */
+async function deleteRoomThread(
+  ctx: MutationCtx,
+  roomThread: Doc<"roomThreads">,
+) {
+  await ctx.db.delete(roomThread._id);
+  await ctx.runMutation(components.agent.threads.deleteAllForThreadIdAsync, {
+    threadId: roomThread.threadId,
+  });
 }
 
 export const listMessages = query({

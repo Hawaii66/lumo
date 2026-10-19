@@ -21,7 +21,7 @@ type ChatDeletionExpiryPickerProps = {
   value: ChatDeletionExpiry
   deleteAt?: number | null
   onChange: (expiry: ChatDeletionExpiry) => void
-  /** Confirm “delete now” — deletion itself is wired later. */
+  /** Confirm “delete now”. */
   onDeleteNow?: () => void | Promise<void>
   disabled?: boolean
   className?: string
