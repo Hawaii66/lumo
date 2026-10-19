@@ -33,9 +33,20 @@ import {
   DEFAULT_CHAT_MODE,
   type ChatMode,
 } from "~/lib/chat-mode"
-import { parseLumoDocument } from "~/lib/lumo-content"
+import {
+  parseLumoDocument,
+  type LumoDocument,
+} from "~/lib/lumo-content"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
+
+function documentHasVisibleParts(doc: LumoDocument): boolean {
+  return doc.parts.some(
+    (part) =>
+      (part.type === "text" && part.content.trim().length > 0) ||
+      part.type !== "text",
+  )
+}
 
 const MAX_TITLE_LENGTH = 80
 
@@ -162,27 +173,39 @@ function AssistantMessageContent({
 }) {
   const streaming = message.status === "streaming"
   const rawText = messageText(message)
+  // Smooth character reveal walks through broken mid-JSON (trailing commas,
+  // half keys) and makes the UI flash empty placeholders. Only smooth plain text.
+  const looksLikeJson = rawText.trimStart().startsWith("{")
   const [smoothText] = useSmoothText(rawText, {
-    startStreaming: streaming,
+    startStreaming: streaming && !looksLikeJson,
   })
-  const text = streaming ? smoothText : rawText
+  const text = streaming && !looksLikeJson ? smoothText : rawText
 
-  const doc = useMemo(
+  const parsed = useMemo(
     () => (text ? parseLumoDocument(text, { streaming }) : null),
     [text, streaming],
   )
 
-  if (!text || !doc) {
-    return <span className="text-muted-foreground italic">…</span>
+  const lastGoodRef = useRef<LumoDocument | null>(null)
+  const lastKeyRef = useRef(message.key)
+  if (lastKeyRef.current !== message.key) {
+    lastKeyRef.current = message.key
+    lastGoodRef.current = null
   }
 
-  const hasVisibleParts = doc.parts.some(
-    (part) =>
-      (part.type === "text" && part.content.trim().length > 0) ||
-      part.type !== "text",
-  )
+  const parsedVisible = parsed !== null && documentHasVisibleParts(parsed)
+  if (parsedVisible) {
+    lastGoodRef.current = parsed
+  }
 
-  if (!hasVisibleParts) {
+  const doc =
+    parsedVisible
+      ? parsed
+      : streaming && lastGoodRef.current !== null
+        ? lastGoodRef.current
+        : parsed
+
+  if (!text || !doc || !documentHasVisibleParts(doc)) {
     return <span className="text-muted-foreground italic">…</span>
   }
 
@@ -461,12 +484,17 @@ export function ThreadChat({
         .join("|"),
     [messages],
   )
+  const isStreaming = messages.some((message) => message.status === "streaming")
 
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
-  }, [scrollSignature, pending])
+    // Smooth scroll on every token fights itself and feels like flashing.
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: isStreaming ? "auto" : "smooth",
+    })
+  }, [scrollSignature, pending, isStreaming])
 
   async function uploadImage(file: File) {
     const storageId = await uploadFileToStorage(file, () =>

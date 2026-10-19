@@ -378,6 +378,58 @@ function documentFromUnknown(json: unknown): LumoDocument | null {
   return { version: 1, parts }
 }
 
+/**
+ * Close open strings/brackets and strip trailing commas / incomplete keys so
+ * partial streamed JSON can be previewed without oscillating to empty.
+ */
+function repairPartialJson(text: string): string {
+  let body = text
+  let inString = false
+  let escape = false
+  for (const ch of body) {
+    if (inString) {
+      if (escape) escape = false
+      else if (ch === "\\") escape = true
+      else if (ch === '"') inString = false
+      continue
+    }
+    if (ch === '"') inString = true
+  }
+  if (inString) body += '"'
+
+  // Stream gaps often end mid-property: `...,` / `...,"key"` / `...,"key":`
+  for (;;) {
+    const next = body
+      .replace(/,\s*$/, "")
+      .replace(/:\s*$/, "")
+      .replace(/,\s*"[^"\\]*(?:\\.[^"\\]*)*"\s*$/, "")
+      .replace(/\{\s*"[^"\\]*(?:\\.[^"\\]*)*"\s*$/, "{")
+    if (next === body) break
+    body = next
+  }
+
+  const stack: Array<string> = []
+  inString = false
+  escape = false
+  for (const ch of body) {
+    if (inString) {
+      if (escape) escape = false
+      else if (ch === "\\") escape = true
+      else if (ch === '"') inString = false
+      continue
+    }
+    if (ch === '"') inString = true
+    else if (ch === "{") stack.push("}")
+    else if (ch === "[") stack.push("]")
+    else if (ch === "}" || ch === "]") stack.pop()
+  }
+  if (inString) body += '"'
+  while (stack.length > 0) {
+    body += stack.pop()
+  }
+  return body
+}
+
 /** Close open strings/brackets so partial streamed JSON can be previewed. */
 function tryParsePartialJson(text: string): unknown | undefined {
   const trimmed = text.trim()
@@ -388,40 +440,27 @@ function tryParsePartialJson(text: string): unknown | undefined {
     // continue
   }
 
-  let suffix = ""
-  const stack: Array<string> = []
-  let inString = false
-  let escape = false
-  for (const ch of trimmed) {
-    if (inString) {
-      if (escape) {
-        escape = false
-      } else if (ch === "\\") {
-        escape = true
-      } else if (ch === '"') {
-        inString = false
+  let slice = trimmed
+  while (slice.length > 0) {
+    try {
+      return JSON.parse(repairPartialJson(slice))
+    } catch {
+      const comma = slice.lastIndexOf(",")
+      const colon = slice.lastIndexOf(":")
+      const cut = Math.max(comma, colon)
+      if (cut > 0) {
+        slice = slice.slice(0, cut)
+        continue
       }
-      continue
-    }
-    if (ch === '"') {
-      inString = true
-    } else if (ch === "{") {
-      stack.push("}")
-    } else if (ch === "[") {
-      stack.push("]")
-    } else if (ch === "}" || ch === "]") {
-      stack.pop()
+      const closed = Math.max(slice.lastIndexOf("}"), slice.lastIndexOf("]"))
+      if (closed > 0) {
+        slice = slice.slice(0, closed + 1)
+        continue
+      }
+      return undefined
     }
   }
-  if (inString) suffix += '"'
-  while (stack.length > 0) {
-    suffix += stack.pop()
-  }
-  try {
-    return JSON.parse(trimmed + suffix)
-  } catch {
-    return undefined
-  }
+  return undefined
 }
 
 /**
