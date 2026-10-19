@@ -25,6 +25,27 @@ function StepHint({ hint }: { hint: Array<HintPart> }) {
 
 type StepState = "locked" | "active" | "correct" | "incorrect"
 
+/** Stable identity so re-parsed message parts don't reset progress/input. */
+function solutionStepsContentKey(
+  problemLatex: string,
+  steps: Array<SolutionStep>,
+) {
+  return `${problemLatex}\0${steps
+    .map(
+      (step) =>
+        `${step.id}\0${step.latex}\0${step.solvedLatex}\0${step.prompts
+          .map((p) => `${p.id}=${p.answer}`)
+          .join("\0")}`,
+    )
+    .join("\0\0")}`
+}
+
+function stepContentKey(step: SolutionStep) {
+  return `${step.id}\0${step.latex}\0${step.prompts
+    .map((p) => `${p.id}=${p.answer}`)
+    .join("\0")}`
+}
+
 function borderFor(state: StepState) {
   if (state === "correct") {
     return "border-green-500/60 bg-green-50 dark:bg-green-950/30"
@@ -50,8 +71,11 @@ function ActiveStepField({
   const ref = useRef<MathfieldElement | null>(null)
   const onCorrectRef = useRef(onCorrect)
   const onStatusRef = useRef(onStatus)
+  const stepRef = useRef(step)
   onCorrectRef.current = onCorrect
   onStatusRef.current = onStatus
+  stepRef.current = step
+  const contentKey = stepContentKey(step)
 
   useEffect(() => {
     let cancelled = false
@@ -67,18 +91,20 @@ function ActiveStepField({
     return () => {
       cancelled = true
     }
-  }, [step])
+    // contentKey captures step latex + prompts; ignore new object identities.
+  }, [contentKey, step.latex, step.prompts])
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
 
     const handleInput = () => {
+      const current = stepRef.current
       let correctCount = 0
       let answeredCount = 0
       let anyIncorrect = false
 
-      for (const prompt of step.prompts) {
+      for (const prompt of current.prompts) {
         const value = el.getPromptValue(prompt.id).trim()
         if (!value || value === "?" || value === "\\placeholder") {
           el.setPromptState(prompt.id, undefined, false)
@@ -93,8 +119,8 @@ function ActiveStepField({
       }
 
       if (
-        answeredCount === step.prompts.length &&
-        correctCount === step.prompts.length
+        answeredCount === current.prompts.length &&
+        correctCount === current.prompts.length
       ) {
         onCorrectRef.current()
         return
@@ -106,7 +132,7 @@ function ActiveStepField({
 
     el.addEventListener("input", handleInput)
     return () => el.removeEventListener("input", handleInput)
-  }, [step])
+  }, [contentKey])
 
   return createElement("math-field", {
     ref,
@@ -135,14 +161,15 @@ export function SolutionSteps({
   const solvedRef = useRef<Set<string>>(new Set())
   const onFinishedRef = useRef(onFinished)
   onFinishedRef.current = onFinished
+  const contentKey = solutionStepsContentKey(problemLatex, steps)
 
-  // Reset when the exercise identity changes.
+  // Reset only when the exercise content actually changes.
   useEffect(() => {
     solvedRef.current = new Set()
     setUnlockedIndex(0)
     setStepFeedback({})
     setFinished(false)
-  }, [problemLatex, steps])
+  }, [contentKey])
 
   const markCorrect = useCallback(
     (index: number) => {

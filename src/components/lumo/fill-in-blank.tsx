@@ -17,6 +17,11 @@ function statusStyles(status: "neutral" | "success" | "error") {
   return "border-border bg-background"
 }
 
+/** Stable identity for latex + prompts so parent re-parses don't wipe input. */
+function fillBlankContentKey(latex: string, prompts: Array<PromptSpec>) {
+  return `${latex}\0${prompts.map((p) => `${p.id}=${p.answer}`).join("\0")}`
+}
+
 export type FillInBlankProps = {
   latex: string
   prompts: Array<PromptSpec>
@@ -37,6 +42,9 @@ export function FillInBlank({
   const fieldRef = useRef<MathfieldElement | null>(null)
   const onAllCorrectRef = useRef(onAllCorrect)
   onAllCorrectRef.current = onAllCorrect
+  const promptsRef = useRef(prompts)
+  promptsRef.current = prompts
+  const contentKey = fillBlankContentKey(latex, prompts)
   const [promptStatus, setPromptStatus] = useState<Record<string, PromptStatus>>(
     {},
   )
@@ -60,18 +68,20 @@ export function FillInBlank({
     return () => {
       cancelled = true
     }
-  }, [latex, prompts])
+    // contentKey captures latex + prompt id/answer; ignore new array identities.
+  }, [contentKey, latex, prompts])
 
   useEffect(() => {
     const el = fieldRef.current
     if (!el) return
 
     const handleInput = () => {
+      const currentPrompts = promptsRef.current
       const nextStatus: Record<string, PromptStatus> = {}
       let correctCount = 0
       let answeredCount = 0
 
-      for (const p of prompts) {
+      for (const p of currentPrompts) {
         const value = el.getPromptValue(p.id).trim()
         if (!value || value === "?" || value === "\\placeholder") {
           nextStatus[p.id] = "neutral"
@@ -89,14 +99,15 @@ export function FillInBlank({
 
       setPromptStatus(nextStatus)
       const done =
-        answeredCount === prompts.length && correctCount === prompts.length
+        answeredCount === currentPrompts.length &&
+        correctCount === currentPrompts.length
       setAllCorrect(done)
       if (done) onAllCorrectRef.current?.()
     }
 
     el.addEventListener("input", handleInput)
     return () => el.removeEventListener("input", handleInput)
-  }, [prompts])
+  }, [contentKey])
 
   const overallStatus = allCorrect
     ? "success"

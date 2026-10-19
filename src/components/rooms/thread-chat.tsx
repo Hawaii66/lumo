@@ -166,11 +166,15 @@ function AssistantMessageContent({
   })
   const text = streaming ? smoothText : rawText
 
-  if (!text) {
+  const doc = useMemo(
+    () => (text ? parseLumoDocument(text, { streaming }) : null),
+    [text, streaming],
+  )
+
+  if (!text || !doc) {
     return <span className="text-muted-foreground italic">…</span>
   }
 
-  const doc = parseLumoDocument(text, { streaming })
   const hasVisibleParts = doc.parts.some(
     (part) =>
       (part.type === "text" && part.content.trim().length > 0) ||
