@@ -87,7 +87,206 @@ export const lumoDocumentSchema = z.object({
 });
 
 export type LumoDocument = z.infer<typeof lumoDocumentSchema>;
+export type LumoPart = z.infer<typeof lumoPartSchema>;
 export type PromptSpec = z.infer<typeof promptSpecSchema>;
+
+/**
+ * Flat part schema for OpenAI/OpenRouter structured output.
+ * - No discriminatedUnion → avoids JSON Schema `oneOf` (OpenAI rejects).
+ * - Unused fields must be empty string / empty arrays.
+ */
+export const lumoPromptSpecAzureSchema = z.object({
+  id: z.string().describe("Placeholder id matching \\placeholder[id]{}"),
+  answer: z.string().describe("Bare LaTeX answer; empty when unused"),
+});
+
+export const lumoSolutionStepAzureSchema = z.object({
+  id: z.string().describe("Step id; empty when unused"),
+  title: z.string().describe("Step title; empty when unused"),
+  hint: z.string().describe("Step hint; empty when unused"),
+  latex: z
+    .string()
+    .describe("Step latex with \\placeholder[id]{}; empty when unused"),
+  prompts: z
+    .array(lumoPromptSpecAzureSchema)
+    .describe("Answers for placeholders; empty when unused"),
+  solvedLatex: z.string().describe("Filled latex after solve; empty when unused"),
+});
+
+export const lumoQuickReplyChoiceAzureSchema = z.object({
+  id: z.string().describe("Choice id; empty when unused"),
+  label: z.string().describe("Button label; empty when unused"),
+});
+
+export const lumoPartAzureSchema = z.object({
+  type: z
+    .enum([
+      "text",
+      "latex",
+      "fillBlank",
+      "solution",
+      "quickReplies",
+      "subproblem",
+      "case",
+    ])
+    .describe("Part kind"),
+  content: z
+    .string()
+    .describe(
+      "Swedish for text; LaTeX for latex (no $); empty for other types",
+    ),
+  display: z
+    .enum(["inline", "block"])
+    .describe("Latex display; use inline when type is not latex"),
+  caption: z
+    .string()
+    .describe("Optional value name (Mgn, summa); empty when unused"),
+  label: z
+    .string()
+    .describe(
+      "subproblem letter a/b/c; case '1'/'2'/… or empty; otherwise empty",
+    ),
+  prompt: z
+    .string()
+    .describe("Optional fillBlank intro text; empty when unused"),
+  latex: z
+    .string()
+    .describe("fillBlank latex with placeholders; empty when unused"),
+  prompts: z
+    .array(lumoPromptSpecAzureSchema)
+    .describe("fillBlank prompt answers; empty when unused"),
+  problemLatex: z
+    .string()
+    .describe("solution problem statement latex; empty when unused"),
+  steps: z
+    .array(lumoSolutionStepAzureSchema)
+    .describe("solution steps; empty when unused"),
+  choices: z
+    .array(lumoQuickReplyChoiceAzureSchema)
+    .describe("quickReplies choices; empty when unused"),
+});
+
+export const lumoDocumentAzureSchema = z.object({
+  version: z.literal(1),
+  parts: z.array(lumoPartAzureSchema).min(1),
+});
+
+export type LumoDocumentAzure = z.infer<typeof lumoDocumentAzureSchema>;
+export type LumoPartAzure = z.infer<typeof lumoPartAzureSchema>;
+
+function optionalCaption(raw: string): string | undefined {
+  const caption = raw.trim();
+  return caption.length > 0 ? caption : undefined;
+}
+
+function normalizePromptSpecs(
+  prompts: Array<z.infer<typeof lumoPromptSpecAzureSchema>>,
+): Array<PromptSpec> {
+  const out: Array<PromptSpec> = [];
+  for (const prompt of prompts) {
+    const id = prompt.id.trim();
+    const answer = prompt.answer.trim();
+    if (id.length === 0 || answer.length === 0) continue;
+    out.push({ id, answer });
+  }
+  return out;
+}
+
+/** Convert flat OpenAI structured-output parts into the stored Lumo shape. */
+export function normalizeLumoPart(part: LumoPartAzure): LumoPart | null {
+  switch (part.type) {
+    case "text": {
+      const content = part.content.trim();
+      if (content.length === 0) return null;
+      const caption = optionalCaption(part.caption);
+      return caption !== undefined
+        ? { type: "text", content, caption }
+        : { type: "text", content };
+    }
+    case "latex": {
+      const content = part.content.trim();
+      if (content.length === 0) return null;
+      const caption = optionalCaption(part.caption);
+      return caption !== undefined
+        ? { type: "latex", content, display: part.display, caption }
+        : { type: "latex", content, display: part.display };
+    }
+    case "fillBlank": {
+      const latex = part.latex.trim();
+      const prompts = normalizePromptSpecs(part.prompts);
+      if (latex.length === 0 || prompts.length === 0) return null;
+      const prompt = part.prompt.trim();
+      return prompt.length > 0
+        ? { type: "fillBlank", prompt, latex, prompts }
+        : { type: "fillBlank", latex, prompts };
+    }
+    case "solution": {
+      const steps = [];
+      for (const step of part.steps) {
+        const id = step.id.trim();
+        const latex = step.latex.trim();
+        const prompts = normalizePromptSpecs(step.prompts);
+        const solvedLatex = step.solvedLatex.trim();
+        if (id.length === 0 || latex.length === 0 || prompts.length === 0) {
+          continue;
+        }
+        steps.push({
+          id,
+          title: step.title.trim(),
+          hint: step.hint.trim(),
+          latex,
+          prompts,
+          solvedLatex,
+        });
+      }
+      if (steps.length === 0) return null;
+      return {
+        type: "solution",
+        problemLatex: part.problemLatex.trim(),
+        steps,
+      };
+    }
+    case "quickReplies": {
+      const choices = [];
+      for (const choice of part.choices) {
+        const id = choice.id.trim();
+        const label = choice.label.trim();
+        if (id.length === 0 || label.length === 0) continue;
+        choices.push({ id, label });
+      }
+      if (choices.length === 0) return null;
+      return { type: "quickReplies", choices };
+    }
+    case "subproblem": {
+      const label = part.label.trim().toLowerCase();
+      if (label.length === 0) return null;
+      return { type: "subproblem", label };
+    }
+    case "case": {
+      const label = part.label.trim();
+      return label.length > 0 ? { type: "case", label } : { type: "case" };
+    }
+  }
+}
+
+export function normalizeLumoDocument(raw: LumoDocumentAzure): LumoDocument {
+  const parts = raw.parts
+    .map(normalizeLumoPart)
+    .filter((part): part is LumoPart => part !== null);
+  if (parts.length === 0) {
+    return {
+      version: 1,
+      parts: [
+        {
+          type: "text",
+          content:
+            "Jag kunde inte skapa ett giltigt svar. Försök skicka meddelandet igen.",
+        },
+      ],
+    };
+  }
+  return { version: 1, parts };
+}
 
 /**
  * Static textbook content: text + latex + subproblem/case markers.
@@ -192,11 +391,6 @@ export type LumoStaticPartAzure = z.infer<typeof lumoStaticPartAzureSchema>;
 export type LumoParsedProblemAzure = z.infer<
   typeof lumoParsedProblemAzureSchema
 >;
-
-function optionalCaption(raw: string): string | undefined {
-  const caption = raw.trim();
-  return caption.length > 0 ? caption : undefined;
-}
 
 export function normalizeLumoStaticPart(
   part: LumoStaticPartAzure,

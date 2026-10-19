@@ -332,7 +332,7 @@ export function ThreadChat({
   const [modePending, setModePending] = useState(false)
   const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const messages = results
 
@@ -353,9 +353,24 @@ export function ThreadChat({
     [mentionedProblemNumbers, messages, problemOptions],
   )
 
+  // Key + status + text length so user sends and AI replies both re-scroll
+  // (length alone misses content updates / status changes).
+  const scrollSignature = useMemo(
+    () =>
+      messages
+        .map(
+          (message) =>
+            `${message.key}:${message.status}:${messageText(message).length}`,
+        )
+        .join("|"),
+    [messages],
+  )
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages.length])
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+  }, [scrollSignature, pending])
 
   async function uploadImage(file: File) {
     const storageId = await uploadFileToStorage(file, () =>
@@ -464,7 +479,7 @@ export function ThreadChat({
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto py-4 pr-3">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto py-4 pr-3">
         {status === "LoadingFirstPage" ? (
           <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
         ) : messages.length === 0 ? (
@@ -502,7 +517,6 @@ export function ThreadChat({
             )}
           </ul>
         )}
-        <div ref={bottomRef} />
       </div>
 
       <ChatInput
