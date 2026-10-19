@@ -1,5 +1,6 @@
 import {
   optimisticallySendMessage,
+  useSmoothText,
   useUIMessages,
 } from "@convex-dev/agent/react"
 import { useMutation, useQuery } from "convex/react"
@@ -94,6 +95,46 @@ function messageText(message: UIMessage): string {
   )
 }
 
+function AssistantMessageContent({
+  message,
+  onQuickReply,
+  quickRepliesDisabled,
+}: {
+  message: UIMessage
+  onQuickReply?: (label: string) => void
+  quickRepliesDisabled?: boolean
+}) {
+  const streaming = message.status === "streaming"
+  const rawText = messageText(message)
+  const [smoothText] = useSmoothText(rawText, {
+    startStreaming: streaming,
+  })
+  const text = streaming ? smoothText : rawText
+
+  if (!text) {
+    return <span className="text-muted-foreground italic">…</span>
+  }
+
+  const doc = parseLumoDocument(text, { streaming })
+  const hasVisibleParts = doc.parts.some(
+    (part) =>
+      (part.type === "text" && part.content.trim().length > 0) ||
+      part.type !== "text",
+  )
+
+  if (!hasVisibleParts) {
+    return <span className="text-muted-foreground italic">…</span>
+  }
+
+  return (
+    <LumoParts
+      document={doc}
+      onQuickReply={onQuickReply}
+      quickRepliesDisabled={quickRepliesDisabled || streaming}
+    />
+  )
+}
+
 function MessageContent({
   message,
   onQuickReply,
@@ -104,16 +145,9 @@ function MessageContent({
   quickRepliesDisabled?: boolean
 }) {
   if (message.role === "assistant") {
-    const text = messageText(message)
-
-    if (!text) {
-      return <span className="text-muted-foreground italic">…</span>
-    }
-
-    const doc = parseLumoDocument(text)
     return (
-      <LumoParts
-        document={doc}
+      <AssistantMessageContent
+        message={message}
         onQuickReply={onQuickReply}
         quickRepliesDisabled={quickRepliesDisabled}
       />
@@ -311,7 +345,7 @@ export function ThreadChat({
   const { results, status } = useUIMessages(
     api.threads.listMessages,
     { roomId, threadId },
-    { initialNumItems: 50 },
+    { initialNumItems: 50, stream: true },
   )
   const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
     roomId,

@@ -4,7 +4,9 @@ import {
   getThreadMetadata,
   listUIMessages,
   saveMessage,
+  syncStreams,
   updateThreadMetadata,
+  vStreamArgs,
 } from "@convex-dev/agent";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
@@ -331,11 +333,19 @@ export const listMessages = query({
     roomId: v.id("rooms"),
     threadId: v.string(),
     paginationOpts: paginationOptsValidator,
+    streamArgs: vStreamArgs,
   },
   handler: async (ctx, args) => {
+    const empty = {
+      page: [],
+      isDone: true,
+      continueCursor: "",
+      streams: undefined,
+    };
+
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      return { page: [], isDone: true, continueCursor: "" };
+      return empty;
     }
 
     const membership = await ctx.db
@@ -346,7 +356,7 @@ export const listMessages = query({
       .unique();
 
     if (membership === null) {
-      return { page: [], isDone: true, continueCursor: "" };
+      return empty;
     }
 
     const roomThread = await ctx.db
@@ -355,13 +365,19 @@ export const listMessages = query({
       .unique();
 
     if (roomThread === null || roomThread.roomId !== args.roomId) {
-      return { page: [], isDone: true, continueCursor: "" };
+      return empty;
     }
 
-    return await listUIMessages(ctx, components.agent, {
+    const paginated = await listUIMessages(ctx, components.agent, {
       threadId: args.threadId,
       paginationOpts: args.paginationOpts,
     });
+    const streams = await syncStreams(ctx, components.agent, {
+      threadId: args.threadId,
+      streamArgs: args.streamArgs,
+    });
+
+    return { ...paginated, streams };
   },
 });
 

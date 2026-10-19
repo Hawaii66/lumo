@@ -1,4 +1,5 @@
 import { Agent } from "@convex-dev/agent";
+import { Output } from "ai";
 import { v } from "convex/values";
 import { components, internal } from "../_generated/api";
 import { internalAction } from "../_generated/server";
@@ -7,9 +8,6 @@ import {
   LUMO_PROTOCOL_INSTRUCTIONS,
   chatModeValidator,
   lumoDocumentAzureSchema,
-  normalizeLumoDocument,
-  stringifyLumoDocument,
-  validateLumoDocument,
 } from "../lib/lumoContent";
 import type { ChatMode } from "../lib/lumoContent";
 import { openrouter } from "./openrouter";
@@ -68,47 +66,26 @@ export const generateResponse = internalAction({
     }
 
     // Flat schema — OpenAI rejects JSON Schema `oneOf` from Zod unions.
-    const result = await roomAgent.generateObject(
+    // Stream deltas so the client can show tokens as they arrive.
+    const result = await roomAgent.streamText(
       ctx,
       { threadId: args.threadId },
       {
         promptMessageId: args.promptMessageId,
-        schema: lumoDocumentAzureSchema,
-        schemaName: "LumoDocument",
-        schemaDescription:
-          "Lumo-svar: text/latex/fillBlank/solution/quickReplies/subproblem/case. Oanvända fält = tom sträng eller tom array.",
+        output: Output.object({
+          schema: lumoDocumentAzureSchema,
+          name: "LumoDocument",
+          description:
+            "Lumo-svar: text/latex/fillBlank/solution/quickReplies/subproblem/case. Oanvända fält = tom sträng eller tom array.",
+        }),
         system: `${LUMO_PROTOCOL_INSTRUCTIONS}\n\n${chatModeHint(mode)}${problemContext}\n\nViktigt för JSON-schemat: fyll BARA fält som hör till part-typen; övriga fält ska vara "" eller [].`,
       },
       {
-        storageOptions: { saveMessages: "none" },
+        saveStreamDeltas: { chunking: "word", throttleMs: 100 },
       },
     );
 
-    let document = normalizeLumoDocument(result.object);
-    const validationError = validateLumoDocument(document);
-    if (validationError !== null) {
-      document = {
-        version: 1,
-        parts: [
-          {
-            type: "text",
-            content: `Jag fick ett ogiltigt svarformat (${validationError}). Försök igen.`,
-          },
-        ],
-      };
-    }
-
-    await roomAgent.saveMessages(ctx, {
-      threadId: args.threadId,
-      messages: [
-        {
-          role: "assistant",
-          content: stringifyLumoDocument(document),
-        },
-      ],
-      skipEmbeddings: true,
-    });
-
+    await result.consumeStream();
     return null;
   },
 });

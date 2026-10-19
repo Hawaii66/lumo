@@ -171,24 +171,232 @@ export function stringifyLumoDocument(doc: LumoDocument): string {
   return JSON.stringify(doc)
 }
 
+function optionalCaption(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined
+  const caption = raw.trim()
+  return caption.length > 0 ? caption : undefined
+}
+
+function asPromptSpecs(raw: unknown): Array<PromptSpec> {
+  if (!Array.isArray(raw)) return []
+  const out: Array<PromptSpec> = []
+  for (const item of raw) {
+    if (typeof item !== "object" || item === null) continue
+    const id = "id" in item && typeof item.id === "string" ? item.id.trim() : ""
+    const answer =
+      "answer" in item && typeof item.answer === "string"
+        ? item.answer.trim()
+        : ""
+    if (id.length === 0 || answer.length === 0) continue
+    out.push({ id, answer })
+  }
+  return out
+}
+
+/** Normalize flat OpenAI structured-output parts (all fields present). */
+function normalizeFlatPart(part: Record<string, unknown>): LumoPart | null {
+  const type = part.type
+  switch (type) {
+    case "text": {
+      const content = typeof part.content === "string" ? part.content.trim() : ""
+      if (content.length === 0) return null
+      const caption = optionalCaption(part.caption)
+      return caption !== undefined
+        ? { type: "text", content, caption }
+        : { type: "text", content }
+    }
+    case "latex": {
+      const content = typeof part.content === "string" ? part.content.trim() : ""
+      if (content.length === 0) return null
+      const display = part.display === "block" ? "block" : "inline"
+      const caption = optionalCaption(part.caption)
+      return caption !== undefined
+        ? { type: "latex", content, display, caption }
+        : { type: "latex", content, display }
+    }
+    case "fillBlank": {
+      const latex = typeof part.latex === "string" ? part.latex.trim() : ""
+      const prompts = asPromptSpecs(part.prompts)
+      if (latex.length === 0 || prompts.length === 0) return null
+      const prompt =
+        typeof part.prompt === "string" ? part.prompt.trim() : ""
+      return prompt.length > 0
+        ? { type: "fillBlank", prompt, latex, prompts }
+        : { type: "fillBlank", latex, prompts }
+    }
+    case "solution": {
+      if (!Array.isArray(part.steps)) return null
+      const steps: SolutionStep[] = []
+      for (const step of part.steps) {
+        if (typeof step !== "object" || step === null) continue
+        const id =
+          "id" in step && typeof step.id === "string" ? step.id.trim() : ""
+        const latex =
+          "latex" in step && typeof step.latex === "string"
+            ? step.latex.trim()
+            : ""
+        const prompts = asPromptSpecs(
+          "prompts" in step ? step.prompts : undefined,
+        )
+        if (id.length === 0 || latex.length === 0 || prompts.length === 0) {
+          continue
+        }
+        steps.push({
+          id,
+          title:
+            "title" in step && typeof step.title === "string"
+              ? step.title.trim()
+              : "",
+          hint:
+            "hint" in step && typeof step.hint === "string"
+              ? step.hint.trim()
+              : "",
+          latex,
+          prompts,
+          solvedLatex:
+            "solvedLatex" in step && typeof step.solvedLatex === "string"
+              ? step.solvedLatex.trim()
+              : "",
+        })
+      }
+      if (steps.length === 0) return null
+      return {
+        type: "solution",
+        problemLatex:
+          typeof part.problemLatex === "string" ? part.problemLatex.trim() : "",
+        steps,
+      }
+    }
+    case "quickReplies": {
+      if (!Array.isArray(part.choices)) return null
+      const choices: Array<{ id: string; label: string }> = []
+      for (const choice of part.choices) {
+        if (typeof choice !== "object" || choice === null) continue
+        const id =
+          "id" in choice && typeof choice.id === "string"
+            ? choice.id.trim()
+            : ""
+        const label =
+          "label" in choice && typeof choice.label === "string"
+            ? choice.label.trim()
+            : ""
+        if (id.length === 0 || label.length === 0) continue
+        choices.push({ id, label })
+      }
+      if (choices.length === 0) return null
+      return { type: "quickReplies", choices }
+    }
+    case "subproblem": {
+      const label =
+        typeof part.label === "string" ? part.label.trim().toLowerCase() : ""
+      if (label.length === 0) return null
+      return { type: "subproblem", label }
+    }
+    case "case": {
+      const label = typeof part.label === "string" ? part.label.trim() : ""
+      return label.length > 0 ? { type: "case", label } : { type: "case" }
+    }
+    default:
+      return null
+  }
+}
+
+function documentFromUnknown(json: unknown): LumoDocument | null {
+  const strict = lumoDocumentSchema.safeParse(json)
+  if (strict.success) return strict.data
+
+  if (typeof json !== "object" || json === null || !("parts" in json)) {
+    return null
+  }
+  if (!Array.isArray(json.parts)) return null
+
+  const parts: Array<LumoPart> = []
+  for (const part of json.parts) {
+    if (typeof part !== "object" || part === null) continue
+    const normalized = normalizeFlatPart(part as Record<string, unknown>)
+    if (normalized !== null) parts.push(normalized)
+  }
+  if (parts.length === 0) return null
+  return { version: 1, parts }
+}
+
+/** Close open strings/brackets so partial streamed JSON can be previewed. */
+function tryParsePartialJson(text: string): unknown | undefined {
+  const trimmed = text.trim()
+  if (trimmed.length === 0) return undefined
+  try {
+    return JSON.parse(trimmed)
+  } catch {
+    // continue
+  }
+
+  let suffix = ""
+  const stack: Array<string> = []
+  let inString = false
+  let escape = false
+  for (const ch of trimmed) {
+    if (inString) {
+      if (escape) {
+        escape = false
+      } else if (ch === "\\") {
+        escape = true
+      } else if (ch === '"') {
+        inString = false
+      }
+      continue
+    }
+    if (ch === '"') {
+      inString = true
+    } else if (ch === "{") {
+      stack.push("}")
+    } else if (ch === "[") {
+      stack.push("]")
+    } else if (ch === "}" || ch === "]") {
+      stack.pop()
+    }
+  }
+  if (inString) suffix += '"'
+  while (stack.length > 0) {
+    suffix += stack.pop()
+  }
+  try {
+    return JSON.parse(trimmed + suffix)
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * Parse assistant message text as a LumoDocument.
- * Invalid / legacy plain text falls back to a single text part.
+ * Supports strict Lumo JSON, flat OpenAI structured-output JSON, and
+ * partial JSON while a stream is in progress.
  */
-export function parseLumoDocument(input: string): LumoDocument {
+export function parseLumoDocument(
+  input: string,
+  options?: { streaming?: boolean },
+): LumoDocument {
   const trimmed = input.trim()
+  if (trimmed.length === 0) {
+    return { version: 1, parts: [{ type: "text", content: "" }] }
+  }
   if (!trimmed.startsWith("{")) {
     return { version: 1, parts: [{ type: "text", content: input }] }
   }
 
   try {
     const json: unknown = JSON.parse(trimmed)
-    const result = lumoDocumentSchema.safeParse(json)
-    if (result.success) {
-      return result.data
-    }
+    const doc = documentFromUnknown(json)
+    if (doc !== null) return doc
   } catch {
-    // fall through
+    // fall through to partial parse
+  }
+
+  if (options?.streaming) {
+    const partial = tryParsePartialJson(trimmed)
+    const doc = partial !== undefined ? documentFromUnknown(partial) : null
+    if (doc !== null) return doc
+    // Don't dump raw JSON mid-stream — show a quiet placeholder.
+    return { version: 1, parts: [{ type: "text", content: "" }] }
   }
 
   return { version: 1, parts: [{ type: "text", content: input }] }
