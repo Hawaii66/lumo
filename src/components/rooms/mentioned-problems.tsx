@@ -8,6 +8,7 @@ import {
   type ProblemMentionOption,
   type ResolvedDraftMention,
 } from "~/lib/chat-composer"
+import { useUiStore } from "~/stores/ui-store"
 import { cn } from "~/lib/utils"
 
 export type MentionedProblemsProps = {
@@ -66,6 +67,8 @@ export function MentionedProblems({
   className,
 }: MentionedProblemsProps) {
   const bubbleAlign = align ?? (draft ? "start" : "end")
+  const showFacit = useUiStore((s) => s.showFacit)
+  const setShowFacit = useUiStore((s) => s.setShowFacit)
   const mentions = useMemo(() => {
     if (mentionsProp) return mentionsProp
     if (text) return resolveDraftMentions(text, problemOptions)
@@ -145,7 +148,9 @@ export function MentionedProblems({
             ) : loaded ? (
               <ParsedProblemView
                 problem={loaded.problem}
-                showAnswer={false}
+                showAnswer={showFacit}
+                showFacitToggle
+                onShowAnswerChange={setShowFacit}
                 className="text-sm [&_h2]:text-base"
               />
             ) : (
