@@ -59,6 +59,8 @@ type ThreadChatProps = {
   deleteAt?: number | null
   mentionedProblemNumbers?: string[]
   onDeleted?: () => void
+  /** Increment to focus the composer (e.g. after starting a new chat). */
+  composerFocusSignal?: number
 }
 
 function collectThreadMentions(
@@ -425,6 +427,7 @@ export function ThreadChat({
   deleteAt = null,
   mentionedProblemNumbers = [],
   onDeleted,
+  composerFocusSignal,
 }: ThreadChatProps) {
   const { results, status } = useUIMessages(
     api.threads.listMessages,
@@ -667,6 +670,7 @@ export function ThreadChat({
         error={error}
         mode={mode}
         onModeChange={handleModeChange}
+        focusSignal={composerFocusSignal}
         onSubmit={async ({ prompt, images, problemIds, storageImages }) => {
           await sendPrompt(prompt, images, problemIds, storageImages)
         }}

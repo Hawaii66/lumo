@@ -96,6 +96,11 @@ type ChatInputProps = {
   mode?: ChatMode
   /** Persist mode change (thread). Optional — /läge still works locally for draft. */
   onModeChange?: (mode: ChatMode) => void | Promise<void>
+  /**
+   * Increment to request focus on the composer textarea (e.g. after starting
+   * a new chat). Values `undefined` / `0` are ignored.
+   */
+  focusSignal?: number
 }
 
 const MAX_IMAGES = 4
@@ -114,6 +119,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       defaultProblemId,
       mode,
       onModeChange,
+      focusSignal,
     },
     ref,
   ) {
@@ -259,6 +265,13 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (focusSignal === undefined || focusSignal < 1) return
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus()
+    })
+  }, [focusSignal])
 
   function openMathDialog(editId?: string) {
     if (editId === undefined && mathDrafts.length >= MAX_MATH_CHIPS) {

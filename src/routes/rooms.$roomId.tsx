@@ -52,6 +52,7 @@ function RoomPage() {
   const [selectedProblemId, setSelectedProblemId] =
     useState<Id<"problems"> | null>(null)
   const [creatingChat, setCreatingChat] = useState(false)
+  const [composerFocusSignal, setComposerFocusSignal] = useState(0)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
   const problemChatInputRef = useRef<ChatInputHandle>(null)
@@ -125,6 +126,7 @@ function RoomPage() {
         title,
       })
       openThread(result.threadId)
+      setComposerFocusSignal((n) => n + 1)
     } finally {
       setCreatingChat(false)
     }
@@ -334,6 +336,7 @@ function RoomPage() {
             deleteAt={selectedThread.deleteAt}
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
             onDeleted={() => setSelectedThreadId(null)}
+            composerFocusSignal={composerFocusSignal}
           />
         )}
       </main>

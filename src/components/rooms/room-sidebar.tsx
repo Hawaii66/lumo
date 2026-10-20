@@ -130,6 +130,16 @@ export function RoomSidebar({
                 role="tab"
                 aria-selected={active}
                 onClick={() => {
+                  // Re-clicking Chattar while already there starts a new chat
+                  // (same as the "Ny chatt" button above).
+                  if (
+                    item.id === "chats" &&
+                    active &&
+                    section === "chats"
+                  ) {
+                    onNewChat?.()
+                    return
+                  }
                   setListSection(item.id)
                   onSectionChange(item.id)
                 }}
