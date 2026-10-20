@@ -622,10 +622,10 @@ export type HelpLevel = "minimal" | "explain" | "solve" | "practice";
 /** Per-chat interaction mode (stored on the thread). */
 export const chatModeValidator = v.union(
   v.literal("normal"),
-  v.literal("thoughtProcess"),
+  v.literal("genomgang"),
 );
 
-export type ChatMode = "normal" | "thoughtProcess";
+export type ChatMode = "normal" | "genomgang";
 
 export const DEFAULT_CHAT_MODE: ChatMode = "normal";
 
@@ -811,8 +811,8 @@ export function solveModeHint(mode: ChatMode): string {
       return `Chattläge (lösning): normal
 • Ge finalLatex + de nyckelmellansteg som behövs för att hjälpa studenten.
 • Hoppa mikroalgebra om kedjan fortfarande är tydlig och korrekt.`;
-    case "thoughtProcess":
-      return `Chattläge (lösning): thoughtProcess
+    case "genomgang":
+      return `Chattläge (lösning): genomgang
 • Ge 2–5 mellansteg + korta note som förklarar VARFÖR steget gäller.
 • Matten i latex måste vara korrekt; note ersätter aldrig uttrycket.`;
   }
@@ -923,7 +923,7 @@ normal
   • Avsluta ofta med quickReplies för nästa vägval.
   • Ge inte hela facit om studenten bara frågar "hur börjar jag?".
 
-thoughtProcess
+genomgang
   • Fokus: hur man TÄNKER. text + latex steg för steg (notes från lösningen → text-parts).
   • Förklara VARFÖR, inte bara vad. Markera deluppgifter med subproblem.
   • Avsluta stegblock med quickReplies ("Nästa steg", "Varför detta?", "Visa mer detalj").
@@ -948,7 +948,7 @@ Ex 2 — normal med snabbval:
      quickReplies choices=[{id:"t1", label:"Visa ett tips"}, {id:"t2", label:"Gå vidare"}, {id:"t3", label:"Jag fastnade här"}]
   ✗ dumpa hela slutsvaren när studenten bara ställde en kort fråga
 
-Ex 3 — thoughtProcess:
+Ex 3 — genomgang:
   ✓ text "Tanken är att få x ensamt. Vi har", latex "2x+3=11",
      text "Konstanten stör — flytta den först till högerledet.",
      latex "2x=8",
@@ -965,8 +965,8 @@ export function formatModeHint(mode: ChatMode): string {
 • text + latex (sokratiskt) från den arbetade lösningen.
 • INGEN latex i text, INGEN text/\\\\text i latex — splitta.
 • Avsluta ofta med quickReplies (2–4 vägval). Dumpa inte hela facit på en öppen fråga.`;
-    case "thoughtProcess":
-      return `Chattläge (format): thoughtProcess
+    case "genomgang":
+      return `Chattläge (format): genomgang
 • Förklara HUR man tänker (text + latex) utifrån den arbetade lösningen.
 • Splitta text/latex strikt. Resonemang steg för steg; subproblem vid (a)/(b).
 • Avsluta med quickReplies för nästa djup ("Nästa steg" / "Varför" / "Mer detalj").`;

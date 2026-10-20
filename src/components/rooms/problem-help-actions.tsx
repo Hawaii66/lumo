@@ -33,9 +33,9 @@ const ACTIONS: Array<{
   needsPhoto: boolean
 }> = [
   {
-    id: "thoughtProcess",
-    label: "Tankegång",
-    description: "Hur man tänker steg för steg",
+    id: "genomgang",
+    label: "Genomgång",
+    description: "Gå igenom uppgiften steg för steg",
     icon: Lightbulb,
     needsPhoto: false,
   },

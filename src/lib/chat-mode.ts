@@ -5,9 +5,9 @@ export const CHAT_MODES = [
     description: "Vanlig hjälp — ställ frågor och välj väg",
   },
   {
-    value: "thoughtProcess",
-    label: "Tankegång",
-    description: "Förklara hur man tänker steg för steg",
+    value: "genomgang",
+    label: "Genomgång",
+    description: "Gå igenom uppgiften steg för steg",
   },
 ] as const
 
@@ -31,8 +31,8 @@ export function buildModeStartPrompt(
   const mention = problemNumber.trim() ? `@${problemNumber.trim()}` : ""
   const body = (() => {
     switch (mode) {
-      case "thoughtProcess":
-        return "Förklara tankegången — hur man tänker steg för steg."
+      case "genomgang":
+        return "Gå igenom uppgiften steg för steg och förklara hur man tänker."
       case "normal":
         return "Hjälp mig med den här uppgiften."
     }

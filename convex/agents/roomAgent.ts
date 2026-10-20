@@ -185,7 +185,7 @@ ${workedBlock}
 □ Prosa runt matte är splittrad: text / latex / text
 □ Matte kommer från den arbetade lösningen ovan
 □ Avsluta ofta med quickReplies (2–4 vägval)
-□ Chattläget följs (normal/thoughtProcess)
+□ Chattläget följs (normal/genomgang)
 `,
       },
       {
