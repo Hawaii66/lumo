@@ -176,3 +176,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes stream-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 0.9;
+    transform: translateY(-1.5px);
+  }
+}
+
+@utility animate-stream-dot {
+  animation: stream-dot 1.05s ease-in-out infinite;
+}
