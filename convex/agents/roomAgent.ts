@@ -46,9 +46,22 @@ function buildProblemContext(
       problem.answerText.length > 0
         ? problem.answerText
         : "(inget facit i källan)";
-    return `Uppgift ${problem.problemNumber}:\nFråga: ${problem.questionText}\nFacit (sträva mot samma svar som boken; bygg korrekta mellansteg dit): ${answer}`;
+    return [
+      `Uppgift ${problem.problemNumber}`,
+      `Fråga: ${problem.questionText}`,
+      `Facit från boken: ${answer}`,
+      "Krav: finalLatex MÅSTE matcha facit. Bygg korrekta mellansteg dit (tecken/parenteser).",
+    ].join("\n");
   });
-  return `\n\nStudenten refererar till följande uppgifter:\n\n${blocks.join("\n\n")}`;
+  return [
+    "",
+    "════════════════════════════════════════",
+    "UPPGIFTSKONTEXT (studenten refererar hit)",
+    "════════════════════════════════════════",
+    "Lös det studenten frågar om i denna kontext. Om flera (a)/(b) finns: bara de som behövs.",
+    "",
+    blocks.join("\n\n"),
+  ].join("\n");
 }
 
 function parseFormatDocument(formatText: string): LumoDocument {
@@ -122,8 +135,19 @@ export const generateResponse = internalAction({
         schema: workedSolutionSchema,
         schemaName: "WorkedSolution",
         schemaDescription:
-          "Arbetad lösning: subproblems med helt ifyllda latex-steg och finalLatex. Inga placeholders.",
-        system: `${LUMO_SOLVE_INSTRUCTIONS}\n\n${solveModeHint(mode)}${problemContext}`,
+          "Korrekt arbetad lösning: subproblems med math-only latex-steg + finalLatex (matcha facit). Inga placeholders, ingen svenska i latex.",
+        system: `${LUMO_SOLVE_INSTRUCTIONS}
+
+${solveModeHint(mode)}${problemContext}
+
+--- VERIFIERA TYST INNAN DU SVARAR ---
+□ Du svarar på det studenten frågade (rätt deluppgifter)
+□ finalLatex matchar facit när facit finns
+□ Varje steps[].latex är ren matematik (ingen svenska, inget \\\\text)
+□ note är ren prosa eller "" (ingen TeX)
+□ Minus framför parentes: tecken bytt exakt en gång per term
+□ Kedjan steps → finalLatex är algebraiskt ekvivalent
+`,
       },
       {
         storageOptions: { saveMessages: "none" },
@@ -143,9 +167,28 @@ export const generateResponse = internalAction({
           schema: lumoDocumentAzureSchema,
           name: "LumoDocument",
           description:
-            "Lumo-svar: text/latex/fillBlank/solution/quickReplies/subproblem/case. Oanvända fält = tom sträng eller tom array.",
+            "Lumo-svar: text=svenska (aldrig TeX), latex=matte (aldrig svenska/\\\\text). fillBlank/solution/quickReplies/subproblem/case. Oanvända fält = \"\" / [].",
         }),
-        system: `${LUMO_FORMAT_INSTRUCTIONS}\n\n${formatModeHint(mode)}\n\nINTERNT ARBETAD LÖSNING (källa till sanning — kopiera/lucka, omräkna inte):\n${workedBlock}`,
+        system: `${LUMO_FORMAT_INSTRUCTIONS}
+
+${formatModeHint(mode)}
+
+════════════════════════════════════════
+INTERNT ARBETAD LÖSNING (källa till sanning)
+════════════════════════════════════════
+Kopiera / lucka ur dessa uttryck. OMRÄKNA INTE.
+
+${workedBlock}
+
+--- VERIFIERA TYST INNAN DU SVARAR ---
+□ type=text: ingen \\\\ / matematik  |  type=latex + problemLatex + solvedLatex: ingen svenska / \\\\text
+□ Prosa runt matte är splittrad: text / latex / text
+□ solution.latex är "" ; problemLatex är ren matematik
+□ Varje \\\\placeholder[id]{} har {} direkt efter ] och matchande prompt
+□ Ersätt placeholders med answers → får exakt solvedLatex
+□ solvedLatex / answers kommer från den arbetade lösningen ovan
+□ Chattläget följs (normal/fillBlank/thoughtProcess/answerBoxes)
+`,
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
