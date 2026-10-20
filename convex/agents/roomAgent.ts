@@ -135,7 +135,7 @@ export const generateResponse = internalAction({
         schema: workedSolutionSchema,
         schemaName: "WorkedSolution",
         schemaDescription:
-          "Korrekt arbetad lösning: subproblems med math-only latex-steg + finalLatex (matcha facit). Inga placeholders, ingen svenska i latex.",
+          "Korrekt arbetad lösning: subproblems med math-only latex-steg + finalLatex (matcha facit). Ingen svenska i latex.",
         system: `${LUMO_SOLVE_INSTRUCTIONS}
 
 ${solveModeHint(mode)}${problemContext}
@@ -167,7 +167,7 @@ ${solveModeHint(mode)}${problemContext}
           schema: lumoDocumentAzureSchema,
           name: "LumoDocument",
           description:
-            "Lumo-svar: text=svenska (aldrig TeX), latex=matte (aldrig svenska/\\\\text). fillBlank/solution/quickReplies/subproblem/case. Oanvända fält = \"\" / [].",
+            "Lumo-svar: text=svenska (aldrig TeX), latex=matte (aldrig svenska/\\\\text). quickReplies/subproblem/case. Oanvända fält = \"\" / [].",
         }),
         system: `${LUMO_FORMAT_INSTRUCTIONS}
 
@@ -176,18 +176,16 @@ ${formatModeHint(mode)}
 ════════════════════════════════════════
 INTERNT ARBETAD LÖSNING (källa till sanning)
 ════════════════════════════════════════
-Kopiera / lucka ur dessa uttryck. OMRÄKNA INTE.
+Kopiera dessa uttryck. OMRÄKNA INTE.
 
 ${workedBlock}
 
 --- VERIFIERA TYST INNAN DU SVARAR ---
-□ type=text: ingen \\\\ / matematik  |  type=latex + problemLatex + solvedLatex: ingen svenska / \\\\text
+□ type=text: ingen \\\\ / matematik  |  type=latex: ingen svenska / \\\\text
 □ Prosa runt matte är splittrad: text / latex / text
-□ solution.latex är "" ; problemLatex är ren matematik
-□ Varje \\\\placeholder[id]{} har {} direkt efter ] och matchande prompt
-□ Ersätt placeholders med answers → får exakt solvedLatex
-□ solvedLatex / answers kommer från den arbetade lösningen ovan
-□ Chattläget följs (normal/fillBlank/thoughtProcess/answerBoxes)
+□ Matte kommer från den arbetade lösningen ovan
+□ Avsluta ofta med quickReplies (2–4 vägval)
+□ Chattläget följs (normal/genomgang)
 `,
       },
       {

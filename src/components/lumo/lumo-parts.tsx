@@ -1,7 +1,5 @@
 import type { LumoDocument, LumoPart } from "~/lib/lumo-content"
-import { FillInBlankFromPart } from "~/components/lumo/fill-in-blank"
 import { QuickReplies } from "~/components/lumo/quick-replies"
-import { SolutionStepsFromPart } from "~/components/lumo/solution-steps"
 import { StaticMath } from "~/components/lumo/static-math"
 import { cn } from "~/lib/utils"
 
@@ -28,10 +26,6 @@ function PartView({
       return (
         <StaticMath latex={part.content} display={part.display ?? "block"} />
       )
-    case "fillBlank":
-      return <FillInBlankFromPart part={part} />
-    case "solution":
-      return <SolutionStepsFromPart part={part} />
     case "quickReplies":
       if (!onQuickReply) return null
       return (

@@ -1,9 +1,4 @@
-import {
-  Lightbulb,
-  PenLine,
-  ScanSearch,
-  SquarePen,
-} from "lucide-react"
+import { Lightbulb, ScanSearch } from "lucide-react"
 import { useState } from "react"
 import type { Id } from "../../../convex/_generated/dataModel"
 import {
@@ -38,24 +33,10 @@ const ACTIONS: Array<{
   needsPhoto: boolean
 }> = [
   {
-    id: "fillBlank",
-    label: "Fyll i luckorna",
-    description: "Guidad lösning med luckor",
-    icon: SquarePen,
-    needsPhoto: false,
-  },
-  {
-    id: "thoughtProcess",
-    label: "Tankegång",
-    description: "Hur man tänker steg för steg",
+    id: "genomgang",
+    label: "Genomgång",
+    description: "Gå igenom uppgiften steg för steg",
     icon: Lightbulb,
-    needsPhoto: false,
-  },
-  {
-    id: "answerBoxes",
-    label: "Svarsrutor",
-    description: "Svara själv i rutor",
-    icon: PenLine,
     needsPhoto: false,
   },
   {
@@ -75,11 +56,14 @@ export function ProblemHelpActions({
   className,
 }: ProblemHelpActionsProps) {
   const [qrOpen, setQrOpen] = useState(false)
-  const [localPending, setLocalPending] = useState<ChatMode | "scan" | null>(
-    null,
-  )
+  const [localPending, setLocalPending] = useState<
+    Exclude<ChatMode, "normal"> | "scan" | null
+  >(null)
 
-  async function start(draft: ProblemHelpStartDraft, pendingKey: ChatMode | "scan") {
+  async function start(
+    draft: ProblemHelpStartDraft,
+    pendingKey: Exclude<ChatMode, "normal"> | "scan",
+  ) {
     if (pending || localPending !== null) return
     setLocalPending(pendingKey)
     try {
@@ -93,17 +77,16 @@ export function ProblemHelpActions({
 
   function handleActionClick(action: (typeof ACTIONS)[number]) {
     if (busy) return
-    if (action.needsPhoto) {
+    if (action.id === "scan" || action.needsPhoto) {
       setQrOpen(true)
       return
     }
-    const mode = action.id as Exclude<ChatMode, "normal">
     void start(
       {
-        mode,
-        prompt: buildModeStartPrompt(mode, problemNumber),
+        mode: action.id,
+        prompt: buildModeStartPrompt(action.id, problemNumber),
       },
-      mode,
+      action.id,
     )
   }
 
