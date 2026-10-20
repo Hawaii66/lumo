@@ -50,7 +50,7 @@ export const convertDocumentInfo = internalAction({
         schema: infoResultSchema,
         schemaName: "PdfInfo",
         schemaDescription:
-          "Kursövergripande AI-styrning (metoder, policy) — inte uppgifter; tom text om bara övningar",
+          "Förväntade matematiska metoder i kursen — inte uppgifter eller AI-regler; tom text om inga metodråd",
         prompt: buildInfoConvertPrompt(documentText),
       },
       {

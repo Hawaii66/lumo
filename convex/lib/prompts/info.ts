@@ -4,37 +4,38 @@ import { sections } from "./fragments";
 export const PDF_INFO_MAX_LENGTH = 2000;
 
 /**
- * Agent instructions: PDF/OCR → course-level AI steering notes.
+ * Agent instructions: PDF/OCR → expected course methods / techniques.
  * Not problem extraction — that is a separate pipeline.
  */
 export const LUMO_INFO_INSTRUCTIONS = sections(
-  `Du läser rå OCR-text från en PDF och ska hitta KURSÖVERGRIPANDE styrning
-för en AI-assistent i ett rum (t.ex. kurs, föreläsning, labb-miljö).
+  `Du läser rå OCR-text från en PDF och ska sammanfatta vilka MATEMATISKA
+METODER och tillvägagångssätt som förväntas i kursen / materialet.
 
-Detta är INTE uppgiftstolkning. Du ska INTE återberätta, lista eller lösa
-matematikuppgifter. Du ska bara ta fram hur AI:n ska bete sig i kursen.
-
-════════════════════════════════════════
-VAD DU SKA TA FRÅN TEXTEN (kursnivå)
-════════════════════════════════════════
-• Föredragna metoder / strategier (t.ex. "föredra substitution framför …")
-• Notation, konventioner, tillåtna / förbjudna verktyg
-• Hur AI:n ska hjälpa (t.ex. ledtrådar först, inte ge facit direkt)
-• Kurskontext: kurskod, mål, vad som ingår / inte ingår
-• Allmänna rekommendationer, policyer, bedömningsråd som gäller HELA kursen
-• Instruktioner riktade till lärare/studenter som styr hur man arbetar
+Detta är INTE uppgiftstolkning och INTE AI-beteenderegler. Du ska INTE
+återberätta uppgifter, och du ska INTE skriva om vad en assistent får/inte
+får göra (ledtrådar, facit, ton, osv.).
 
 ════════════════════════════════════════
-VAD DU MÅSTE IGNORERA (uppgiftsnivå)
+VAD DU SKA TA FRÅN TEXTEN
+════════════════════════════════════════
+• Metoder som ska användas eller prioriteras (t.ex. substitution, partialbråk,
+  induktion, egenvärden, …)
+• När en metod passar / när en annan ska väljas i stället
+• Standardansatser, rekommenderade lösningssätt, "gör så här"-råd på metodnivå
+• Notation och konventioner som hör till metoderna (om de står i texten)
+• Kurs-/kapitelkontext som förklarar vilka tekniker som ingår
+
+════════════════════════════════════════
+VAD DU MÅSTE IGNORERA
 ════════════════════════════════════════
 • Enskilda uppgifter (P 1.1, (a)/(b), "beräkna", "visa att", …)
-• Uppgiftstext, deluppgifter, givna uttryck, villkor för EN uppgift
-• Facit, lösningar, mellansteg till ett specifikt problem
-• Svarstabeller, övningslistor, "räkna ut följande"
-• Sidhuvuden/sidnummer/layout, upprepade uppgiftsmallar
+• Uppgiftstext, givna uttryck, villkor för EN uppgift
+• Facit, lösningar och mellansteg till specifika problem
+• Regler för hur en AI/lärare ska hjälpa studenten
+• Sidhuvuden/sidnummer/layout, rena övningslistor utan metodråd
 
-Om PDF:en BARA innehåller uppgifter/övningar utan kursövergripande
-instruktioner: returnera tom text "". Hitta inte på kursregler.
+Om PDF:en BARA innehåller uppgifter utan metodråd: returnera tom text "".
+Hitta inte på metoder.
 
 ════════════════════════════════════════
 OUTPUT
@@ -42,12 +43,12 @@ OUTPUT
 Svara med ETT JSON-objekt:
 { "text": "…" }
 
-• text: svenska, ren prosa — handlingsbara styrsignaler till AI:n.
-• Skriv som rumskontext: "Föredra …", "Använd …", "Undvik …", "Kursen …".
+• text: svenska, ren prosa — vilka metoder som förväntas.
+• Formulera som metodråd: "Använd …", "Föredra … framför …", "Vid … passa …".
 • Strukturera med korta stycken eller punktlistor (radbrytningar OK).
-• Max cirka ${PDF_INFO_MAX_LENGTH} tecken. Prioritera det som gäller hela kursen.
+• Max cirka ${PDF_INFO_MAX_LENGTH} tecken.
 • Hitta inte på innehåll som inte finns i källan.
-• Om inget kursövergripande finns: { "text": "" }.`,
+• Om inga metodråd finns: { "text": "" }.`,
 );
 
 /** User prompt for one full-document info convert. */
@@ -58,9 +59,9 @@ export function buildInfoConvertPrompt(documentText: string): string {
       : documentText;
 
   return sections(
-    `Extrahera ENDAST kursövergripande styrning för AI:n i rummet.
-Ignorera alla matematikuppgifter, facit och övningsinnehåll.
-Om dokumentet bara är uppgifter → text = "".`,
+    `Extrahera ENDAST vilka metoder/tillvägagångssätt som förväntas.
+Ignorera uppgifter, facit och AI-/hjälpregler.
+Om dokumentet saknar metodråd → text = "".`,
     "─── OCR ───",
     clipped,
     "─── SLUT ───",

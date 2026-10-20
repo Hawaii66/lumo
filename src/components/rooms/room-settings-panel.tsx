@@ -274,10 +274,9 @@ export function RoomSettingsPanel({ roomId }: RoomSettingsPanelProps) {
             <CardHeader>
               <CardTitle>Kursinformation från PDF:er</CardTitle>
               <CardDescription>
-                Kursövergripande styrning för AI:n (metoder, policy, kontext) —
-                inte enskilda uppgifter. Tolka under Filer → Tolka → Tolka
-                kursinformation. Cellerna kan inte redigeras; ta bort hela
-                cellen om den inte ska användas.
+                Vilka metoder som förväntas i kursen (inte enskilda uppgifter).
+                Tolka under Filer → Tolka → Tolka kursinformation. Cellerna kan
+                inte redigeras; ta bort hela cellen om den inte ska användas.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
