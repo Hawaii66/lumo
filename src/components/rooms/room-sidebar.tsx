@@ -8,6 +8,7 @@ import {
   MessageSquarePlus,
   Pin,
   Search,
+  Settings,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "~/components/ui/button"
@@ -41,6 +42,7 @@ export type RoomSidebarProps = {
   section: RoomSidebarSection
   onSectionChange: (section: RoomSidebarSection) => void
   onBack?: () => void
+  onSettings?: () => void
   onNewChat?: () => void
   chats: RoomSidebarChatItem[]
   selectedChatId: string | null
@@ -65,6 +67,7 @@ export function RoomSidebar({
   section,
   onSectionChange,
   onBack,
+  onSettings,
   onNewChat,
   chats,
   selectedChatId,
@@ -94,9 +97,22 @@ export function RoomSidebar({
             Tillbaka
           </Button>
         ) : null}
-        <h1 className="truncate text-base font-medium leading-snug">
-          {roomName}
-        </h1>
+        <div className="flex items-start gap-1">
+          <h1 className="min-w-0 flex-1 truncate text-base font-medium leading-snug">
+            {roomName}
+          </h1>
+          {onSettings ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="shrink-0 text-muted-foreground"
+              aria-label="Ruminställningar"
+              onClick={onSettings}
+            >
+              <Settings />
+            </Button>
+          ) : null}
+        </div>
         <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">
           {roomDescription}
         </p>

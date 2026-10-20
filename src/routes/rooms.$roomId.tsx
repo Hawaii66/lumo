@@ -220,6 +220,12 @@ function RoomPage() {
           if (next !== "problems") setSelectedProblemId(null)
         }}
         onBack={() => void navigate({ to: "/" })}
+        onSettings={() =>
+          void navigate({
+            to: "/rooms/$roomId/settings",
+            params: { roomId },
+          })
+        }
         onNewChat={() => void handleNewChat()}
         chats={chatItems}
         selectedChatId={section === "chats" ? selectedThreadId : null}
