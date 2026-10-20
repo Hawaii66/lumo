@@ -8,6 +8,7 @@ import {
   MessageSquarePlus,
   Pin,
   Search,
+  Settings,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "~/components/ui/button"
@@ -15,7 +16,7 @@ import { Input } from "~/components/ui/input"
 import { cn } from "~/lib/utils"
 
 export type RoomSidebarListSection = "chats" | "problems"
-export type RoomSidebarSection = RoomSidebarListSection | "files"
+export type RoomSidebarSection = RoomSidebarListSection | "files" | "settings"
 
 export type RoomSidebarChatItem = {
   id: string
@@ -78,7 +79,7 @@ export function RoomSidebar({
 
   // Keep list tab in sync when parent switches to chats/problems.
   const activeListSection =
-    section === "files" ? listSection : section
+    section === "files" || section === "settings" ? listSection : section
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
@@ -177,7 +178,7 @@ export function RoomSidebar({
         )}
       </div>
 
-      <div className="border-t border-sidebar-border p-2">
+      <div className="flex flex-col gap-0.5 border-t border-sidebar-border p-2">
         <Button
           variant="ghost"
           size="sm"
@@ -190,6 +191,19 @@ export function RoomSidebar({
         >
           <FolderOpen />
           Filer
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            "w-full justify-start gap-1.5",
+            section === "settings" &&
+              "bg-sidebar-accent text-sidebar-accent-foreground",
+          )}
+          onClick={() => onSectionChange("settings")}
+        >
+          <Settings />
+          Inställningar
         </Button>
       </div>
     </aside>

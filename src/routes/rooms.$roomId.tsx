@@ -23,6 +23,7 @@ import {
   RoomSidebar,
   type RoomSidebarSection,
 } from "~/components/rooms/room-sidebar"
+import { RoomSettingsPanel } from "~/components/rooms/room-settings-panel"
 import { ThreadChat } from "~/components/rooms/thread-chat"
 import { Button } from "~/components/ui/button"
 import { uploadFileToStorage } from "~/lib/upload"
@@ -246,6 +247,10 @@ function RoomPage() {
         {section === "files" ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
             <FilesGrid roomId={typedRoomId} />
+          </div>
+        ) : section === "settings" ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <RoomSettingsPanel roomId={typedRoomId} />
           </div>
         ) : section === "problems" ? (
           selectedProblemId === null ? (

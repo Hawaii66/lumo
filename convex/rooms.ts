@@ -1,8 +1,10 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import { requireRoomMember } from "./lib/roomAuth";
 import { mutation, query } from "./_generated/server";
 
 const MAX_FIELD_LENGTH = 50;
+const MAX_GENERAL_INFO_LENGTH = 4000;
 const MAX_ROOMS = 100;
 
 function trimField(value: string, label: string): string {
@@ -16,8 +18,29 @@ function trimField(value: string, label: string): string {
   return trimmed;
 }
 
+function normalizeGeneralInfo(value: string): string {
+  if (value.length > MAX_GENERAL_INFO_LENGTH) {
+    throw new Error(
+      `Allmän information får vara högst ${MAX_GENERAL_INFO_LENGTH} tecken`,
+    );
+  }
+  return value.trimEnd();
+}
+
+const roomSummaryValidator = v.object({
+  _id: v.id("rooms"),
+  _creationTime: v.number(),
+  name: v.string(),
+  description: v.string(),
+});
+
+const roomDetailValidator = roomSummaryValidator.extend({
+  generalInfo: v.string(),
+});
+
 export const list = query({
   args: {},
+  returns: v.array(roomSummaryValidator),
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -48,6 +71,7 @@ export const list = query({
 
 export const get = query({
   args: { roomId: v.id("rooms") },
+  returns: v.union(roomDetailValidator, v.null()),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -75,6 +99,7 @@ export const get = query({
       _creationTime: room._creationTime,
       name: room.name,
       description: room.description,
+      generalInfo: room.generalInfo ?? "",
     };
   },
 });
@@ -84,6 +109,7 @@ export const create = mutation({
     name: v.string(),
     description: v.string(),
   },
+  returns: v.id("rooms"),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -104,5 +130,19 @@ export const create = mutation({
     });
 
     return roomId;
+  },
+});
+
+export const updateGeneralInfo = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    generalInfo: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+    const generalInfo = normalizeGeneralInfo(args.generalInfo);
+    await ctx.db.patch(args.roomId, { generalInfo });
+    return null;
   },
 });
