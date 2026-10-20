@@ -75,7 +75,7 @@ type ThreadChatProps = {
   deletionExpiry?: ChatDeletionExpiry
   deleteAt?: number | null
   mentionedProblemNumbers?: string[]
-  onDeleted?: () => void
+  onArchived?: () => void
   /** Increment to focus the composer (e.g. after starting a new chat). */
   composerFocusSignal?: number
 }
@@ -490,7 +490,7 @@ export function ThreadChat({
   deletionExpiry = DEFAULT_CHAT_DELETION_EXPIRY,
   deleteAt = null,
   mentionedProblemNumbers = [],
-  onDeleted,
+  onArchived,
   composerFocusSignal,
 }: ThreadChatProps) {
   const { results, status } = useUIMessages(
@@ -504,7 +504,7 @@ export function ThreadChat({
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const setMode = useMutation(api.threads.setMode)
   const setDeletionExpiry = useMutation(api.threads.setDeletionExpiry)
-  const removeThread = useMutation(api.threads.remove)
+  const archiveThread = useMutation(api.threads.archive)
   const sendMessage = useMutation(api.threads.sendMessage).withOptimisticUpdate(
     (store, args) => {
       optimisticallySendMessage(api.threads.listMessages)(store, {
@@ -705,20 +705,22 @@ export function ThreadChat({
       await setDeletionExpiry({ roomId, threadId, deletionExpiry: next })
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Kunde inte byta raderingstid",
+        err instanceof Error ? err.message : "Kunde inte byta arkiveringstid",
       )
     } finally {
       setExpiryPending(false)
     }
   }
 
-  async function handleDeleteNow() {
+  async function handleArchiveNow() {
     setError(null)
     try {
-      await removeThread({ roomId, threadId })
-      onDeleted?.()
+      await archiveThread({ roomId, threadId })
+      onArchived?.()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte radera chatten")
+      setError(
+        err instanceof Error ? err.message : "Kunde inte arkivera chatten",
+      )
       throw err
     }
   }
@@ -751,7 +753,7 @@ export function ThreadChat({
               onChange={(next) => {
                 void handleDeletionExpiryChange(next)
               }}
-              onDeleteNow={handleDeleteNow}
+              onArchiveNow={handleArchiveNow}
               disabled={expiryPending || pending}
             />
           </div>

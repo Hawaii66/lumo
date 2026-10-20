@@ -340,7 +340,7 @@ function RoomPage() {
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
-            onDeleted={() => setSelectedThreadId(null)}
+            onArchived={() => setSelectedThreadId(null)}
             composerFocusSignal={composerFocusSignal}
           />
         )}

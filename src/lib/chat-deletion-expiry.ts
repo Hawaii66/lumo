@@ -2,17 +2,17 @@ export const CHAT_DELETION_EXPIRIES = [
   {
     value: "1h",
     label: "1 timme",
-    description: "Chatten raderas efter 1 timme",
+    description: "Chatten arkiveras efter 1 timme",
   },
   {
     value: "3h",
     label: "3 timmar",
-    description: "Chatten raderas efter 3 timmar",
+    description: "Chatten arkiveras efter 3 timmar",
   },
   {
     value: "infinite",
     label: "Aldrig",
-    description: "Chatten behålls tills du tar bort den",
+    description: "Chatten behålls tills du arkiverar den",
   },
 ] as const
 

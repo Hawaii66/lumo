@@ -1,4 +1,4 @@
-import { ChevronDown, Trash2 } from "lucide-react"
+import { Archive, ChevronDown } from "lucide-react"
 import { useEffect, useId, useRef, useState } from "react"
 import { Button } from "~/components/ui/button"
 import {
@@ -21,8 +21,8 @@ type ChatDeletionExpiryPickerProps = {
   value: ChatDeletionExpiry
   deleteAt?: number | null
   onChange: (expiry: ChatDeletionExpiry) => void
-  /** Confirm “delete now”. */
-  onDeleteNow?: () => void | Promise<void>
+  /** Confirm “archive now”. */
+  onArchiveNow?: () => void | Promise<void>
   disabled?: boolean
   className?: string
 }
@@ -31,14 +31,14 @@ export function ChatDeletionExpiryPicker({
   value,
   deleteAt = null,
   onChange,
-  onDeleteNow,
+  onArchiveNow,
   disabled = false,
   className,
 }: ChatDeletionExpiryPickerProps) {
   const [now, setNow] = useState(() => Date.now())
   const [menuOpen, setMenuOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deletePending, setDeletePending] = useState(false)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [archivePending, setArchivePending] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const listId = useId()
 
@@ -71,14 +71,14 @@ export function ChatDeletionExpiryPicker({
 
   const triggerLabel = deletionExpiryTriggerLabel(value, deleteAt, now)
 
-  async function confirmDeleteNow() {
-    if (deletePending) return
-    setDeletePending(true)
+  async function confirmArchiveNow() {
+    if (archivePending) return
+    setArchivePending(true)
     try {
-      await onDeleteNow?.()
-      setDeleteOpen(false)
+      await onArchiveNow?.()
+      setArchiveOpen(false)
     } finally {
-      setDeletePending(false)
+      setArchivePending(false)
     }
   }
 
@@ -90,9 +90,11 @@ export function ChatDeletionExpiryPicker({
         className,
       )}
       role="group"
-      aria-label="När chatten raderas"
+      aria-label="När chatten arkiveras"
     >
-      <span className="text-xs font-medium text-muted-foreground">Raderas</span>
+      <span className="text-xs font-medium text-muted-foreground">
+        Arkiveras
+      </span>
       <div className="relative">
         <button
           type="button"
@@ -100,7 +102,7 @@ export function ChatDeletionExpiryPicker({
           aria-haspopup="listbox"
           aria-expanded={menuOpen}
           aria-controls={listId}
-          aria-label="När chatten ska raderas"
+          aria-label="När chatten ska arkiveras"
           onClick={() => setMenuOpen((prev) => !prev)}
           className={cn(
             "inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground tabular-nums",
@@ -116,7 +118,7 @@ export function ChatDeletionExpiryPicker({
           <ul
             id={listId}
             role="listbox"
-            aria-label="Välj raderingstid"
+            aria-label="Välj arkiveringstid"
             className="absolute right-0 z-20 mt-1 min-w-full overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md"
           >
             {CHAT_DELETION_EXPIRIES.map((option) => {
@@ -147,30 +149,30 @@ export function ChatDeletionExpiryPicker({
 
       <button
         type="button"
-        disabled={disabled || deletePending}
-        aria-label="Radera chatten nu"
-        title="Radera nu"
+        disabled={disabled || archivePending}
+        aria-label="Arkivera chatten nu"
+        title="Arkivera nu"
         onClick={() => {
           setMenuOpen(false)
-          setDeleteOpen(true)
+          setArchiveOpen(true)
         }}
         className={cn(
           "inline-flex size-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground",
-          "hover:bg-destructive/10 hover:text-destructive",
+          "hover:bg-muted hover:text-foreground",
           "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
           "disabled:pointer-events-none disabled:opacity-50",
         )}
       >
-        <Trash2 className="size-3.5" />
+        <Archive className="size-3.5" />
       </button>
 
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
         <DialogContent showCloseButton={false} className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Radera chatten?</DialogTitle>
+            <DialogTitle>Arkivera chatten?</DialogTitle>
             <DialogDescription>
-              Chatten och alla meddelanden tas bort direkt. Det går inte att
-              ångra.
+              Chatten flyttas till arkivet under Inställningar. Du kan återställa
+              den senare.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -178,13 +180,12 @@ export function ChatDeletionExpiryPicker({
               Avbryt
             </DialogClose>
             <Button
-              variant="destructive"
-              disabled={deletePending}
+              disabled={archivePending}
               onClick={() => {
-                void confirmDeleteNow()
+                void confirmArchiveNow()
               }}
             >
-              {deletePending ? "Raderar…" : "Radera nu"}
+              {archivePending ? "Arkiverar…" : "Arkivera"}
             </Button>
           </DialogFooter>
         </DialogContent>
