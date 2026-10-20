@@ -171,8 +171,29 @@ export const remove = mutation({
 
     await requireRoomMember(ctx, file.roomId);
 
+    const roomId = file.roomId;
+    const contentHash = file.contentHash;
+
     await ctx.storage.delete(file.storageId);
     await ctx.db.delete(args.fileId);
+
+    // Drop in-use info cell if this room has no other file with the same hash.
+    const remaining = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", roomId))
+      .take(MAX_FILES_PER_ROOM);
+    const stillHasHash = remaining.some((f) => f.contentHash === contentHash);
+    if (!stillHasHash) {
+      const link = await ctx.db
+        .query("cellsInUseByRoom")
+        .withIndex("by_room_and_contentHash", (q) =>
+          q.eq("roomId", roomId).eq("contentHash", contentHash),
+        )
+        .first();
+      if (link !== null) {
+        await ctx.db.delete(link._id);
+      }
+    }
     return null;
   },
 });

@@ -20,6 +20,8 @@ type ParsePdfDialogProps = {
   fileName: string
 }
 
+type ParseKind = "problems" | "info"
+
 function formatTime(at: number) {
   return new Date(at).toLocaleTimeString("sv-SE", {
     hour: "2-digit",
@@ -49,7 +51,7 @@ function parseAgentProgress(
 
 export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
   const [open, setOpen] = useState(false)
-  const [starting, setStarting] = useState(false)
+  const [startingKind, setStartingKind] = useState<ParseKind | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const status = useQuery(
@@ -58,24 +60,15 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
   )
   const startParse = useMutation(api.PDFParse.jobs.start)
 
-  const job = status?.job ?? null
-  const alreadyParsed = status?.alreadyParsed ?? false
-  const problemCount = status?.problemCount ?? 0
-  const jobActive =
-    job !== null && (job.status === "pending" || job.status === "running")
-  const canStart = status !== undefined && !alreadyParsed && !jobActive
-  const agentProgress =
-    job !== null ? parseAgentProgress(job.statusUpdates) : null
-
-  async function handleStart() {
+  async function handleStart(kind: ParseKind) {
     setError(null)
-    setStarting(true)
+    setStartingKind(kind)
     try {
-      await startParse({ fileId })
+      await startParse({ fileId, kind })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kunde inte starta tolkning")
     } finally {
-      setStarting(false)
+      setStartingKind(null)
     }
   }
 
@@ -91,9 +84,9 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
         <ScanSearch />
         Tolka
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Tolka uppgifter</DialogTitle>
+          <DialogTitle>Tolka PDF</DialogTitle>
           <DialogDescription className="truncate" title={fileName}>
             {fileName}
           </DialogDescription>
@@ -101,71 +94,102 @@ export function ParsePdfDialog({ fileId, fileName }: ParsePdfDialogProps) {
 
         {status === undefined ? (
           <p className="text-sm text-muted-foreground">Hämtar status…</p>
-        ) : alreadyParsed ? (
+        ) : status === null ? (
           <p className="text-sm text-muted-foreground">
-            Denna PDF är redan tolkad.{" "}
-            {problemCount === 1
-              ? "1 uppgift skapades från PDF:en."
-              : `${problemCount} uppgifter skapades från PDF:en.`}
+            PDF-filen hittades inte.
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {job === null ? (
-              <p className="text-sm text-muted-foreground">
-                Ingen tolkning har körts för denna PDF ännu.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium">
-                  {job.status === "failed"
-                    ? "Misslyckades"
-                    : job.status === "pending"
-                      ? "Väntar…"
-                      : agentProgress !== null
-                        ? `Pågår… ${agentProgress.completed}/${agentProgress.total} (${agentProgress.percent}%)`
-                        : "Pågår…"}
-                </p>
-                <ul className="max-h-48 space-y-1.5 overflow-y-auto rounded-md border border-border bg-muted/30 p-3">
-                  {job.statusUpdates.map((update, index) => (
-                    <li
-                      key={`${update.at}-${index}`}
-                      className="flex gap-2 text-sm"
-                    >
-                      <span className="shrink-0 tabular-nums text-muted-foreground">
-                        {formatTime(update.at)}
-                      </span>
-                      <span>{update.message}</span>
-                    </li>
-                  ))}
-                </ul>
-                {jobActive ? (
-                  <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="size-3.5 animate-spin" />
-                    Uppdateras live…
-                  </p>
-                ) : null}
-              </div>
-            )}
+            {status.kinds.map((kindStatus) => {
+              const job = kindStatus.job
+              const jobActive =
+                job !== null &&
+                (job.status === "pending" || job.status === "running")
+              const canStart =
+                !kindStatus.alreadyDone && !jobActive
+              const agentProgress =
+                job !== null ? parseAgentProgress(job.statusUpdates) : null
+              const starting = startingKind === kindStatus.kind
 
-            {canStart ? (
-              <Button
-                disabled={starting}
-                onClick={() => {
-                  void handleStart()
-                }}
-              >
-                {starting ? (
-                  <>
-                    <Loader2 className="animate-spin" />
-                    Startar…
-                  </>
-                ) : job?.status === "failed" ? (
-                  "Försök igen"
-                ) : (
-                  "Tolka uppgifter"
-                )}
-              </Button>
-            ) : null}
+              return (
+                <div
+                  key={kindStatus.kind}
+                  className="flex flex-col gap-2 rounded-md border border-border p-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{kindStatus.label}</p>
+                      {kindStatus.alreadyDone ? (
+                        <p className="text-sm text-muted-foreground">
+                          Klar
+                          {kindStatus.summary
+                            ? ` — ${kindStatus.summary}`
+                            : ""}
+                        </p>
+                      ) : job === null ? (
+                        <p className="text-sm text-muted-foreground">
+                          Inte körd ännu
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {job.status === "failed"
+                            ? "Misslyckades"
+                            : job.status === "pending"
+                              ? "Väntar…"
+                              : agentProgress !== null
+                                ? `Pågår… ${agentProgress.completed}/${agentProgress.total} (${agentProgress.percent}%)`
+                                : "Pågår…"}
+                        </p>
+                      )}
+                    </div>
+                    {canStart ? (
+                      <Button
+                        size="sm"
+                        disabled={startingKind !== null}
+                        onClick={() => {
+                          void handleStart(kindStatus.kind)
+                        }}
+                      >
+                        {starting ? (
+                          <>
+                            <Loader2 className="animate-spin" />
+                            Startar…
+                          </>
+                        ) : job?.status === "failed" ? (
+                          "Försök igen"
+                        ) : (
+                          "Starta"
+                        )}
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {job !== null && !kindStatus.alreadyDone ? (
+                    <div className="flex flex-col gap-2">
+                      <ul className="max-h-36 space-y-1.5 overflow-y-auto rounded-md border border-border bg-muted/30 p-2">
+                        {job.statusUpdates.map((update, index) => (
+                          <li
+                            key={`${kindStatus.kind}-${update.at}-${index}`}
+                            className="flex gap-2 text-xs"
+                          >
+                            <span className="shrink-0 tabular-nums text-muted-foreground">
+                              {formatTime(update.at)}
+                            </span>
+                            <span>{update.message}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {jobActive ? (
+                        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Loader2 className="size-3 animate-spin" />
+                          Uppdateras live…
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
           </div>
         )}
 

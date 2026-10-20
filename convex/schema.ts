@@ -89,6 +89,14 @@ export default defineSchema({
     contentHash: v.string(),
     middleJsonStorageId: v.id("_storage"),
   }).index("by_contentHash", ["contentHash"]),
+  /**
+   * Single-flight lock so concurrent parse jobs for the same PDF
+   * do not double-call MinerU. Cleared when cache is written; TTL on claimedAt.
+   */
+  mineruInFlight: defineTable({
+    contentHash: v.string(),
+    claimedAt: v.number(),
+  }).index("by_contentHash", ["contentHash"]),
   /** One Lumo-parsed problem per document, keyed by content hash of PDF bytes. */
   problems: defineTable({
     contentHash: v.string(),
@@ -97,14 +105,35 @@ export default defineSchema({
     answer: lumoStaticDocumentValidator,
   }).index("by_contentHash", ["contentHash"]),
   /**
-   * Async PDF → problems parse jobs.
+   * Distilled general instructions from a PDF, keyed by content hash.
+   * Rooms opt in via cellsInUseByRoom.
+   */
+  pdfInfo: defineTable({
+    contentHash: v.string(),
+    text: v.string(),
+  }).index("by_contentHash", ["contentHash"]),
+  /** Which global pdfInfo cells a room has opted to use. */
+  cellsInUseByRoom: defineTable({
+    roomId: v.id("rooms"),
+    contentHash: v.string(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_contentHash", ["roomId", "contentHash"])
+    .index("by_contentHash", ["contentHash"]),
+  /**
+   * Async PDF parse jobs (problems or info).
    * `statusUpdates` is a short progress log the workflow appends to.
+   * `kind` missing on older rows → treat as "problems".
    */
   pdfParseJobs: defineTable({
     fileId: v.id("files"),
     roomId: v.id("rooms"),
     contentHash: v.string(),
     createdBy: v.id("users"),
+    /** Missing on older jobs → treat as "problems". */
+    kind: v.optional(
+      v.union(v.literal("problems"), v.literal("info")),
+    ),
     status: v.union(
       v.literal("pending"),
       v.literal("running"),
@@ -118,9 +147,12 @@ export default defineSchema({
       }),
     ),
     error: v.optional(v.string()),
+    /** Only meaningful for kind "problems". */
     problemCount: v.optional(v.number()),
   })
     .index("by_file", ["fileId"])
     .index("by_contentHash", ["contentHash"])
+    .index("by_contentHash_and_kind", ["contentHash", "kind"])
+    .index("by_file_and_kind", ["fileId", "kind"])
     .index("by_room", ["roomId"]),
 });

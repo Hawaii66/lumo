@@ -11,13 +11,13 @@ import {
   lumoParsedProblemValidator,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
+import { getOrFetchMiddleJson } from "./getOrFetchMiddleJson";
 import {
+  flattenFullDocument,
   flattenMiddleJson,
   splitIntoProblemChunks,
   type ProblemChunk,
 } from "./middleJson";
-import { fetchMineruMiddleJson } from "./mineruClient";
-import { middleJsonSchema, type MiddleJson } from "./mineruSchema";
 
 /** Max concurrent per-problem agent calls. */
 const AGENT_CONCURRENCY = 5;
@@ -106,59 +106,6 @@ async function saveParsedProblems(
   });
 }
 
-/**
- * Reuse cached MinerU middle_json when present,
- * otherwise POST to MinerU and cache the validated middle_json.
- */
-async function getOrFetchMiddleJson(
-  ctx: ActionCtx,
-  pdfBytes: ArrayBuffer,
-  contentHash: string,
-  blobType: string,
-  onStatus?: (message: string) => Promise<void>,
-): Promise<MiddleJson> {
-  const cached: {
-    _id: Id<"mineruCache">;
-    middleJsonStorageId: Id<"_storage">;
-  } | null = await ctx.runQuery(
-    internal.PDFParse.mineruCache.getByContentHash,
-    { contentHash },
-  );
-
-  if (cached !== null) {
-    const cachedBlob = await ctx.storage.get(cached.middleJsonStorageId);
-    if (cachedBlob !== null) {
-      try {
-        const parsed = middleJsonSchema.safeParse(
-          JSON.parse(await cachedBlob.text()),
-        );
-        if (parsed.success) {
-          await onStatus?.("Använder cachad MinerU-tolkning");
-          return parsed.data;
-        }
-      } catch {
-        // Corrupt cache entry — fall through to MinerU.
-      }
-    }
-  }
-
-  await onStatus?.("Tolkar PDF med MinerU…");
-  const pdfForUpload = new Blob([new Uint8Array(pdfBytes)], {
-    type: blobType || "application/pdf",
-  });
-  const middleJson = await fetchMineruMiddleJson(pdfForUpload);
-  const middleJsonStorageId = await ctx.storage.store(
-    new Blob([JSON.stringify(middleJson)], {
-      type: "application/json",
-    }),
-  );
-  await ctx.runMutation(internal.PDFParse.mineruCache.save, {
-    contentHash,
-    middleJsonStorageId,
-  });
-  return middleJson;
-}
-
 async function convertChunksToProblems(
   ctx: ActionCtx,
   userId: Id<"users">,
@@ -228,8 +175,147 @@ async function parsePdfBytesToProblems(
   return await convertChunksToProblems(ctx, userId, chunks, onStatus);
 }
 
+async function parsePdfBytesToInfo(
+  ctx: ActionCtx,
+  userId: Id<"users">,
+  pdfBytes: ArrayBuffer,
+  contentHash: string,
+  blobType: string,
+  onStatus?: StatusReporter,
+): Promise<string> {
+  const middleJson = await getOrFetchMiddleJson(
+    ctx,
+    pdfBytes,
+    contentHash,
+    blobType,
+    async (message) => {
+      await onStatus?.(message);
+    },
+  );
+  await onStatus?.("Sammanställer dokumenttext…");
+  const documentText = flattenFullDocument(middleJson);
+  if (documentText.trim().length === 0) {
+    return "";
+  }
+
+  await onStatus?.("Tolkar information med AI…");
+  const result: { text: string } = await ctx.runAction(
+    internal.PDFParse.lumoInfoAgent.convertDocumentInfo,
+    {
+      userId,
+      documentText,
+    },
+  );
+  return result.text;
+}
+
+async function runProblemsJob(
+  ctx: ActionCtx,
+  jobId: Id<"pdfParseJobs">,
+  job: {
+    fileId: Id<"files">;
+    createdBy: Id<"users">;
+  },
+): Promise<void> {
+  await appendJobStatus(ctx, jobId, "Hämtar PDF…", {
+    status: "running",
+  });
+
+  const file = await loadFile(ctx, job.fileId);
+  const existingCount: number = await ctx.runQuery(
+    internal.PDFParse.problems.countByContentHash,
+    { contentHash: file.contentHash },
+  );
+  if (existingCount > 0) {
+    await ctx.runMutation(internal.PDFParse.jobs.markDone, {
+      jobId,
+      problemCount: existingCount,
+    });
+    return;
+  }
+
+  const blob = await ctx.storage.get(file.storageId);
+  if (blob === null) {
+    throw new Error("PDF-filen hittades inte i lagringen");
+  }
+
+  const problems = await parsePdfBytesToProblems(
+    ctx,
+    job.createdBy,
+    await blob.arrayBuffer(),
+    file.contentHash,
+    blob.type,
+    async (message, options) => {
+      await appendJobStatus(ctx, jobId, message, options);
+    },
+  );
+
+  await appendJobStatus(ctx, jobId, "Sparar uppgifter…");
+  await saveParsedProblems(ctx, file.contentHash, problems);
+  await ctx.runMutation(internal.PDFParse.jobs.markDone, {
+    jobId,
+    problemCount: problems.length,
+  });
+}
+
+async function runInfoJob(
+  ctx: ActionCtx,
+  jobId: Id<"pdfParseJobs">,
+  job: {
+    fileId: Id<"files">;
+    roomId: Id<"rooms">;
+    createdBy: Id<"users">;
+  },
+): Promise<void> {
+  await appendJobStatus(ctx, jobId, "Hämtar PDF…", {
+    status: "running",
+  });
+
+  const file = await loadFile(ctx, job.fileId);
+  const existing: boolean = await ctx.runQuery(
+    internal.PDFParse.pdfInfo.existsForContentHash,
+    { contentHash: file.contentHash },
+  );
+  if (existing) {
+    await ctx.runMutation(internal.PDFParse.pdfInfo.addInUseInternal, {
+      roomId: job.roomId,
+      contentHash: file.contentHash,
+    });
+    await ctx.runMutation(internal.PDFParse.jobs.markDone, { jobId });
+    return;
+  }
+
+  const blob = await ctx.storage.get(file.storageId);
+  if (blob === null) {
+    throw new Error("PDF-filen hittades inte i lagringen");
+  }
+
+  const text = await parsePdfBytesToInfo(
+    ctx,
+    job.createdBy,
+    await blob.arrayBuffer(),
+    file.contentHash,
+    blob.type,
+    async (message, options) => {
+      await appendJobStatus(ctx, jobId, message, options);
+    },
+  );
+
+  await appendJobStatus(ctx, jobId, "Sparar information…");
+  await ctx.runMutation(internal.PDFParse.pdfInfo.replaceForContentHash, {
+    contentHash: file.contentHash,
+    text,
+  });
+  await ctx.runMutation(internal.PDFParse.pdfInfo.addInUseInternal, {
+    roomId: job.roomId,
+    contentHash: file.contentHash,
+  });
+  await ctx.runMutation(internal.PDFParse.jobs.markDone, { jobId });
+}
+
 /**
  * Background job runner: updates `pdfParseJobs.statusUpdates` as it progresses.
+ * Branches on job.kind (problems | info).
  */
 export const runParseJob = internalAction({
   args: {
@@ -248,45 +334,11 @@ export const runParseJob = internalAction({
     }
 
     try {
-      await appendJobStatus(ctx, args.jobId, "Hämtar PDF…", {
-        status: "running",
-      });
-
-      const file = await loadFile(ctx, job.fileId);
-      const existingCount: number = await ctx.runQuery(
-        internal.PDFParse.problems.countByContentHash,
-        { contentHash: file.contentHash },
-      );
-      if (existingCount > 0) {
-        await ctx.runMutation(internal.PDFParse.jobs.markDone, {
-          jobId: args.jobId,
-          problemCount: existingCount,
-        });
-        return null;
+      if (job.kind === "info") {
+        await runInfoJob(ctx, args.jobId, job);
+      } else {
+        await runProblemsJob(ctx, args.jobId, job);
       }
-
-      const blob = await ctx.storage.get(file.storageId);
-      if (blob === null) {
-        throw new Error("PDF-filen hittades inte i lagringen");
-      }
-
-      const problems = await parsePdfBytesToProblems(
-        ctx,
-        job.createdBy,
-        await blob.arrayBuffer(),
-        file.contentHash,
-        blob.type,
-        async (message, options) => {
-          await appendJobStatus(ctx, args.jobId, message, options);
-        },
-      );
-
-      await appendJobStatus(ctx, args.jobId, "Sparar uppgifter…");
-      await saveParsedProblems(ctx, file.contentHash, problems);
-      await ctx.runMutation(internal.PDFParse.jobs.markDone, {
-        jobId: args.jobId,
-        problemCount: problems.length,
-      });
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Okänt fel vid tolkning";

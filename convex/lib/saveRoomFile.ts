@@ -45,10 +45,33 @@ export async function saveRoomFile(
     throw new Error("Rummet har för många filer");
   }
 
-  return await ctx.db.insert("files", {
+  const contentHash = metadata.sha256;
+  const fileId = await ctx.db.insert("files", {
     roomId: args.roomId,
     name,
     storageId: args.storageId,
-    contentHash: metadata.sha256,
+    contentHash,
   });
+
+  // If this PDF was already info-parsed globally, opt the room into that cell.
+  const info = await ctx.db
+    .query("pdfInfo")
+    .withIndex("by_contentHash", (q) => q.eq("contentHash", contentHash))
+    .first();
+  if (info !== null) {
+    const existing = await ctx.db
+      .query("cellsInUseByRoom")
+      .withIndex("by_room_and_contentHash", (q) =>
+        q.eq("roomId", args.roomId).eq("contentHash", contentHash),
+      )
+      .first();
+    if (existing === null) {
+      await ctx.db.insert("cellsInUseByRoom", {
+        roomId: args.roomId,
+        contentHash,
+      });
+    }
+  }
+
+  return fileId;
 }

@@ -37,6 +37,30 @@ function blockToText(block: MiddleBlock): string {
 }
 
 /**
+ * Flatten all middle_json page blocks into ordered plain text
+ * (for general-info parse). Skips page numbers and footers only.
+ */
+export function flattenFullDocument(middleJson: MiddleJson): string {
+  const lines: string[] = [];
+
+  for (const page of middleJson.pages) {
+    for (const block of page.blocks) {
+      const type = block.type;
+      if (type === "page_number" || type === "footer") {
+        continue;
+      }
+      const text = blockToText(block).replace(/\s+/g, " ").trim();
+      if (text.length === 0) {
+        continue;
+      }
+      lines.push(text);
+    }
+  }
+
+  return lines.join("\n");
+}
+
+/**
  * Flatten middle_json pages into ordered plain-text lines, tagged by section.
  */
 export function flattenMiddleJson(middleJson: MiddleJson): {
