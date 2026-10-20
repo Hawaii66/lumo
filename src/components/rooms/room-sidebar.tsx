@@ -38,7 +38,7 @@ export type RoomSidebarProblemGroup = {
 export type RoomSidebarProps = {
   roomName: string
   roomDescription: string
-  /** Main pane view: chats, problems, or files. */
+  /** Main pane view: chats, problems, files, or settings. */
   section: RoomSidebarSection
   onSectionChange: (section: RoomSidebarSection) => void
   onBack?: () => void
