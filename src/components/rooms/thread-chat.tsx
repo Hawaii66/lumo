@@ -15,6 +15,10 @@ import {
 } from "~/components/rooms/chat-input"
 import { ChatDeletionExpiryPicker } from "~/components/rooms/chat-deletion-expiry-picker"
 import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
+import {
+  ChapterSelector,
+  type ChapterItem,
+} from "~/components/rooms/chapter-selector"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { UserMessageText } from "~/components/rooms/user-message-text"
 import { LumoParts } from "~/components/lumo/lumo-parts"
@@ -35,6 +39,7 @@ import {
 } from "~/lib/chat-mode"
 import {
   parseLumoDocument,
+  subproblemAnchorId,
   type LumoDocument,
 } from "~/lib/lumo-content"
 import { uploadFileToStorage } from "~/lib/upload"
@@ -46,6 +51,18 @@ function documentHasVisibleParts(doc: LumoDocument): boolean {
       (part.type === "text" && part.content.trim().length > 0) ||
       part.type !== "text",
   )
+}
+
+function chaptersFromDocument(doc: LumoDocument | null): Array<ChapterItem> {
+  if (!doc) return []
+  const chapters: Array<ChapterItem> = []
+  for (let partIndex = 0; partIndex < doc.parts.length; partIndex++) {
+    const part = doc.parts[partIndex]
+    if (part?.type === "subproblem") {
+      chapters.push({ partIndex, label: part.label })
+    }
+  }
+  return chapters
 }
 
 const MAX_TITLE_LENGTH = 80
@@ -185,15 +202,11 @@ function StreamingIndicator({ empty }: { empty?: boolean }) {
   )
 }
 
-function AssistantMessageContent({
-  message,
-  onQuickReply,
-  quickRepliesDisabled,
-}: {
-  message: UIMessage
-  onQuickReply?: (label: string) => void
-  quickRepliesDisabled?: boolean
-}) {
+function useAssistantLumoDocument(message: UIMessage): {
+  doc: LumoDocument | null
+  streaming: boolean
+  chapters: Array<ChapterItem>
+} {
   const streaming = message.status === "streaming"
   const rawText = messageText(message)
   // Smooth character reveal walks through broken mid-JSON (trailing commas,
@@ -228,45 +241,68 @@ function AssistantMessageContent({
         ? lastGoodRef.current
         : parsed
 
-  if (!text || !doc || !documentHasVisibleParts(doc)) {
-    return streaming ? (
-      <StreamingIndicator empty />
-    ) : (
-      <span className="text-muted-foreground italic">…</span>
-    )
-  }
+  const visibleDoc =
+    doc !== null && documentHasVisibleParts(doc) ? doc : null
 
-  return (
-    <div>
-      <LumoParts
-        document={doc}
-        onQuickReply={onQuickReply}
-        quickRepliesDisabled={quickRepliesDisabled || streaming}
-      />
-      {streaming ? <StreamingIndicator /> : null}
-    </div>
-  )
+  return {
+    doc: visibleDoc,
+    streaming,
+    chapters: chaptersFromDocument(visibleDoc),
+  }
 }
 
-function MessageContent({
+function AssistantMessageRow({
   message,
   onQuickReply,
   quickRepliesDisabled,
+  listRef,
 }: {
   message: UIMessage
   onQuickReply?: (label: string) => void
   quickRepliesDisabled?: boolean
+  listRef?: (node: HTMLLIElement | null) => void
 }) {
-  if (message.role === "assistant") {
-    return (
-      <AssistantMessageContent
-        message={message}
-        onQuickReply={onQuickReply}
-        quickRepliesDisabled={quickRepliesDisabled}
-      />
+  const { doc, streaming, chapters } = useAssistantLumoDocument(message)
+  const [activePartIndex, setActivePartIndex] = useState<number | null>(null)
+
+  function jumpToChapter(partIndex: number) {
+    setActivePartIndex(partIndex)
+    const el = document.getElementById(
+      subproblemAnchorId(message.key, partIndex),
     )
+    el?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
+  return (
+    <li ref={listRef} className="flex items-start gap-2">
+      <ChapterSelector
+        chapters={chapters}
+        loading={streaming}
+        activePartIndex={activePartIndex}
+        onSelect={jumpToChapter}
+      />
+      <div className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground">
+        {doc ? (
+          <div>
+            <LumoParts
+              document={doc}
+              messageKey={message.key}
+              onQuickReply={onQuickReply}
+              quickRepliesDisabled={quickRepliesDisabled || streaming}
+            />
+            {streaming ? <StreamingIndicator /> : null}
+          </div>
+        ) : streaming ? (
+          <StreamingIndicator empty />
+        ) : (
+          <span className="text-muted-foreground italic">…</span>
+        )}
+      </div>
+    </li>
+  )
+}
+
+function UserMessageContent({ message }: { message: UIMessage }) {
   const text = messageText(message)
 
   const images = message.parts.filter(
@@ -755,26 +791,22 @@ export function ThreadChat({
                       "bg-primary text-primary-foreground",
                     )}
                   >
-                    <MessageContent message={message} />
+                    <UserMessageContent message={message} />
                   </div>
                 </li>
               ) : (
-                <li
+                <AssistantMessageRow
                   key={message.key}
-                  ref={(node) => {
+                  message={message}
+                  listRef={(node) => {
                     if (node) messageNodeRefs.current.set(message.key, node)
                     else messageNodeRefs.current.delete(message.key)
                   }}
-                  className="max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground"
-                >
-                  <MessageContent
-                    message={message}
-                    onQuickReply={(label) => {
-                      void sendPrompt(label).catch(() => undefined)
-                    }}
-                    quickRepliesDisabled={pending}
-                  />
-                </li>
+                  onQuickReply={(label) => {
+                    void sendPrompt(label).catch(() => undefined)
+                  }}
+                  quickRepliesDisabled={pending}
+                />
               ),
             )}
           </ul>

@@ -82,6 +82,15 @@ export type LumoStaticPart = z.infer<typeof lumoStaticPartSchema>
 export type LumoStaticDocument = z.infer<typeof lumoStaticDocumentSchema>
 export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>
 
+/** DOM id for jumping to a subproblem heading inside an assistant message. */
+export function subproblemAnchorId(
+  messageKey: string,
+  partIndex: number,
+): string {
+  const safeKey = messageKey.replace(/[^a-zA-Z0-9_-]/g, "_")
+  return `lumo-subproblem-${safeKey}-${partIndex}`
+}
+
 /** Chat documents no longer use interactive blanks; always valid. */
 export function validateLumoDocument(_doc: LumoDocument): string | null {
   return null

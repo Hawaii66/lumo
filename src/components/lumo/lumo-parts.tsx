@@ -1,10 +1,16 @@
-import type { LumoDocument, LumoPart } from "~/lib/lumo-content"
+import {
+  subproblemAnchorId,
+  type LumoDocument,
+  type LumoPart,
+} from "~/lib/lumo-content"
 import { QuickReplies } from "~/components/lumo/quick-replies"
 import { StaticMath } from "~/components/lumo/static-math"
 import { cn } from "~/lib/utils"
 
 type LumoPartsProps = {
   document: LumoDocument
+  /** Stable message key used to build subproblem scroll anchors. */
+  messageKey?: string
   onQuickReply?: (label: string) => void
   quickRepliesDisabled?: boolean
   className?: string
@@ -12,10 +18,14 @@ type LumoPartsProps = {
 
 function PartView({
   part,
+  partIndex,
+  messageKey,
   onQuickReply,
   quickRepliesDisabled,
 }: {
   part: LumoPart
+  partIndex: number
+  messageKey?: string
   onQuickReply?: (label: string) => void
   quickRepliesDisabled?: boolean
 }) {
@@ -37,7 +47,15 @@ function PartView({
       )
     case "subproblem":
       return (
-        <p className="text-sm font-medium text-muted-foreground">
+        <p
+          id={
+            messageKey
+              ? subproblemAnchorId(messageKey, partIndex)
+              : undefined
+          }
+          data-lumo-subproblem={part.label}
+          className="scroll-mt-3 text-sm font-medium text-muted-foreground"
+        >
           Deluppgift {part.label}
         </p>
       )
@@ -56,6 +74,7 @@ function PartView({
 
 export function LumoParts({
   document,
+  messageKey,
   onQuickReply,
   quickRepliesDisabled,
   className,
@@ -66,6 +85,8 @@ export function LumoParts({
         <PartView
           key={`${part.type}-${index}`}
           part={part}
+          partIndex={index}
+          messageKey={messageKey}
           onQuickReply={onQuickReply}
           quickRepliesDisabled={quickRepliesDisabled}
         />
