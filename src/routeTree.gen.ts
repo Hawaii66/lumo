@@ -15,6 +15,7 @@ import { Route as PreviewIndexRouteImport } from './routes/preview.index'
 import { Route as PreviewSidebarRouteImport } from './routes/preview.sidebar'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms.$roomId'
 import { Route as ScanTokenRouteImport } from './routes/scan.$token'
+import { Route as RoomsRoomIdSettingsRouteImport } from './routes/rooms.$roomId_.settings'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const ScanTokenRoute = ScanTokenRouteImport.update({
   path: '/scan/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoomsRoomIdSettingsRoute = RoomsRoomIdSettingsRouteImport.update({
+  id: '/rooms/$roomId_/settings',
+  path: '/rooms/$roomId/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
   '/preview/': typeof PreviewIndexRoute
+  '/rooms/$roomId/settings': typeof RoomsRoomIdSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
   '/preview': typeof PreviewIndexRoute
+  '/rooms/$roomId/settings': typeof RoomsRoomIdSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
   '/preview/': typeof PreviewIndexRoute
+  '/rooms/$roomId_/settings': typeof RoomsRoomIdSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,8 +89,15 @@ export interface FileRouteTypes {
     | '/rooms/$roomId'
     | '/scan/$token'
     | '/preview/'
+    | '/rooms/$roomId/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/preview/sidebar' | '/rooms/$roomId' | '/scan/$token' | '/preview'
+  to:
+    | '/'
+    | '/preview/sidebar'
+    | '/rooms/$roomId'
+    | '/scan/$token'
+    | '/preview'
+    | '/rooms/$roomId/settings'
   id:
     | '__root__'
     | '/'
@@ -90,6 +106,7 @@ export interface FileRouteTypes {
     | '/rooms/$roomId'
     | '/scan/$token'
     | '/preview/'
+    | '/rooms/$roomId_/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,6 +114,7 @@ export interface RootRouteChildren {
   PreviewRoute: typeof PreviewRouteWithChildren
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
   ScanTokenRoute: typeof ScanTokenRoute
+  RoomsRoomIdSettingsRoute: typeof RoomsRoomIdSettingsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -143,6 +161,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rooms/$roomId_/settings': {
+      id: '/rooms/$roomId_/settings'
+      path: '/rooms/$roomId/settings'
+      fullPath: '/rooms/$roomId/settings'
+      preLoaderRoute: typeof RoomsRoomIdSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -164,6 +189,7 @@ const rootRouteChildren: RootRouteChildren = {
   PreviewRoute: PreviewRouteWithChildren,
   RoomsRoomIdRoute: RoomsRoomIdRoute,
   ScanTokenRoute: ScanTokenRoute,
+  RoomsRoomIdSettingsRoute: RoomsRoomIdSettingsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
