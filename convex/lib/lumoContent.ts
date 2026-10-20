@@ -64,7 +64,11 @@ export type LumoPart = z.infer<typeof lumoPartSchema>;
  */
 export const lumoQuickReplyChoiceAzureSchema = z.object({
   id: z.string().describe("Choice id; empty when unused"),
-  label: z.string().describe("Button label; empty when unused"),
+  label: z
+    .string()
+    .describe(
+      "Student question sent as next user message; empty when unused",
+    ),
 });
 
 export const lumoPartAzureSchema = z.object({
@@ -89,7 +93,9 @@ export const lumoPartAzureSchema = z.object({
     ),
   choices: z
     .array(lumoQuickReplyChoiceAzureSchema)
-    .describe("quickReplies choices; empty when unused"),
+    .describe(
+      "quickReplies: concrete student questions to the AI; empty when unused",
+    ),
 });
 
 export const lumoDocumentAzureSchema = z.object({
@@ -884,12 +890,13 @@ type=latex
   caption : valfritt värdenamn; "" annars
   choices : []
 
-type=quickReplies  — klickbara snabbval (studenten styr nästa steg)
-  choices : [{ "id": "opt1", "label": "Visa ett tips" }, …]  — minst ett, helst 2–4
+type=quickReplies  — klickbara frågor som skickas som studentens nästa meddelande
+  choices : [{ "id": "opt1", "label": "Varför samlar vi x-termerna först?" }, …]  — minst ett, helst 2–4
   content, label, caption : ""
   display : "inline"
-  • Labels = kompletta användarintentioner (inte bara "A"/"B").
-  • Lägg quickReplies SIST i parts när du väntar på studentens val.
+  • Labels = konkreta frågor studenten skulle ställa till dig (första person / frågeform).
+  • Labels skickas oförändrade som nästa user-meddelande — de måste gå att besvara direkt.
+  • Lägg quickReplies SIST i parts.
   • Ge INTE facit i en knapp-label.
 
 type=subproblem  — markör för deluppgift (a)/(b)/(c)
@@ -907,12 +914,17 @@ type=case  — villkorsfall / "om …"-gren (INTE samma som subproblem)
   ⚠ MÅSTE följas av innehållspart direkt efter.
 
 ════════════════════════════════════════
-QUICK REPLIES — LED, LÅT STUDENTEN VÄLJA
+QUICK REPLIES — STUDENTENS FRÅGOR TILL DIG
 ════════════════════════════════════════
-• Använd quickReplies ofta: du föreslår vägar, studenten väljer.
-• Bra labels: "Visa ett tips", "Gå vidare", "Förklara varför", "Jag fastnade här", "Visa mer detalj".
-• Undvik quiz-träd: förklara med text+latex först, erbjud sedan 2–4 nästa steg.
-• Studenten kan alltid skriva fritt — knapparna är genvägar.
+• Använd quickReplies ofta: föreslå 2–4 konkreta frågor studenten kan ställa dig.
+• Labels = det studenten säger till dig, INTE det du frågar studenten.
+• Bra: "Hur flyttar jag konstanten till högerledet?", "Varför blir det 2x här?",
+  "Kan du visa nästa steg mer detaljerat?", "Vad händer om jag delar med 2 nu?"
+• Dåligt: "Har du andra frågor?", "Vad vill du göra nu?", "Gå vidare", "Nästa steg",
+  "Visa mer detalj", "Jag fastnade här", "Ja", "Nej" — vaga, meta, eller din fråga till dem.
+• Frågorna ska vara knutna till just det du just förklarade (konkreta uttryck/steg).
+• Undvik quiz-träd: förklara med text+latex först, erbjud sedan 2–4 följdfrågor.
+• Studenten kan alltid skriva fritt — knapparna är genvägar till bra frågor.
 
 ════════════════════════════════════════
 CHATTLÄGEN  (ges separat som "Chattläge (format): …" — FÖLJ EXAKT)
@@ -920,13 +932,14 @@ CHATTLÄGEN  (ges separat som "Chattläge (format): …" — FÖLJ EXAKT)
 
 normal
   • Sokratisk hjälp med text + latex från den arbetade lösningen.
-  • Avsluta ofta med quickReplies för nästa vägval.
+  • Avsluta ofta med quickReplies = konkreta studentfrågor om nästa steg.
   • Ge inte hela facit om studenten bara frågar "hur börjar jag?".
 
 genomgang
   • Fokus: hur man TÄNKER. text + latex steg för steg (notes från lösningen → text-parts).
   • Förklara VARFÖR, inte bara vad. Markera deluppgifter med subproblem.
-  • Avsluta stegblock med quickReplies ("Nästa steg", "Varför detta?", "Visa mer detalj").
+  • Avsluta stegblock med quickReplies som konkreta frågor om steget
+    (t.ex. "Varför flyttar vi 3 först?", "Hur får jag x ensamt härnäst?").
 
 ════════════════════════════════════════
 PEDAGOGIK (format — inte omräkning)
@@ -944,15 +957,24 @@ Ex 1 — text/latex-split:
   ✗ latex "\\\\text{Förenkla }a^{2}+b-c"
 
 Ex 2 — normal med snabbval:
-  ✓ text "Börja med att samla x-termer:", latex "3x-x=2x", text "Vad vill du göra nu?",
-     quickReplies choices=[{id:"t1", label:"Visa ett tips"}, {id:"t2", label:"Gå vidare"}, {id:"t3", label:"Jag fastnade här"}]
+  ✓ text "Börja med att samla x-termer:", latex "3x-x=2x",
+     quickReplies choices=[
+       {id:"t1", label:"Varför samlar vi x-termerna först?"},
+       {id:"t2", label:"Hur går jag vidare från 2x?"},
+       {id:"t3", label:"Kan du ge ett tips om nästa räkning?"}
+     ]
+  ✗ labels "Gå vidare" / "Har du andra frågor?" / "Vad vill du göra nu?"
   ✗ dumpa hela slutsvaren när studenten bara ställde en kort fråga
 
 Ex 3 — genomgang:
   ✓ text "Tanken är att få x ensamt. Vi har", latex "2x+3=11",
      text "Konstanten stör — flytta den först till högerledet.",
      latex "2x=8",
-     quickReplies choices=[{id:"n1", label:"Nästa steg"}, {id:"n2", label:"Varför detta?"}, {id:"n3", label:"Visa mer detalj"}]
+     quickReplies choices=[
+       {id:"n1", label:"Varför subtraherar vi 3 från båda sidor?"},
+       {id:"n2", label:"Hur delar jag 2x=8 för att få x?"},
+       {id:"n3", label:"Kan du förklara det steget mer detaljerat?"}
+     ]
 `;
 
 /**
@@ -964,11 +986,14 @@ export function formatModeHint(mode: ChatMode): string {
       return `Chattläge (format): normal
 • text + latex (sokratiskt) från den arbetade lösningen.
 • INGEN latex i text, INGEN text/\\\\text i latex — splitta.
-• Avsluta ofta med quickReplies (2–4 vägval). Dumpa inte hela facit på en öppen fråga.`;
+• Avsluta ofta med quickReplies: 2–4 konkreta frågor studenten kan ställa dig
+  (inte dina frågor till dem, inte "gå vidare"/"har du frågor?").
+• Dumpa inte hela facit på en öppen fråga.`;
     case "genomgang":
       return `Chattläge (format): genomgang
 • Förklara HUR man tänker (text + latex) utifrån den arbetade lösningen.
 • Splitta text/latex strikt. Resonemang steg för steg; subproblem vid (a)/(b).
-• Avsluta med quickReplies för nästa djup ("Nästa steg" / "Varför" / "Mer detalj").`;
+• Avsluta med quickReplies: konkreta studentfrågor om steget
+  (t.ex. "Varför …?", "Hur … härnäst?", "Kan du förklara … mer?").`;
   }
 }

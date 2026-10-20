@@ -184,7 +184,7 @@ ${workedBlock}
 □ type=text: ingen \\\\ / matematik  |  type=latex: ingen svenska / \\\\text
 □ Prosa runt matte är splittrad: text / latex / text
 □ Matte kommer från den arbetade lösningen ovan
-□ Avsluta ofta med quickReplies (2–4 vägval)
+□ Avsluta ofta med quickReplies (2–4 konkreta studentfrågor till dig — inte dina frågor till dem)
 □ Chattläget följs (normal/genomgang)
 `,
       },
