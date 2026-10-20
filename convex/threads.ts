@@ -123,20 +123,61 @@ export const listByRoom = query({
       .query("roomThreads")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .order("desc")
-      .take(MAX_THREADS_PER_ROOM);
+      .take(MAX_THREADS_PER_ROOM * 2);
 
-    return threads.map((thread) => ({
-      _id: thread._id,
-      _creationTime: thread._creationTime,
-      threadId: thread.threadId,
-      title: thread.title,
-      createdBy: thread.createdBy,
-      mode: (thread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
-      deletionExpiry: (thread.deletionExpiry ??
-        DEFAULT_CHAT_DELETION_EXPIRY) as ChatDeletionExpiry,
-      deleteAt: thread.deleteAt ?? null,
-      mentionedProblemNumbers: thread.mentionedProblemNumbers ?? [],
-    }));
+    return threads
+      .filter((thread) => thread.archivedAt === undefined)
+      .slice(0, MAX_THREADS_PER_ROOM)
+      .map((thread) => ({
+        _id: thread._id,
+        _creationTime: thread._creationTime,
+        threadId: thread.threadId,
+        title: thread.title,
+        createdBy: thread.createdBy,
+        mode: (thread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
+        deletionExpiry: (thread.deletionExpiry ??
+          DEFAULT_CHAT_DELETION_EXPIRY) as ChatDeletionExpiry,
+        deleteAt: thread.deleteAt ?? null,
+        mentionedProblemNumbers: thread.mentionedProblemNumbers ?? [],
+      }));
+  },
+});
+
+export const listArchivedByRoom = query({
+  args: { roomId: v.id("rooms") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return [];
+    }
+
+    const membership = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_user_and_room", (q) =>
+        q.eq("userId", userId).eq("roomId", args.roomId),
+      )
+      .unique();
+
+    if (membership === null) {
+      return [];
+    }
+
+    const threads = await ctx.db
+      .query("roomThreads")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .order("desc")
+      .take(MAX_THREADS_PER_ROOM * 2);
+
+    return threads
+      .filter((thread) => thread.archivedAt !== undefined)
+      .slice(0, MAX_THREADS_PER_ROOM)
+      .map((thread) => ({
+        _id: thread._id,
+        _creationTime: thread._creationTime,
+        threadId: thread.threadId,
+        title: thread.title,
+        archivedAt: thread.archivedAt as number,
+      }));
   },
 });
 
@@ -198,7 +239,7 @@ export const setTitle = mutation({
     title: v.string(),
   },
   handler: async (ctx, args) => {
-    const { roomThread } = await requireRoomThread(
+    const { roomThread } = await requireActiveRoomThread(
       ctx,
       args.roomId,
       args.threadId,
@@ -225,7 +266,7 @@ export const setMode = mutation({
     mode: chatModeValidator,
   },
   handler: async (ctx, args) => {
-    const { roomThread } = await requireRoomThread(
+    const { roomThread } = await requireActiveRoomThread(
       ctx,
       args.roomId,
       args.threadId,
@@ -242,7 +283,7 @@ export const setDeletionExpiry = mutation({
     deletionExpiry: chatDeletionExpiryValidator,
   },
   handler: async (ctx, args) => {
-    const { roomThread } = await requireRoomThread(
+    const { roomThread } = await requireActiveRoomThread(
       ctx,
       args.roomId,
       args.threadId,
@@ -259,7 +300,26 @@ export const setDeletionExpiry = mutation({
   },
 });
 
-export const remove = mutation({
+/** Archive a chat (manual). Soft-delete — restore via `unarchive`. */
+export const archive = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { roomThread } = await requireActiveRoomThread(
+      ctx,
+      args.roomId,
+      args.threadId,
+    );
+    await archiveRoomThread(ctx, roomThread);
+    return null;
+  },
+});
+
+/** Restore an archived chat to the active list. */
+export const unarchive = mutation({
   args: {
     roomId: v.id("rooms"),
     threadId: v.string(),
@@ -271,12 +331,23 @@ export const remove = mutation({
       args.roomId,
       args.threadId,
     );
-    await deleteRoomThread(ctx, roomThread);
+    if (roomThread.archivedAt === undefined) {
+      return null;
+    }
+
+    const deletionExpiry: ChatDeletionExpiry =
+      roomThread.deletionExpiry ?? DEFAULT_CHAT_DELETION_EXPIRY;
+    const deleteAt = computeDeleteAt(deletionExpiry);
+    await ctx.db.patch(roomThread._id, {
+      archivedAt: undefined,
+      deletionExpiry,
+      deleteAt,
+    });
     return null;
   },
 });
 
-/** Purge timed chats whose `deleteAt` has passed. Scheduled every 5 minutes. */
+/** Archive timed chats whose `deleteAt` has passed. Scheduled every 5 minutes. */
 export const purgeExpired = internalMutation({
   args: {},
   returns: v.null(),
@@ -288,7 +359,12 @@ export const purgeExpired = internalMutation({
       .take(EXPIRED_THREAD_PURGE_BATCH);
 
     for (const roomThread of expired) {
-      await deleteRoomThread(ctx, roomThread);
+      if (roomThread.archivedAt !== undefined) {
+        // Clear stale deadline so the index stops resurfacing this row.
+        await ctx.db.patch(roomThread._id, { deleteAt: undefined });
+        continue;
+      }
+      await archiveRoomThread(ctx, roomThread);
     }
 
     if (expired.length === EXPIRED_THREAD_PURGE_BATCH) {
@@ -326,7 +402,11 @@ export const get = query({
       .withIndex("by_thread", (q) => q.eq("threadId", args.threadId))
       .unique();
 
-    if (roomThread === null || roomThread.roomId !== args.roomId) {
+    if (
+      roomThread === null ||
+      roomThread.roomId !== args.roomId ||
+      roomThread.archivedAt !== undefined
+    ) {
       return null;
     }
 
@@ -369,14 +449,29 @@ async function requireRoomThread(
   return { userId, roomThread };
 }
 
-/** Drop the room mapping, then delete agent thread data asynchronously. */
-async function deleteRoomThread(
+async function requireActiveRoomThread(
+  ctx: QueryCtx | MutationCtx,
+  roomId: Id<"rooms">,
+  threadId: string,
+) {
+  const result = await requireRoomThread(ctx, roomId, threadId);
+  if (result.roomThread.archivedAt !== undefined) {
+    throw new Error("Chatten är arkiverad");
+  }
+  return result;
+}
+
+/** Soft-archive: hide from active lists, keep messages for restore. */
+async function archiveRoomThread(
   ctx: MutationCtx,
   roomThread: Doc<"roomThreads">,
 ) {
-  await ctx.db.delete(roomThread._id);
-  await ctx.runMutation(components.agent.threads.deleteAllForThreadIdAsync, {
-    threadId: roomThread.threadId,
+  if (roomThread.archivedAt !== undefined) {
+    return;
+  }
+  await ctx.db.patch(roomThread._id, {
+    archivedAt: Date.now(),
+    deleteAt: undefined,
   });
 }
 
@@ -416,7 +511,11 @@ export const listMessages = query({
       .withIndex("by_thread", (q) => q.eq("threadId", args.threadId))
       .unique();
 
-    if (roomThread === null || roomThread.roomId !== args.roomId) {
+    if (
+      roomThread === null ||
+      roomThread.roomId !== args.roomId ||
+      roomThread.archivedAt !== undefined
+    ) {
       return empty;
     }
 
@@ -466,7 +565,7 @@ export const sendMessage = mutation({
       );
     }
 
-    const { userId, roomThread } = await requireRoomThread(
+    const { userId, roomThread } = await requireActiveRoomThread(
       ctx,
       args.roomId,
       args.threadId,

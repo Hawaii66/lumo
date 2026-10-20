@@ -65,11 +65,16 @@ export default defineSchema({
     /** Interaction mode for the chat. Missing on older threads → treat as normal. */
     mode: v.optional(chatModeValidator),
     /**
-     * Auto-delete preference. Missing on older threads → infinite.
-     * `deleteAt` is the absolute deadline when not infinite; purged by cron.
+     * Auto-archive preference. Missing on older threads → infinite.
+     * `deleteAt` is the absolute archive deadline when not infinite; cron archives.
      */
     deletionExpiry: v.optional(chatDeletionExpiryValidator),
     deleteAt: v.optional(v.number()),
+    /**
+     * Set when the chat is archived (manual or expiry). Missing → active.
+     * Cleared on unarchive. Soft-delete: messages are kept.
+     */
+    archivedAt: v.optional(v.number()),
     /**
      * Distinct @-mentioned problem numbers seen in this chat (display order).
      * Updated as messages are sent; missing on older threads.

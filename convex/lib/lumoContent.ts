@@ -635,7 +635,7 @@ export type ChatMode = "normal" | "genomgang";
 
 export const DEFAULT_CHAT_MODE: ChatMode = "normal";
 
-/** How long until a chat is eligible for deletion. Missing → infinite. */
+/** How long until a chat is eligible for auto-archive. Missing → infinite. */
 export const chatDeletionExpiryValidator = v.union(
   v.literal("1h"),
   v.literal("3h"),
@@ -655,7 +655,7 @@ const DELETION_EXPIRY_MS: Record<
   "3h": 3 * 60 * 60 * 1000,
 };
 
-/** Absolute delete-at timestamp, or undefined when the chat is kept forever. */
+/** Absolute archive-at timestamp, or undefined when the chat is kept forever. */
 export function computeDeleteAt(
   expiry: ChatDeletionExpiry,
   now = Date.now(),
