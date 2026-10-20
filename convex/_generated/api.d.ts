@@ -8,12 +8,15 @@
  * @module
  */
 
+import type * as PDFParse_getOrFetchMiddleJson from "../PDFParse/getOrFetchMiddleJson.js";
 import type * as PDFParse_jobs from "../PDFParse/jobs.js";
+import type * as PDFParse_lumoInfoAgent from "../PDFParse/lumoInfoAgent.js";
 import type * as PDFParse_lumoProblemAgent from "../PDFParse/lumoProblemAgent.js";
 import type * as PDFParse_middleJson from "../PDFParse/middleJson.js";
 import type * as PDFParse_mineruCache from "../PDFParse/mineruCache.js";
 import type * as PDFParse_mineruClient from "../PDFParse/mineruClient.js";
 import type * as PDFParse_mineruSchema from "../PDFParse/mineruSchema.js";
+import type * as PDFParse_pdfInfo from "../PDFParse/pdfInfo.js";
 import type * as PDFParse_pdfParse from "../PDFParse/pdfParse.js";
 import type * as PDFParse_problems from "../PDFParse/problems.js";
 import type * as agents_openrouter from "../agents/openrouter.js";
@@ -29,6 +32,7 @@ import type * as lib_lumoContent from "../lib/lumoContent.js";
 import type * as lib_prompts_format from "../lib/prompts/format.js";
 import type * as lib_prompts_fragments from "../lib/prompts/fragments.js";
 import type * as lib_prompts_index from "../lib/prompts/index.js";
+import type * as lib_prompts_info from "../lib/prompts/info.js";
 import type * as lib_prompts_problem from "../lib/prompts/problem.js";
 import type * as lib_prompts_solve from "../lib/prompts/solve.js";
 import type * as lib_roomAuth from "../lib/roomAuth.js";
@@ -46,12 +50,15 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "PDFParse/getOrFetchMiddleJson": typeof PDFParse_getOrFetchMiddleJson;
   "PDFParse/jobs": typeof PDFParse_jobs;
+  "PDFParse/lumoInfoAgent": typeof PDFParse_lumoInfoAgent;
   "PDFParse/lumoProblemAgent": typeof PDFParse_lumoProblemAgent;
   "PDFParse/middleJson": typeof PDFParse_middleJson;
   "PDFParse/mineruCache": typeof PDFParse_mineruCache;
   "PDFParse/mineruClient": typeof PDFParse_mineruClient;
   "PDFParse/mineruSchema": typeof PDFParse_mineruSchema;
+  "PDFParse/pdfInfo": typeof PDFParse_pdfInfo;
   "PDFParse/pdfParse": typeof PDFParse_pdfParse;
   "PDFParse/problems": typeof PDFParse_problems;
   "agents/openrouter": typeof agents_openrouter;
@@ -67,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   "lib/prompts/format": typeof lib_prompts_format;
   "lib/prompts/fragments": typeof lib_prompts_fragments;
   "lib/prompts/index": typeof lib_prompts_index;
+  "lib/prompts/info": typeof lib_prompts_info;
   "lib/prompts/problem": typeof lib_prompts_problem;
   "lib/prompts/solve": typeof lib_prompts_solve;
   "lib/roomAuth": typeof lib_roomAuth;

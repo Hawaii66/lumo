@@ -12,7 +12,14 @@ import {
 import { requireRoomMember } from "../lib/roomAuth";
 
 const MAX_STATUS_UPDATES = 40;
-const MAX_JOBS_LOOKUP = 20;
+const MAX_JOBS_LOOKUP = 40;
+
+export const parseJobKindValidator = v.union(
+  v.literal("problems"),
+  v.literal("info"),
+);
+
+export type ParseJobKind = "problems" | "info";
 
 const statusUpdateValidator = v.object({
   message: v.string(),
@@ -28,11 +35,24 @@ const jobStatusValidator = v.union(
 
 const jobSummaryValidator = v.object({
   _id: v.id("pdfParseJobs"),
+  kind: parseJobKindValidator,
   status: jobStatusValidator,
   statusUpdates: v.array(statusUpdateValidator),
   error: v.union(v.string(), v.null()),
   problemCount: v.union(v.number(), v.null()),
 });
+
+const kindStatusValidator = v.object({
+  kind: parseJobKindValidator,
+  label: v.string(),
+  alreadyDone: v.boolean(),
+  summary: v.union(v.string(), v.null()),
+  job: v.union(jobSummaryValidator, v.null()),
+});
+
+function jobKind(job: Doc<"pdfParseJobs">): ParseJobKind {
+  return job.kind ?? "problems";
+}
 
 async function hasProblemsForHash(
   ctx: QueryCtx | MutationCtx,
@@ -56,39 +76,80 @@ async function countProblemsForHash(
   return rows.length;
 }
 
+async function hasInfoForHash(
+  ctx: QueryCtx | MutationCtx,
+  contentHash: string,
+): Promise<boolean> {
+  const row = await ctx.db
+    .query("pdfInfo")
+    .withIndex("by_contentHash", (q) => q.eq("contentHash", contentHash))
+    .first();
+  return row !== null;
+}
+
 function isActiveStatus(
   status: Doc<"pdfParseJobs">["status"],
 ): status is "pending" | "running" {
   return status === "pending" || status === "running";
 }
 
-async function latestJobForFile(
-  ctx: QueryCtx | MutationCtx,
-  fileId: Id<"files">,
-): Promise<Doc<"pdfParseJobs"> | null> {
-  const jobs = await ctx.db
-    .query("pdfParseJobs")
-    .withIndex("by_file", (q) => q.eq("fileId", fileId))
-    .order("desc")
-    .take(MAX_JOBS_LOOKUP);
-  return jobs[0] ?? null;
-}
-
-async function activeJobForContentHash(
+async function jobsForContentHash(
   ctx: QueryCtx | MutationCtx,
   contentHash: string,
-): Promise<Doc<"pdfParseJobs"> | null> {
-  const jobs = await ctx.db
+): Promise<Doc<"pdfParseJobs">[]> {
+  return await ctx.db
     .query("pdfParseJobs")
     .withIndex("by_contentHash", (q) => q.eq("contentHash", contentHash))
     .order("desc")
     .take(MAX_JOBS_LOOKUP);
-  return jobs.find((job) => isActiveStatus(job.status)) ?? null;
+}
+
+async function activeJobForContentHashAndKind(
+  ctx: QueryCtx | MutationCtx,
+  contentHash: string,
+  kind: ParseJobKind,
+): Promise<Doc<"pdfParseJobs"> | null> {
+  const jobs = await jobsForContentHash(ctx, contentHash);
+  return (
+    jobs.find(
+      (job) => jobKind(job) === kind && isActiveStatus(job.status),
+    ) ?? null
+  );
+}
+
+async function latestJobForFileAndKind(
+  ctx: QueryCtx | MutationCtx,
+  fileId: Id<"files">,
+  kind: ParseJobKind,
+): Promise<Doc<"pdfParseJobs"> | null> {
+  // Prefer kind index when kind is set; also scan by_file for legacy rows.
+  const byKind = await ctx.db
+    .query("pdfParseJobs")
+    .withIndex("by_file_and_kind", (q) =>
+      q.eq("fileId", fileId).eq("kind", kind),
+    )
+    .order("desc")
+    .take(MAX_JOBS_LOOKUP);
+  if (byKind[0] !== undefined) {
+    return byKind[0];
+  }
+
+  if (kind === "problems") {
+    const jobs = await ctx.db
+      .query("pdfParseJobs")
+      .withIndex("by_file", (q) => q.eq("fileId", fileId))
+      .order("desc")
+      .take(MAX_JOBS_LOOKUP);
+    return jobs.find((job) => jobKind(job) === "problems") ?? null;
+  }
+
+  return null;
 }
 
 function toJobSummary(job: Doc<"pdfParseJobs">) {
   return {
     _id: job._id,
+    kind: jobKind(job),
     status: job.status,
     statusUpdates: job.statusUpdates,
     error: job.error ?? null,
@@ -96,9 +157,38 @@ function toJobSummary(job: Doc<"pdfParseJobs">) {
   };
 }
 
+async function statusForKind(
+  ctx: QueryCtx,
+  fileId: Id<"files">,
+  contentHash: string,
+  kind: ParseJobKind,
+  label: string,
+  alreadyDone: boolean,
+  summary: string | null,
+): Promise<{
+  kind: ParseJobKind;
+  label: string;
+  alreadyDone: boolean;
+  summary: string | null;
+  job: ReturnType<typeof toJobSummary> | null;
+}> {
+  const active = await activeJobForContentHashAndKind(ctx, contentHash, kind);
+
+  let job: ReturnType<typeof toJobSummary> | null = null;
+  if (active !== null) {
+    job = toJobSummary(active);
+  } else if (!alreadyDone) {
+    const latest = await latestJobForFileAndKind(ctx, fileId, kind);
+    if (latest !== null && latest.status === "failed") {
+      job = toJobSummary(latest);
+    }
+  }
+
+  return { kind, label, alreadyDone, summary, job };
+}
+
 /**
- * Modal state for a PDF: whether problems already exist for the hash,
- * plus the latest / active job (without problem bodies).
+ * Modal state for a PDF: status of each parse job kind (problems / info).
  */
 export const getParseStatus = query({
   args: { fileId: v.id("files") },
@@ -106,9 +196,7 @@ export const getParseStatus = query({
     v.null(),
     v.object({
       fileName: v.string(),
-      alreadyParsed: v.boolean(),
-      problemCount: v.number(),
-      job: v.union(jobSummaryValidator, v.null()),
+      kinds: v.array(kindStatusValidator),
     }),
   ),
   handler: async (ctx, args) => {
@@ -119,32 +207,45 @@ export const getParseStatus = query({
     await requireRoomMember(ctx, file.roomId);
 
     const problemCount = await countProblemsForHash(ctx, file.contentHash);
-    const alreadyParsed = problemCount > 0;
-    const active = await activeJobForContentHash(ctx, file.contentHash);
+    const problemsDone = problemCount > 0;
+    const infoDone = await hasInfoForHash(ctx, file.contentHash);
 
-    // Active jobs always show. Failed jobs show only when not already parsed.
-    // Done jobs are never shown (problems exist; modal must not list them).
-    let job: ReturnType<typeof toJobSummary> | null = null;
-    if (active !== null) {
-      job = toJobSummary(active);
-    } else if (!alreadyParsed) {
-      const latest = await latestJobForFile(ctx, args.fileId);
-      if (latest !== null && latest.status === "failed") {
-        job = toJobSummary(latest);
-      }
-    }
+    const problemsStatus = await statusForKind(
+      ctx,
+      args.fileId,
+      file.contentHash,
+      "problems",
+      "Tolka uppgifter",
+      problemsDone,
+      problemsDone
+        ? problemCount === 1
+          ? "1 uppgift"
+          : `${problemCount} uppgifter`
+        : null,
+    );
+
+    const infoStatus = await statusForKind(
+      ctx,
+      args.fileId,
+      file.contentHash,
+      "info",
+      "Tolka kursinformation",
+      infoDone,
+      infoDone ? "Kursinformation sparad" : null,
+    );
 
     return {
       fileName: file.name,
-      alreadyParsed,
-      problemCount,
-      job,
+      kinds: [problemsStatus, infoStatus],
     };
   },
 });
 
 export const start = mutation({
-  args: { fileId: v.id("files") },
+  args: {
+    fileId: v.id("files"),
+    kind: parseJobKindValidator,
+  },
   returns: v.id("pdfParseJobs"),
   handler: async (ctx, args) => {
     const file = await ctx.db.get(args.fileId);
@@ -157,13 +258,18 @@ export const start = mutation({
 
     const userId = await requireRoomMember(ctx, file.roomId);
 
-    if (await hasProblemsForHash(ctx, file.contentHash)) {
-      throw new Error("Uppgifterna är redan tolkade för denna PDF");
+    if (args.kind === "problems") {
+      if (await hasProblemsForHash(ctx, file.contentHash)) {
+        throw new Error("Uppgifterna är redan tolkade för denna PDF");
+      }
+    } else if (await hasInfoForHash(ctx, file.contentHash)) {
+      throw new Error("Informationen är redan tolkad för denna PDF");
     }
 
-    const existingActive = await activeJobForContentHash(
+    const existingActive = await activeJobForContentHashAndKind(
       ctx,
       file.contentHash,
+      args.kind,
     );
     if (existingActive !== null) {
       return existingActive._id;
@@ -175,6 +281,7 @@ export const start = mutation({
       roomId: file.roomId,
       contentHash: file.contentHash,
       createdBy: userId,
+      kind: args.kind,
       status: "pending",
       statusUpdates: [{ message: "Startar…", at: now }],
     });
@@ -196,6 +303,7 @@ export const getInternal = internalQuery({
       roomId: v.id("rooms"),
       contentHash: v.string(),
       createdBy: v.id("users"),
+      kind: parseJobKindValidator,
       status: jobStatusValidator,
     }),
     v.null(),
@@ -211,6 +319,7 @@ export const getInternal = internalQuery({
       roomId: job.roomId,
       contentHash: job.contentHash,
       createdBy: job.createdBy,
+      kind: jobKind(job),
       status: job.status,
     };
   },
@@ -248,7 +357,7 @@ export const appendStatus = internalMutation({
 export const markDone = internalMutation({
   args: {
     jobId: v.id("pdfParseJobs"),
-    problemCount: v.number(),
+    problemCount: v.optional(v.number()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -264,7 +373,9 @@ export const markDone = internalMutation({
 
     await ctx.db.patch(args.jobId, {
       status: "done",
-      problemCount: args.problemCount,
+      ...(args.problemCount !== undefined
+        ? { problemCount: args.problemCount }
+        : {}),
       statusUpdates,
       error: undefined,
     });

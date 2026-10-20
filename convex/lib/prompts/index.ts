@@ -11,6 +11,11 @@ export {
   formatModeHint,
 } from "./format";
 export {
+  LUMO_INFO_INSTRUCTIONS,
+  PDF_INFO_MAX_LENGTH,
+  buildInfoConvertPrompt,
+} from "./info";
+export {
   LUMO_PROBLEM_INSTRUCTIONS,
   buildConvertPrompt,
 } from "./problem";
