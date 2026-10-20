@@ -1,9 +1,10 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
 import { requireRoomMember } from "./lib/roomAuth";
+import { mutation, query } from "./_generated/server";
 
 const MAX_FIELD_LENGTH = 50;
+const MAX_GENERAL_INFO_LENGTH = 4000;
 const MAX_ROOMS = 100;
 const MAX_MEMBERS = 100;
 
@@ -18,6 +19,15 @@ function trimField(value: string, label: string): string {
   return trimmed;
 }
 
+function normalizeGeneralInfo(value: string): string {
+  if (value.length > MAX_GENERAL_INFO_LENGTH) {
+    throw new Error(
+      `Allmän information får vara högst ${MAX_GENERAL_INFO_LENGTH} tecken`,
+    );
+  }
+  return value.trimEnd();
+}
+
 function normalizeEmail(email: string): string {
   const trimmed = email.trim().toLowerCase();
   if (trimmed.length === 0) {
@@ -29,8 +39,20 @@ function normalizeEmail(email: string): string {
   return trimmed;
 }
 
+const roomSummaryValidator = v.object({
+  _id: v.id("rooms"),
+  _creationTime: v.number(),
+  name: v.string(),
+  description: v.string(),
+});
+
+const roomDetailValidator = roomSummaryValidator.extend({
+  generalInfo: v.string(),
+});
+
 export const list = query({
   args: {},
+  returns: v.array(roomSummaryValidator),
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -61,6 +83,7 @@ export const list = query({
 
 export const get = query({
   args: { roomId: v.id("rooms") },
+  returns: v.union(roomDetailValidator, v.null()),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -88,6 +111,7 @@ export const get = query({
       _creationTime: room._creationTime,
       name: room.name,
       description: room.description,
+      generalInfo: room.generalInfo ?? "",
     };
   },
 });
@@ -97,6 +121,7 @@ export const create = mutation({
     name: v.string(),
     description: v.string(),
   },
+  returns: v.id("rooms"),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -125,7 +150,9 @@ export const update = mutation({
     roomId: v.id("rooms"),
     name: v.string(),
     description: v.string(),
+    generalInfo: v.string(),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
 
@@ -136,13 +163,27 @@ export const update = mutation({
 
     const name = trimField(args.name, "Namn");
     const description = trimField(args.description, "Beskrivning");
+    const generalInfo = normalizeGeneralInfo(args.generalInfo);
 
-    await ctx.db.patch(args.roomId, { name, description });
+    await ctx.db.patch(args.roomId, { name, description, generalInfo });
+    return null;
   },
 });
 
 export const listMembers = query({
   args: { roomId: v.id("rooms") },
+  returns: v.union(
+    v.array(
+      v.object({
+        userId: v.id("users"),
+        name: v.union(v.string(), v.null()),
+        email: v.union(v.string(), v.null()),
+        image: v.union(v.string(), v.null()),
+        isViewer: v.boolean(),
+      }),
+    ),
+    v.null(),
+  ),
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -193,6 +234,7 @@ export const addMemberByEmail = mutation({
     roomId: v.id("rooms"),
     email: v.string(),
   },
+  returns: v.id("users"),
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
 
@@ -246,6 +288,7 @@ export const removeMember = mutation({
     roomId: v.id("rooms"),
     userId: v.id("users"),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
 
@@ -272,5 +315,6 @@ export const removeMember = mutation({
     }
 
     await ctx.db.delete(membership._id);
+    return null;
   },
 });

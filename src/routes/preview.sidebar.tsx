@@ -58,6 +58,7 @@ const SECTION_LABELS: Record<RoomSidebarSection, string> = {
   chats: "Chattar",
   problems: "Uppgifter",
   files: "Filer",
+  settings: "Inställningar",
 }
 
 function SidebarPreviewPage() {

@@ -23,6 +23,11 @@ export default defineSchema({
   rooms: defineTable({
     name: v.string(),
     description: v.string(),
+    /**
+     * Freeform notes for the AI about this room (preferred methods, context, etc.).
+     * Missing on older rooms → treat as empty. Not injected into chats until wired.
+     */
+    generalInfo: v.optional(v.string()),
   }).index("by_name", ["name"]),
   files: defineTable({
     roomId: v.id("rooms"),

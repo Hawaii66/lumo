@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useMutation, useQuery } from "convex/react"
-import { ArrowLeft, UserMinus, UserPlus } from "lucide-react"
+import { UserMinus, UserPlus } from "lucide-react"
 import { useEffect, useState } from "react"
-import { api } from "../../convex/_generated/api"
-import type { Id } from "../../convex/_generated/dataModel"
+import { useNavigate } from "@tanstack/react-router"
+import { api } from "../../../convex/_generated/api"
+import type { Id } from "../../../convex/_generated/dataModel"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -17,27 +17,27 @@ import { Label } from "~/components/ui/label"
 import { Textarea } from "~/components/ui/textarea"
 
 const MAX_FIELD_LENGTH = 50
+const MAX_GENERAL_INFO_LENGTH = 4000
 
-export const Route = createFileRoute("/rooms/$roomId_/settings")({
-  component: RoomSettingsPage,
-})
+type RoomSettingsPanelProps = {
+  roomId: Id<"rooms">
+}
 
-function RoomSettingsPage() {
-  const { roomId } = Route.useParams()
-  const typedRoomId = roomId as Id<"rooms">
+export function RoomSettingsPanel({ roomId }: RoomSettingsPanelProps) {
   const navigate = useNavigate()
-
-  const room = useQuery(api.rooms.get, { roomId: typedRoomId })
-  const members = useQuery(api.rooms.listMembers, { roomId: typedRoomId })
+  const room = useQuery(api.rooms.get, { roomId })
+  const members = useQuery(api.rooms.listMembers, { roomId })
   const updateRoom = useMutation(api.rooms.update)
   const addMemberByEmail = useMutation(api.rooms.addMemberByEmail)
   const removeMember = useMutation(api.rooms.removeMember)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
+  const [generalInfo, setGeneralInfo] = useState("")
   const [detailsError, setDetailsError] = useState<string | null>(null)
   const [detailsSaved, setDetailsSaved] = useState(false)
   const [detailsPending, setDetailsPending] = useState(false)
+  const [detailsDirty, setDetailsDirty] = useState(false)
 
   const [memberEmail, setMemberEmail] = useState("")
   const [memberError, setMemberError] = useState<string | null>(null)
@@ -47,65 +47,41 @@ function RoomSettingsPage() {
   )
 
   useEffect(() => {
-    if (room == null) return
+    if (room == null || detailsDirty) return
     setName(room.name)
     setDescription(room.description)
-  }, [room])
+    setGeneralInfo(room.generalInfo)
+  }, [room, detailsDirty])
 
   if (room === undefined) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-6 text-sm text-muted-foreground">
-        Hämtar rum…
-      </div>
+      <p className="text-sm text-muted-foreground">Hämtar inställningar…</p>
     )
   }
 
   if (room === null) {
     return (
-      <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-6">
-        <p className="text-sm text-muted-foreground">
-          Rummet hittades inte eller så saknar du åtkomst.
-        </p>
-        <Button render={<Link to="/" />}>Tillbaka till startsidan</Button>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Rummet hittades inte eller så saknar du åtkomst.
+      </p>
     )
   }
 
-  const detailsDirty =
-    name.trim() !== room.name || description.trim() !== room.description
-
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-xl flex-col gap-6 p-6">
-      <div className="flex items-start gap-3">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="mt-0.5 shrink-0"
-          aria-label="Tillbaka till rummet"
-          onClick={() =>
-            void navigate({
-              to: "/rooms/$roomId",
-              params: { roomId },
-            })
-          }
-        >
-          <ArrowLeft />
-        </Button>
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Ruminställningar
-          </h1>
-          <p className="mt-1 truncate text-sm text-muted-foreground">
-            {room.name}
-          </p>
-        </div>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div>
+        <h2 className="text-lg font-medium">Inställningar</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Namn, beskrivning, AI-information och medlemmar för det här rummet.
+        </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Detaljer</CardTitle>
           <CardDescription>
-            Namn och beskrivning (max {MAX_FIELD_LENGTH} tecken).
+            Namn och beskrivning (max {MAX_FIELD_LENGTH} tecken). Allmän
+            information till AI:n får vara längre.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -117,11 +93,15 @@ function RoomSettingsPage() {
               setDetailsSaved(false)
               setDetailsPending(true)
               void updateRoom({
-                roomId: typedRoomId,
+                roomId,
                 name,
                 description,
+                generalInfo,
               })
-                .then(() => setDetailsSaved(true))
+                .then(() => {
+                  setDetailsDirty(false)
+                  setDetailsSaved(true)
+                })
                 .catch((err: unknown) => {
                   setDetailsError(
                     err instanceof Error
@@ -140,9 +120,11 @@ function RoomSettingsPage() {
                 maxLength={MAX_FIELD_LENGTH}
                 onChange={(e) => {
                   setName(e.target.value)
+                  setDetailsDirty(true)
                   setDetailsSaved(false)
                 }}
                 required
+                className="border-2 border-border bg-background"
               />
               <p className="text-right text-xs text-muted-foreground">
                 {name.length}/{MAX_FIELD_LENGTH}
@@ -157,13 +139,39 @@ function RoomSettingsPage() {
                 maxLength={MAX_FIELD_LENGTH}
                 onChange={(e) => {
                   setDescription(e.target.value)
+                  setDetailsDirty(true)
                   setDetailsSaved(false)
                 }}
                 required
-                className="min-h-20"
+                className="min-h-20 border-2 border-border bg-background"
               />
               <p className="text-right text-xs text-muted-foreground">
                 {description.length}/{MAX_FIELD_LENGTH}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="settings-room-general-info">
+                Allmän beskrivning och information
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Skriv fritt till AI:n för det här rummet — till exempel vilka
+                metoder den ska föredra, kurskontext eller andra instruktioner.
+              </p>
+              <Textarea
+                id="settings-room-general-info"
+                value={generalInfo}
+                maxLength={MAX_GENERAL_INFO_LENGTH}
+                onChange={(e) => {
+                  setGeneralInfo(e.target.value)
+                  setDetailsDirty(true)
+                  setDetailsSaved(false)
+                }}
+                placeholder="T.ex. Föredra substitutionsmetoden framför partialbråk när det går. Kursen är SF1626…"
+                className="min-h-40 border-2 border-border bg-background"
+              />
+              <p className="text-right text-xs text-muted-foreground">
+                {generalInfo.length}/{MAX_GENERAL_INFO_LENGTH}
               </p>
             </div>
 
@@ -201,7 +209,7 @@ function RoomSettingsPage() {
               setMemberError(null)
               setMemberPending(true)
               void addMemberByEmail({
-                roomId: typedRoomId,
+                roomId,
                 email: memberEmail,
               })
                 .then(() => setMemberEmail(""))
@@ -224,6 +232,7 @@ function RoomSettingsPage() {
                 onChange={(e) => setMemberEmail(e.target.value)}
                 placeholder="namn@exempel.se"
                 required
+                className="border-2 border-border bg-background"
               />
             </div>
             <Button type="submit" disabled={memberPending} className="shrink-0">
@@ -282,7 +291,7 @@ function RoomSettingsPage() {
                       setMemberError(null)
                       setRemovingUserId(member.userId)
                       void removeMember({
-                        roomId: typedRoomId,
+                        roomId,
                         userId: member.userId,
                       })
                         .then(() => {
@@ -308,6 +317,6 @@ function RoomSettingsPage() {
           )}
         </CardContent>
       </Card>
-    </main>
+    </div>
   )
 }
