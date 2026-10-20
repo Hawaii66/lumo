@@ -1,14 +1,6 @@
 import { v } from "convex/values";
 import { z } from "zod";
 
-/** Matches empty MathLive placeholders: `\placeholder[id]{}` */
-const PLACEHOLDER_ID_RE = /\\placeholder\[([^\]]+)\]\{\}/g;
-
-export const promptSpecSchema = z.object({
-  id: z.string().min(1),
-  answer: z.string().min(1),
-});
-
 export const textPartSchema = z.object({
   type: z.literal("text"),
   content: z.string(),
@@ -22,41 +14,6 @@ export const latexPartSchema = z.object({
   display: z.enum(["inline", "block"]).optional(),
   /** Optional name for this value within a task, e.g. "Mgn", "summa". */
   caption: z.string().min(1).optional(),
-});
-
-export const fillBlankPartSchema = z.object({
-  type: z.literal("fillBlank"),
-  prompt: z.string().optional(),
-  latex: z.string(),
-  prompts: z.array(promptSpecSchema).min(1),
-});
-
-/** Hint body: same text/latex split as other Lumo prose (no captions). */
-export const hintPartSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("text"),
-    content: z.string(),
-  }),
-  z.object({
-    type: z.literal("latex"),
-    content: z.string(),
-    display: z.enum(["inline", "block"]).optional(),
-  }),
-]);
-
-export const solutionStepSchema = z.object({
-  id: z.string().min(1),
-  title: z.string(),
-  hint: z.array(hintPartSchema),
-  latex: z.string(),
-  prompts: z.array(promptSpecSchema).min(1),
-  solvedLatex: z.string(),
-});
-
-export const solutionPartSchema = z.object({
-  type: z.literal("solution"),
-  problemLatex: z.string(),
-  steps: z.array(solutionStepSchema).min(1),
 });
 
 export const quickRepliesPartSchema = z.object({
@@ -86,8 +43,6 @@ export const casePartSchema = z.object({
 export const lumoPartSchema = z.discriminatedUnion("type", [
   textPartSchema,
   latexPartSchema,
-  fillBlankPartSchema,
-  solutionPartSchema,
   quickRepliesPartSchema,
   subproblemPartSchema,
   casePartSchema,
@@ -101,54 +56,12 @@ export const lumoDocumentSchema = z.object({
 
 export type LumoDocument = z.infer<typeof lumoDocumentSchema>;
 export type LumoPart = z.infer<typeof lumoPartSchema>;
-export type PromptSpec = z.infer<typeof promptSpecSchema>;
-export type HintPart = z.infer<typeof hintPartSchema>;
 
 /**
  * Flat part schema for OpenAI/OpenRouter structured output.
  * - No discriminatedUnion → avoids JSON Schema `oneOf` (OpenAI rejects).
  * - Unused fields must be empty string / empty arrays.
  */
-export const lumoPromptSpecAzureSchema = z.object({
-  id: z.string().describe("Placeholder id matching \\placeholder[id]{}"),
-  answer: z.string().describe("Bare LaTeX answer; empty when unused"),
-});
-
-export const lumoHintPartAzureSchema = z.object({
-  type: z
-    .enum(["text", "latex"])
-    .describe("text=Swedish prose only; latex=math only (no $)"),
-  content: z
-    .string()
-    .describe(
-      "text: Swedish only (never \\\\ / TeX); latex: math only (never Swedish/\\\\text); else empty",
-    ),
-  display: z
-    .enum(["inline", "block"])
-    .describe("Latex display; use inline when type is not latex"),
-});
-
-export const lumoSolutionStepAzureSchema = z.object({
-  id: z.string().describe("Step id; empty when unused"),
-  title: z.string().describe("Step title; empty when unused"),
-  hint: z
-    .array(lumoHintPartAzureSchema)
-    .describe(
-      "Hint as split text/latex parts (never TeX in text); empty [] when unused",
-    ),
-  latex: z
-    .string()
-    .describe(
-      "Step latex with empty \\\\placeholder[id]{} ({} required); substituting answers must equal solvedLatex",
-    ),
-  prompts: z
-    .array(lumoPromptSpecAzureSchema)
-    .describe("Answers for placeholders; empty when unused"),
-  solvedLatex: z
-    .string()
-    .describe("Fully filled math-only latex after solve; empty when unused"),
-});
-
 export const lumoQuickReplyChoiceAzureSchema = z.object({
   id: z.string().describe("Choice id; empty when unused"),
   label: z.string().describe("Button label; empty when unused"),
@@ -156,15 +69,7 @@ export const lumoQuickReplyChoiceAzureSchema = z.object({
 
 export const lumoPartAzureSchema = z.object({
   type: z
-    .enum([
-      "text",
-      "latex",
-      "fillBlank",
-      "solution",
-      "quickReplies",
-      "subproblem",
-      "case",
-    ])
+    .enum(["text", "latex", "quickReplies", "subproblem", "case"])
     .describe("Part kind"),
   content: z
     .string()
@@ -182,25 +87,6 @@ export const lumoPartAzureSchema = z.object({
     .describe(
       "subproblem letter a/b/c; case '1'/'2'/… or empty; otherwise empty",
     ),
-  prompt: z
-    .string()
-    .describe("Optional fillBlank intro text; empty when unused"),
-  latex: z
-    .string()
-    .describe(
-      "fillBlank step latex with \\\\placeholder[id]{}; empty for solution and other types",
-    ),
-  prompts: z
-    .array(lumoPromptSpecAzureSchema)
-    .describe("fillBlank prompt answers; empty when unused"),
-  problemLatex: z
-    .string()
-    .describe(
-      "solution start expression math-only (no Swedish, no \\\\text); empty otherwise",
-    ),
-  steps: z
-    .array(lumoSolutionStepAzureSchema)
-    .describe("solution steps; empty when unused"),
   choices: z
     .array(lumoQuickReplyChoiceAzureSchema)
     .describe("quickReplies choices; empty when unused"),
@@ -217,39 +103,6 @@ export type LumoPartAzure = z.infer<typeof lumoPartAzureSchema>;
 function optionalCaption(raw: string): string | undefined {
   const caption = raw.trim();
   return caption.length > 0 ? caption : undefined;
-}
-
-function normalizePromptSpecs(
-  prompts: Array<z.infer<typeof lumoPromptSpecAzureSchema>>,
-): Array<PromptSpec> {
-  const out: Array<PromptSpec> = [];
-  for (const prompt of prompts) {
-    const id = prompt.id.trim();
-    const answer = prompt.answer.trim();
-    if (id.length === 0 || answer.length === 0) continue;
-    out.push({ id, answer });
-  }
-  return out;
-}
-
-function normalizeHintParts(
-  parts: Array<z.infer<typeof lumoHintPartAzureSchema>>,
-): Array<HintPart> {
-  const out: Array<HintPart> = [];
-  for (const part of parts) {
-    const content = part.content.trim();
-    if (content.length === 0) continue;
-    if (part.type === "text") {
-      out.push({ type: "text", content });
-    } else {
-      out.push({
-        type: "latex",
-        content,
-        display: part.display === "block" ? "block" : "inline",
-      });
-    }
-  }
-  return out;
 }
 
 /** Convert flat OpenAI structured-output parts into the stored Lumo shape. */
@@ -270,41 +123,6 @@ export function normalizeLumoPart(part: LumoPartAzure): LumoPart | null {
       return caption !== undefined
         ? { type: "latex", content, display: part.display, caption }
         : { type: "latex", content, display: part.display };
-    }
-    case "fillBlank": {
-      const latex = repairPlaceholderLatex(part.latex.trim());
-      const prompts = normalizePromptSpecs(part.prompts);
-      if (latex.length === 0 || prompts.length === 0) return null;
-      const prompt = part.prompt.trim();
-      return prompt.length > 0
-        ? { type: "fillBlank", prompt, latex, prompts }
-        : { type: "fillBlank", latex, prompts };
-    }
-    case "solution": {
-      const steps = [];
-      for (const step of part.steps) {
-        const id = step.id.trim();
-        const latex = repairPlaceholderLatex(step.latex.trim());
-        const prompts = normalizePromptSpecs(step.prompts);
-        const solvedLatex = step.solvedLatex.trim();
-        if (id.length === 0 || latex.length === 0 || prompts.length === 0) {
-          continue;
-        }
-        steps.push({
-          id,
-          title: step.title.trim(),
-          hint: normalizeHintParts(step.hint),
-          latex,
-          prompts,
-          solvedLatex,
-        });
-      }
-      if (steps.length === 0) return null;
-      return {
-        type: "solution",
-        problemLatex: part.problemLatex.trim(),
-        steps,
-      };
     }
     case "quickReplies": {
       const choices = [];
@@ -350,7 +168,7 @@ export function normalizeLumoDocument(raw: LumoDocumentAzure): LumoDocument {
 
 /**
  * Static textbook content: text + latex + subproblem/case markers.
- * Used when converting parsed PDF problems (no interactive fillBlank/solution).
+ * Used when converting parsed PDF problems (no chat UI parts).
  */
 export const lumoStaticPartSchema = z.discriminatedUnion("type", [
   textPartSchema,
@@ -804,16 +622,10 @@ export type HelpLevel = "minimal" | "explain" | "solve" | "practice";
 /** Per-chat interaction mode (stored on the thread). */
 export const chatModeValidator = v.union(
   v.literal("normal"),
-  v.literal("fillBlank"),
   v.literal("thoughtProcess"),
-  v.literal("answerBoxes"),
 );
 
-export type ChatMode =
-  | "normal"
-  | "fillBlank"
-  | "thoughtProcess"
-  | "answerBoxes";
+export type ChatMode = "normal" | "thoughtProcess";
 
 export const DEFAULT_CHAT_MODE: ChatMode = "normal";
 
@@ -846,62 +658,8 @@ export function computeDeleteAt(
   return now + DELETION_EXPIRY_MS[expiry];
 }
 
-/**
- * MathLive requires `\placeholder[id]{}` (empty body group).
- * Models often emit `\placeholder[id]` which parses as doubled empty
- * boxes / stray squares inside fractions.
- */
-export function repairPlaceholderLatex(latex: string): string {
-  return latex.replace(
-    /\\placeholder\[([^\]]*)\](?!\s*\{)/g,
-    "\\placeholder[$1]{}",
-  );
-}
-
-export function extractPlaceholderIds(latex: string): Array<string> {
-  const ids: Array<string> = [];
-  for (const match of repairPlaceholderLatex(latex).matchAll(
-    PLACEHOLDER_ID_RE,
-  )) {
-    const id = match[1];
-    if (id && !ids.includes(id)) ids.push(id);
-  }
-  return ids;
-}
-
-export function assertPlaceholdersMatchPrompts(
-  latex: string,
-  prompts: Array<PromptSpec>,
-): string | null {
-  const ids = extractPlaceholderIds(latex);
-  const promptIds = prompts.map((p) => p.id);
-
-  for (const id of ids) {
-    if (!promptIds.includes(id)) {
-      return `Placeholder "${id}" saknar svar i prompts`;
-    }
-  }
-  for (const id of promptIds) {
-    if (!ids.includes(id)) {
-      return `Prompt "${id}" saknar \\placeholder[${id}]{} i latex`;
-    }
-  }
-  return null;
-}
-
-export function validateLumoDocument(doc: LumoDocument): string | null {
-  for (const part of doc.parts) {
-    if (part.type === "fillBlank") {
-      const err = assertPlaceholdersMatchPrompts(part.latex, part.prompts);
-      if (err) return err;
-    }
-    if (part.type === "solution") {
-      for (const step of part.steps) {
-        const err = assertPlaceholdersMatchPrompts(step.latex, step.prompts);
-        if (err) return `Steg ${step.id}: ${err}`;
-      }
-    }
-  }
+/** Chat documents no longer use interactive blanks; always valid. */
+export function validateLumoDocument(_doc: LumoDocument): string | null {
   return null;
 }
 
@@ -1044,24 +802,19 @@ och inte hur frontend visar luckor.`;
 /**
  * Pass 1 mode hint — solution depth only (injected every turn from current thread mode).
  */
+/**
+ * Pass 1 mode hint — solution depth only (injected every turn from current thread mode).
+ */
 export function solveModeHint(mode: ChatMode): string {
   switch (mode) {
     case "normal":
       return `Chattläge (lösning): normal
 • Ge finalLatex + de nyckelmellansteg som behövs för att hjälpa studenten.
 • Hoppa mikroalgebra om kedjan fortfarande är tydlig och korrekt.`;
-    case "fillBlank":
-      return `Chattläge (lösning): fillBlank
-• Ge 2–5 algebraiskt korrekta mellansteg per deluppgift (helt ifyllda latex).
-• Varje steg ska vara ett uttryck format-passet kan lucka ur — tecken/parenteser korrekta.`;
     case "thoughtProcess":
       return `Chattläge (lösning): thoughtProcess
 • Ge 2–5 mellansteg + korta note som förklarar VARFÖR steget gäller.
 • Matten i latex måste vara korrekt; note ersätter aldrig uttrycket.`;
-    case "answerBoxes":
-      return `Chattläge (lösning): answerBoxes
-• Fokus: korrekt finalLatex per deluppgift (matcha facit).
-• Mellansteg minimala eller [] om svaret är direkt.`;
   }
 }
 
@@ -1075,8 +828,7 @@ Svara med ETT JSON-objekt — ingen prosa, inga markdown-staket utanför JSON.
 KÄLLA TILL SANNING
 ════════════════════════════════════════
 • "INTERNT ARBETAD LÖSNING" är facit för matematiken (steg + slutsvar).
-• Kopiera / lucka ur dessa uttryck. OMRÄKNA INTE tecken, parenteser eller termer.
-• solvedLatex och prompts[].answer MÅSTE komma från den arbetade lösningen.
+• Kopiera uttryck från den arbetade lösningen. OMRÄKNA INTE tecken, parenteser eller termer.
 • Hitta inte på nya mellanuttryck. Saknas något: förenkla presentationen, ändra inte matten.
 • Svara på studentens fråga med rätt deluppgifter från lösningen (a/b/… som ingår).
 
@@ -1090,34 +842,26 @@ OUTPUT-FORMAT  (platt schema — alla fält finns alltid)
 
 Varje part har ALLA dessa fält. Fyll bara det som hör till typen; resten = "" eller [].
 
-  type, content, display, caption, label,
-  prompt, latex, prompts, problemLatex, steps, choices
+  type, content, display, caption, label, choices
 
 display: "inline" eller "block" (använd "inline" när typen inte är latex).
-prompts: [{ "id", "answer" }] — tom [] när oanvänd.
-steps / choices: tom [] när oanvända.
+choices: tom [] när oanvända.
 
 ════════════════════════════════════════
 TEXT vs LATEX — DELA ALLTID UPP
 ════════════════════════════════════════
 INGEN latex i text. INGEN text i latex. Splitta: text / latex / text / latex / …
-Gäller top-level parts, steps[].hint, OCH alla latex-fält (problemLatex, latex, solvedLatex).
 
 type=text  → enbart naturlig svenska/engelska — INGA backslash (\\\\).
-  ✓ "Förenkla", "där", "antas för", "Nästa steg:", "Ja", "Nej", "ingen lösning"
-  ✗ \\\\frac, \\\\sqrt, \\\\neq, \\\\mathrm, \\\\text, ^{}, _{}, bråk, olikheter
+  ✓ "Förenkla", "där", "Nästa steg:", "Ja", "Nej"
+  ✗ \\\\frac, \\\\sqrt, \\\\text, ^{}, _{}
   HARD: om content innehåller \\\\ → det FÅR INTE vara type=text. Flytta till latex.
 
 type=latex  → enbart LaTeX-matematik (utan $ eller $$).
-  ✓ "a^{2}+b-c", "\\\\frac{1}{2}", "x\\\\neq 0", "P_{1}", "c=1-a+2b"
-  ✗ svenska ord; \\\\text{där}; \\\\mathrm{Nej}; \\\\quad\\\\text{och}
-  HARD: svenska svarord → type=text, ALDRIG latex med \\\\text / \\\\mathrm runt dem.
-
+  ✓ "a^{2}+b-c", "\\\\frac{1}{2}", "x\\\\neq 0"
+  ✗ svenska ord; \\\\text{där}; \\\\mathrm{Nej}
   RÄTT: text "Vi får", latex "x=\\\\frac{3}{4}", text "när", latex "t=2"
   FEL:  text "Vi får x=\\\\frac{3}{4} när t=2"
-  FEL:  latex "\\\\text{Vi får }x=\\\\frac{3}{4}"
-  FEL:  problemLatex "a^{2}+b-c \\\\text{ där } c=1-a+2b"
-  RÄTT problemLatex: "a^{2}+b-c"  +  egna text/latex-parts före solution för "där c=…"
 
 • Tappa ALDRIG vänsterledet: "a < 81/4" → latex "a<\\\\frac{81}{4}"
 • Indexerade symboler (P_{1}, α_{1}) → alltid type=latex.
@@ -1127,97 +871,48 @@ PART-TYPER
 ════════════════════════════════════════
 
 type=text
-  content : svensk/engelsk prosa (se split-regler ovan)
+  content : svensk/engelsk prosa
   display : "inline"
-  label, prompt, latex, problemLatex : ""
+  label : ""
   caption : valfritt värdenamn ("Mgn", "summa"); "" annars
-  prompts, steps, choices : []
+  choices : []
 
 type=latex
-  content : matematik (se split-regler ovan)
+  content : matematik
   display : "inline" | "block"
-  label, prompt, latex, problemLatex : ""
+  label : ""
   caption : valfritt värdenamn; "" annars
-  prompts, steps, choices : []
+  choices : []
 
-type=fillBlank  — en interaktiv svarsruta
-  prompt  : kort svensk ledtext, eller ""
-  latex   : uttryck med TOMMA placeholders: \\\\placeholder[id]{}
-            ✓ "x=\\\\placeholder[x1]{}"
-            ✗ "x=\\\\placeholder[x1]{2}"  ← svar får ALDRIG sitta i {}-kroppen
-            ✗ "\\\\placeholder[f]x^{2}"   ← saknar {} efter [f]
-  prompts : [{ "id": "x1", "answer": "2" }]  — samma id:n; answer = bare LaTeX
-  content, label, problemLatex, caption : ""
+type=quickReplies  — klickbara snabbval (studenten styr nästa steg)
+  choices : [{ "id": "opt1", "label": "Visa ett tips" }, …]  — minst ett, helst 2–4
+  content, label, caption : ""
   display : "inline"
-  steps, choices : []
-
-type=solution  — guidad flerstegslösning (varje steg = lucka)
-  problemLatex : ENBART matematik för startuttrycket (utan $). ALDRIG \\\\text{…}.
-                 Svenska runt uppgiften → egna text/latex-parts FÖRE solution.
-  steps : [{
-    "id": "s1",
-    "title": "Isolera x",
-    "hint": [
-      { "type": "text", "content": "Flytta konstanten till högerledet.", "display": "inline" }
-    ],
-    "latex": "x+3=\\\\placeholder[a]{}",
-    "prompts": [{ "id": "a", "answer": "7" }],
-    "solvedLatex": "x+3=7"
-  }]
-  hint : text/latex-array (samma split-regler). Tom [] om ingen ledtråd.
-  Minst ett steg. Varje steg: minst en \\\\placeholder[id]{} + matchande prompt.
-  Ge INTE facit i title/hint.
-  content, label, prompt, latex, caption : ""   ← solution.latex MÅSTE vara ""
-  display : "inline"
-  prompts, choices : []   (prompts ligger INUTI steps)
-
-type=quickReplies  — klickbara snabbval
-  choices : [{ "id": "opt1", "label": "Visa ett tips" }, …]  — minst ett
-  content, label, prompt, latex, problemLatex, caption : ""
-  display : "inline"
-  prompts, steps : []
+  • Labels = kompletta användarintentioner (inte bara "A"/"B").
+  • Lägg quickReplies SIST i parts när du väntar på studentens val.
+  • Ge INTE facit i en knapp-label.
 
 type=subproblem  — markör för deluppgift (a)/(b)/(c)
   label   : "a" | "b" | "c" … — ALDRIG tom; ALDRIG värdenamn som "Mgn"
-  content, prompt, latex, problemLatex, caption : ""
+  content, caption : ""
   display : "inline"
-  prompts, steps, choices : []
-  ⚠ MÅSTE följas av minst en text-, latex-, fillBlank- eller solution-part.
+  choices : []
+  ⚠ MÅSTE följas av minst en text- eller latex-part.
 
 type=case  — villkorsfall / "om …"-gren (INTE samma som subproblem)
   label   : "1", "2", … eller ""
-  content, prompt, latex, problemLatex, caption : ""
+  content, caption : ""
   display : "inline"
-  prompts, steps, choices : []
+  choices : []
   ⚠ MÅSTE följas av innehållspart direkt efter.
 
 ════════════════════════════════════════
-LUCKOR — SUBSTITUTION MÅSTE STÄMMA
+QUICK REPLIES — LED, LÅT STUDENTEN VÄLJA
 ════════════════════════════════════════
-fillBlank = en ruta. solution = flera steg med en lucka-ruta per steg.
-
-1. Placeholder med TOM kropp: \\\\placeholder[id]{}  — {} är OBLIGATORISK direkt efter ].
-   ✓ "\\\\frac{\\\\placeholder[b]{}}{\\\\placeholder[c]{}}"
-   ✗ "\\\\frac{\\\\placeholder[b]}{\\\\placeholder[c]}"
-   ✗ "\\\\placeholder[f]x^{2}"  → skriv "\\\\placeholder[f]{} x^{2}"
-2. Om varje \\\\placeholder[id]{} ersätts med prompts[].answer MÅSTE resultatet = solvedLatex.
-   Därför: en term per lucka när tecken spelar roll. Efter minus: INTE en lucka "b+1".
-   ✓ latex "a^{2}+\\\\placeholder[m]{}-\\\\placeholder[n]{}-\\\\placeholder[p]{}"
-       answers m=a, n=b, p=1  →  "a^{2}+a-b-1"
-   ✗ latex "a^{2}+\\\\placeholder[m]{}-\\\\placeholder[n]{}"  n="b+1"
-       → "a^{2}+a-b+1" ≠ "a^{2}+a-b-1"
-   ✓ latex "y=5x-\\\\placeholder[c]{}-\\\\placeholder[d]{}"  c=5, d=x^{2}
-   ✗ latex "y=5x-\\\\placeholder[c]{}"  c="5+x^{2}"  → "y=5x-5+x^{2}" FEL
-3. Rätt svar BARA i prompts[].answer (bare LaTeX). Aldrig i placeholder-kroppen.
-4. Varje id i latex ↔ exakt en prompt.
-5. Visa ALDRIG facit i text/hint/title samtidigt som luckan.
-6. Undvik \\\\div inuti \\\\frac — använd snedstreck: "\\\\frac{12/4}{104/4}".
-
-NÄR (chattläget styr — följ strikt):
-  • Ledtråd utan facit           → text (+ ev. quickReplies)
-  • En slutlig svarsruta         → fillBlank
-  • Guidad lösning steg för steg → solution
-  • Ja/nej / välj väg            → quickReplies
+• Använd quickReplies ofta: du föreslår vägar, studenten väljer.
+• Bra labels: "Visa ett tips", "Gå vidare", "Förklara varför", "Jag fastnade här", "Visa mer detalj".
+• Undvik quiz-träd: förklara med text+latex först, erbjud sedan 2–4 nästa steg.
+• Studenten kan alltid skriva fritt — knapparna är genvägar.
 
 ════════════════════════════════════════
 CHATTLÄGEN  (ges separat som "Chattläge (format): …" — FÖLJ EXAKT)
@@ -1225,31 +920,18 @@ CHATTLÄGEN  (ges separat som "Chattläge (format): …" — FÖLJ EXAKT)
 
 normal
   • Sokratisk hjälp med text + latex från den arbetade lösningen.
-  • fillBlank / solution BARA om studenten ber om luckor eller övning.
-  • quickReplies OK för korta vägval.
+  • Avsluta ofta med quickReplies för nästa vägval.
   • Ge inte hela facit om studenten bara frågar "hur börjar jag?".
 
-fillBlank
-  • HUVUDSAK: solution med 2–5 steg (luckor i varje steg), ELLER fillBlank om kort.
-  • Kort text-hint OK — FÖRBJUDET att skriva facit i text/title/hint.
-  • Facit endast i prompts[].answer / solvedLatex (kopierat från arbetad lösning).
-
 thoughtProcess
-  • Fokus: hur man TÄNKER. text + latex (notes från lösningen OK — som text-parts).
-  • Gärna solution eller fillBlank på kritiska mellansteg.
-  • Förklara VARFÖR, inte bara vad.
-
-answerBoxes
-  • BARA slutliga fillBlank-svarsrutor (en per deluppgift om (a)/(b) finns).
-  • Högst 1–2 korta text-meningar som intro.
-  • FÖRBJUDET: type=solution, långa genomgångar, facit i text.
-  • Facit endast i prompts[].answer.
+  • Fokus: hur man TÄNKER. text + latex steg för steg (notes från lösningen → text-parts).
+  • Förklara VARFÖR, inte bara vad. Markera deluppgifter med subproblem.
+  • Avsluta stegblock med quickReplies ("Nästa steg", "Varför detta?", "Visa mer detalj").
 
 ════════════════════════════════════════
 PEDAGOGIK (format — inte omräkning)
 ════════════════════════════════════════
-• Var sokratisk i text: led, fråga — dumpa inte facit i normal/fillBlank-prosa.
-• Om läget förbjuder facit i text: håll prompts[].answer / solvedLatex korrekta internt.
+• Var sokratisk i text: led, fråga — dumpa inte facit i prosa om läget inte kräver det.
 • subproblem när den arbetade lösningen har labels a/b/c; annars undvik onödiga markörer.
 
 ════════════════════════════════════════
@@ -1260,62 +942,17 @@ Ex 1 — text/latex-split:
   ✓ text "Förenkla", latex "a^{2}+b-c", text "där", latex "c=1-a+2b"
   ✗ text "Förenkla a^{2}+b-c där c=1"
   ✗ latex "\\\\text{Förenkla }a^{2}+b-c"
-  ✗ problemLatex "a^{2}+b-c \\\\text{ där } c=1-a+2b"
 
-Ex 2 — fillBlank:
-  ✓ type=fillBlank, prompt="Lös för x",
-      latex="x=\\\\placeholder[x1]{}", prompts=[{id:"x1", answer:"5"}]
-  ✗ latex="x=\\\\placeholder[x1]{5}"
-  ✗ text "Svaret är x=5" + fillBlank
+Ex 2 — normal med snabbval:
+  ✓ text "Börja med att samla x-termer:", latex "3x-x=2x", text "Vad vill du göra nu?",
+     quickReplies choices=[{id:"t1", label:"Visa ett tips"}, {id:"t2", label:"Gå vidare"}, {id:"t3", label:"Jag fastnade här"}]
+  ✗ dumpa hela slutsvaren när studenten bara ställde en kort fråga
 
-Ex 3 — solution (fillBlank-läge) med ren problemLatex + hint-split:
-  ✓ text "Förenkla", latex "a^{2}+b-c", text "där", latex "c=1-a+2b",
-     subproblem a,
-     type=solution,
-      problemLatex="a^{2}+b-c",
-      steps=[
-        { id:"s1", title:"Substituera c",
-          hint:[{type:"text", content:"Sätt in uttrycket för", display:"inline"},
-                {type:"latex", content:"c", display:"inline"}],
-          latex="a^{2}+b-(\\\\placeholder[c]{})",
-          prompts:[{id:"c", answer:"1-a+2b"}],
-          solvedLatex:"a^{2}+b-(1-a+2b)" },
-        { id:"s2", title:"Expandera minus",
-          hint:[{type:"text", content:"Byt tecken i varje term.", display:"inline"}],
-          latex="a^{2}+b-\\\\placeholder[p]{}+\\\\placeholder[q]{}-\\\\placeholder[r]{}",
-          prompts:[{id:"p", answer:"1"},{id:"q", answer:"a"},{id:"r", answer:"2b"}],
-          solvedLatex:"a^{2}+b-1+a-2b" },
-        { id:"s3", title:"Förenkla",
-          hint:[],
-          latex="a^{2}+\\\\placeholder[m]{}-\\\\placeholder[n]{}-\\\\placeholder[o]{}",
-          prompts:[{id:"m", answer:"a"},{id:"n", answer:"b"},{id:"o", answer:"1"}],
-          solvedLatex:"a^{2}+a-b-1" }
-      ]
-  ✗ problemLatex med \\\\text{där}
-  ✗ solution.latex ifylld (ska vara "")
-  ✗ en lucka "b+1" efter minus som inte ger solvedLatex vid strängersättning
-  ✗ hint som en sträng med \\\\frac
-
-Ex 4 — answerBoxes:
-  ✓ text "Fyll i svaren.",
-     subproblem a, fillBlank latex="\\\\placeholder[a1]{}" prompts=[{id:"a1", answer:"2x"}],
-     subproblem b, fillBlank latex="\\\\placeholder[b1]{}" prompts=[{id:"b1", answer:"x-1"}]
-  ✗ type=solution i answerBoxes-läge
-
-Ex 5 — normal:
-  ✓ text "Börja med att samla x-termer:", latex "3x-x=2x", text "Vad blir nästa steg?",
-     quickReplies choices=[{id:"t1", label:"Visa ett tips"}, {id:"t2", label:"Visa en lucka"}]
-  ✗ tvinga solution när studenten bara ställde en kort fråga
-
-Ex 6 — placeholder {} obligatorisk:
-  ✓ "\\\\placeholder[f]{} x^{2}"
-  ✗ "\\\\placeholder[f]x^{2}"
-
-Ex 7 — thoughtProcess:
+Ex 3 — thoughtProcess:
   ✓ text "Tanken är att få x ensamt. Vi har", latex "2x+3=11",
-     text "Konstanten stör — flytta den först.",
-     fillBlank prompt="Vad blir högerledet?", latex="2x=\\\\placeholder[r]{}",
-       prompts=[{id:"r", answer:"8"}]
+     text "Konstanten stör — flytta den först till högerledet.",
+     latex "2x=8",
+     quickReplies choices=[{id:"n1", label:"Nästa steg"}, {id:"n2", label:"Varför detta?"}, {id:"n3", label:"Visa mer detalj"}]
 `;
 
 /**
@@ -1325,25 +962,13 @@ export function formatModeHint(mode: ChatMode): string {
   switch (mode) {
     case "normal":
       return `Chattläge (format): normal
-• text + latex (sokratiskt) från den arbetade lösningen. quickReplies OK.
+• text + latex (sokratiskt) från den arbetade lösningen.
 • INGEN latex i text, INGEN text/\\\\text i latex — splitta.
-• fillBlank/solution BARA om studenten ber om luckor/övning.
-• Dumpa inte hela facit på en öppen fråga.`;
-    case "fillBlank":
-      return `Chattläge (format): fillBlank
-• MÅSTE använda solution (2–5 steg med luckor) eller fillBlank.
-• problemLatex = ren matematik; svenska runt → egna text/latex-parts.
-• Placeholder-ersättning MÅSTE ge solvedLatex. Kort hint OK — inget facit i text.
-• Facit endast i prompts[].answer / solvedLatex (kopierat från arbetad lösning).`;
+• Avsluta ofta med quickReplies (2–4 vägval). Dumpa inte hela facit på en öppen fråga.`;
     case "thoughtProcess":
       return `Chattläge (format): thoughtProcess
 • Förklara HUR man tänker (text + latex) utifrån den arbetade lösningen.
-• Splitta text/latex strikt. Lägg fillBlank/solution på kritiska mellansteg.
-• Resonemang först — inte bara svarsrutor.`;
-    case "answerBoxes":
-      return `Chattläge (format): answerBoxes
-• BARA fillBlank-svarsrutor (en per deluppgift om (a)/(b)).
-• Max 1–2 korta textmeningar som intro (ingen TeX i text).
-• FÖRBJUDET: type=solution, lång genomgång, facit i text.`;
+• Splitta text/latex strikt. Resonemang steg för steg; subproblem vid (a)/(b).
+• Avsluta med quickReplies för nästa djup ("Nästa steg" / "Varför" / "Mer detalj").`;
   }
 }

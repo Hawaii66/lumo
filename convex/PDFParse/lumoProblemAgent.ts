@@ -128,7 +128,7 @@ OCR-STÄDNING
 ════════════════════════════════════════
 • Gemensam ingress (text före första subproblem) — upprepa inte per task.
 • Behåll HELA frågetexten. Hitta inte på tasks från berättelsedata.
-• Använd INTE fillBlank, solution eller quickReplies.
+• Använd INTE quickReplies (bara text, latex, subproblem, case).
 
 ════════════════════════════════════════
 EXEMPEL

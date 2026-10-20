@@ -13,8 +13,6 @@ import {
 import { Label } from "~/components/ui/label"
 import { MathField } from "~/components/math-field"
 import { ComputeEngineDemo } from "~/components/compute-engine-demo"
-import { FillInBlankDemo } from "~/components/fill-in-blank-demo"
-import { MultiStepEquationDemo } from "~/components/multi-step-equation-demo"
 import { PdfViewerDemo } from "~/components/pdf-viewer-demo"
 import { RoomsPanel } from "~/components/rooms/rooms-panel"
 import { SignInCard } from "~/components/sign-in"
@@ -108,10 +106,6 @@ function Home() {
           </p>
         </CardContent>
       </Card>
-
-      <FillInBlankDemo />
-
-      <MultiStepEquationDemo />
 
       <ComputeEngineDemo />
     </main>
