@@ -124,6 +124,7 @@ export function RoomSettingsPanel({ roomId }: RoomSettingsPanelProps) {
                   setDetailsSaved(false)
                 }}
                 required
+                className="border-2 border-border bg-background"
               />
               <p className="text-right text-xs text-muted-foreground">
                 {name.length}/{MAX_FIELD_LENGTH}
@@ -231,6 +232,7 @@ export function RoomSettingsPanel({ roomId }: RoomSettingsPanelProps) {
                 onChange={(e) => setMemberEmail(e.target.value)}
                 placeholder="namn@exempel.se"
                 required
+                className="border-2 border-border bg-background"
               />
             </div>
             <Button type="submit" disabled={memberPending} className="shrink-0">
