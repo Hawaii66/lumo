@@ -181,6 +181,27 @@ function CopyRawJsonButton({ messages }: { messages: Array<UIMessage> }) {
   )
 }
 
+function StreamingIndicator({ empty }: { empty?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1",
+        empty ? "py-0.5" : "mt-2",
+      )}
+      role="status"
+      aria-label="Svarar"
+    >
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="animate-stream-dot size-1.5 rounded-full bg-muted-foreground/65"
+          style={{ animationDelay: `${i * 140}ms` }}
+        />
+      ))}
+    </span>
+  )
+}
+
 function useAssistantLumoDocument(message: UIMessage): {
   doc: LumoDocument | null
   streaming: boolean
@@ -234,10 +255,12 @@ function AssistantMessageRow({
   message,
   onQuickReply,
   quickRepliesDisabled,
+  listRef,
 }: {
   message: UIMessage
   onQuickReply?: (label: string) => void
   quickRepliesDisabled?: boolean
+  listRef?: (node: HTMLLIElement | null) => void
 }) {
   const { doc, streaming, chapters } = useAssistantLumoDocument(message)
   const [activePartIndex, setActivePartIndex] = useState<number | null>(null)
@@ -251,7 +274,7 @@ function AssistantMessageRow({
   }
 
   return (
-    <li className="flex items-start gap-2">
+    <li ref={listRef} className="flex items-start gap-2">
       <ChapterSelector
         chapters={chapters}
         loading={streaming}
@@ -260,12 +283,17 @@ function AssistantMessageRow({
       />
       <div className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground">
         {doc ? (
-          <LumoParts
-            document={doc}
-            messageKey={message.key}
-            onQuickReply={onQuickReply}
-            quickRepliesDisabled={quickRepliesDisabled || streaming}
-          />
+          <div>
+            <LumoParts
+              document={doc}
+              messageKey={message.key}
+              onQuickReply={onQuickReply}
+              quickRepliesDisabled={quickRepliesDisabled || streaming}
+            />
+            {streaming ? <StreamingIndicator /> : null}
+          </div>
+        ) : streaming ? (
+          <StreamingIndicator empty />
         ) : (
           <span className="text-muted-foreground italic">…</span>
         )}
@@ -491,6 +519,10 @@ export function ThreadChat({
   const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const messageNodeRefs = useRef(new Map<string, HTMLLIElement>())
+  const scrolledToReplyKeyRef = useRef<string | null>(null)
+  const scrolledToUserKeyRef = useRef<string | null>(null)
+  const seededScrollRef = useRef(false)
 
   const messages = results
 
@@ -511,29 +543,103 @@ export function ThreadChat({
     [mentionedProblemNumbers, messages, problemOptions],
   )
 
-  // Key + status + text length so user sends and AI replies both re-scroll
-  // (length alone misses content updates / status changes).
-  const scrollSignature = useMemo(
-    () =>
-      messages
-        .map(
-          (message) =>
-            `${message.key}:${message.status}:${messageText(message).length}`,
-        )
-        .join("|"),
-    [messages],
-  )
-  const isStreaming = messages.some((message) => message.status === "streaming")
+  const lastUserMessageKey = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i]?.role === "user") return messages[i]!.key
+    }
+    return null
+  }, [messages])
+
+  // Stable identity for the in-flight assistant reply — not its growing text.
+  const streamingReplyKey = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const message = messages[i]
+      if (message?.role === "assistant" && message.status === "streaming") {
+        return message.key
+      }
+    }
+    return null
+  }, [messages])
+
+  function scrollMessageIntoView(key: string, behavior: ScrollBehavior) {
+    const container = scrollRef.current
+    const node = messageNodeRefs.current.get(key)
+    if (!container || !node) return false
+
+    const containerRect = container.getBoundingClientRect()
+    const nodeRect = node.getBoundingClientRect()
+    const top = container.scrollTop + (nodeRect.top - containerRect.top) - 12
+    container.scrollTo({ top: Math.max(0, top), behavior })
+    return true
+  }
+
+  // Reset scroll bookkeeping when switching threads.
+  useEffect(() => {
+    seededScrollRef.current = false
+    scrolledToUserKeyRef.current = null
+    scrolledToReplyKeyRef.current = null
+    messageNodeRefs.current.clear()
+  }, [threadId])
+
+  // Treat the first loaded history as already seen so opening a thread
+  // doesn’t jump. Still allow a one-time scroll to a live streaming reply.
+  useEffect(() => {
+    if (seededScrollRef.current || status === "LoadingFirstPage") return
+    seededScrollRef.current = true
+    scrolledToUserKeyRef.current = lastUserMessageKey
+  }, [status, lastUserMessageKey, threadId])
+
+  // Scroll once to the user’s send, then once to the start of the reply.
+  // Do not re-scroll as tokens arrive — that would yank the reader away.
+  useEffect(() => {
+    if (!seededScrollRef.current) return
+    if (
+      !lastUserMessageKey ||
+      scrolledToUserKeyRef.current === lastUserMessageKey
+    ) {
+      return
+    }
+
+    let cancelled = false
+    let attempts = 0
+    const tryScroll = () => {
+      if (cancelled) return
+      if (scrollMessageIntoView(lastUserMessageKey, "smooth")) {
+        scrolledToUserKeyRef.current = lastUserMessageKey
+        return
+      }
+      if (attempts++ < 12) window.requestAnimationFrame(tryScroll)
+    }
+    tryScroll()
+    return () => {
+      cancelled = true
+    }
+  }, [lastUserMessageKey, pending])
 
   useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    // Smooth scroll on every token fights itself and feels like flashing.
-    el.scrollTo({
-      top: el.scrollHeight,
-      behavior: isStreaming ? "auto" : "smooth",
-    })
-  }, [scrollSignature, pending, isStreaming])
+    if (!seededScrollRef.current) return
+    if (
+      !streamingReplyKey ||
+      scrolledToReplyKeyRef.current === streamingReplyKey
+    ) {
+      return
+    }
+
+    let cancelled = false
+    let attempts = 0
+    const tryScroll = () => {
+      if (cancelled) return
+      if (scrollMessageIntoView(streamingReplyKey, "smooth")) {
+        scrolledToReplyKeyRef.current = streamingReplyKey
+        return
+      }
+      if (attempts++ < 12) window.requestAnimationFrame(tryScroll)
+    }
+    tryScroll()
+    return () => {
+      cancelled = true
+    }
+  }, [streamingReplyKey])
 
   async function uploadImage(file: File) {
     const storageId = await uploadFileToStorage(file, () =>
@@ -671,7 +777,14 @@ export function ThreadChat({
           <ul className="flex flex-col gap-3">
             {messages.map((message) =>
               message.role === "user" ? (
-                <li key={message.key} className="flex flex-col items-end gap-2">
+                <li
+                  key={message.key}
+                  ref={(node) => {
+                    if (node) messageNodeRefs.current.set(message.key, node)
+                    else messageNodeRefs.current.delete(message.key)
+                  }}
+                  className="flex flex-col items-end gap-2"
+                >
                   <div
                     className={cn(
                       "max-w-[85%] rounded-lg px-3 py-2 text-sm",
@@ -685,6 +798,10 @@ export function ThreadChat({
                 <AssistantMessageRow
                   key={message.key}
                   message={message}
+                  listRef={(node) => {
+                    if (node) messageNodeRefs.current.set(message.key, node)
+                    else messageNodeRefs.current.delete(message.key)
+                  }}
                   onQuickReply={(label) => {
                     void sendPrompt(label).catch(() => undefined)
                   }}
