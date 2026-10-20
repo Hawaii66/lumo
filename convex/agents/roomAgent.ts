@@ -5,18 +5,20 @@ import { components, internal } from "../_generated/api";
 import { internalAction } from "../_generated/server";
 import {
   DEFAULT_CHAT_MODE,
-  LUMO_FORMAT_INSTRUCTIONS,
-  LUMO_SOLVE_INSTRUCTIONS,
   chatModeValidator,
-  formatModeHint,
   lumoDocumentAzureSchema,
   normalizeLumoDocument,
   serializeWorkedSolutionForPrompt,
-  solveModeHint,
   stringifyLumoDocument,
   workedSolutionSchema,
 } from "../lib/lumoContent";
 import type { ChatMode, LumoDocument, WorkedSolution } from "../lib/lumoContent";
+import {
+  LUMO_FORMAT_INSTRUCTIONS,
+  LUMO_SOLVE_INSTRUCTIONS,
+  buildFormatSystem,
+  buildSolveSystem,
+} from "../lib/prompts";
 import { openrouter } from "./openrouter";
 
 /** Pass 1: solve math only. */
@@ -136,18 +138,7 @@ export const generateResponse = internalAction({
         schemaName: "WorkedSolution",
         schemaDescription:
           "Korrekt arbetad lösning: subproblems med math-only latex-steg + finalLatex (matcha facit). Ingen svenska i latex.",
-        system: `${LUMO_SOLVE_INSTRUCTIONS}
-
-${solveModeHint(mode)}${problemContext}
-
---- VERIFIERA TYST INNAN DU SVARAR ---
-□ Du svarar på det studenten frågade (rätt deluppgifter)
-□ finalLatex matchar facit när facit finns
-□ Varje steps[].latex är ren matematik (ingen svenska, inget \\\\text)
-□ note är ren prosa eller "" (ingen TeX)
-□ Minus framför parentes: tecken bytt exakt en gång per term
-□ Kedjan steps → finalLatex är algebraiskt ekvivalent
-`,
+        system: buildSolveSystem({ mode, problemContext }),
       },
       {
         storageOptions: { saveMessages: "none" },
@@ -169,24 +160,7 @@ ${solveModeHint(mode)}${problemContext}
           description:
             "Lumo-svar: text=svenska (aldrig TeX), latex=matte (aldrig svenska/\\\\text). quickReplies/subproblem/case. Oanvända fält = \"\" / [].",
         }),
-        system: `${LUMO_FORMAT_INSTRUCTIONS}
-
-${formatModeHint(mode)}
-
-════════════════════════════════════════
-INTERNT ARBETAD LÖSNING (källa till sanning)
-════════════════════════════════════════
-Kopiera dessa uttryck. OMRÄKNA INTE.
-
-${workedBlock}
-
---- VERIFIERA TYST INNAN DU SVARAR ---
-□ type=text: ingen \\\\ / matematik  |  type=latex: ingen svenska / \\\\text
-□ Prosa runt matte är splittrad: text / latex / text
-□ Matte kommer från den arbetade lösningen ovan
-□ Avsluta ofta med quickReplies (2–4 konkreta studentfrågor till dig — inte dina frågor till dem)
-□ Chattläget följs (normal/genomgang)
-`,
+        system: buildFormatSystem({ mode, workedBlock }),
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
