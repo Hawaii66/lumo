@@ -68,18 +68,31 @@ SVAR — TAPPA ALDRIG FACIT
 • Tom answer.parts ENDAST när källan är tom eller "(inget svar i källan)".
 • "Lösning saknas" får förekomma ENBART om källan själv skriver det för en specifik task.
 • Tal/uttryck → latex ("0", "16"); svenska ord → text ("Ja", "Nej").
+• answer.parts = ENBART slutfacit (det som står efter "Svar:" om det finns).
+  INTE lösningssteg, härledningar eller resonemang.
+
+════════════════════════════════════════
+FRÅGA vs LÖSNINGSVÄG  (vanligt i facit-PDF:er)
+════════════════════════════════════════
+RÅ FRÅGA kan innehålla: frågestam + lösningssteg + "Svar: …".
+Då gäller:
+  • question.parts = ENDAST frågestammen (t.ex. "Bestäm D_f … om f(x)=…").
+  • answer.parts   = ENDAST slutfacit efter "Svar:".
+  • LÖSNINGSSTEG får ALDRIG in i question.parts (inte heller i answer.parts).
+Markörer som inleder lösningsväg (inte fråga): "Lösning:", "För att …",
+"Vi har …", "Eftersom …", "Notera …", "Dessutom måste …".
 
 ════════════════════════════════════════
 OCR-STÄDNING
 ════════════════════════════════════════
-• Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer.
+• Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer i FRÅGESTAMMEN.
 • Rätta bara uppenbart skräp i löptext ("Ar ¨" → "Är"). Ändra inte matematiken.
 
 ════════════════════════════════════════
 ÖVRIGA REGLER
 ════════════════════════════════════════
 • Gemensam ingress (text före första subproblem) — upprepa inte per task.
-• Behåll HELA frågetexten. Hitta inte på tasks från berättelsedata.
+• Behåll HELA frågestammen (inte lösningsväg). Hitta inte på tasks från berättelsedata.
 
 ════════════════════════════════════════
 EXEMPEL
@@ -152,7 +165,19 @@ Ex 11 — indexerade punkter → latex:
   "Undersök om punkterna P_1, P_2 och P_3 alla ligger …"
   → text "Undersök om punkterna",
      latex "P_{1}", text ",", latex "P_{2}", text "och", latex "P_{3}",
-     text "alla ligger …"`,
+     text "alla ligger …"
+
+Ex 12 — facit med lösningsväg: behåll BARA stam + slutfacit:
+  RÅ FRÅGA: "Bestäm D_f samt f^{-1} om f(x)=ln(arcsin((x-1)/4)+π/6).
+             För att f(x) ska vara definierad måste … Så D_f = ]-1,5].
+             … x = 1+4 sin(e^y-π/6). … Svar: D_f = ]-1,5];
+             f^{-1}(y)=1+4 sin(e^y-π/6)"
+  RÅTT SVAR: "(inget svar i källan)"
+  → question: text "Bestäm", latex "D_{f}", text "samt …", latex "f^{-1}", …
+              (STOPPA före "För att f(x) ska vara definierad")
+  → answer:   latex "D_{f}=]-1,5]",
+              latex "f^{-1}(y)=1+4\\\\sin(e^{y}-\\\\pi/6)"
+  FEL: lägga "För att …", "Notera implikationen …" eller annan lösningsväg i question.`,
 );
 
 /** User prompt for one OCR chunk convert (overlay; agent has base instructions). */
@@ -176,6 +201,8 @@ ${answerBlock}`,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
 □ Spegel: frågans subproblem-labels (a, b, c …) → answer har samma labels, samma ordning
 □ Rått svar har innehåll → det är konverterat, aldrig ersatt med "Lösning saknas"
+□ question har BARA frågestammen — ingen lösningsväg ("För att …", "Svar:", härledningar)
+□ answer har BARA slutfacit (efter "Svar:" om det finns) — inga mellansteg
 □ Varje \\\\frac är i type=latex, aldrig i type=text
 ${VERIFY_TEXT_LATEX}
 □ Varje subproblem/case följs direkt av text eller latex`,
