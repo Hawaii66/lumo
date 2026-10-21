@@ -76,6 +76,7 @@ export const listByRoom = query({
       _creationTime: v.number(),
       name: v.string(),
       storageId: v.id("_storage"),
+      contentHash: v.string(),
       url: v.union(v.string(), v.null()),
     }),
   ),
@@ -110,6 +111,7 @@ export const listByRoom = query({
         _creationTime: file._creationTime,
         name: file.name,
         storageId: file.storageId,
+        contentHash: file.contentHash,
         url,
       });
     }
@@ -174,7 +176,19 @@ export const remove = mutation({
     const roomId = file.roomId;
     const contentHash = file.contentHash;
 
-    await ctx.storage.delete(file.storageId);
+    // Keep storage if a global pdfMerges row still points at this blob.
+    const mergeKeepers = await ctx.db
+      .query("pdfMerges")
+      .withIndex("by_mergedContentHash", (q) =>
+        q.eq("mergedContentHash", contentHash),
+      )
+      .take(5);
+    const keepStorage = mergeKeepers.some(
+      (m) => m.mergedStorageId === file.storageId,
+    );
+    if (!keepStorage) {
+      await ctx.storage.delete(file.storageId);
+    }
     await ctx.db.delete(args.fileId);
 
     // Drop in-use info cell if this room has no other file with the same hash.

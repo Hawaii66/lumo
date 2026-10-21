@@ -155,4 +155,17 @@ export default defineSchema({
     .index("by_contentHash_and_kind", ["contentHash", "kind"])
     .index("by_file_and_kind", ["fileId", "kind"])
     .index("by_room", ["roomId"]),
+  /**
+   * Global registry of concatenated PDFs, keyed by ordered input content hashes.
+   * `inputKey` is `inputHashes.join("|")` (order-sensitive).
+   */
+  pdfMerges: defineTable({
+    inputKey: v.string(),
+    inputHashes: v.array(v.string()),
+    mergedContentHash: v.string(),
+    mergedStorageId: v.id("_storage"),
+    createdBy: v.id("users"),
+  })
+    .index("by_inputKey", ["inputKey"])
+    .index("by_mergedContentHash", ["mergedContentHash"]),
 });
