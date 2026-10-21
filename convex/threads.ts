@@ -22,6 +22,7 @@ import {
   type ChatMode,
 } from "./lib/lumoContent";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
+import { problemVisibleInRoom } from "./lib/problemAccess";
 import { internalMutation, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
@@ -36,8 +37,8 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGE_FILENAME_LENGTH = 200;
 const MAX_MENTIONED_PROBLEM_NUMBERS = 20;
 
-/** `@1.2` / `@2.1a` tokens in prompt text (same shape as client composer). */
-const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*[a-z]?)/gi;
+/** `@1.2` / `@2.1a` / `@1.2·T1` tokens in prompt text (same shape as client composer). */
+const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)/gi;
 
 function extractMentionedProblemNumbers(text: string): Array<string> {
   const numbers: Array<string> = [];
@@ -651,13 +652,12 @@ export const sendMessage = mutation({
         .query("files")
         .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
         .take(MAX_FILES_PER_ROOM);
-      const hashes = new Set(roomFiles.map((file) => file.contentHash));
       for (const problemId of problemIds) {
         const problem = await ctx.db.get(problemId);
         if (problem === null) {
           throw new Error("Uppgiften hittades inte");
         }
-        if (!hashes.has(problem.contentHash)) {
+        if (!problemVisibleInRoom(problem, args.roomId, roomFiles)) {
           throw new Error("Uppgiften tillhör inte det här rummet");
         }
         problemNumbersFromIds.push(problem.problemNumber);

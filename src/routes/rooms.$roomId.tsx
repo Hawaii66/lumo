@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { useMutation, useQuery } from "convex/react"
+import { useAction, useMutation, useQuery } from "convex/react"
+import { CopyPlus } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
@@ -47,12 +48,15 @@ function RoomPage() {
   const createThread = useMutation(api.threads.create)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const sendMessage = useMutation(api.threads.sendMessage)
+  const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
 
   const [section, setSection] = useState<RoomSidebarSection>("chats")
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [selectedProblemId, setSelectedProblemId] =
     useState<Id<"problems"> | null>(null)
   const [creatingChat, setCreatingChat] = useState(false)
+  const [creatingShadow, setCreatingShadow] = useState(false)
+  const [shadowError, setShadowError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
@@ -107,10 +111,39 @@ function RoomPage() {
         problems: group.problems.map((problem) => ({
           id: problem.id,
           problemNumber: problem.problemNumber,
+          shadows: problem.shadows.map((shadow) => ({
+            id: shadow.id,
+            problemNumber: shadow.problemNumber,
+          })),
         })),
       })),
     [problemGroups],
   )
+
+  async function handleCreateShadow() {
+    if (
+      selectedProblemId === null ||
+      creatingShadow ||
+      selectedProblem?.isShadow
+    ) {
+      return
+    }
+    setCreatingShadow(true)
+    setShadowError(null)
+    try {
+      const shadowId = await createShadow({
+        roomId: typedRoomId,
+        parentProblemId: selectedProblemId,
+      })
+      setSelectedProblemId(shadowId)
+    } catch (err) {
+      setShadowError(
+        err instanceof Error ? err.message : "Kunde inte skapa tvilling",
+      )
+    } finally {
+      setCreatingShadow(false)
+    }
+  }
 
   function openThread(threadId: string) {
     setSection("chats")
@@ -240,6 +273,7 @@ function RoomPage() {
           setSelectedProblemId(id as Id<"problems">)
           setSelectedThreadId(null)
           setProblemChatError(null)
+          setShadowError(null)
         }}
       />
 
@@ -276,9 +310,36 @@ function RoomPage() {
             </p>
           ) : (
             <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col">
-              <p className="shrink-0 text-sm text-muted-foreground">
-                Från {selectedProblem.fileName}
-              </p>
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                  {selectedProblem.isShadow
+                    ? selectedProblem.parentProblemNumber
+                      ? `Tvilling till ${selectedProblem.parentProblemNumber}`
+                      : "Tvilling"
+                    : `Från ${selectedProblem.fileName}`}
+                  {selectedProblem.isShadow && selectedProblem.fileName !== "Tvilling"
+                    ? ` · ${selectedProblem.fileName}`
+                    : null}
+                </p>
+                {!selectedProblem.isShadow ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    disabled={creatingShadow}
+                    onClick={() => void handleCreateShadow()}
+                  >
+                    <CopyPlus className="size-3.5" />
+                    {creatingShadow ? "Skapar…" : "Skapa tvilling"}
+                  </Button>
+                ) : null}
+              </div>
+              {shadowError ? (
+                <p className="mt-2 text-sm text-destructive" role="alert">
+                  {shadowError}
+                </p>
+              ) : null}
               <div className="mt-4 min-h-0 overflow-y-auto">
                 <ParsedProblemView
                   problem={selectedProblem.problem}

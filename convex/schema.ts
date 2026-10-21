@@ -97,13 +97,22 @@ export default defineSchema({
     contentHash: v.string(),
     claimedAt: v.number(),
   }).index("by_contentHash", ["contentHash"]),
-  /** One Lumo-parsed problem per document, keyed by content hash of PDF bytes. */
+  /**
+   * Parsed problems (global cache by PDF contentHash) or room-scoped shadow twins.
+   * Parsed: contentHash set; roomId/parentProblemId absent.
+   * Shadow: roomId + parentProblemId set; contentHash absent.
+   */
   problems: defineTable({
-    contentHash: v.string(),
+    contentHash: v.optional(v.string()),
+    roomId: v.optional(v.id("rooms")),
+    parentProblemId: v.optional(v.id("problems")),
     problemNumber: v.string(),
     problem: lumoStaticDocumentValidator,
     answer: lumoStaticDocumentValidator,
-  }).index("by_contentHash", ["contentHash"]),
+  })
+    .index("by_contentHash", ["contentHash"])
+    .index("by_room_and_parent", ["roomId", "parentProblemId"])
+    .index("by_parent", ["parentProblemId"]),
   /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.

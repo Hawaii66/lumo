@@ -20,6 +20,10 @@ export {
   buildConvertPrompt,
 } from "./problem";
 export {
+  LUMO_TWIN_INSTRUCTIONS,
+  buildTwinPrompt,
+} from "./twin";
+export {
   LUMO_SOLVE_INSTRUCTIONS,
   buildSolveSystem,
   solveModeHint,
