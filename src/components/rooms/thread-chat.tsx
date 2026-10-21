@@ -11,8 +11,10 @@ import type { UIMessage } from "@convex-dev/agent/react"
 import type { Id } from "../../../convex/_generated/dataModel"
 import {
   ChatInput,
+  type ChatInputHandle,
   type ChatInputSubmitPayload,
 } from "~/components/rooms/chat-input"
+import { SelectionCitePopup } from "~/components/rooms/selection-cite-popup"
 import { ChatDeletionExpiryPicker } from "~/components/rooms/chat-deletion-expiry-picker"
 import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
 import {
@@ -29,6 +31,8 @@ import {
   type ChatDeletionExpiry,
 } from "~/lib/chat-deletion-expiry"
 import {
+  assistantResponseNumber,
+  formatReplyToAssistant,
   resolveDraftMentions,
   type ProblemMentionOption,
   type ResolvedDraftMention,
@@ -253,11 +257,13 @@ function useAssistantLumoDocument(message: UIMessage): {
 
 function AssistantMessageRow({
   message,
+  responseNumber,
   onQuickReply,
   quickRepliesDisabled,
   listRef,
 }: {
   message: UIMessage
+  responseNumber: number
   onQuickReply?: (label: string) => void
   quickRepliesDisabled?: boolean
   listRef?: (node: HTMLLIElement | null) => void
@@ -281,7 +287,10 @@ function AssistantMessageRow({
         activePartIndex={activePartIndex}
         onSelect={jumpToChapter}
       />
-      <div className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground">
+      <div
+        data-assistant-response={responseNumber}
+        className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground"
+      >
         {doc ? (
           <div>
             <LumoParts
@@ -519,12 +528,24 @@ export function ThreadChat({
   const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const chatInputRef = useRef<ChatInputHandle>(null)
   const messageNodeRefs = useRef(new Map<string, HTMLLIElement>())
   const scrolledToReplyKeyRef = useRef<string | null>(null)
   const scrolledToUserKeyRef = useRef<string | null>(null)
   const seededScrollRef = useRef(false)
 
   const messages = results
+
+  const responseNumberByKey = useMemo(() => {
+    const map = new Map<string, number>()
+    let number = 0
+    for (const message of messages) {
+      if (message.role !== "assistant") continue
+      number += 1
+      map.set(message.key, number)
+    }
+    return map
+  }, [messages])
 
   const problemOptions = useMemo(() => {
     if (!problemGroups) return []
@@ -775,7 +796,10 @@ export function ThreadChat({
         ) : null}
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto py-4 pr-3">
+      <div
+        ref={scrollRef}
+        className="relative min-h-0 flex-1 overflow-y-auto py-4 pr-3"
+      >
         {status === "LoadingFirstPage" ? (
           <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
         ) : messages.length === 0 ? (
@@ -807,12 +831,23 @@ export function ThreadChat({
                 <AssistantMessageRow
                   key={message.key}
                   message={message}
+                  responseNumber={
+                    responseNumberByKey.get(message.key) ??
+                    assistantResponseNumber(messages, message.key) ??
+                    1
+                  }
                   listRef={(node) => {
                     if (node) messageNodeRefs.current.set(message.key, node)
                     else messageNodeRefs.current.delete(message.key)
                   }}
                   onQuickReply={(label) => {
-                    void sendPrompt(label).catch(() => undefined)
+                    const responseNumber =
+                      responseNumberByKey.get(message.key) ??
+                      assistantResponseNumber(messages, message.key) ??
+                      1
+                    void sendPrompt(
+                      formatReplyToAssistant(responseNumber, label),
+                    ).catch(() => undefined)
                   }}
                   quickRepliesDisabled={pending}
                 />
@@ -820,9 +855,16 @@ export function ThreadChat({
             )}
           </ul>
         )}
+        <SelectionCitePopup
+          containerRef={scrollRef}
+          onCite={(citation) => {
+            chatInputRef.current?.insertCitation(citation)
+          }}
+        />
       </div>
 
       <ChatInput
+        ref={chatInputRef}
         roomId={roomId}
         pending={pending}
         error={error}

@@ -34,7 +34,15 @@ function PartView({
       return <span className="whitespace-pre-wrap">{part.content}</span>
     case "latex":
       return (
-        <StaticMath latex={part.content} display={part.display ?? "block"} />
+        <span
+          data-cite-math=""
+          data-latex={part.content}
+          className={
+            part.display === "inline" ? "inline-block" : "block w-full"
+          }
+        >
+          <StaticMath latex={part.content} display={part.display ?? "block"} />
+        </span>
       )
     case "quickReplies":
       if (!onQuickReply) return null

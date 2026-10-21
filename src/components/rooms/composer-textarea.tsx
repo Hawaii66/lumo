@@ -6,7 +6,11 @@ import {
   type ReactNode,
   type UIEvent,
 } from "react"
-import { PROBLEM_MENTION_RE, formatMathRef } from "~/lib/chat-composer"
+import {
+  CITATION_RE,
+  PROBLEM_MENTION_RE,
+  formatMathRef,
+} from "~/lib/chat-composer"
 import { cn } from "~/lib/utils"
 
 type ComposerTextareaProps = Omit<ComponentProps<"textarea">, "value"> & {
@@ -27,6 +31,14 @@ function collectHighlightRanges(
   const ranges: Array<HighlightRange> = []
 
   for (const match of text.matchAll(PROBLEM_MENTION_RE)) {
+    if (match.index === undefined) continue
+    ranges.push({
+      start: match.index,
+      end: match.index + match[0].length,
+    })
+  }
+
+  for (const match of text.matchAll(CITATION_RE)) {
     if (match.index === undefined) continue
     ranges.push({
       start: match.index,
@@ -77,7 +89,10 @@ function renderHighlightedText(
     nodes.push(
       <span
         key={`${range.start}-${range.end}`}
-        className="font-bold text-primary"
+        // Color only — never change weight/size here. A bold backdrop
+        // desyncs from the regular-weight transparent textarea and the
+        // caret looks stuck inside long tokens (citations).
+        className="text-primary"
       >
         {text.slice(range.start, range.end)}
       </span>,
@@ -94,8 +109,8 @@ const sharedTextClassName =
   "field-sizing-content min-h-16 w-full px-2.5 py-2 text-base md:text-sm whitespace-pre-wrap break-words"
 
 /**
- * Textarea with a backdrop that paints `@mentions` and `(n)` math refs
- * in bold primary (orange) while keeping a normal caret/selection.
+ * Textarea with a backdrop that paints `@mentions`, quoted citations, and
+ * `(n)` math refs in bold primary (orange) while keeping a normal caret/selection.
  */
 export const ComposerTextarea = forwardRef<
   HTMLTextAreaElement,

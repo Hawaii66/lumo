@@ -325,3 +325,65 @@ export function composePromptWithMath(
     })
     .trim()
 }
+
+/** 1-based index of an assistant message among assistant messages in the thread. */
+export function assistantResponseNumber(
+  messages: Array<{ role: string; key: string }>,
+  messageKey: string,
+): number | null {
+  let number = 0
+  for (const message of messages) {
+    if (message.role !== "assistant") continue
+    number += 1
+    if (message.key === messageKey) return number
+  }
+  return null
+}
+
+/** Citation tokens, e.g. `[citat svar 2]` or `[citat svar 2: "text"]`. */
+export const CITATION_RE = /\[citat svar \d+(?:: "[^"]*")?\]/g
+
+function sanitizeCitationContent(content: string): string {
+  return content.trim().replace(/"/g, "'")
+}
+
+export function formatCitationPrefix(responseNumber: number): string {
+  return `[citat svar ${responseNumber}]`
+}
+
+export function formatReplyToAssistant(
+  responseNumber: number,
+  label: string,
+): string {
+  return `[svarar på svar #${responseNumber}] ${label}`
+}
+
+/** Build a citation body for the composer: `[citat svar N: "…"]`. */
+export function formatCitationBody(
+  responseNumber: number,
+  content: string,
+): string {
+  const trimmed = sanitizeCitationContent(content)
+  if (!trimmed) return formatCitationPrefix(responseNumber)
+  return `[citat svar ${responseNumber}: "${trimmed}"]`
+}
+
+/** Insert citation text at `cursor`, adding spaces when needed. */
+export function insertCitationAtCursor(
+  text: string,
+  cursor: number,
+  citationBody: string,
+): { text: string; cursor: number } {
+  const body = citationBody.trim()
+  if (!body) return { text, cursor }
+  const pos = Math.max(0, Math.min(cursor, text.length))
+  const before = text.slice(0, pos)
+  const after = text.slice(pos)
+  const left =
+    before.length > 0 && !/\s$/.test(before) ? `${before} ` : before
+  // Always leave a space after the citation so typing continues outside it.
+  const right =
+    after.length === 0 || !/^\s/.test(after) ? ` ${after}` : after
+  const next = `${left}${body}${right}`
+  return { text: next, cursor: left.length + body.length + 1 }
+}
