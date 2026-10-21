@@ -340,8 +340,11 @@ export function assistantResponseNumber(
   return null
 }
 
-/** Citation tokens, e.g. `[citat svar 2]` or `[citat svar 2: "text"]`. */
-export const CITATION_RE = /\[citat svar \d+(?:: "[^"]*")?\]/g
+/**
+ * Citation tokens, e.g. `[citat svar 2: "text"]` or `[citat svar 2: (1)]`.
+ */
+export const CITATION_RE =
+  /\[citat svar \d+(?:: (?:"[^"]*"|\(\d+\)))?\]/g
 
 function sanitizeCitationContent(content: string): string {
   return content.trim().replace(/"/g, "'")
@@ -358,13 +361,20 @@ export function formatReplyToAssistant(
   return `[svarar på svar #${responseNumber}] ${label}`
 }
 
-/** Build a citation body for the composer: `[citat svar N: "…"]`. */
+/**
+ * Build a citation body for the composer.
+ * Text → `[citat svar N: "…"]`
+ * Math ref `(n)` → `[citat svar N: (n)]` (unquoted, same shape)
+ */
 export function formatCitationBody(
   responseNumber: number,
   content: string,
 ): string {
   const trimmed = sanitizeCitationContent(content)
   if (!trimmed) return formatCitationPrefix(responseNumber)
+  if (/^\(\d+\)$/.test(trimmed)) {
+    return `[citat svar ${responseNumber}: ${trimmed}]`
+  }
   return `[citat svar ${responseNumber}: "${trimmed}"]`
 }
 

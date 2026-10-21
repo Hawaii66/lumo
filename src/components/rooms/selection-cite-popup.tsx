@@ -32,17 +32,20 @@ function readResponseNumber(node: Element | null): number | null {
   return Number.isFinite(number) && number > 0 ? number : null
 }
 
+function nodeElement(node: Node | null): Element | null {
+  if (!node) return null
+  return node.nodeType === Node.ELEMENT_NODE
+    ? (node as Element)
+    : node.parentElement
+}
+
 function selectionInside(
   selection: Selection,
   container: HTMLElement,
 ): boolean {
   if (selection.rangeCount === 0 || selection.isCollapsed) return false
   const range = selection.getRangeAt(0)
-  const common = range.commonAncestorContainer
-  const el =
-    common.nodeType === Node.ELEMENT_NODE
-      ? (common as Element)
-      : common.parentElement
+  const el = nodeElement(range.commonAncestorContainer)
   return el !== null && container.contains(el)
 }
 
@@ -62,18 +65,11 @@ export function SelectionCitePopup({
       setPopup(null)
     }
 
-    function placeFromRect(
-      rect: DOMRect,
-      citation: CiteSelection,
-    ) {
+    function placeFromRect(rect: DOMRect, citation: CiteSelection) {
       const el = container!
       const containerRect = el.getBoundingClientRect()
       setPopup({
-        x:
-          rect.left +
-          rect.width / 2 -
-          containerRect.left +
-          el.scrollLeft,
+        x: rect.left + rect.width / 2 - containerRect.left + el.scrollLeft,
         y: rect.top - containerRect.top + el.scrollTop - 8,
         citation,
       })
@@ -82,15 +78,22 @@ export function SelectionCitePopup({
     function updateFromSelection() {
       const selection = window.getSelection()
       if (!selection || !selectionInside(selection, container!)) {
-        // Keep math-click popup until dismissed; only clear text selections.
-        setPopup((current) =>
-          current?.citation.latex && !current.citation.text ? current : null,
-        )
+        clearPopup()
+        return
+      }
+
+      // Ignore selections that start on the math cite button / math-field.
+      const anchorEl = nodeElement(selection.anchorNode)
+      if (
+        anchorEl?.closest("[data-cite-math-btn]") ||
+        anchorEl?.closest("math-field")
+      ) {
+        clearPopup()
         return
       }
 
       const responseNumber = readResponseNumber(
-        selection.anchorNode?.parentElement ?? null,
+        anchorEl ?? nodeElement(selection.getRangeAt(0).commonAncestorContainer),
       )
       if (responseNumber === null) {
         clearPopup()
@@ -114,21 +117,8 @@ export function SelectionCitePopup({
       const target = event.target
       if (!(target instanceof Element)) return
       if (!container!.contains(target)) return
+      if (target.closest("[data-cite-math-btn]")) return
 
-      const mathHost = target.closest("[data-cite-math]")
-      if (mathHost instanceof HTMLElement) {
-        const responseNumber = readResponseNumber(mathHost)
-        const latex = mathHost.getAttribute("data-latex")?.trim()
-        if (responseNumber !== null && latex) {
-          placeFromRect(mathHost.getBoundingClientRect(), {
-            responseNumber,
-            latex,
-          })
-          return
-        }
-      }
-
-      // Defer so the selection is committed after mouseup.
       window.requestAnimationFrame(updateFromSelection)
     }
 
@@ -142,11 +132,7 @@ export function SelectionCitePopup({
 
     function handleSelectionChange() {
       const selection = window.getSelection()
-      if (!selection || selection.isCollapsed) {
-        setPopup((current) =>
-          current?.citation.latex && !current.citation.text ? current : null,
-        )
-      }
+      if (!selection || selection.isCollapsed) clearPopup()
     }
 
     container.addEventListener("mouseup", handleMouseUp)
@@ -179,7 +165,6 @@ export function SelectionCitePopup({
         variant="secondary"
         className="shadow-md"
         onMouseDown={(event) => {
-          // Prevent clearing the selection before we read it.
           event.preventDefault()
         }}
         onClick={() => {

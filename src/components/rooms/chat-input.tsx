@@ -30,7 +30,6 @@ import {
   findMentionQueryAtCursor,
   findSlashQueryAtCursor,
   formatCitationBody,
-  formatCitationPrefix,
   formatMathRef,
   insertCitationAtCursor,
   insertMathRefToken,
@@ -726,23 +725,21 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
           { id: crypto.randomUUID(), ref, latex },
         ])
         setPrompt((current) => {
-          const withPrefix = insertCitationAtCursor(
+          const inserted = insertCitationAtCursor(
             current,
             insertAt,
-            formatCitationPrefix(citation.responseNumber),
+            formatCitationBody(
+              citation.responseNumber,
+              formatMathRef(ref),
+            ),
           )
-          const withRef = insertMathRefToken(
-            withPrefix.text,
-            withPrefix.cursor,
-            ref,
-          )
-          focusTextareaAt(withRef.cursor)
-          return withRef.text
+          focusTextareaAt(inserted.cursor)
+          return inserted.text
         })
         return
       }
 
-      // Chips full — fall back to inline $latex$ with citation prefix.
+      // Chips full — fall back to inline $latex$ inside the same cite shape.
       setPrompt((current) => {
         const inserted = insertCitationAtCursor(
           current,

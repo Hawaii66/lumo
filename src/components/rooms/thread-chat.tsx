@@ -259,12 +259,14 @@ function AssistantMessageRow({
   message,
   responseNumber,
   onQuickReply,
+  onCiteMath,
   quickRepliesDisabled,
   listRef,
 }: {
   message: UIMessage
   responseNumber: number
   onQuickReply?: (label: string) => void
+  onCiteMath?: (latex: string) => void
   quickRepliesDisabled?: boolean
   listRef?: (node: HTMLLIElement | null) => void
 }) {
@@ -297,6 +299,7 @@ function AssistantMessageRow({
               document={doc}
               messageKey={message.key}
               onQuickReply={onQuickReply}
+              onCiteMath={onCiteMath}
               quickRepliesDisabled={quickRepliesDisabled || streaming}
             />
             {streaming ? <StreamingIndicator /> : null}
@@ -848,6 +851,16 @@ export function ThreadChat({
                     void sendPrompt(
                       formatReplyToAssistant(responseNumber, label),
                     ).catch(() => undefined)
+                  }}
+                  onCiteMath={(latex) => {
+                    const responseNumber =
+                      responseNumberByKey.get(message.key) ??
+                      assistantResponseNumber(messages, message.key) ??
+                      1
+                    chatInputRef.current?.insertCitation({
+                      responseNumber,
+                      latex,
+                    })
                   }}
                   quickRepliesDisabled={pending}
                 />
