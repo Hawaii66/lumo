@@ -29,7 +29,9 @@ import {
   findAllMentions,
   findMentionQueryAtCursor,
   findSlashQueryAtCursor,
+  formatCitationBody,
   formatMathRef,
+  insertCitationAtCursor,
   insertMathRefToken,
   nextMathRef,
   removeAndRenumberMathRefs,
@@ -71,12 +73,20 @@ export type ChatStartDraft = {
   storageImages?: Array<{ storageId: Id<"_storage">; filename: string }>
 }
 
+export type ChatInputCitation = {
+  responseNumber: number
+  text?: string
+  latex?: string
+}
+
 export type ChatInputHandle = {
   /**
    * Prepend an auto-generated start prompt, append any text/images already in
    * the composer, and submit immediately with a chat mode.
    */
   submitStartDraft: (draft: ChatStartDraft) => Promise<void>
+  /** Insert a citation from an assistant message into the composer. */
+  insertCitation: (citation: ChatInputCitation) => void
 }
 
 type MathDraft = MathRefDraft & {
@@ -700,6 +710,59 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     await sendPromptText(composePromptWithMath(prompt, mathDrafts))
   }
 
+  function insertCitation(citation: ChatInputCitation) {
+    const latex = citation.latex?.trim()
+    const text = citation.text?.trim()
+    if (!latex && !text) return
+
+    const insertAt = textareaRef.current?.selectionStart ?? cursor
+
+    if (latex) {
+      if (mathDrafts.length < MAX_MATH_CHIPS) {
+        const ref = nextMathRef(mathDrafts)
+        setMathDrafts((current) => [
+          ...current,
+          { id: crypto.randomUUID(), ref, latex },
+        ])
+        setPrompt((current) => {
+          const inserted = insertCitationAtCursor(
+            current,
+            insertAt,
+            formatCitationBody(
+              citation.responseNumber,
+              formatMathRef(ref),
+            ),
+          )
+          focusTextareaAt(inserted.cursor)
+          return inserted.text
+        })
+        return
+      }
+
+      // Chips full — fall back to inline $latex$ inside the same cite shape.
+      setPrompt((current) => {
+        const inserted = insertCitationAtCursor(
+          current,
+          insertAt,
+          formatCitationBody(citation.responseNumber, `$${latex}$`),
+        )
+        focusTextareaAt(inserted.cursor)
+        return inserted.text
+      })
+      return
+    }
+
+    setPrompt((current) => {
+      const inserted = insertCitationAtCursor(
+        current,
+        insertAt,
+        formatCitationBody(citation.responseNumber, text!),
+      )
+      focusTextareaAt(inserted.cursor)
+      return inserted.text
+    })
+  }
+
   useImperativeHandle(ref, () => ({
     async submitStartDraft(draft) {
       const userText = composePromptWithMath(prompt, mathDrafts)
@@ -709,6 +772,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
         extraStorageImages: draft.storageImages,
       })
     },
+    insertCitation,
   }))
 
   return (
