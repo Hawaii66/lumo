@@ -46,7 +46,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
   const [open, setOpen] = useState(false)
   const [orderedIds, setOrderedIds] = useState<Id<"files">[]>([])
   const [nameBase, setNameBase] = useState("sammanslagen")
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState<"attach" | "merge" | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
@@ -74,13 +74,13 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
     selectedPdfs.length >= MIN_MERGE_INPUTS &&
     selectedPdfs.length <= MAX_MERGE_INPUTS &&
     selectedPdfs.every((p) => p.url !== null) &&
-    !busy
+    busy === null
 
   function resetState() {
     setOrderedIds([])
     setNameBase("sammanslagen")
     setError(null)
-    setBusy(false)
+    setBusy(null)
   }
 
   function togglePdf(fileId: Id<"files">) {
@@ -120,7 +120,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
     if (existingMerge === null || existingMerge === undefined) {
       return
     }
-    setBusy(true)
+    setBusy("attach")
     setError(null)
     try {
       await attachToRoom({
@@ -137,14 +137,14 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
           : "Kunde inte lägga till den sammanslagna filen",
       )
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
   async function handleMergeFresh() {
     if (!canStart) return
 
-    setBusy(true)
+    setBusy("merge")
     setError(null)
     try {
       const buffers: ArrayBuffer[] = []
@@ -181,7 +181,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
         err instanceof Error ? err.message : "Kunde inte slå ihop PDF:erna",
       )
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
@@ -230,13 +230,13 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                   <li key={pdf._id}>
                     <button
                       type="button"
-                      disabled={busy || atCap || pdf.url === null}
+                      disabled={busy !== null || atCap || pdf.url === null}
                       className={cn(
                         "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
                         selected
                           ? "bg-primary/10 text-foreground"
                           : "hover:bg-muted/60",
-                        (busy || atCap || pdf.url === null) &&
+                        (busy !== null || atCap || pdf.url === null) &&
                           "opacity-50",
                       )}
                       onClick={() => {
@@ -282,7 +282,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                       variant="ghost"
                       size="sm"
                       className="size-7 shrink-0 px-0"
-                      disabled={busy || index === 0}
+                      disabled={busy !== null || index === 0}
                       title="Flytta upp"
                       onClick={() => {
                         moveSelected(index, -1)
@@ -296,7 +296,9 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                       variant="ghost"
                       size="sm"
                       className="size-7 shrink-0 px-0"
-                      disabled={busy || index === selectedPdfs.length - 1}
+                      disabled={
+                        busy !== null || index === selectedPdfs.length - 1
+                      }
                       title="Flytta ner"
                       onClick={() => {
                         moveSelected(index, 1)
@@ -318,7 +320,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                 id="merge-pdf-name"
                 value={nameBase}
                 maxLength={Math.max(1, MAX_FILE_NAME_LENGTH - 4)}
-                disabled={busy}
+                disabled={busy !== null}
                 onChange={(event) => {
                   setNameBase(event.target.value.replace(/\.pdf$/i, ""))
                 }}
@@ -340,7 +342,9 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
         </div>
 
         <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
-          <DialogClose render={<Button variant="outline" disabled={busy} />}>
+          <DialogClose
+            render={<Button variant="outline" disabled={busy !== null} />}
+          >
             Avbryt
           </DialogClose>
           {hasExisting ? (
@@ -352,7 +356,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                   void handleMergeFresh()
                 }}
               >
-                {busy ? (
+                {busy === "merge" ? (
                   <>
                     <Loader2 className="animate-spin" />
                     Slår ihop…
@@ -361,8 +365,11 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                   "Slå ihop igen"
                 )}
               </Button>
-              <Button disabled={busy} onClick={() => void handleUseExisting()}>
-                {busy ? (
+              <Button
+                disabled={busy !== null}
+                onClick={() => void handleUseExisting()}
+              >
+                {busy === "attach" ? (
                   <>
                     <Loader2 className="animate-spin" />
                     Lägger till…
@@ -379,7 +386,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
                 void handleMergeFresh()
               }}
             >
-              {busy ? (
+              {busy === "merge" ? (
                 <>
                   <Loader2 className="animate-spin" />
                   Slår ihop…
