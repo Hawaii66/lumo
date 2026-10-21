@@ -40,7 +40,14 @@ const MOCK_PROBLEM_GROUPS = [
   {
     fileName: "tenta_2023-03.pdf",
     problems: [
-      { id: "p1", problemNumber: "1.3" },
+      {
+        id: "p1",
+        problemNumber: "1.3",
+        shadows: [
+          { id: "p1t1", problemNumber: "1.3·T1" },
+          { id: "p1t2", problemNumber: "1.3·T2" },
+        ],
+      },
       { id: "p2", problemNumber: "2.1" },
       { id: "p3", problemNumber: "2.2" },
     ],
@@ -105,9 +112,9 @@ function SidebarPreviewPage() {
           setSection("problems")
           setSelectedProblemId(id)
           setSelectedChatId(null)
-          const problem = MOCK_PROBLEM_GROUPS.flatMap((g) => g.problems).find(
-            (p) => p.id === id,
-          )
+          const problem = MOCK_PROBLEM_GROUPS.flatMap((g) =>
+            g.problems.flatMap((p) => [p, ...(p.shadows ?? [])]),
+          ).find((p) => p.id === id)
           setLastAction(`Valde uppgift ${problem?.problemNumber ?? id}`)
         }}
       />

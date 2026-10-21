@@ -6,14 +6,23 @@ import {
   serializeStaticDocumentForPrompt,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
+import {
+  fileForParsedProblem,
+  isShadowProblem,
+  problemVisibleInRoom,
+} from "../lib/problemAccess";
 import { MAX_FILES_PER_ROOM } from "../lib/roomFiles";
 import { requireRoomMember } from "../lib/roomAuth";
 import { internalMutation, internalQuery, query } from "../_generated/server";
-import type { Id } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 
 /** Upper bound of problems expected from a single PDF. */
 const MAX_PROBLEMS_PER_PDF = 500;
+/** Upper bound of shadow twins per parent per room. */
+export const MAX_SHADOWS_PER_PARENT = 20;
+
+export { isShadowProblem, problemVisibleInRoom } from "../lib/problemAccess";
 
 async function isRoomMember(
   ctx: QueryCtx,
@@ -42,8 +51,14 @@ const problemRowValidator = v.object({
   answer: lumoStaticDocumentValidator,
 });
 
+const shadowListItemValidator = v.object({
+  id: v.id("problems"),
+  problemNumber: v.string(),
+});
+
 /**
  * All parsed problems in a room, grouped by source file.
+ * Room-scoped shadows are nested under their parent.
  * Files with no cached problems are omitted.
  */
 export const listGroupedByRoom = query({
@@ -56,6 +71,7 @@ export const listGroupedByRoom = query({
         v.object({
           id: v.id("problems"),
           problemNumber: v.string(),
+          shadows: v.array(shadowListItemValidator),
         }),
       ),
     }),
@@ -80,16 +96,36 @@ export const listGroupedByRoom = query({
         )
         .take(MAX_PROBLEMS_PER_PDF);
 
-      if (rows.length === 0) {
+      // Skip shadow rows that somehow got a contentHash (shouldn't happen).
+      const parsed = rows.filter((row) => !isShadowProblem(row));
+      if (parsed.length === 0) {
         continue;
       }
 
-      const problems = rows
-        .map((row) => ({
+      const problems = [];
+      for (const row of parsed.sort((a, b) =>
+        compareProblemNumbers(a.problemNumber, b.problemNumber),
+      )) {
+        const shadows = await ctx.db
+          .query("problems")
+          .withIndex("by_room_and_parent", (q) =>
+            q.eq("roomId", args.roomId).eq("parentProblemId", row._id),
+          )
+          .take(MAX_SHADOWS_PER_PARENT);
+
+        problems.push({
           id: row._id,
           problemNumber: row.problemNumber,
-        }))
-        .sort((a, b) => compareProblemNumbers(a.problemNumber, b.problemNumber));
+          shadows: shadows
+            .map((s) => ({
+              id: s._id,
+              problemNumber: s.problemNumber,
+            }))
+            .sort((a, b) =>
+              compareProblemNumbers(a.problemNumber, b.problemNumber),
+            ),
+        });
+      }
 
       groups.push({
         fileId: file._id,
@@ -104,10 +140,70 @@ export const listGroupedByRoom = query({
 
 const roomProblemResultValidator = v.object({
   id: v.id("problems"),
-  fileId: v.id("files"),
+  fileId: v.union(v.id("files"), v.null()),
   fileName: v.string(),
+  isShadow: v.boolean(),
+  parentProblemId: v.union(v.id("problems"), v.null()),
+  parentProblemNumber: v.union(v.string(), v.null()),
   problem: lumoParsedProblemValidator,
 });
+
+async function resolveRoomProblem(
+  ctx: QueryCtx,
+  roomId: Id<"rooms">,
+  row: Doc<"problems">,
+  roomFiles: Array<Doc<"files">>,
+): Promise<{
+  id: Id<"problems">;
+  fileId: Id<"files"> | null;
+  fileName: string;
+  isShadow: boolean;
+  parentProblemId: Id<"problems"> | null;
+  parentProblemNumber: string | null;
+  problem: LumoParsedProblem;
+} | null> {
+  if (!problemVisibleInRoom(row, roomId, roomFiles)) {
+    return null;
+  }
+
+  const shadow = isShadowProblem(row);
+  let fileId: Id<"files"> | null = null;
+  let fileName = "Tvilling";
+  let parentProblemNumber: string | null = null;
+
+  if (shadow && row.parentProblemId !== undefined) {
+    const parent = await ctx.db.get(row.parentProblemId);
+    if (parent !== null) {
+      parentProblemNumber = parent.problemNumber;
+      const parentFile = fileForParsedProblem(parent, roomFiles);
+      if (parentFile !== undefined) {
+        fileId = parentFile._id;
+        fileName = parentFile.name;
+      }
+    }
+  } else {
+    const file = fileForParsedProblem(row, roomFiles);
+    if (file === undefined) {
+      return null;
+    }
+    fileId = file._id;
+    fileName = file.name;
+  }
+
+  return {
+    id: row._id,
+    fileId,
+    fileName,
+    isShadow: shadow,
+    parentProblemId: row.parentProblemId ?? null,
+    parentProblemNumber,
+    problem: {
+      problemNumber: row.problemNumber,
+      question: row.problem,
+      answer: row.answer,
+    } satisfies LumoParsedProblem,
+  };
+}
 
 /** Single problem for room detail view; null if missing or not in this room. */
 export const getForRoom = query({
@@ -131,21 +227,7 @@ export const getForRoom = query({
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
 
-    const file = files.find((f) => f.contentHash === row.contentHash);
-    if (file === undefined) {
-      return null;
-    }
-
-    return {
-      id: row._id,
-      fileId: file._id,
-      fileName: file.name,
-      problem: {
-        problemNumber: row.problemNumber,
-        question: row.problem,
-        answer: row.answer,
-      } satisfies LumoParsedProblem,
-    };
+    return await resolveRoomProblem(ctx, args.roomId, row, files);
   },
 });
 
@@ -173,26 +255,14 @@ export const getManyForRoom = query({
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
 
-    const fileByHash = new Map(
-      files.map((file) => [file.contentHash, file] as const),
-    );
-
     const results = [];
     for (const problemId of ids) {
       const row = await ctx.db.get(problemId);
       if (row === null) continue;
-      const file = fileByHash.get(row.contentHash);
-      if (file === undefined) continue;
-      results.push({
-        id: row._id,
-        fileId: file._id,
-        fileName: file.name,
-        problem: {
-          problemNumber: row.problemNumber,
-          question: row.problem,
-          answer: row.answer,
-        } satisfies LumoParsedProblem,
-      });
+      const resolved = await resolveRoomProblem(ctx, args.roomId, row, files);
+      if (resolved !== null) {
+        results.push(resolved);
+      }
     }
     return results;
   },
@@ -217,11 +287,12 @@ export const listByFileId = query({
       .withIndex("by_contentHash", (q) => q.eq("contentHash", file.contentHash))
       .take(MAX_PROBLEMS_PER_PDF);
 
-    if (rows.length === 0) {
+    const parsed = rows.filter((r) => !isShadowProblem(r));
+    if (parsed.length === 0) {
       return null;
     }
 
-    return rows.map(
+    return parsed.map(
       (r): LumoParsedProblem => ({
         problemNumber: r.problemNumber,
         question: r.problem,
@@ -256,15 +327,12 @@ export const getPromptContexts = internalQuery({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
-    const fileByHash = new Map(
-      files.map((file) => [file.contentHash, file] as const),
-    );
 
     const results = [];
     for (const problemId of ids) {
       const row = await ctx.db.get(problemId);
       if (row === null) continue;
-      if (!fileByHash.has(row.contentHash)) continue;
+      if (!problemVisibleInRoom(row, args.roomId, files)) continue;
       results.push({
         problemNumber: row.problemNumber,
         questionText: serializeStaticDocumentForPrompt(row.problem),
@@ -284,7 +352,115 @@ export const countByContentHash = internalQuery({
       .query("problems")
       .withIndex("by_contentHash", (q) => q.eq("contentHash", args.contentHash))
       .take(MAX_PROBLEMS_PER_PDF);
-    return rows.length;
+    return rows.filter((r) => !isShadowProblem(r)).length;
+  },
+});
+
+/** Parent + room visibility for shadow creation (internal). */
+export const getParentForShadow = internalQuery({
+  args: {
+    roomId: v.id("rooms"),
+    parentProblemId: v.id("problems"),
+  },
+  returns: v.union(
+    v.object({
+      parentProblemId: v.id("problems"),
+      parentProblemNumber: v.string(),
+      questionText: v.string(),
+      answerText: v.string(),
+      existingShadowCount: v.number(),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    const parent = await ctx.db.get(args.parentProblemId);
+    if (parent === null) {
+      return null;
+    }
+    if (isShadowProblem(parent)) {
+      return null;
+    }
+    if (parent.contentHash === undefined) {
+      return null;
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+
+    if (!problemVisibleInRoom(parent, args.roomId, files)) {
+      return null;
+    }
+
+    const shadows = await ctx.db
+      .query("problems")
+      .withIndex("by_room_and_parent", (q) =>
+        q.eq("roomId", args.roomId).eq("parentProblemId", parent._id),
+      )
+      .take(MAX_SHADOWS_PER_PARENT);
+
+    return {
+      parentProblemId: parent._id,
+      parentProblemNumber: parent.problemNumber,
+      questionText: serializeStaticDocumentForPrompt(parent.problem),
+      answerText: serializeStaticDocumentForPrompt(parent.answer),
+      existingShadowCount: shadows.length,
+    };
+  },
+});
+
+/** Insert a room-scoped shadow twin under a parsed parent. */
+export const insertShadow = internalMutation({
+  args: {
+    roomId: v.id("rooms"),
+    parentProblemId: v.id("problems"),
+    problemNumber: v.string(),
+    problem: lumoStaticDocumentValidator,
+    answer: lumoStaticDocumentValidator,
+  },
+  returns: v.id("problems"),
+  handler: async (ctx, args) => {
+    const parent = await ctx.db.get(args.parentProblemId);
+    if (parent === null) {
+      throw new Error("Uppgiften hittades inte");
+    }
+    if (isShadowProblem(parent)) {
+      throw new Error("Kan inte skapa tvilling från en tvilling");
+    }
+    if (parent.contentHash === undefined) {
+      throw new Error("Uppgiften saknar källa");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    if (!problemVisibleInRoom(parent, args.roomId, files)) {
+      throw new Error("Uppgiften tillhör inte det här rummet");
+    }
+
+    const existing = await ctx.db
+      .query("problems")
+      .withIndex("by_room_and_parent", (q) =>
+        q
+          .eq("roomId", args.roomId)
+          .eq("parentProblemId", args.parentProblemId),
+      )
+      .take(MAX_SHADOWS_PER_PARENT);
+    if (existing.length >= MAX_SHADOWS_PER_PARENT) {
+      throw new Error(
+        `Högst ${MAX_SHADOWS_PER_PARENT} tvillingar per uppgift`,
+      );
+    }
+
+    return await ctx.db.insert("problems", {
+      roomId: args.roomId,
+      parentProblemId: args.parentProblemId,
+      problemNumber: args.problemNumber,
+      problem: args.problem,
+      answer: args.answer,
+    });
   },
 });
 
@@ -302,6 +478,14 @@ export const replaceForContentHash = internalMutation({
       .take(MAX_PROBLEMS_PER_PDF);
 
     for (const row of existing) {
+      // Cascade-delete room-scoped shadows of this parent (all rooms).
+      const shadows = await ctx.db
+        .query("problems")
+        .withIndex("by_parent", (q) => q.eq("parentProblemId", row._id))
+        .take(MAX_SHADOWS_PER_PARENT * 50);
+      for (const shadow of shadows) {
+        await ctx.db.delete(shadow._id);
+      }
       await ctx.db.delete(row._id);
     }
 

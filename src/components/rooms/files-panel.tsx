@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "convex/react"
+import { useAction, useMutation, useQuery } from "convex/react"
 import { usePdfiumEngine } from "@embedpdf/engines/react"
 import {
   Download,
@@ -24,6 +24,7 @@ import {
   isImageFile,
 } from "~/components/rooms/image-viewer-sheet"
 import { PdfPreview } from "~/components/rooms/pdf-preview"
+import { MergePdfsDialog } from "~/components/rooms/merge-pdfs-dialog"
 import { ParsePdfDialog } from "~/components/rooms/parse-pdf-dialog"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { PdfViewerSheet, isPdfFile } from "~/components/rooms/pdf-viewer-sheet"
@@ -277,6 +278,81 @@ function FileNameEditor({
   )
 }
 
+function MergeSuggestionsBanner({ roomId }: { roomId: Id<"rooms"> }) {
+  const suggestions = useQuery(api.pdfMerges.listSuggestionsForRoom, {
+    roomId,
+  })
+  const attachToRoom = useAction(api.pdfMerges.attachToRoom)
+  const [attachingId, setAttachingId] = useState<Id<"pdfMerges"> | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  if (suggestions === undefined || suggestions.length === 0) {
+    return null
+  }
+
+  async function handleAttach(
+    mergeId: Id<"pdfMerges">,
+    inputNames: string[],
+  ) {
+    setError(null)
+    setAttachingId(mergeId)
+    try {
+      const base =
+        inputNames.length > 0
+          ? `sammanslagen-${inputNames.map((n) => n.replace(/\.pdf$/i, "")).join("-")}`.slice(
+              0,
+              Math.max(1, MAX_FILE_NAME_LENGTH - 4),
+            )
+          : "sammanslagen"
+      await attachToRoom({
+        roomId,
+        mergeId,
+        name: `${base}.pdf`,
+      })
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Kunde inte lägga till den sammanslagna filen",
+      )
+    } finally {
+      setAttachingId(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/30 p-3">
+      <p className="text-sm font-medium">Tidigare sammanslagningar</p>
+      <p className="text-sm text-muted-foreground">
+        Dessa PDF:er har slagits ihop tidigare. Du kan lägga till den
+        sammanslagna filen i rummet.
+      </p>
+      <ul className="flex flex-col gap-2">
+        {suggestions.map((suggestion) => (
+          <li
+            key={suggestion._id}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2"
+          >
+            <span className="min-w-0 flex-1 text-sm">
+              {suggestion.inputNames.join(" → ")}
+            </span>
+            <Button
+              size="sm"
+              disabled={attachingId !== null}
+              onClick={() => {
+                void handleAttach(suggestion._id, suggestion.inputNames)
+              }}
+            >
+              {attachingId === suggestion._id ? "Lägger till…" : "Lägg till i rummet"}
+            </Button>
+          </li>
+        ))}
+      </ul>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </div>
+  )
+}
+
 export function FilesGrid({ roomId }: FilesPanelProps) {
   const files = useQuery(api.files.listByRoom, { roomId })
   const { engine, isLoading: engineLoading } = usePdfiumEngine()
@@ -310,6 +386,8 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
     return <p className="text-sm text-muted-foreground">Hämtar filer…</p>
   }
 
+  const pdfFiles = files.filter((file) => isPdfFile(file.name))
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <div className="flex items-start justify-between gap-4">
@@ -324,8 +402,11 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
         <div className="flex flex-wrap items-start justify-end gap-2">
           <UploadButton roomId={roomId} />
           <PhoneUploadDialog roomId={roomId} />
+          <MergePdfsDialog roomId={roomId} pdfs={pdfFiles} />
         </div>
       </div>
+
+      <MergeSuggestionsBanner roomId={roomId} />
 
       {files.length > 0 ? (
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

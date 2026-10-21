@@ -27,12 +27,18 @@ export type RoomSidebarChatItem = {
   problemNumbers?: string[]
 }
 
-export type RoomSidebarProblemGroup = {
-  fileName: string
-  problems: Array<{
+export type RoomSidebarProblemItem = {
+  id: string
+  problemNumber: string
+  shadows?: Array<{
     id: string
     problemNumber: string
   }>
+}
+
+export type RoomSidebarProblemGroup = {
+  fileName: string
+  problems: Array<RoomSidebarProblemItem>
 }
 
 export type RoomSidebarProps = {
@@ -294,11 +300,20 @@ function ProblemList({
     return groups
       .map((group) => {
         const fileMatch = group.fileName.toLowerCase().includes(normalizedQuery)
-        const problems = fileMatch
-          ? group.problems
-          : group.problems.filter((problem) =>
-              problem.problemNumber.toLowerCase().includes(normalizedQuery),
+        if (fileMatch) return group
+        const problems = group.problems
+          .map((problem) => {
+            const parentMatch = problem.problemNumber
+              .toLowerCase()
+              .includes(normalizedQuery)
+            const shadows = (problem.shadows ?? []).filter((shadow) =>
+              shadow.problemNumber.toLowerCase().includes(normalizedQuery),
             )
+            if (parentMatch) return problem
+            if (shadows.length > 0) return { ...problem, shadows }
+            return null
+          })
+          .filter((problem): problem is RoomSidebarProblemItem => problem !== null)
         return { ...group, problems }
       })
       .filter((group) => group.problems.length > 0)
@@ -384,6 +399,7 @@ function ProblemList({
                 <ul className="mt-0.5 flex flex-col gap-0.5">
                   {group.problems.map((problem) => {
                     const selected = problem.id === selectedProblemId
+                    const shadows = problem.shadows ?? []
                     return (
                       <li key={problem.id}>
                         <button
@@ -398,6 +414,30 @@ function ProblemList({
                         >
                           {problem.problemNumber}
                         </button>
+                        {shadows.length > 0 ? (
+                          <ul className="mt-0.5 ml-3 flex flex-col gap-0.5 border-l border-sidebar-border pl-2">
+                            {shadows.map((shadow) => {
+                              const shadowSelected =
+                                shadow.id === selectedProblemId
+                              return (
+                                <li key={shadow.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => onSelectProblem(shadow.id)}
+                                    className={cn(
+                                      "w-full rounded-lg px-2 py-1 text-left text-sm text-muted-foreground transition-colors",
+                                      shadowSelected
+                                        ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                                        : "hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                                    )}
+                                  >
+                                    {shadow.problemNumber}
+                                  </button>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        ) : null}
                       </li>
                     )
                   })}

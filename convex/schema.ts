@@ -97,13 +97,22 @@ export default defineSchema({
     contentHash: v.string(),
     claimedAt: v.number(),
   }).index("by_contentHash", ["contentHash"]),
-  /** One Lumo-parsed problem per document, keyed by content hash of PDF bytes. */
+  /**
+   * Parsed problems (global cache by PDF contentHash) or room-scoped shadow twins.
+   * Parsed: contentHash set; roomId/parentProblemId absent.
+   * Shadow: roomId + parentProblemId set; contentHash absent.
+   */
   problems: defineTable({
-    contentHash: v.string(),
+    contentHash: v.optional(v.string()),
+    roomId: v.optional(v.id("rooms")),
+    parentProblemId: v.optional(v.id("problems")),
     problemNumber: v.string(),
     problem: lumoStaticDocumentValidator,
     answer: lumoStaticDocumentValidator,
-  }).index("by_contentHash", ["contentHash"]),
+  })
+    .index("by_contentHash", ["contentHash"])
+    .index("by_room_and_parent", ["roomId", "parentProblemId"])
+    .index("by_parent", ["parentProblemId"]),
   /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.
@@ -155,4 +164,17 @@ export default defineSchema({
     .index("by_contentHash_and_kind", ["contentHash", "kind"])
     .index("by_file_and_kind", ["fileId", "kind"])
     .index("by_room", ["roomId"]),
+  /**
+   * Global registry of concatenated PDFs, keyed by ordered input content hashes.
+   * `inputKey` is `inputHashes.join("|")` (order-sensitive).
+   */
+  pdfMerges: defineTable({
+    inputKey: v.string(),
+    inputHashes: v.array(v.string()),
+    mergedContentHash: v.string(),
+    mergedStorageId: v.id("_storage"),
+    createdBy: v.id("users"),
+  })
+    .index("by_inputKey", ["inputKey"])
+    .index("by_mergedContentHash", ["mergedContentHash"]),
 });

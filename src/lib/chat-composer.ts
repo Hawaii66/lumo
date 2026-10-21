@@ -1,5 +1,5 @@
-/** Problem-number token after `@`, e.g. `1.2`, `2.1a`. */
-export const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*[a-z]?)/gi
+/** Problem-number token after `@`, e.g. `1.2`, `2.1a`, `1.2·T1`. */
+export const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)/gi
 
 /** Visible rows in the @ typeahead viewport (list scrolls beyond this). */
 export const TYPEAHEAD_VISIBLE_COUNT = 8
@@ -98,7 +98,7 @@ export function findMentionQueryAtCursor(
   cursor: number,
 ): { start: number; query: string } | null {
   const before = text.slice(0, cursor)
-  const match = before.match(/@(\d*(?:\.\d*)*[a-z]?)$/i)
+  const match = before.match(/@(\d*(?:\.\d*)*(?:·T\d*|[a-z])?)$/i)
   if (!match || match.index === undefined) return null
   return { start: match.index, query: match[1] ?? "" }
 }

@@ -529,11 +529,18 @@ export function ThreadChat({
   const problemOptions = useMemo(() => {
     if (!problemGroups) return []
     return problemGroups.flatMap((group) =>
-      group.problems.map((problem) => ({
-        id: problem.id,
-        problemNumber: problem.problemNumber,
-        fileName: group.fileName,
-      })),
+      group.problems.flatMap((problem) => [
+        {
+          id: problem.id,
+          problemNumber: problem.problemNumber,
+          fileName: group.fileName,
+        },
+        ...problem.shadows.map((shadow) => ({
+          id: shadow.id,
+          problemNumber: shadow.problemNumber,
+          fileName: group.fileName,
+        })),
+      ]),
     )
   }, [problemGroups])
 

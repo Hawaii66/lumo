@@ -167,6 +167,13 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
           problemNumber: problem.problemNumber,
           fileName: group.fileName,
         })
+        for (const shadow of problem.shadows) {
+          options.push({
+            id: shadow.id,
+            problemNumber: shadow.problemNumber,
+            fileName: group.fileName,
+          })
+        }
       }
     }
     return options

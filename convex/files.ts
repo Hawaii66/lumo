@@ -76,6 +76,7 @@ export const listByRoom = query({
       _creationTime: v.number(),
       name: v.string(),
       storageId: v.id("_storage"),
+      contentHash: v.string(),
       url: v.union(v.string(), v.null()),
     }),
   ),
@@ -110,6 +111,7 @@ export const listByRoom = query({
         _creationTime: file._creationTime,
         name: file.name,
         storageId: file.storageId,
+        contentHash: file.contentHash,
         url,
       });
     }
