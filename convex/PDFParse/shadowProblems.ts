@@ -12,6 +12,10 @@ import {
   LUMO_TWIN_INSTRUCTIONS,
   buildTwinPrompt,
 } from "../lib/prompts";
+import {
+  normalizeSubproblemLetter,
+  sliceProblemTexts,
+} from "../lib/subproblemSlice";
 import { openrouter } from "../agents/openrouter";
 import { MAX_SHADOWS_PER_PARENT } from "./problems";
 
@@ -29,6 +33,8 @@ export const createShadow = action({
   args: {
     roomId: v.id("rooms"),
     parentProblemId: v.id("problems"),
+    /** When set, twin only this deluppgift (plus shared stem). */
+    subproblemLetter: v.optional(v.string()),
   },
   returns: v.id("problems"),
   handler: async (ctx, args): Promise<Id<"problems">> => {
@@ -40,6 +46,15 @@ export const createShadow = action({
     const room = await ctx.runQuery(api.rooms.get, { roomId: args.roomId });
     if (room === null) {
       throw new Error("Du saknar åtkomst till rummet");
+    }
+
+    const letter = normalizeSubproblemLetter(args.subproblemLetter);
+    if (
+      args.subproblemLetter !== undefined &&
+      args.subproblemLetter.trim().length > 0 &&
+      letter === null
+    ) {
+      throw new Error("Ogiltig deluppgift — använd en bokstav a–z");
     }
 
     const parent: {
@@ -67,6 +82,17 @@ export const createShadow = action({
       );
     }
 
+    let questionText = parent.questionText;
+    let answerText = parent.answerText;
+    if (letter !== null) {
+      const sliced = sliceProblemTexts(questionText, answerText, letter);
+      if (sliced === null) {
+        throw new Error(`Deluppgift (${letter}) hittades inte i uppgiften`);
+      }
+      questionText = sliced.questionText;
+      answerText = sliced.answerText;
+    }
+
     const suggestedNumber = `${parent.parentProblemNumber}·T${parent.existingShadowCount + 1}`;
 
     const result = await lumoTwinAgent.generateObject(
@@ -79,8 +105,9 @@ export const createShadow = action({
           "Markdown-tvilling: samma ### (a)/Fall-struktur, andra tal; question/answer som md+$",
         prompt: buildTwinPrompt({
           suggestedNumber,
-          questionText: parent.questionText,
-          answerText: parent.answerText,
+          questionText,
+          answerText,
+          subproblemLetter: letter ?? undefined,
         }),
       },
       {
@@ -91,8 +118,8 @@ export const createShadow = action({
 
     const normalized = normalizeLumoParsedProblem(
       { ...result.object, problemNumber: suggestedNumber },
-      parent.questionText,
-      parent.answerText,
+      questionText,
+      answerText,
     );
 
     const shadowId: Id<"problems"> = await ctx.runMutation(

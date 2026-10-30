@@ -30,17 +30,27 @@ export function buildModeStartPrompt(
   mode: ChatMode,
   problemNumber: string,
   fileName: string,
+  subproblemLetter?: string | null,
 ): string {
   const mention =
     problemNumber.trim() && fileName.trim()
       ? formatProblemMention(problemNumber, fileName)
       : ""
+  const letter = subproblemLetter?.trim().toLowerCase()
+  const scoped =
+    letter !== undefined && letter.length === 1 && /^[a-z]$/.test(letter)
+      ? letter
+      : null
   const body = (() => {
     switch (mode) {
       case "genomgang":
-        return "Gå igenom uppgiften steg för steg och förklara hur man tänker."
+        return scoped !== null
+          ? `Gå igenom endast deluppgift (${scoped}) steg för steg och förklara hur man tänker. Hoppa över övriga deluppgifter.`
+          : "Gå igenom uppgiften steg för steg och förklara hur man tänker."
       case "normal":
-        return "Hjälp mig med den här uppgiften."
+        return scoped !== null
+          ? `Hjälp mig med deluppgift (${scoped}).`
+          : "Hjälp mig med den här uppgiften."
     }
   })()
   return [mention, body].filter((part) => part.length > 0).join(" ")

@@ -554,6 +554,8 @@ export const sendMessage = mutation({
     images: v.optional(v.array(chatImageValidator)),
     problemId: v.optional(v.id("problems")),
     problemIds: v.optional(v.array(v.id("problems"))),
+    /** When set, agent context is sliced to this deluppgift for this turn. */
+    subproblemLetter: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const prompt = args.prompt.trim();
@@ -705,12 +707,19 @@ export const sendMessage = mutation({
       }
     }
 
+    const subproblemLetter = (() => {
+      const raw = args.subproblemLetter?.trim().toLowerCase();
+      if (raw === undefined || raw.length === 0) return undefined;
+      return /^[a-z]$/.test(raw) ? raw : undefined;
+    })();
+
     await ctx.scheduler.runAfter(0, internal.agents.roomAgent.generateResponse, {
       threadId: args.threadId,
       promptMessageId: messageId,
       mode,
       roomId: args.roomId,
       problemIds: problemIds.length > 0 ? problemIds : undefined,
+      subproblemLetter,
     });
 
     return { messageId };

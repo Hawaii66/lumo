@@ -83,6 +83,8 @@ export {
 
 export {
   chaptersFromMarkdown,
+  normalizeSubproblemLetter,
+  sliceSubproblemMarkdown,
   subproblemAnchorId,
   type ChapterHeading,
 } from "./markdown-math"
