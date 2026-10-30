@@ -13,9 +13,24 @@ export type ChapterHeading = {
 const SUBPROBLEM_HEADING_RE = /^(#{2,4})\s*\(([a-z])\)\s*$/i
 const FALL_HEADING_RE = /^(#{2,4})\s*Fall\s+(\d+)\b(.*)$/i
 
+/** Index of the next two-char closer (`\)` / `\]`), or -1. */
+function indexOfTexCloser(
+  input: string,
+  from: number,
+  closer: ")" | "]",
+  allowNewline: boolean,
+): number {
+  for (let j = from; j < input.length - 1; j++) {
+    if (!allowNewline && input[j] === "\n") return -1
+    if (input[j] === "\\" && input[j + 1] === closer) return j
+  }
+  return -1
+}
+
 /**
  * Split markdown into text and math segments.
- * Supports `$...$` (inline) and `$$...$$` (block). `\$` is a literal dollar.
+ * Supports `$...$` / `\(...\)` (inline) and `$$...$$` / `\[...\]` (block).
+ * `\$` is a literal dollar.
  */
 export function splitMarkdownMath(input: string): Array<MathSegment> {
   const segments: Array<MathSegment> = []
@@ -77,6 +92,40 @@ export function splitMarkdownMath(input: string): Array<MathSegment> {
         textStart = i
         continue
       }
+    }
+
+    // TeX-style block: \[...\]
+    if (input[i] === "\\" && input[i + 1] === "[") {
+      const close = indexOfTexCloser(input, i + 2, "]", true)
+      if (close === -1) {
+        i += 2
+        continue
+      }
+      pushText(i)
+      const latex = input.slice(i + 2, close).trim()
+      if (latex.length > 0) {
+        segments.push({ kind: "math", latex, display: "block" })
+      }
+      i = close + 2
+      textStart = i
+      continue
+    }
+
+    // TeX-style inline: \(...\)
+    if (input[i] === "\\" && input[i + 1] === "(") {
+      const close = indexOfTexCloser(input, i + 2, ")", false)
+      if (close === -1) {
+        i += 2
+        continue
+      }
+      pushText(i)
+      const latex = input.slice(i + 2, close).trim()
+      if (latex.length > 0) {
+        segments.push({ kind: "math", latex, display: "inline" })
+      }
+      i = close + 2
+      textStart = i
+      continue
     }
 
     i += 1

@@ -14,7 +14,9 @@ export const chatReplySchema = z.object({
   version: z.literal(2),
   markdown: z
     .string()
-    .describe("Pedagogical reply in markdown; math only in $...$ or $$...$$"),
+    .describe(
+      "Pedagogical reply in markdown; math only in $...$ or $$...$$ (never \\( \\) / \\[ \\])",
+    ),
   quickReplies: z
     .array(chatQuickReplyChoiceSchema)
     .max(4)

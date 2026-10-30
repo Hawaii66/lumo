@@ -68,7 +68,7 @@ export function buildChatSystem(args: {
     chatModeHint(args.mode),
     args.problemContext,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
-□ Matte bara i $ / $$; prosa utanför
+□ Matte bara i $ / $$ (inte \\( \\) / \\[ \\]); prosa utanför
 □ ### (a) / #### Fall N enligt konventionerna
 □ Du svarar på det studenten frågade; facit matchas när det finns
 □ quickReplies är studentens frågor till dig (eller [])

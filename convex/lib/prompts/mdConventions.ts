@@ -6,6 +6,7 @@ MARKDOWN + LATEX
 ════════════════════════════════════════
 • Prosa = vanlig markdown (stycken, listor, **fetstil**, *kursiv*).
 • Matematik ENDAST inne i $...$ (inline) eller $$...$$ (block).
+• ALDRIG TeX-delimitrar \\( \\) eller \\[ \\] — använd bara $ / $$.
 • INGEN rå TeX utanför $-delimitrar.
 • INGEN \\\\text{svenska} / \\\\mathrm{Ja} — skriv prosa utanför matten.
   ✓ Vi får $x=\\\\frac{3}{4}$ när $t=2$.
