@@ -10,6 +10,10 @@ import {
 } from "../lib/lumoContent";
 import type { ChatMode } from "../lib/lumoContent";
 import { LUMO_CHAT_INSTRUCTIONS, buildChatSystem } from "../lib/prompts";
+import {
+  normalizeSubproblemLetter,
+  sliceProblemTexts,
+} from "../lib/subproblemSlice";
 import { openrouter } from "./openrouter";
 
 /** Single-pass chat: solve + present as markdown + quickReplies. */
@@ -25,9 +29,25 @@ function buildProblemContext(
     questionText: string;
     answerText: string;
   }>,
+  subproblemLetter?: string | null,
 ): string {
   if (problems.length === 0) return "";
-  const blocks = problems.map((problem) => {
+  const letter = normalizeSubproblemLetter(subproblemLetter);
+  const scopedProblems = problems.map((problem) => {
+    if (letter === null) return problem;
+    const sliced = sliceProblemTexts(
+      problem.questionText,
+      problem.answerText,
+      letter,
+    );
+    if (sliced === null) return problem;
+    return {
+      problemNumber: problem.problemNumber,
+      questionText: sliced.questionText,
+      answerText: sliced.answerText,
+    };
+  });
+  const blocks = scopedProblems.map((problem) => {
     const answer =
       problem.answerText.length > 0
         ? problem.answerText
@@ -39,12 +59,16 @@ function buildProblemContext(
       "Krav: slutsvaret i markdown MÅSTE matcha facit. Bygg korrekta mellansteg dit.",
     ].join("\n");
   });
+  const scopeHint =
+    letter !== null
+      ? `Omfång: endast deluppgift (${letter}) (+ gemensam ingress). Ignorera övriga deluppgifter.`
+      : "Lös det studenten frågar om i denna kontext. Om flera (a)/(b) finns: bara de som behövs.";
   return [
     "",
     "════════════════════════════════════════",
     "UPPGIFTSKONTEXT (studenten refererar hit)",
     "════════════════════════════════════════",
-    "Lös det studenten frågar om i denna kontext. Om flera (a)/(b) finns: bara de som behövs.",
+    scopeHint,
     "",
     blocks.join("\n\n"),
   ].join("\n");
@@ -57,6 +81,7 @@ export const generateResponse = internalAction({
     mode: v.optional(chatModeValidator),
     roomId: v.optional(v.id("rooms")),
     problemIds: v.optional(v.array(v.id("problems"))),
+    subproblemLetter: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -76,7 +101,7 @@ export const generateResponse = internalAction({
         roomId: args.roomId,
         problemIds: args.problemIds,
       });
-      problemContext = buildProblemContext(problems);
+      problemContext = buildProblemContext(problems, args.subproblemLetter);
     }
 
     const result = await roomAgent.streamText(

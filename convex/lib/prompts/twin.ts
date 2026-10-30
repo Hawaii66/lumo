@@ -30,7 +30,7 @@ problemNumber: använd EXAKT det nummer du får i prompten.`,
   `════════════════════════════════════════
 TVILLING-REGLER
 ════════════════════════════════════════
-• Behåll samma ### (a)/(b)/(c) och #### Fall N som originalet (samma ordning).
+• Behåll samma ### (a)/(b)/(c) och #### Fall N som källutdraget (samma ordning). Om utdraget bara har en deluppgift: skapa inte övriga.
 • Behåll samma typ av fråga (förenkla, derivera, lösa ekvation, …).
 • Byt ut siffror/koefficienter/gränser till rimliga nya värden — inte triviala.
 • Facit MÅSTE vara korrekt för den nya frågan. Räkna om.
@@ -41,13 +41,23 @@ export function buildTwinPrompt(args: {
   suggestedNumber: string;
   questionText: string;
   answerText: string;
+  /** When set, the source texts are already sliced to this deluppgift. */
+  subproblemLetter?: string;
 }): string {
   const answerBlock =
     args.answerText.length > 0 ? args.answerText : "(inget svar i källan)";
+  const scopeBlock =
+    args.subproblemLetter !== undefined
+      ? `Omfång: endast deluppgift (${args.subproblemLetter}) + eventuell gemensam ingress.
+Behåll utdragets struktur (kan vara en enda ### (${args.subproblemLetter}) + #### Fall N).
+Skapa INTE övriga deluppgifter som saknas i utdraget.`
+      : `Behåll samma ### (a)/(b)/(c) och #### Fall N som originalet (samma ordning).`;
   return sections(
     `Skapa EN tvilling-uppgift baserad på originalet.
 
 Problemnummer (använd EXAKT): ${args.suggestedNumber}
+
+${scopeBlock}
 
 --- ORIGINAL FRÅGA ---
 ${args.questionText}
@@ -56,7 +66,7 @@ ${args.questionText}
 ${answerBlock}`,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
 □ problemNumber är exakt "${args.suggestedNumber}"
-□ Samma ### (a) / #### Fall-struktur som originalet, men andra tal
+□ Samma ### / #### Fall-struktur som utdraget ovan, men andra tal
 □ Facit stämmer för den nya frågan
 □ Matte bara i $ / $$`,
   );
