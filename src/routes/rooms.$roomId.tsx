@@ -211,7 +211,6 @@ function RoomPage() {
         images: images.length > 0 ? images : undefined,
         problemIds,
         problemId: problemIds?.[0],
-        debugSolve: import.meta.env.DEV,
       })
 
       openThread(result.threadId)

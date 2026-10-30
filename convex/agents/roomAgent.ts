@@ -6,33 +6,17 @@ import { internalAction } from "../_generated/server";
 import {
   DEFAULT_CHAT_MODE,
   chatModeValidator,
-  lumoDocumentAzureSchema,
-  normalizeLumoDocument,
-  serializeWorkedSolutionForPrompt,
-  stringifyLumoDocument,
-  workedSolutionSchema,
+  chatReplySchema,
 } from "../lib/lumoContent";
-import type { ChatMode, LumoDocument, WorkedSolution } from "../lib/lumoContent";
-import {
-  LUMO_FORMAT_INSTRUCTIONS,
-  LUMO_SOLVE_INSTRUCTIONS,
-  buildFormatSystem,
-  buildSolveSystem,
-} from "../lib/prompts";
+import type { ChatMode } from "../lib/lumoContent";
+import { LUMO_CHAT_INSTRUCTIONS, buildChatSystem } from "../lib/prompts";
 import { openrouter } from "./openrouter";
 
-/** Pass 1: solve math only. */
-export const roomSolveAgent = new Agent(components.agent, {
-  name: "LumoSolve",
-  languageModel: openrouter("openai/gpt-4.1-mini"),
-  instructions: LUMO_SOLVE_INSTRUCTIONS,
-});
-
-/** Pass 2: format worked solution into Lumo JSON for the frontend. */
+/** Single-pass chat: solve + present as markdown + quickReplies. */
 export const roomAgent = new Agent(components.agent, {
   name: "Lumo",
   languageModel: openrouter("openai/gpt-4.1-mini"),
-  instructions: LUMO_FORMAT_INSTRUCTIONS,
+  instructions: LUMO_CHAT_INSTRUCTIONS,
 });
 
 function buildProblemContext(
@@ -52,7 +36,7 @@ function buildProblemContext(
       `Uppgift ${problem.problemNumber}`,
       `Fråga: ${problem.questionText}`,
       `Facit från boken: ${answer}`,
-      "Krav: finalLatex MÅSTE matcha facit. Bygg korrekta mellansteg dit (tecken/parenteser).",
+      "Krav: slutsvaret i markdown MÅSTE matcha facit. Bygg korrekta mellansteg dit.",
     ].join("\n");
   });
   return [
@@ -66,37 +50,6 @@ function buildProblemContext(
   ].join("\n");
 }
 
-function parseFormatDocument(formatText: string): LumoDocument {
-  try {
-    const json: unknown = JSON.parse(formatText);
-    const azure = lumoDocumentAzureSchema.safeParse(json);
-    if (azure.success) return normalizeLumoDocument(azure.data);
-  } catch {
-    // fall through
-  }
-  return {
-    version: 1,
-    parts: [{ type: "text", content: formatText }],
-  };
-}
-
-/** Append pass-1 output as one text part on the format document (not a second envelope). */
-function withWorkedSolutionTextPart(
-  formatDoc: LumoDocument,
-  solution: WorkedSolution,
-): LumoDocument {
-  return {
-    version: 1,
-    parts: [
-      ...formatDoc.parts,
-      {
-        type: "text",
-        content: JSON.stringify(solution, null, 2),
-      },
-    ],
-  };
-}
-
 export const generateResponse = internalAction({
   args: {
     threadId: v.string(),
@@ -104,11 +57,9 @@ export const generateResponse = internalAction({
     mode: v.optional(chatModeValidator),
     roomId: v.optional(v.id("rooms")),
     problemIds: v.optional(v.array(v.id("problems"))),
-    debugSolve: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    // Current thread mode every turn (user may change mid-conversation).
     const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
 
     let problemContext = "";
@@ -128,39 +79,18 @@ export const generateResponse = internalAction({
       problemContext = buildProblemContext(problems);
     }
 
-    // Pass 1 — solve (depth from mode; facit when present).
-    const solved = await roomSolveAgent.generateObject(
-      ctx,
-      { threadId: args.threadId },
-      {
-        promptMessageId: args.promptMessageId,
-        schema: workedSolutionSchema,
-        schemaName: "WorkedSolution",
-        schemaDescription:
-          "Korrekt arbetad lösning: subproblems med math-only latex-steg + finalLatex (matcha facit). Ingen svenska i latex.",
-        system: buildSolveSystem({ mode, problemContext }),
-      },
-      {
-        storageOptions: { saveMessages: "none" },
-      },
-    );
-
-    const workedSolution: WorkedSolution = solved.object;
-    const workedBlock = serializeWorkedSolutionForPrompt(workedSolution);
-
-    // Pass 2 — stream Lumo document; copy math from pass 1, do not re-derive.
     const result = await roomAgent.streamText(
       ctx,
       { threadId: args.threadId },
       {
         promptMessageId: args.promptMessageId,
         output: Output.object({
-          schema: lumoDocumentAzureSchema,
-          name: "LumoDocument",
+          schema: chatReplySchema,
+          name: "ChatReply",
           description:
-            "Lumo-svar: text=svenska (aldrig TeX), latex=matte (aldrig svenska/\\\\text). quickReplies/subproblem/case. Oanvända fält = \"\" / [].",
+            "Lumo-svar: version 2, markdown med $ / $$ och ### (a) / #### Fall N, plus quickReplies.",
         }),
-        system: buildFormatSystem({ mode, workedBlock }),
+        system: buildChatSystem({ mode, problemContext }),
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
@@ -168,30 +98,6 @@ export const generateResponse = internalAction({
     );
 
     await result.consumeStream();
-
-    if (args.debugSolve === true) {
-      const formatText = await result.text;
-      const combined = withWorkedSolutionTextPart(
-        parseFormatDocument(formatText),
-        workedSolution,
-      );
-      const combinedText = stringifyLumoDocument(combined);
-
-      const savedAssistant = [...(result.savedMessages ?? [])]
-        .reverse()
-        .find((message) => message.message?.role === "assistant");
-
-      if (savedAssistant !== undefined) {
-        await roomAgent.updateMessage(ctx, {
-          messageId: savedAssistant._id,
-          patch: {
-            message: { role: "assistant", content: combinedText },
-            status: "success",
-          },
-        });
-      }
-    }
-
     return null;
   },
 });

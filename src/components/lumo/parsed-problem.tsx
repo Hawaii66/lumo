@@ -1,6 +1,6 @@
 import { Eye, EyeOff } from "lucide-react"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
-import { StaticLumoParts } from "~/components/lumo/static-parts"
+import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import { cn } from "~/lib/utils"
 
 type ParsedProblemViewProps = {
@@ -49,7 +49,10 @@ export function ParsedProblemView({
       </div>
 
       <section className="space-y-2">
-        <StaticLumoParts parts={problem.question.parts} />
+        <MarkdownWithMath
+          markdown={problem.question}
+          scopeKey={`q-${problem.problemNumber}`}
+        />
       </section>
 
       {showAnswer ? (
@@ -57,10 +60,13 @@ export function ParsedProblemView({
           <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Svar
           </h3>
-          {problem.answer.parts.length === 0 ? (
+          {problem.answer.trim().length === 0 ? (
             <p className="text-sm italic text-muted-foreground">Inget svar</p>
           ) : (
-            <StaticLumoParts parts={problem.answer.parts} />
+            <MarkdownWithMath
+              markdown={problem.answer}
+              scopeKey={`a-${problem.problemNumber}`}
+            />
           )}
         </section>
       ) : null}

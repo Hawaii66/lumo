@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { components } from "../_generated/api";
 import { internalAction } from "../_generated/server";
 import {
-  lumoParsedProblemAzureSchema,
+  lumoParsedProblemSchema,
   lumoParsedProblemValidator,
   normalizeLumoParsedProblem,
   normalizeProblemNumber,
@@ -21,7 +21,7 @@ export const lumoProblemAgent = new Agent(components.agent, {
 });
 
 /**
- * Convert one pre-split problem+answer chunk into a Lumo-language problem.
+ * Convert one pre-split problem+answer chunk into a markdown problem.
  */
 export const convertProblemChunk = internalAction({
   args: {
@@ -43,11 +43,10 @@ export const convertProblemChunk = internalAction({
       ctx,
       { userId: args.userId },
       {
-        // Flat schema — Azure rejects JSON Schema `oneOf` from Zod unions.
-        schema: lumoParsedProblemAzureSchema,
+        schema: lumoParsedProblemSchema,
         schemaName: "LumoParsedProblem",
         schemaDescription:
-          "Lumo-problem: text=svenska, latex=matte (P_{1} m.m.); subproblem=tasks; case=villkorsfall i svar; caption för Mgn/summa",
+          "Markdown-problem: problemNumber, question (md+$), answer (md+$); ### (a) / #### Fall N",
         prompt: buildConvertPrompt({
           suggestedNumber,
           problemText,

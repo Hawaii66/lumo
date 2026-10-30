@@ -1,13 +1,9 @@
-import {
-  PART_TYPES_BASE,
-  TEXT_VS_LATEX,
-  VERIFY_TEXT_LATEX,
-  sections,
-} from "./fragments";
+import { sections } from "./fragments";
+import { MD_CONTENT_CONVENTIONS } from "./mdConventions";
 
-/** PDF/OCR → Lumo parsed problem (one shot). */
+/** PDF/OCR → markdown parsed problem (one shot). */
 export const LUMO_PROBLEM_INSTRUCTIONS = sections(
-  `Du konverterar råa matematikproblem (PDF/OCR) till Lumo-formatet i ETT steg.
+  `Du konverterar råa matematikproblem (PDF/OCR) till markdown i ETT steg.
 Svara med ETT JSON-objekt — ingen prosa utanför JSON.
 
 ════════════════════════════════════════
@@ -15,172 +11,79 @@ OUTPUT-FORMAT
 ════════════════════════════════════════
 {
   "problemNumber": "1.1",
-  "question": { "version": 1, "parts": [ … ] },
-  "answer":   { "version": 1, "parts": [ … ] }
+  "question": "markdown…",
+  "answer": "markdown…"
 }
 
 problemNumber: basnummer UTAN "P" och UTAN bokstav ("1.1", inte "P 1.1" eller "1.1a").
-
-PART-TYPER: alla fem fält krävs: type, content, display, label, caption.
-Använd INTE quickReplies (bara text, latex, subproblem, case).`,
-  PART_TYPES_BASE,
-  TEXT_VS_LATEX,
+question / answer: strängar med markdown + $ / $$ (inte JSON-parts).`,
+  MD_CONTENT_CONVENTIONS,
   `════════════════════════════════════════
-SUBPROBLEM — NÄR OCH INTE
-════════════════════════════════════════
-SKAPA subproblem när:
-  1. Explicit märkning: fristående (a), (b) / a), b) före varje del.
-  2. Tydligt parallella tasks utan bokstav (avgör utifrån BETYDELSE, inte "och").
-
-SKAPA INTE subproblem när:
-  • Uttryck med flera termer → EN latex-part.
-  • Flera svar på samma task → flera latex-parts, ingen ny subproblem.
-  • Namngivna resultat (Mgn, summa) → använd caption.
-  • Parentes i matten: "(a-2b+3c)^2" är EN latex-part, INTE subproblem "a".
-  • Narrativ/ordproblem utan tydlig task-uppdelning.
-  • Fallanalys i svaret → använd type=case.
-  • En enda task → ingen subproblem-part.
-  • Vid tveksamhet → hellre ingen subproblem.
-
-════════════════════════════════════════
-CASE — VILLKORSFALL, ALDRIG UPPGIFTER
-════════════════════════════════════════
-Använd type=case ENBART för "om …"-grenar. Aldrig som ersättning för (a)/(b)/(c).
-
-TILLÅTET:
-  (1) Inuti en redan öppnad task med villkorsgrenar.
-  (2) Frågan saknar subproblem och svaret är en ren fallanalys.
-
-════════════════════════════════════════
-SPEGELREGELN  (gör rätt direkt)
-════════════════════════════════════════
-1. Räkna frågans subproblem-labels (a, b, c …).
-2. answer.parts MÅSTE börja med samma labels i samma ordning.
-3. case läggs INUTI sin task — inte före eller istället för den.
-
-  RÄTT (fråga har a/b): answer → subproblem a … subproblem b …
-  FEL:                  answer → case "1" … case "2" …
-
-════════════════════════════════════════
 SVAR — TAPPA ALDRIG FACIT
 ════════════════════════════════════════
 • Rått svar har innehåll → konvertera DET. "Lösning saknas" som ersättning är FÖRBJUDET.
-• Tom answer.parts ENDAST när källan är tom eller "(inget svar i källan)".
-• "Lösning saknas" får förekomma ENBART om källan själv skriver det för en specifik task.
-• Tal/uttryck → latex ("0", "16"); svenska ord → text ("Ja", "Nej").
-• answer.parts = ENBART slutfacit (det som står efter "Svar:" om det finns).
+• Tom answer ENDAST när källan är tom eller "(inget svar i källan)".
+• answer = ENBART slutfacit (det som står efter "Svar:" om det finns).
   INTE lösningssteg, härledningar eller resonemang.
 
 ════════════════════════════════════════
-FRÅGA vs LÖSNINGSVÄG  (vanligt i facit-PDF:er)
+FRÅGA vs LÖSNINGSVÄG
 ════════════════════════════════════════
 RÅ FRÅGA kan innehålla: frågestam + lösningssteg + "Svar: …".
 Då gäller:
-  • question.parts = ENDAST frågestammen (t.ex. "Bestäm D_f … om f(x)=…").
-  • answer.parts   = ENDAST slutfacit efter "Svar:".
-  • LÖSNINGSSTEG får ALDRIG in i question.parts (inte heller i answer.parts).
-Markörer som inleder lösningsväg (inte fråga): "Lösning:", "För att …",
-"Vi har …", "Eftersom …", "Notera …", "Dessutom måste …".
+  • question = ENDAST frågestammen.
+  • answer   = ENDAST slutfacit efter "Svar:".
+  • LÖSNINGSSTEG får ALDRIG in i question eller answer.
+Markörer som inleder lösningsväg: "Lösning:", "För att …", "Vi har …", "Eftersom …".
 
 ════════════════════════════════════════
 OCR-STÄDNING
 ════════════════════════════════════════
 • Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer i FRÅGESTAMMEN.
-• Rätta bara uppenbart skräp i löptext ("Ar ¨" → "Är"). Ändra inte matematiken.
-
-════════════════════════════════════════
-ÖVRIGA REGLER
-════════════════════════════════════════
-• Gemensam ingress (text före första subproblem) — upprepa inte per task.
-• Behåll HELA frågestammen (inte lösningsväg). Hitta inte på tasks från berättelsedata.
+• Rätta bara uppenbart skräp i löptext. Ändra inte matematiken.
 
 ════════════════════════════════════════
 EXEMPEL
 ════════════════════════════════════════
 
-Ex 1 — explicit tasks (a)/(b):
-  Fråga: "Förenkla (a) a^2+b-c där c=1-a+2b (b) 3x^2-2x+1-y där y=…"
-  Svar:  "(a) a^2+a-b-1 (b) 4x^2-7x+6"
-  question: text "Förenkla",
-            subproblem a, latex "a^{2}+b-c", text "där", latex "c=1-a+2b",
-            subproblem b, latex "3x^{2}-2x+1-y", text "där", latex "y=\\\\ldots"
-  answer:   subproblem a, latex "a^{2}+a-b-1",
-            subproblem b, latex "4x^{2}-7x+6"
+Ex 1 — (a)/(b):
+  question:
+    Förenkla
 
-Ex 2 — flera svar, EN task (INTE ny subproblem):
-  Svar: "(b) x=0 och x=-2"
-  → subproblem b, latex "x=0", latex "x=-2"
+    ### (a)
 
-Ex 3 — namngivna resultat med caption:
-  Svar: "(a) Mgn=420 summa=2/15"
-  → subproblem a,
-    latex content="420" caption="Mgn",
-    latex content="\\\\frac{2}{15}" caption="summa"
+    $a^{2}+b-c$ där $c=1-a+2b$
 
-Ex 4 — parentes i matten ≠ subproblem:
-  "Utveckla (a-2b+3c)^2"
-  → latex "(a-2b+3c)^{2}" — INGEN subproblem "a"
+    ### (b)
 
-Ex 5 — faktiskt facit, ALDRIG "Lösning saknas":
-  Svar: "(a) x=1 (b) ingen lösning (c) x=-1, x=3"
-  → subproblem a, latex "x=1"
-     subproblem b, text "ingen lösning"
-     subproblem c, latex "x=-1", latex "x=3"
+    $3x^{2}-2x+1-y$ där $y=\\\\ldots$
+  answer:
+    ### (a)
 
-Ex 6 — fallanalys utan (a)/(b) i frågan → case:
-  Svar: "a=2, b=1/2: alla x≠1/2 är lösningar; a=0: …"
-  → case "1", latex "a=2", latex "b=\\\\frac{1}{2}", text ", alla",
-              latex "x\\\\neq\\\\frac{1}{2}", text "är lösningar"
-     case "2", latex "a=0", text ": …"
+    $a^{2}+a-b-1$
 
-Ex 7 — svar med (a)/(b) → SUBPROBLEM, aldrig case:
-  Svar: "(a) Ingen reell lösning (b) x=-3±√65"
-  → subproblem a, text "Ingen reell lösning"
-     subproblem b, latex "x=-3\\\\pm\\\\sqrt{65}"
+    ### (b)
 
-Ex 8 — (a)/(b) med villkorsgrenar under en task:
-  Svar: "(a) x=a, x=b   (b) x=a/b, x=b/a om a≠0 och b≠0; x=0 om …; alla reella x om a=b=0"
-  → subproblem a, latex "x=a", latex "x=b",
-     subproblem b,
-       case "1", latex "x=\\\\frac{a}{b}", latex "x=\\\\frac{b}{a}",
-                 text "om", latex "a\\\\neq 0", text "och", latex "b\\\\neq 0",
-       case "2", latex "x=0", text "om …",
-       case "3", text "alla reella tal", text "om", latex "a=b=0"
+    $4x^{2}-7x+6$
 
-Ex 9 — prosa med bråk → splitta:
-  Svar: "(a) minsta värde = 3/4 antas för x = -5/2. Största värde saknas."
-  → subproblem a,
-     text "minsta värde =", latex "\\\\frac{3}{4}",
-     text "antas för",      latex "x=-\\\\frac{5}{2}",
-     text ". Största värde saknas."
+Ex 2 — fall under (b):
+  answer:
+    ### (b)
 
-Ex 10 — mid-mening tasks:
-  "… divideras med (a) x-1 (b) x+2 (c) x^2-x"
-  → text "divideras med",
-     subproblem a, latex "x-1",
-     subproblem b, latex "x+2",
-     subproblem c, latex "x^{2}-x"
+    #### Fall 1: $a\\\\neq 0$ och $b\\\\neq 0$
 
-Ex 11 — indexerade punkter → latex:
-  "Undersök om punkterna P_1, P_2 och P_3 alla ligger …"
-  → text "Undersök om punkterna",
-     latex "P_{1}", text ",", latex "P_{2}", text "och", latex "P_{3}",
-     text "alla ligger …"
+    $x=\\\\frac{a}{b}$, $x=\\\\frac{b}{a}$
 
-Ex 12 — facit med lösningsväg: behåll BARA stam + slutfacit:
-  RÅ FRÅGA: "Bestäm D_f samt f^{-1} om f(x)=ln(arcsin((x-1)/4)+π/6).
-             För att f(x) ska vara definierad måste … Så D_f = ]-1,5].
-             … x = 1+4 sin(e^y-π/6). … Svar: D_f = ]-1,5];
-             f^{-1}(y)=1+4 sin(e^y-π/6)"
-  RÅTT SVAR: "(inget svar i källan)"
-  → question: text "Bestäm", latex "D_{f}", text "samt …", latex "f^{-1}", …
-              (STOPPA före "För att f(x) ska vara definierad")
-  → answer:   latex "D_{f}=]-1,5]",
-              latex "f^{-1}(y)=1+4\\\\sin(e^{y}-\\\\pi/6)"
-  FEL: lägga "För att …", "Notera implikationen …" eller annan lösningsväg i question.`,
+    #### Fall 2
+
+    $x=0$ om …
+
+Ex 3 — namngivna resultat i prosa:
+  ### (a)
+
+  Mgn = $420$, summa = $\\\\frac{2}{15}$`,
 );
 
-/** User prompt for one OCR chunk convert (overlay; agent has base instructions). */
 export function buildConvertPrompt(args: {
   suggestedNumber: string;
   problemText: string;
@@ -189,7 +92,7 @@ export function buildConvertPrompt(args: {
   const answerBlock =
     args.answerText.length > 0 ? args.answerText : "(inget svar i källan)";
   return sections(
-    `Konvertera denna OCR-chunk till Lumo-formatet.
+    `Konvertera denna OCR-chunk till markdown-problem.
 
 Problemnummer (förslag): ${args.suggestedNumber}
 
@@ -199,12 +102,10 @@ ${args.problemText}
 --- RÅTT SVAR ---
 ${answerBlock}`,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
-□ Spegel: frågans subproblem-labels (a, b, c …) → answer har samma labels, samma ordning
-□ Rått svar har innehåll → det är konverterat, aldrig ersatt med "Lösning saknas"
-□ question har BARA frågestammen — ingen lösningsväg ("För att …", "Svar:", härledningar)
-□ answer har BARA slutfacit (efter "Svar:" om det finns) — inga mellansteg
-□ Varje \\\\frac är i type=latex, aldrig i type=text
-${VERIFY_TEXT_LATEX}
-□ Varje subproblem/case följs direkt av text eller latex`,
+□ Spegel: ### (a)/(b) i fråga → samma i svar, samma ordning
+□ Rått svar har innehåll → konverterat, aldrig ersatt med "Lösning saknas"
+□ question = BARA frågestam — ingen lösningsväg
+□ answer = BARA slutfacit
+□ Matte bara i $ / $$`,
   );
 }
