@@ -37,21 +37,34 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_IMAGE_FILENAME_LENGTH = 200;
 const MAX_MENTIONED_PROBLEM_NUMBERS = 20;
 
-/** `@1.2` / `@2.1a` / `@1.2·T1` tokens in prompt text (same shape as client composer). */
-const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)/gi;
+/**
+ * `@1.2` or `@1.2-tenta_2023-03` tokens (same shape as client composer).
+ * Capture group 1 is the full token without `@`. Slugged form is first so
+ * `@1.2-tenta` is not split into bare `@1.2`.
+ */
+const PROBLEM_MENTION_RE =
+  /@((?:(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)-(\S+))|(\d+(?:\.\d+)*(?:·T\d+|[a-z])?))/gi;
+
+/** Number part of a stored mention token (`1.2` or `1.2-tenta_2023-03`). */
+function mentionTokenNumber(token: string): string {
+  const match = token
+    .trim()
+    .match(/^(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)/i);
+  return match?.[1] ?? token.trim();
+}
 
 function extractMentionedProblemNumbers(text: string): Array<string> {
-  const numbers: Array<string> = [];
+  const tokens: Array<string> = [];
   const seen = new Set<string>();
   for (const match of text.matchAll(PROBLEM_MENTION_RE)) {
-    const number = match[1];
-    if (number === undefined) continue;
-    const key = number.toLowerCase();
+    const token = match[1];
+    if (token === undefined) continue;
+    const key = token.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    numbers.push(number);
+    tokens.push(token);
   }
-  return numbers;
+  return tokens;
 }
 
 function mergeMentionedProblemNumbers(
@@ -644,6 +657,11 @@ export const sendMessage = mutation({
             metadata: { fileIds },
           });
 
+    const fromPrompt = extractMentionedProblemNumbers(prompt);
+    const numbersCoveredByPrompt = new Set(
+      fromPrompt.map((token) => mentionTokenNumber(token).toLowerCase()),
+    );
+
     const problemNumbersFromIds: Array<string> = [];
     if (problemIds.length > 0) {
       const roomFiles = await ctx.db
@@ -658,16 +676,19 @@ export const sendMessage = mutation({
         if (!problemVisibleInRoom(problem, args.roomId, roomFiles)) {
           throw new Error("Uppgiften tillhör inte det här rummet");
         }
-        problemNumbersFromIds.push(problem.problemNumber);
+        // Prefer the form already written in the prompt (`@3` or `@3-slug`).
+        if (numbersCoveredByPrompt.has(problem.problemNumber.toLowerCase())) {
+          continue;
+        }
+        // Attached without a text mention — store number only; prompt text is
+        // the source of truth for PDF-scoped tokens when disambiguating.
+        problemNumbersFromIds.push(problem.problemNumber.trim());
       }
     }
 
     const mentionedProblemNumbers = mergeMentionedProblemNumbers(
       roomThread.mentionedProblemNumbers,
-      [
-        ...extractMentionedProblemNumbers(prompt),
-        ...problemNumbersFromIds,
-      ],
+      [...fromPrompt, ...problemNumbersFromIds],
     );
     if (
       mentionedProblemNumbers !== undefined &&

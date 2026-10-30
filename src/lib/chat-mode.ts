@@ -1,3 +1,5 @@
+import { formatProblemMention } from "~/lib/chat-composer"
+
 export const CHAT_MODES = [
   {
     value: "normal",
@@ -27,8 +29,12 @@ export function chatModeLabel(mode: ChatMode): string {
 export function buildModeStartPrompt(
   mode: ChatMode,
   problemNumber: string,
+  fileName: string,
 ): string {
-  const mention = problemNumber.trim() ? `@${problemNumber.trim()}` : ""
+  const mention =
+    problemNumber.trim() && fileName.trim()
+      ? formatProblemMention(problemNumber, fileName)
+      : ""
   const body = (() => {
     switch (mode) {
       case "genomgang":

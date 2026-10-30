@@ -296,27 +296,58 @@ function ProblemList({
   const normalizedQuery = query.trim().toLowerCase()
 
   const filteredGroups = useMemo(() => {
-    if (!normalizedQuery) return groups
-    return groups
-      .map((group) => {
-        const fileMatch = group.fileName.toLowerCase().includes(normalizedQuery)
-        if (fileMatch) return group
-        const problems = group.problems
-          .map((problem) => {
-            const parentMatch = problem.problemNumber
+    const compareFileNames = (a: string, b: string) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+    const compareProblemNumbers = (a: string, b: string) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+
+    const sortGroup = (group: RoomSidebarProblemGroup): RoomSidebarProblemGroup => ({
+      ...group,
+      problems: [...group.problems]
+        .map((problem) => ({
+          ...problem,
+          shadows: [...(problem.shadows ?? [])].sort((a, b) =>
+            compareProblemNumbers(a.problemNumber, b.problemNumber),
+          ),
+        }))
+        .sort((a, b) =>
+          compareProblemNumbers(a.problemNumber, b.problemNumber),
+        ),
+    })
+
+    const source = normalizedQuery
+      ? groups
+          .map((group) => {
+            const fileMatch = group.fileName
               .toLowerCase()
               .includes(normalizedQuery)
-            const shadows = (problem.shadows ?? []).filter((shadow) =>
-              shadow.problemNumber.toLowerCase().includes(normalizedQuery),
-            )
-            if (parentMatch) return problem
-            if (shadows.length > 0) return { ...problem, shadows }
-            return null
+            if (fileMatch) return group
+            const problems = group.problems
+              .map((problem) => {
+                const parentMatch = problem.problemNumber
+                  .toLowerCase()
+                  .includes(normalizedQuery)
+                const shadows = (problem.shadows ?? []).filter((shadow) =>
+                  shadow.problemNumber
+                    .toLowerCase()
+                    .includes(normalizedQuery),
+                )
+                if (parentMatch) return problem
+                if (shadows.length > 0) return { ...problem, shadows }
+                return null
+              })
+              .filter(
+                (problem): problem is RoomSidebarProblemItem =>
+                  problem !== null,
+              )
+            return { ...group, problems }
           })
-          .filter((problem): problem is RoomSidebarProblemItem => problem !== null)
-        return { ...group, problems }
-      })
-      .filter((group) => group.problems.length > 0)
+          .filter((group) => group.problems.length > 0)
+      : groups
+
+    return [...source]
+      .map(sortGroup)
+      .sort((a, b) => compareFileNames(a.fileName, b.fileName))
   }, [groups, normalizedQuery])
 
   // While searching, force-open groups that still have matches.

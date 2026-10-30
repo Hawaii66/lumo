@@ -105,30 +105,35 @@ export function MentionedProblems({
     <div className={cn("flex flex-col gap-2", className)}>
       {mentions.map((mention) => {
         if (mention.status === "missing") {
+          const token = mention.fileSlug
+            ? `${mention.problemNumber}-${mention.fileSlug}`
+            : mention.problemNumber
           return (
             <ProblemChatBubble
-              key={`missing-${mention.problemNumber}`}
+              key={`missing-${token}`}
               problemNumber={mention.problemNumber}
               draft={draft}
               align={bubbleAlign}
             >
               <p className="text-muted-foreground">
-                Ingen uppgift matchar @{mention.problemNumber}
+                Ingen uppgift matchar @{token}
               </p>
             </ProblemChatBubble>
           )
         }
         if (mention.status === "ambiguous") {
+          const token = mention.fileSlug
+            ? `${mention.problemNumber}-${mention.fileSlug}`
+            : mention.problemNumber
           return (
             <ProblemChatBubble
-              key={`ambiguous-${mention.problemNumber}`}
+              key={`ambiguous-${token}`}
               problemNumber={mention.problemNumber}
               draft={draft}
               align={bubbleAlign}
             >
               <p className="text-muted-foreground">
-                Flera uppgifter heter {mention.problemNumber} — välj fil i
-                listan (@).
+                Flera uppgifter matchar @{token} — välj fil i listan (@).
               </p>
             </ProblemChatBubble>
           )
