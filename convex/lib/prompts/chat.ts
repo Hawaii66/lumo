@@ -59,19 +59,65 @@ export function chatModeHint(mode: ChatMode): string {
   }
 }
 
+/** Compact room metadata + PDF method notes for the chat system prompt. */
+export function buildRoomContext(args: {
+  name: string;
+  description: string;
+  generalInfo: string;
+  pdfInfos: Array<{ text: string }>;
+}): string {
+  const lines: string[] = [
+    "════════════════════════════════════════",
+    "RUMSINFORMATION",
+    "════════════════════════════════════════",
+  ];
+
+  const name = args.name.trim();
+  if (name.length > 0) {
+    lines.push(`Namn: ${name}`);
+  }
+
+  const description = args.description.trim();
+  if (description.length > 0) {
+    lines.push(`Beskrivning: ${description}`);
+  }
+
+  const generalInfo = args.generalInfo.trim();
+  if (generalInfo.length > 0) {
+    lines.push("Allmän info:", generalInfo);
+  }
+
+  const pdfTexts = args.pdfInfos
+    .map((p) => p.text.trim())
+    .filter((t) => t.length > 0);
+  if (pdfTexts.length > 0) {
+    lines.push("PDF-metoder:", pdfTexts.join("\n"));
+  }
+
+  // Header-only → nothing useful to inject
+  if (lines.length <= 3) {
+    return "";
+  }
+
+  return lines.join("\n");
+}
+
 export function buildChatSystem(args: {
   mode: ChatMode;
+  roomContext?: string;
   problemContext?: string;
 }): string {
   return sections(
     LUMO_CHAT_INSTRUCTIONS,
     chatModeHint(args.mode),
+    args.roomContext,
     args.problemContext,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
 □ Matte bara i $ / $$ (inte \\( \\) / \\[ \\]); prosa utanför
 □ ### (a) / #### Fall N enligt konventionerna
 □ Du svarar på det studenten frågade; facit matchas när det finns
 □ quickReplies är studentens frågor till dig (eller [])
-□ Chattläget följs`,
+□ Chattläget följs
+□ Rumsinformation / PDF-metoder följs när de ges`,
   );
 }

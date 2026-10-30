@@ -8,6 +8,7 @@ export {
 export {
   LUMO_CHAT_INSTRUCTIONS,
   buildChatSystem,
+  buildRoomContext,
   chatModeHint,
 } from "./chat";
 export {

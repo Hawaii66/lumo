@@ -24,7 +24,7 @@ export default defineSchema({
     description: v.string(),
     /**
      * Freeform notes for the AI about this room (preferred methods, context, etc.).
-     * Missing on older rooms → treat as empty. Not injected into chats until wired.
+     * Missing on older rooms → treat as empty. Injected into chat system prompts.
      */
     generalInfo: v.optional(v.string()),
     /** Set on create/clone; missing on older rooms. */

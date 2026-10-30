@@ -9,7 +9,11 @@ import {
   chatReplySchema,
 } from "../lib/lumoContent";
 import type { ChatMode } from "../lib/lumoContent";
-import { LUMO_CHAT_INSTRUCTIONS, buildChatSystem } from "../lib/prompts";
+import {
+  LUMO_CHAT_INSTRUCTIONS,
+  buildChatSystem,
+  buildRoomContext,
+} from "../lib/prompts";
 import {
   normalizeSubproblemLetter,
   sliceProblemTexts,
@@ -87,6 +91,21 @@ export const generateResponse = internalAction({
   handler: async (ctx, args) => {
     const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
 
+    let roomContext = "";
+    if (args.roomId !== undefined) {
+      const room: {
+        name: string;
+        description: string;
+        generalInfo: string;
+        pdfInfos: Array<{ text: string }>;
+      } | null = await ctx.runQuery(internal.rooms.getChatContext, {
+        roomId: args.roomId,
+      });
+      if (room !== null) {
+        roomContext = buildRoomContext(room);
+      }
+    }
+
     let problemContext = "";
     if (
       args.roomId !== undefined &&
@@ -115,7 +134,7 @@ export const generateResponse = internalAction({
           description:
             "Lumo-svar: version 2, markdown med $ / $$ och ### (a) / #### Fall N, plus quickReplies.",
         }),
-        system: buildChatSystem({ mode, problemContext }),
+        system: buildChatSystem({ mode, roomContext, problemContext }),
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
