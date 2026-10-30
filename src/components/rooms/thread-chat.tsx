@@ -124,32 +124,37 @@ function messageText(message: UIMessage): string {
   )
 }
 
-function formatRawAssistantJson(messages: Array<UIMessage>): string | null {
-  const assistantTexts = messages
-    .filter((message) => message.role === "assistant")
-    .map((message) => messageText(message))
-    .filter((text) => text.length > 0)
-  if (assistantTexts.length === 0) return null
-
-  const pretty = assistantTexts.map((text) => {
-    try {
-      return JSON.parse(text) as unknown
-    } catch {
-      return text
-    }
-  })
-
-  return JSON.stringify(pretty.length === 1 ? pretty[0] : pretty, null, 2)
+function formatAssistantText(text: string): string {
+  try {
+    return JSON.stringify(JSON.parse(text) as unknown, null, 2)
+  } catch {
+    return text
+  }
 }
 
-function CopyRawJsonButton({ messages }: { messages: Array<UIMessage> }) {
+function formatChatTranscript(messages: Array<UIMessage>): string | null {
+  const blocks: Array<string> = []
+  for (const message of messages) {
+    if (message.role !== "user" && message.role !== "assistant") continue
+    const text = messageText(message).trim()
+    if (text.length === 0) continue
+    const label = message.role === "user" ? "User" : "Assistant"
+    const body =
+      message.role === "assistant" ? formatAssistantText(text) : text
+    blocks.push(`${label}:\n${body}`)
+  }
+  if (blocks.length === 0) return null
+  return blocks.join("\n\n")
+}
+
+function CopyChatTextButton({ messages }: { messages: Array<UIMessage> }) {
   const [copied, setCopied] = useState(false)
-  const raw = useMemo(() => formatRawAssistantJson(messages), [messages])
+  const transcript = useMemo(() => formatChatTranscript(messages), [messages])
 
   async function handleCopy() {
-    if (!raw) return
+    if (!transcript) return
     try {
-      await navigator.clipboard.writeText(raw)
+      await navigator.clipboard.writeText(transcript)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1500)
     } catch {
@@ -163,8 +168,8 @@ function CopyRawJsonButton({ messages }: { messages: Array<UIMessage> }) {
       variant="ghost"
       size="sm"
       className="size-7 shrink-0 px-0"
-      title="Kopiera rå JSON"
-      disabled={!raw}
+      title="Kopiera hela chatten"
+      disabled={!transcript}
       onClick={() => {
         void handleCopy()
       }}
@@ -174,7 +179,7 @@ function CopyRawJsonButton({ messages }: { messages: Array<UIMessage> }) {
       ) : (
         <Copy className="size-3.5" />
       )}
-      <span className="sr-only">Kopiera rå JSON</span>
+      <span className="sr-only">Kopiera hela chatten</span>
     </Button>
   )
 }
@@ -766,7 +771,7 @@ export function ThreadChat({
               title={title}
             />
             {import.meta.env.DEV ? (
-              <CopyRawJsonButton messages={messages} />
+              <CopyChatTextButton messages={messages} />
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
