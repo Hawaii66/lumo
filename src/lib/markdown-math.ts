@@ -124,3 +124,52 @@ export function isFallHeading(
   if (!match) return null
   return { number: match[2]!, rest: (match[3] ?? "").replace(/^:\s*/, "").trim() }
 }
+
+/** Normalize a deluppgift letter to a single lowercase a–z, or null. */
+export function normalizeSubproblemLetter(
+  letter: string | undefined | null,
+): string | null {
+  if (letter === undefined || letter === null) return null
+  const normalized = letter.trim().toLowerCase()
+  if (!/^[a-z]$/.test(normalized)) return null
+  return normalized
+}
+
+/**
+ * Stem (shared intro before the first ### (x)) + the block for `letter`.
+ * Returns null when the letter heading is missing.
+ */
+export function sliceSubproblemMarkdown(
+  markdown: string,
+  letter: string,
+): string | null {
+  const normalized = normalizeSubproblemLetter(letter)
+  if (normalized === null) return null
+
+  const lines = markdown.split("\n")
+  const headings: Array<{ letter: string; lineIndex: number }> = []
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i]!.trim().match(SUBPROBLEM_HEADING_RE)
+    if (match) {
+      headings.push({ letter: match[2]!.toLowerCase(), lineIndex: i })
+    }
+  }
+  if (headings.length === 0) return null
+
+  const targetIdx = headings.findIndex((h) => h.letter === normalized)
+  if (targetIdx === -1) return null
+
+  const startLine = headings[targetIdx]!.lineIndex
+  const endLine =
+    targetIdx + 1 < headings.length
+      ? headings[targetIdx + 1]!.lineIndex
+      : lines.length
+
+  const stemEnd = headings[0]!.lineIndex
+  const stem = lines.slice(0, stemEnd).join("\n").trimEnd()
+  const part = lines.slice(startLine, endLine).join("\n").trimEnd()
+
+  if (stem.length === 0) return part
+  if (part.length === 0) return stem
+  return `${stem}\n\n${part}`
+}

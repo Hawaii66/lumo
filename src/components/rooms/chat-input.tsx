@@ -65,12 +65,15 @@ export type ChatInputSubmitPayload = {
   mode?: ChatMode
   problemId?: Id<"problems">
   problemIds?: Array<Id<"problems">>
+  /** Scope agent context to this deluppgift for the submitted turn. */
+  subproblemLetter?: string
 }
 
 export type ChatStartDraft = {
   prompt: string
   mode: ChatMode
   storageImages?: Array<{ storageId: Id<"_storage">; filename: string }>
+  subproblemLetter?: string
 }
 
 export type ChatInputCitation = {
@@ -608,6 +611,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
         storageId: Id<"_storage">
         filename: string
       }>
+      subproblemLetter?: string
     },
   ) {
     const extraStorage = (options?.extraStorageImages ?? []).map((image) => ({
@@ -693,6 +697,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
         mode: options?.mode ?? draftMode,
         problemId: problemIds?.[0],
         problemIds,
+        subproblemLetter: options?.subproblemLetter,
       })
       for (const image of imagesToSend) {
         URL.revokeObjectURL(image.previewUrl)
@@ -770,6 +775,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       await sendPromptText(combined, {
         mode: draft.mode,
         extraStorageImages: draft.storageImages,
+        subproblemLetter: draft.subproblemLetter,
       })
     },
     insertCitation,

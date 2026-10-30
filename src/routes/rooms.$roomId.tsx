@@ -1,7 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useAction, useMutation, useQuery } from "convex/react"
-import { CopyPlus } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { ChevronDown, CopyPlus } from "lucide-react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
 import type {ChatInputHandle, ChatInputSubmitPayload} from "~/components/rooms/chat-input";
@@ -23,6 +23,7 @@ import {
   formatSidebarTimeLeft,
 } from "~/lib/chat-deletion-expiry"
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
+import { chaptersFromMarkdown } from "~/lib/markdown-math"
 import {
   RoomSidebar
   
@@ -31,6 +32,7 @@ import { RoomSettingsPanel } from "~/components/rooms/room-settings-panel"
 import { ThreadChat } from "~/components/rooms/thread-chat"
 import { Button } from "~/components/ui/button"
 import { uploadFileToStorage } from "~/lib/upload"
+import { cn } from "~/lib/utils"
 import { useUiStore } from "~/stores/ui-store"
 
 export const Route = createFileRoute("/rooms/$roomId")({
@@ -62,15 +64,44 @@ function RoomPage() {
   const [creatingChat, setCreatingChat] = useState(false)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
+  const [twinMenuOpen, setTwinMenuOpen] = useState(false)
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
   const problemChatInputRef = useRef<ChatInputHandle>(null)
+  const twinMenuRef = useRef<HTMLDivElement>(null)
+  const twinMenuListId = useId()
   const showFacit = useUiStore((s) => s.showFacit)
   const setShowFacit = useUiStore((s) => s.setShowFacit)
   const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    setShadowError(null)
+    setTwinMenuOpen(false)
+  }, [selectedProblemId])
+
+  useEffect(() => {
+    if (!twinMenuOpen) return
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!twinMenuRef.current?.contains(event.target as Node)) {
+        setTwinMenuOpen(false)
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setTwinMenuOpen(false)
+    }
+
+    document.addEventListener("mousedown", handlePointerDown)
+    document.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [twinMenuOpen])
 
   const hasTimedChats = useMemo(
     () => (threads ?? []).some((thread) => thread.deleteAt != null),
@@ -127,7 +158,13 @@ function RoomPage() {
     [problemGroups],
   )
 
-  async function handleCreateShadow() {
+  const subproblemLetters = useMemo(() => {
+    const question = selectedProblem?.problem.question
+    if (!question) return [] as Array<string>
+    return chaptersFromMarkdown(question).map((chapter) => chapter.label)
+  }, [selectedProblem?.problem.question])
+
+  async function handleCreateShadow(letter: string | null = null) {
     if (
       selectedProblemId === null ||
       creatingShadow ||
@@ -135,12 +172,14 @@ function RoomPage() {
     ) {
       return
     }
+    setTwinMenuOpen(false)
     setCreatingShadow(true)
     setShadowError(null)
     try {
       const shadowId = await createShadow({
         roomId: typedRoomId,
         parentProblemId: selectedProblemId,
+        subproblemLetter: letter ?? undefined,
       })
       setSelectedProblemId(shadowId)
     } catch (err) {
@@ -150,6 +189,15 @@ function RoomPage() {
     } finally {
       setCreatingShadow(false)
     }
+  }
+
+  function handleTwinButtonClick() {
+    if (creatingShadow || selectedProblem?.isShadow) return
+    if (subproblemLetters.length === 0) {
+      void handleCreateShadow(null)
+      return
+    }
+    setTwinMenuOpen((open) => !open)
   }
 
   function openThread(threadId: string) {
@@ -218,6 +266,7 @@ function RoomPage() {
         images: images.length > 0 ? images : undefined,
         problemIds,
         problemId: problemIds?.[0],
+        subproblemLetter: payload.subproblemLetter,
       })
 
       openThread(result.threadId)
@@ -415,17 +464,70 @@ function RoomPage() {
                     : null}
                 </p>
                 {!selectedProblem.isShadow ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    disabled={creatingShadow}
-                    onClick={() => void handleCreateShadow()}
-                  >
-                    <CopyPlus className="size-3.5" />
-                    {creatingShadow ? "Skapar…" : "Skapa tvilling"}
-                  </Button>
+                  <div ref={twinMenuRef} className="relative">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      disabled={creatingShadow}
+                      aria-haspopup={
+                        subproblemLetters.length > 0 ? "listbox" : undefined
+                      }
+                      aria-expanded={
+                        subproblemLetters.length > 0 ? twinMenuOpen : undefined
+                      }
+                      aria-controls={
+                        twinMenuOpen ? twinMenuListId : undefined
+                      }
+                      onClick={handleTwinButtonClick}
+                    >
+                      <CopyPlus className="size-3.5" />
+                      {creatingShadow ? "Skapar…" : "Skapa tvilling"}
+                      {subproblemLetters.length > 0 ? (
+                        <ChevronDown
+                          className="size-3.5 opacity-60"
+                          aria-hidden
+                        />
+                      ) : null}
+                    </Button>
+
+                    {twinMenuOpen && subproblemLetters.length > 0 ? (
+                      <ul
+                        id={twinMenuListId}
+                        role="listbox"
+                        aria-label="Välj omfång för tvilling"
+                        className="absolute right-0 z-20 mt-1 min-w-[12rem] overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md"
+                      >
+                        <li role="option">
+                          <button
+                            type="button"
+                            className={cn(
+                              "flex w-full whitespace-nowrap px-3 py-1.5 text-left text-xs font-medium",
+                              "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
+                            )}
+                            onClick={() => void handleCreateShadow(null)}
+                          >
+                            Hela uppgiften
+                          </button>
+                        </li>
+                        {subproblemLetters.map((letter) => (
+                          <li key={letter} role="option">
+                            <button
+                              type="button"
+                              className={cn(
+                                "flex w-full whitespace-nowrap px-3 py-1.5 text-left text-xs font-medium",
+                                "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
+                              )}
+                              onClick={() => void handleCreateShadow(letter)}
+                            >
+                              Deluppgift ({letter})
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
               {shadowError ? (
@@ -445,12 +547,14 @@ function RoomPage() {
                 <ProblemHelpActions
                   roomId={typedRoomId}
                   problemNumber={selectedProblem.problem.problemNumber}
+                  subproblemLetters={subproblemLetters}
                   pending={problemChatPending}
                   onSelect={async (draft: ProblemHelpStartDraft) => {
                     await problemChatInputRef.current?.submitStartDraft({
                       prompt: draft.prompt,
                       mode: draft.mode,
                       storageImages: draft.images,
+                      subproblemLetter: draft.subproblemLetter,
                     })
                   }}
                 />

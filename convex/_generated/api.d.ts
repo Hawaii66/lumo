@@ -43,6 +43,7 @@ import type * as lib_roomAuth from "../lib/roomAuth.js";
 import type * as lib_roomFiles from "../lib/roomFiles.js";
 import type * as lib_saveRoomFile from "../lib/saveRoomFile.js";
 import type * as lib_storageRefs from "../lib/storageRefs.js";
+import type * as lib_subproblemSlice from "../lib/subproblemSlice.js";
 import type * as pdfMerges from "../pdfMerges.js";
 import type * as roomTemplates from "../roomTemplates.js";
 import type * as rooms from "../rooms.js";
@@ -92,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   "lib/roomFiles": typeof lib_roomFiles;
   "lib/saveRoomFile": typeof lib_saveRoomFile;
   "lib/storageRefs": typeof lib_storageRefs;
+  "lib/subproblemSlice": typeof lib_subproblemSlice;
   pdfMerges: typeof pdfMerges;
   roomTemplates: typeof roomTemplates;
   rooms: typeof rooms;
