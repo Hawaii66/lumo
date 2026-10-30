@@ -23,7 +23,8 @@ import {
 } from "~/components/rooms/chapter-selector"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { UserMessageText } from "~/components/rooms/user-message-text"
-import { LumoParts } from "~/components/lumo/lumo-parts"
+import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
+import { QuickReplies } from "~/components/lumo/quick-replies"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import {
@@ -42,31 +43,23 @@ import {
   type ChatMode,
 } from "~/lib/chat-mode"
 import {
-  parseLumoDocument,
+  chatReplyHasVisibleContent,
+  parseChatReply,
+  type ChatReply,
+} from "~/lib/chat-reply"
+import {
+  chaptersFromMarkdown,
   subproblemAnchorId,
-  type LumoDocument,
-} from "~/lib/lumo-content"
+} from "~/lib/markdown-math"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
 
-function documentHasVisibleParts(doc: LumoDocument): boolean {
-  return doc.parts.some(
-    (part) =>
-      (part.type === "text" && part.content.trim().length > 0) ||
-      part.type !== "text",
-  )
-}
-
-function chaptersFromDocument(doc: LumoDocument | null): Array<ChapterItem> {
-  if (!doc) return []
-  const chapters: Array<ChapterItem> = []
-  for (let partIndex = 0; partIndex < doc.parts.length; partIndex++) {
-    const part = doc.parts[partIndex]
-    if (part?.type === "subproblem") {
-      chapters.push({ partIndex, label: part.label })
-    }
-  }
-  return chapters
+function chaptersFromReply(reply: ChatReply | null): Array<ChapterItem> {
+  if (!reply) return []
+  return chaptersFromMarkdown(reply.markdown).map((chapter) => ({
+    partIndex: chapter.index,
+    label: chapter.label,
+  }))
 }
 
 const MAX_TITLE_LENGTH = 80
@@ -206,15 +199,15 @@ function StreamingIndicator({ empty }: { empty?: boolean }) {
   )
 }
 
-function useAssistantLumoDocument(message: UIMessage): {
-  doc: LumoDocument | null
+function useAssistantChatReply(message: UIMessage): {
+  reply: ChatReply | null
   streaming: boolean
   chapters: Array<ChapterItem>
 } {
   const streaming = message.status === "streaming"
   const rawText = messageText(message)
-  // Smooth character reveal walks through broken mid-JSON (trailing commas,
-  // half keys) and makes the UI flash empty placeholders. Only smooth plain text.
+  // Smooth character reveal walks through broken mid-JSON and blanks the UI.
+  // Only smooth plain text (non-JSON) streams.
   const looksLikeJson = rawText.trimStart().startsWith("{")
   const [smoothText] = useSmoothText(rawText, {
     startStreaming: streaming && !looksLikeJson,
@@ -222,36 +215,37 @@ function useAssistantLumoDocument(message: UIMessage): {
   const text = streaming && !looksLikeJson ? smoothText : rawText
 
   const parsed = useMemo(
-    () => (text ? parseLumoDocument(text, { streaming }) : null),
+    () => (text ? parseChatReply(text, { streaming }) : null),
     [text, streaming],
   )
 
-  const lastGoodRef = useRef<LumoDocument | null>(null)
+  const lastGoodRef = useRef<ChatReply | null>(null)
   const lastKeyRef = useRef(message.key)
   if (lastKeyRef.current !== message.key) {
     lastKeyRef.current = message.key
     lastGoodRef.current = null
   }
 
-  const parsedVisible = parsed !== null && documentHasVisibleParts(parsed)
+  const parsedVisible =
+    parsed !== null && chatReplyHasVisibleContent(parsed)
   if (parsedVisible) {
     lastGoodRef.current = parsed
   }
 
-  const doc =
+  const reply =
     parsedVisible
       ? parsed
       : streaming && lastGoodRef.current !== null
         ? lastGoodRef.current
         : parsed
 
-  const visibleDoc =
-    doc !== null && documentHasVisibleParts(doc) ? doc : null
+  const visibleReply =
+    reply !== null && chatReplyHasVisibleContent(reply) ? reply : null
 
   return {
-    doc: visibleDoc,
+    reply: visibleReply,
     streaming,
-    chapters: chaptersFromDocument(visibleDoc),
+    chapters: chaptersFromReply(visibleReply),
   }
 }
 
@@ -270,7 +264,7 @@ function AssistantMessageRow({
   quickRepliesDisabled?: boolean
   listRef?: (node: HTMLLIElement | null) => void
 }) {
-  const { doc, streaming, chapters } = useAssistantLumoDocument(message)
+  const { reply, streaming, chapters } = useAssistantChatReply(message)
   const [activePartIndex, setActivePartIndex] = useState<number | null>(null)
 
   function jumpToChapter(partIndex: number) {
@@ -293,15 +287,20 @@ function AssistantMessageRow({
         data-assistant-response={responseNumber}
         className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground"
       >
-        {doc ? (
-          <div>
-            <LumoParts
-              document={doc}
-              messageKey={message.key}
-              onQuickReply={onQuickReply}
+        {reply ? (
+          <div className="flex flex-col gap-3">
+            <MarkdownWithMath
+              markdown={reply.markdown}
+              scopeKey={message.key}
               onCiteMath={onCiteMath}
-              quickRepliesDisabled={quickRepliesDisabled || streaming}
             />
+            {onQuickReply && !streaming ? (
+              <QuickReplies
+                choices={reply.quickReplies}
+                onSelect={onQuickReply}
+                disabled={quickRepliesDisabled}
+              />
+            ) : null}
             {streaming ? <StreamingIndicator /> : null}
           </div>
         ) : streaming ? (
@@ -705,7 +704,6 @@ export function ThreadChat({
         images: allImages.length > 0 ? allImages : undefined,
         problemIds,
         problemId: problemIds?.[0],
-        debugSolve: import.meta.env.DEV,
       })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kunde inte skicka")

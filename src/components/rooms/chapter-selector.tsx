@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react"
 import { cn } from "~/lib/utils"
 
 export type ChapterItem = {
-  /** Index of the subproblem part in the Lumo document. */
+  /** Index among ### (a)/(b) headings in the markdown reply. */
   partIndex: number
   label: string
 }

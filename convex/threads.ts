@@ -541,8 +541,6 @@ export const sendMessage = mutation({
     images: v.optional(v.array(chatImageValidator)),
     problemId: v.optional(v.id("problems")),
     problemIds: v.optional(v.array(v.id("problems"))),
-    /** Vite DEV only — append pass-1 worked solution as a text part. */
-    debugSolve: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const prompt = args.prompt.trim();
@@ -692,7 +690,6 @@ export const sendMessage = mutation({
       mode,
       roomId: args.roomId,
       problemIds: problemIds.length > 0 ? problemIds : undefined,
-      debugSolve: args.debugSolve === true,
     });
 
     return { messageId };

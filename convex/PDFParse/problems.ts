@@ -2,8 +2,6 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import {
   lumoParsedProblemValidator,
-  lumoStaticDocumentValidator,
-  serializeStaticDocumentForPrompt,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
 import {
@@ -47,8 +45,8 @@ function compareProblemNumbers(a: string, b: string): number {
 
 const problemRowValidator = v.object({
   problemNumber: v.string(),
-  problem: lumoStaticDocumentValidator,
-  answer: lumoStaticDocumentValidator,
+  problem: v.string(),
+  answer: v.string(),
 });
 
 const shadowListItemValidator = v.object({
@@ -335,8 +333,8 @@ export const getPromptContexts = internalQuery({
       if (!problemVisibleInRoom(row, args.roomId, files)) continue;
       results.push({
         problemNumber: row.problemNumber,
-        questionText: serializeStaticDocumentForPrompt(row.problem),
-        answerText: serializeStaticDocumentForPrompt(row.answer),
+        questionText: row.problem,
+        answerText: row.answer,
       });
     }
     return results;
@@ -403,8 +401,8 @@ export const getParentForShadow = internalQuery({
     return {
       parentProblemId: parent._id,
       parentProblemNumber: parent.problemNumber,
-      questionText: serializeStaticDocumentForPrompt(parent.problem),
-      answerText: serializeStaticDocumentForPrompt(parent.answer),
+      questionText: parent.problem,
+      answerText: parent.answer,
       existingShadowCount: shadows.length,
     };
   },
@@ -416,8 +414,8 @@ export const insertShadow = internalMutation({
     roomId: v.id("rooms"),
     parentProblemId: v.id("problems"),
     problemNumber: v.string(),
-    problem: lumoStaticDocumentValidator,
-    answer: lumoStaticDocumentValidator,
+    problem: v.string(),
+    answer: v.string(),
   },
   returns: v.id("problems"),
   handler: async (ctx, args) => {
@@ -461,6 +459,27 @@ export const insertShadow = internalMutation({
       problem: args.problem,
       answer: args.answer,
     });
+  },
+});
+
+/**
+ * Clean-slate wipe of all problems (parsed + shadows).
+ * Run once after deploying the markdown schema change.
+ */
+export const wipeAllProblems = internalMutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    let deleted = 0;
+    for (;;) {
+      const batch = await ctx.db.query("problems").take(200);
+      if (batch.length === 0) break;
+      for (const row of batch) {
+        await ctx.db.delete(row._id);
+        deleted += 1;
+      }
+    }
+    return deleted;
   },
 });
 

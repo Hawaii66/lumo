@@ -5,7 +5,7 @@ import { api, components, internal } from "../_generated/api";
 import { action } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import {
-  lumoParsedProblemAzureSchema,
+  lumoParsedProblemSchema,
   normalizeLumoParsedProblem,
 } from "../lib/lumoContent";
 import {
@@ -73,10 +73,10 @@ export const createShadow = action({
       ctx,
       { userId },
       {
-        schema: lumoParsedProblemAzureSchema,
+        schema: lumoParsedProblemSchema,
         schemaName: "LumoParsedProblem",
         schemaDescription:
-          "Lumo-tvilling: samma struktur som originalet, andra tal; text=svenska, latex=matte",
+          "Markdown-tvilling: samma ### (a)/Fall-struktur, andra tal; question/answer som md+$",
         prompt: buildTwinPrompt({
           suggestedNumber,
           questionText: parent.questionText,

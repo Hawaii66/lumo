@@ -4,7 +4,6 @@ import { v } from "convex/values";
 import {
   chatDeletionExpiryValidator,
   chatModeValidator,
-  lumoStaticDocumentValidator,
 } from "./lib/lumoContent";
 
 export default defineSchema({
@@ -107,8 +106,10 @@ export default defineSchema({
     roomId: v.optional(v.id("rooms")),
     parentProblemId: v.optional(v.id("problems")),
     problemNumber: v.string(),
-    problem: lumoStaticDocumentValidator,
-    answer: lumoStaticDocumentValidator,
+    /** Question body as markdown with $ / $$. */
+    problem: v.string(),
+    /** Answer/facit as markdown with $ / $$ (empty when missing). */
+    answer: v.string(),
   })
     .index("by_contentHash", ["contentHash"])
     .index("by_room_and_parent", ["roomId", "parentProblemId"])

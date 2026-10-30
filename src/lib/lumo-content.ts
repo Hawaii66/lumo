@@ -1,309 +1,13 @@
 import { z } from "zod"
 
-export const textPartSchema = z.object({
-  type: z.literal("text"),
-  content: z.string(),
-  /** Optional name for this value within a task, e.g. "Mgn", "summa". */
-  caption: z.string().min(1).optional(),
-})
-
-export const latexPartSchema = z.object({
-  type: z.literal("latex"),
-  content: z.string(),
-  display: z.enum(["inline", "block"]).optional(),
-  /** Optional name for this value within a task, e.g. "Mgn", "summa". */
-  caption: z.string().min(1).optional(),
-})
-
-export const quickRepliesPartSchema = z.object({
-  type: z.literal("quickReplies"),
-  choices: z
-    .array(
-      z.object({
-        id: z.string().min(1),
-        label: z.string().min(1),
-      }),
-    )
-    .min(1),
-})
-
-export const subproblemPartSchema = z.object({
-  type: z.literal("subproblem"),
-  label: z.string().min(1),
-})
-
-/** Answer-case / branch marker (not a task letter). */
-export const casePartSchema = z.object({
-  type: z.literal("case"),
-  label: z.string().optional(),
-})
-
-export const lumoPartSchema = z.discriminatedUnion("type", [
-  textPartSchema,
-  latexPartSchema,
-  quickRepliesPartSchema,
-  subproblemPartSchema,
-  casePartSchema,
-])
-
-export const lumoDocumentSchema = z.object({
-  version: z.literal(1),
-  parts: z.array(lumoPartSchema).min(1),
-})
-
-/** Static textbook content from PDF parsing: text + latex + subproblem/case. */
-export const lumoStaticPartSchema = z.discriminatedUnion("type", [
-  textPartSchema,
-  latexPartSchema,
-  subproblemPartSchema,
-  casePartSchema,
-])
-
-export const lumoStaticDocumentSchema = z.object({
-  version: z.literal(1),
-  parts: z.array(lumoStaticPartSchema).min(1),
-})
-
-export const lumoStaticAnswerDocumentSchema = z.object({
-  version: z.literal(1),
-  parts: z.array(lumoStaticPartSchema),
-})
-
+/** One textbook problem: markdown question + answer. */
 export const lumoParsedProblemSchema = z.object({
   problemNumber: z.string().min(1),
-  question: lumoStaticDocumentSchema,
-  answer: lumoStaticAnswerDocumentSchema,
+  question: z.string(),
+  answer: z.string(),
 })
 
-export type LumoPart = z.infer<typeof lumoPartSchema>
-export type LumoDocument = z.infer<typeof lumoDocumentSchema>
-export type QuickRepliesPart = z.infer<typeof quickRepliesPartSchema>
-export type LumoStaticPart = z.infer<typeof lumoStaticPartSchema>
-export type LumoStaticDocument = z.infer<typeof lumoStaticDocumentSchema>
 export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>
-
-/** DOM id for jumping to a subproblem heading inside an assistant message. */
-export function subproblemAnchorId(
-  messageKey: string,
-  partIndex: number,
-): string {
-  const safeKey = messageKey.replace(/[^a-zA-Z0-9_-]/g, "_")
-  return `lumo-subproblem-${safeKey}-${partIndex}`
-}
-
-/** Chat documents no longer use interactive blanks; always valid. */
-export function validateLumoDocument(_doc: LumoDocument): string | null {
-  return null
-}
-
-export function stringifyLumoDocument(doc: LumoDocument): string {
-  return JSON.stringify(doc)
-}
-
-function optionalCaption(raw: unknown): string | undefined {
-  if (typeof raw !== "string") return undefined
-  const caption = raw.trim()
-  return caption.length > 0 ? caption : undefined
-}
-
-/** Normalize flat OpenAI structured-output parts (all fields present). */
-function normalizeFlatPart(part: Record<string, unknown>): LumoPart | null {
-  const type = part.type
-  switch (type) {
-    case "text": {
-      const content = typeof part.content === "string" ? part.content.trim() : ""
-      if (content.length === 0) return null
-      const caption = optionalCaption(part.caption)
-      return caption !== undefined
-        ? { type: "text", content, caption }
-        : { type: "text", content }
-    }
-    case "latex": {
-      const content = typeof part.content === "string" ? part.content.trim() : ""
-      if (content.length === 0) return null
-      const display = part.display === "block" ? "block" : "inline"
-      const caption = optionalCaption(part.caption)
-      return caption !== undefined
-        ? { type: "latex", content, display, caption }
-        : { type: "latex", content, display }
-    }
-    case "quickReplies": {
-      if (!Array.isArray(part.choices)) return null
-      const choices: Array<{ id: string; label: string }> = []
-      for (const choice of part.choices) {
-        if (typeof choice !== "object" || choice === null) continue
-        const id =
-          "id" in choice && typeof choice.id === "string"
-            ? choice.id.trim()
-            : ""
-        const label =
-          "label" in choice && typeof choice.label === "string"
-            ? choice.label.trim()
-            : ""
-        if (id.length === 0 || label.length === 0) continue
-        choices.push({ id, label })
-      }
-      if (choices.length === 0) return null
-      return { type: "quickReplies", choices }
-    }
-    case "subproblem": {
-      const label =
-        typeof part.label === "string" ? part.label.trim().toLowerCase() : ""
-      if (label.length === 0) return null
-      return { type: "subproblem", label }
-    }
-    case "case": {
-      const label = typeof part.label === "string" ? part.label.trim() : ""
-      return label.length > 0 ? { type: "case", label } : { type: "case" }
-    }
-    default:
-      return null
-  }
-}
-
-function documentFromUnknown(json: unknown): LumoDocument | null {
-  const strict = lumoDocumentSchema.safeParse(json)
-  if (strict.success) return strict.data
-
-  if (typeof json !== "object" || json === null || !("parts" in json)) {
-    return null
-  }
-  if (!Array.isArray(json.parts)) return null
-
-  const parts: Array<LumoPart> = []
-  for (const part of json.parts) {
-    if (typeof part !== "object" || part === null) continue
-    const normalized = normalizeFlatPart(part as Record<string, unknown>)
-    if (normalized !== null) parts.push(normalized)
-  }
-  if (parts.length === 0) return null
-  return { version: 1, parts }
-}
-
-/**
- * Close open strings/brackets and strip trailing commas / incomplete keys so
- * partial streamed JSON can be previewed without oscillating to empty.
- */
-function repairPartialJson(text: string): string {
-  let body = text
-  let inString = false
-  let escape = false
-  for (const ch of body) {
-    if (inString) {
-      if (escape) escape = false
-      else if (ch === "\\") escape = true
-      else if (ch === '"') inString = false
-      continue
-    }
-    if (ch === '"') inString = true
-  }
-  if (inString) body += '"'
-
-  // Stream gaps often end mid-property: `...,` / `...,"key"` / `...,"key":`
-  for (;;) {
-    const next = body
-      .replace(/,\s*$/, "")
-      .replace(/:\s*$/, "")
-      .replace(/,\s*"[^"\\]*(?:\\.[^"\\]*)*"\s*$/, "")
-      .replace(/\{\s*"[^"\\]*(?:\\.[^"\\]*)*"\s*$/, "{")
-    if (next === body) break
-    body = next
-  }
-
-  const stack: Array<string> = []
-  inString = false
-  escape = false
-  for (const ch of body) {
-    if (inString) {
-      if (escape) escape = false
-      else if (ch === "\\") escape = true
-      else if (ch === '"') inString = false
-      continue
-    }
-    if (ch === '"') inString = true
-    else if (ch === "{") stack.push("}")
-    else if (ch === "[") stack.push("]")
-    else if (ch === "}" || ch === "]") stack.pop()
-  }
-  if (inString) body += '"'
-  while (stack.length > 0) {
-    body += stack.pop()
-  }
-  return body
-}
-
-/** Close open strings/brackets so partial streamed JSON can be previewed. */
-function tryParsePartialJson(text: string): unknown | undefined {
-  const trimmed = text.trim()
-  if (trimmed.length === 0) return undefined
-  try {
-    return JSON.parse(trimmed)
-  } catch {
-    // continue
-  }
-
-  let slice = trimmed
-  while (slice.length > 0) {
-    try {
-      return JSON.parse(repairPartialJson(slice))
-    } catch {
-      const comma = slice.lastIndexOf(",")
-      const colon = slice.lastIndexOf(":")
-      const cut = Math.max(comma, colon)
-      if (cut > 0) {
-        slice = slice.slice(0, cut)
-        continue
-      }
-      const closed = Math.max(slice.lastIndexOf("}"), slice.lastIndexOf("]"))
-      if (closed > 0) {
-        slice = slice.slice(0, closed + 1)
-        continue
-      }
-      return undefined
-    }
-  }
-  return undefined
-}
-
-/**
- * Parse assistant message text as a LumoDocument.
- * Supports strict Lumo JSON, flat OpenAI structured-output JSON, and
- * partial JSON while a stream is in progress.
- */
-export function parseLumoDocument(
-  input: string,
-  options?: { streaming?: boolean },
-): LumoDocument {
-  const trimmed = input.trim()
-  if (trimmed.length === 0) {
-    return { version: 1, parts: [{ type: "text", content: "" }] }
-  }
-  if (!trimmed.startsWith("{")) {
-    return { version: 1, parts: [{ type: "text", content: input }] }
-  }
-
-  try {
-    const json: unknown = JSON.parse(trimmed)
-    const doc = documentFromUnknown(json)
-    if (doc !== null) return doc
-  } catch {
-    // fall through to partial parse
-  }
-
-  if (options?.streaming) {
-    const partial = tryParsePartialJson(trimmed)
-    const doc = partial !== undefined ? documentFromUnknown(partial) : null
-    if (doc !== null) return doc
-    // Don't dump raw JSON mid-stream — show a quiet placeholder.
-    return { version: 1, parts: [{ type: "text", content: "" }] }
-  }
-
-  return { version: 1, parts: [{ type: "text", content: input }] }
-}
-
-export function textDocument(content: string): LumoDocument {
-  return { version: 1, parts: [{ type: "text", content }] }
-}
 
 function tryParsePasteJson(trimmed: string): unknown | undefined {
   try {
@@ -315,15 +19,13 @@ function tryParsePasteJson(trimmed: string): unknown | undefined {
   try {
     return JSON.parse(`[${trimmed.replace(/,\s*$/, "")}]`)
   } catch {
-    // Fall through to JS-literal attempt below.
+    // Fall through
   }
 
-  // Tolerate unquoted keys from console / TS pastes (local preview only).
   try {
     const candidate = /^[\[{]/.test(trimmed)
       ? trimmed
       : `[${trimmed.replace(/,\s*$/, "")}]`
-    // Local preview only: evaluate object/array literals with unquoted keys.
     return new Function(`"use strict"; return (${candidate})`)()
   } catch {
     return undefined
@@ -331,8 +33,7 @@ function tryParsePasteJson(trimmed: string): unknown | undefined {
 }
 
 /**
- * Parse pasted PDF-parse output: one problem, an array of problems,
- * or a bare static document (treated as question-only).
+ * Parse pasted PDF-parse output: one problem or an array of problems.
  */
 export function parseLumoParsedProblems(input: string): {
   problems: Array<LumoParsedProblem>
@@ -362,21 +63,26 @@ export function parseLumoParsedProblems(input: string): {
       continue
     }
 
-    const docResult = lumoStaticDocumentSchema.safeParse(item)
-    if (docResult.success) {
-      problems.push({
-        problemNumber: String(i + 1),
-        question: docResult.data,
-        answer: { version: 1, parts: [] },
-      })
-      continue
-    }
-
     return {
       problems: [],
-      error: `Objekt ${i + 1}: förväntade problemNumber/question/answer (text|latex|subproblem|case; valfri caption).`,
+      error: `Objekt ${i + 1}: förväntade problemNumber, question (markdown), answer (markdown).`,
     }
   }
 
   return { problems, error: null }
 }
+
+// Re-export chat reply helpers for convenience.
+export {
+  parseChatReply,
+  chatReplyHasVisibleContent,
+  chatReplySchema,
+  type ChatReply,
+  type ChatQuickReplyChoice,
+} from "./chat-reply"
+
+export {
+  chaptersFromMarkdown,
+  subproblemAnchorId,
+  type ChapterHeading,
+} from "./markdown-math"
