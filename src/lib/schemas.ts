@@ -10,7 +10,6 @@ export const helpLevelSchema = z.enum([
 export const createRoomSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).default(""),
-  isTemplate: z.boolean().default(false),
 })
 
 export const chatMessageSchema = z.object({

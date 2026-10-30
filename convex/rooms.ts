@@ -1,12 +1,16 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { requireRoomMember } from "./lib/roomAuth";
-import { mutation, query } from "./_generated/server";
+import { deleteStorageIfUnreferenced } from "./lib/storageRefs";
+import { internalMutation, mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const MAX_FIELD_LENGTH = 50;
 const MAX_GENERAL_INFO_LENGTH = 4000;
 const MAX_ROOMS = 100;
 const MAX_MEMBERS = 100;
+const DELETE_BATCH = 40;
 
 function trimField(value: string, label: string): string {
   const trimmed = value.trim();
@@ -48,6 +52,15 @@ const roomSummaryValidator = v.object({
 
 const roomDetailValidator = roomSummaryValidator.extend({
   generalInfo: v.string(),
+  clonedFromTemplateId: v.union(v.id("roomTemplates"), v.null()),
+  templateExpired: v.boolean(),
+  replacementTemplate: v.union(
+    v.object({
+      _id: v.id("roomTemplates"),
+      name: v.string(),
+    }),
+    v.null(),
+  ),
 });
 
 export const list = query({
@@ -67,7 +80,7 @@ export const list = query({
 
     const rooms = [];
     for (const membership of memberships) {
-      const room = await ctx.db.get(membership.roomId);
+      const room = await ctx.db.get("rooms", membership.roomId);
       if (room !== null) {
         rooms.push({
           _id: room._id,
@@ -101,9 +114,31 @@ export const get = query({
       return null;
     }
 
-    const room = await ctx.db.get(args.roomId);
+    const room = await ctx.db.get("rooms", args.roomId);
     if (room === null) {
       return null;
+    }
+
+    let templateExpired = false;
+    let replacementTemplate: {
+      _id: Id<"roomTemplates">;
+      name: string;
+    } | null = null;
+
+    if (room.clonedFromTemplateId !== undefined) {
+      const template = await ctx.db.get("roomTemplates", room.clonedFromTemplateId);
+      if (template !== null && template.status === "expired") {
+        templateExpired = true;
+        if (template.replacementTemplateId !== undefined) {
+          const replacement = await ctx.db.get("roomTemplates", template.replacementTemplateId);
+          if (replacement !== null && replacement.status === "published") {
+            replacementTemplate = {
+              _id: replacement._id,
+              name: replacement.name,
+            };
+          }
+        }
+      }
     }
 
     return {
@@ -112,6 +147,9 @@ export const get = query({
       name: room.name,
       description: room.description,
       generalInfo: room.generalInfo ?? "",
+      clonedFromTemplateId: room.clonedFromTemplateId ?? null,
+      templateExpired,
+      replacementTemplate,
     };
   },
 });
@@ -128,12 +166,21 @@ export const create = mutation({
       throw new Error("Du måste vara inloggad för att skapa ett rum");
     }
 
+    const memberships = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .take(MAX_ROOMS);
+    if (memberships.length >= MAX_ROOMS) {
+      throw new Error(`Du får ha högst ${MAX_ROOMS} rum`);
+    }
+
     const name = trimField(args.name, "Namn");
     const description = trimField(args.description, "Beskrivning");
 
     const roomId = await ctx.db.insert("rooms", {
       name,
       description,
+      createdBy: userId,
     });
 
     await ctx.db.insert("roomMembers", {
@@ -156,7 +203,7 @@ export const update = mutation({
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
 
-    const room = await ctx.db.get(args.roomId);
+    const room = await ctx.db.get("rooms", args.roomId);
     if (room === null) {
       throw new Error("Rummet hittades inte");
     }
@@ -165,7 +212,7 @@ export const update = mutation({
     const description = trimField(args.description, "Beskrivning");
     const generalInfo = normalizeGeneralInfo(args.generalInfo);
 
-    await ctx.db.patch(args.roomId, { name, description, generalInfo });
+    await ctx.db.patch("rooms", args.roomId, { name, description, generalInfo });
     return null;
   },
 });
@@ -208,7 +255,7 @@ export const listMembers = query({
 
     const members = [];
     for (const member of memberships) {
-      const user = await ctx.db.get(member.userId);
+      const user = await ctx.db.get("users", member.userId);
       if (user === null) continue;
       members.push({
         userId: user._id,
@@ -238,7 +285,7 @@ export const addMemberByEmail = mutation({
   handler: async (ctx, args) => {
     await requireRoomMember(ctx, args.roomId);
 
-    const room = await ctx.db.get(args.roomId);
+    const room = await ctx.db.get("rooms", args.roomId);
     if (room === null) {
       throw new Error("Rummet hittades inte");
     }
@@ -314,7 +361,228 @@ export const removeMember = mutation({
       throw new Error("Du kan inte ta bort den sista medlemmen i rummet");
     }
 
-    await ctx.db.delete(membership._id);
+    await ctx.db.delete("roomMembers", membership._id);
+    return null;
+  },
+});
+
+/**
+ * Delete a room the caller belongs to. Cascades room-scoped data in batches.
+ * Does not delete global problems/pdfInfo/mineruCache or published templates.
+ */
+export const remove = mutation({
+  args: {
+    roomId: v.id("rooms"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const room = await ctx.db.get("rooms", args.roomId);
+    if (room === null) {
+      throw new Error("Rummet hittades inte");
+    }
+
+    // Drop memberships first so the room disappears from lists immediately.
+    const members = await ctx.db
+      .query("roomMembers")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_MEMBERS);
+    for (const member of members) {
+      await ctx.db.delete("roomMembers", member._id);
+    }
+
+    await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+      roomId: args.roomId,
+      phase: "threads",
+    });
+    return null;
+  },
+});
+
+export const deleteCascade = internalMutation({
+  args: {
+    roomId: v.id("rooms"),
+    phase: v.union(
+      v.literal("threads"),
+      v.literal("shadows"),
+      v.literal("files"),
+      v.literal("cells"),
+      v.literal("jobs"),
+      v.literal("scans"),
+      v.literal("members"),
+      v.literal("room"),
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const { roomId, phase } = args;
+
+    if (phase === "threads") {
+      const threads = await ctx.db
+        .query("roomThreads")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const thread of threads) {
+        await ctx.db.delete("roomThreads", thread._id);
+      }
+      if (threads.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "threads",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "shadows",
+      });
+      return null;
+    }
+
+    if (phase === "shadows") {
+      // Prefix on by_room_and_parent: all shadows for this room.
+      const shadows = await ctx.db
+        .query("problems")
+        .withIndex("by_room_and_parent", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const shadow of shadows) {
+        await ctx.db.delete("problems", shadow._id);
+      }
+      if (shadows.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "shadows",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "files",
+      });
+      return null;
+    }
+
+    if (phase === "files") {
+      const files = await ctx.db
+        .query("files")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const file of files) {
+        await ctx.db.delete("files", file._id);
+        await deleteStorageIfUnreferenced(
+          ctx,
+          file.storageId,
+          file.contentHash,
+        );
+      }
+      if (files.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "files",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "cells",
+      });
+      return null;
+    }
+
+    if (phase === "cells") {
+      const cells = await ctx.db
+        .query("cellsInUseByRoom")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const cell of cells) {
+        await ctx.db.delete("cellsInUseByRoom", cell._id);
+      }
+      if (cells.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "cells",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "jobs",
+      });
+      return null;
+    }
+
+    if (phase === "jobs") {
+      const jobs = await ctx.db
+        .query("pdfParseJobs")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const job of jobs) {
+        await ctx.db.delete("pdfParseJobs", job._id);
+      }
+      if (jobs.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "jobs",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "scans",
+      });
+      return null;
+    }
+
+    if (phase === "scans") {
+      const scans = await ctx.db
+        .query("scanSessions")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const scan of scans) {
+        await ctx.db.delete("scanSessions", scan._id);
+      }
+      if (scans.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "scans",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "members",
+      });
+      return null;
+    }
+
+    if (phase === "members") {
+      const members = await ctx.db
+        .query("roomMembers")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const member of members) {
+        await ctx.db.delete("roomMembers", member._id);
+      }
+      if (members.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "members",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "room",
+      });
+      return null;
+    }
+
+    // phase === "room"
+    const room = await ctx.db.get("rooms", roomId);
+    if (room !== null) {
+      await ctx.db.delete("rooms", roomId);
+    }
     return null;
   },
 });

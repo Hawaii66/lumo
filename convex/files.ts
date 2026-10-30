@@ -7,13 +7,14 @@ import {
 } from "./_generated/server";
 import { requireRoomMember } from "./lib/roomAuth";
 import {
+  MAX_FILES_PER_ROOM,
+  MAX_FILE_NAME_LENGTH,
+  ROOM_FILE_TYPE_ERROR,
   fileExtension,
   isAllowedRoomFileName,
-  MAX_FILE_NAME_LENGTH,
-  MAX_FILES_PER_ROOM,
-  ROOM_FILE_TYPE_ERROR,
 } from "./lib/roomFiles";
 import { saveRoomFile } from "./lib/saveRoomFile";
+import { deleteStorageIfUnreferenced } from "./lib/storageRefs";
 
 export const generateUploadUrl = mutation({
   args: {
@@ -52,7 +53,7 @@ export const getInternal = internalQuery({
     v.null(),
   ),
   handler: async (ctx, args) => {
-    const file = await ctx.db.get(args.fileId);
+    const file = await ctx.db.get("files", args.fileId);
     if (file === null) {
       return null;
     }
@@ -126,7 +127,7 @@ export const rename = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await ctx.db.get(args.fileId);
+    const file = await ctx.db.get("files", args.fileId);
     if (file === null) {
       throw new Error("Filen hittades inte");
     }
@@ -154,7 +155,7 @@ export const rename = mutation({
 
     if (name !== file.name) {
       // Only the display name changes; contentHash stays tied to file bytes.
-      await ctx.db.patch(args.fileId, { name });
+      await ctx.db.patch("files", args.fileId, { name });
     }
     return null;
   },
@@ -166,7 +167,7 @@ export const remove = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const file = await ctx.db.get(args.fileId);
+    const file = await ctx.db.get("files", args.fileId);
     if (file === null) {
       throw new Error("Filen hittades inte");
     }
@@ -175,21 +176,10 @@ export const remove = mutation({
 
     const roomId = file.roomId;
     const contentHash = file.contentHash;
+    const storageId = file.storageId;
 
-    // Keep storage if a global pdfMerges row still points at this blob.
-    const mergeKeepers = await ctx.db
-      .query("pdfMerges")
-      .withIndex("by_mergedContentHash", (q) =>
-        q.eq("mergedContentHash", contentHash),
-      )
-      .take(5);
-    const keepStorage = mergeKeepers.some(
-      (m) => m.mergedStorageId === file.storageId,
-    );
-    if (!keepStorage) {
-      await ctx.storage.delete(file.storageId);
-    }
-    await ctx.db.delete(args.fileId);
+    await ctx.db.delete("files", args.fileId);
+    await deleteStorageIfUnreferenced(ctx, storageId, contentHash);
 
     // Drop in-use info cell if this room has no other file with the same hash.
     const remaining = await ctx.db
@@ -205,7 +195,7 @@ export const remove = mutation({
         )
         .first();
       if (link !== null) {
-        await ctx.db.delete(link._id);
+        await ctx.db.delete("cellsInUseByRoom", link._id);
       }
     }
     return null;
