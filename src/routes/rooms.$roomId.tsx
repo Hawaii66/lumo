@@ -1,28 +1,31 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useAction, useMutation, useQuery } from "convex/react"
 import { CopyPlus } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
+import type {ChatInputHandle, ChatInputSubmitPayload} from "~/components/rooms/chat-input";
+import type {ProblemHelpStartDraft} from "~/components/rooms/problem-help-actions";
+import type {RoomSidebarSection} from "~/components/rooms/room-sidebar";
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
 import {
-  ChatInput,
-  type ChatInputHandle,
-  type ChatInputSubmitPayload,
+  ChatInput
+  
+  
 } from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
 import {
-  ProblemHelpActions,
-  type ProblemHelpStartDraft,
+  ProblemHelpActions
+  
 } from "~/components/rooms/problem-help-actions"
 import {
-  formatSidebarTimeLeft,
   PROBLEM_CHAT_DELETION_EXPIRY,
+  formatSidebarTimeLeft,
 } from "~/lib/chat-deletion-expiry"
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
 import {
-  RoomSidebar,
-  type RoomSidebarSection,
+  RoomSidebar
+  
 } from "~/components/rooms/room-sidebar"
 import { RoomSettingsPanel } from "~/components/rooms/room-settings-panel"
 import { ThreadChat } from "~/components/rooms/thread-chat"
@@ -49,6 +52,8 @@ function RoomPage() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const sendMessage = useMutation(api.threads.sendMessage)
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
+  const cloneTemplate = useMutation(api.roomTemplates.clone)
+  const removeRoom = useMutation(api.rooms.remove)
 
   const [section, setSection] = useState<RoomSidebarSection>("chats")
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
@@ -57,6 +62,8 @@ function RoomPage() {
   const [creatingChat, setCreatingChat] = useState(false)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
+  const [bannerPending, setBannerPending] = useState(false)
+  const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
@@ -277,6 +284,93 @@ function RoomPage() {
       />
 
       <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+        {room.templateExpired ? (
+          <div
+            className="mb-4 shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
+            role="status"
+          >
+            <p className="text-sm font-medium">Mallen för det här rummet är utgången</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {room.replacementTemplate
+                ? `Klona den nya mallen “${room.replacementTemplate.name}” och radera det här rummet om du inte längre behöver det.`
+                : "Sök upp en ny mall på startsidan under Mallar, klona den, och radera det här rummet om du inte längre behöver det."}
+            </p>
+            {bannerError ? (
+              <p className="mt-2 text-sm text-destructive">{bannerError}</p>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {room.replacementTemplate ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={bannerPending}
+                  onClick={() => {
+                    if (!room.replacementTemplate) return
+                    const replacementId = room.replacementTemplate._id
+                    setBannerError(null)
+                    setBannerPending(true)
+                    void cloneTemplate({ templateId: replacementId })
+                      .then(async (newRoomId) => {
+                        try {
+                          await removeRoom({ roomId: typedRoomId })
+                        } catch {
+                          // New room exists; old room may remain if delete fails.
+                        }
+                        void navigate({
+                          to: "/rooms/$roomId",
+                          params: { roomId: newRoomId },
+                        })
+                      })
+                      .catch((err: unknown) => {
+                        setBannerError(
+                          err instanceof Error
+                            ? err.message
+                            : "Kunde inte klona ersättningsmallen",
+                        )
+                      })
+                      .finally(() => setBannerPending(false))
+                  }}
+                >
+                  {bannerPending
+                    ? "Klonar…"
+                    : `Klona “${room.replacementTemplate.name}” och radera detta`}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  render={<Link to="/" />}
+                >
+                  Till mallar
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={bannerPending}
+                onClick={() => {
+                  setBannerError(null)
+                  setBannerPending(true)
+                  void removeRoom({ roomId: typedRoomId })
+                    .then(() => {
+                      void navigate({ to: "/" })
+                    })
+                    .catch((err: unknown) => {
+                      setBannerError(
+                        err instanceof Error
+                          ? err.message
+                          : "Kunde inte radera rummet",
+                      )
+                    })
+                    .finally(() => setBannerPending(false))
+                }}
+              >
+                Radera det här rummet
+              </Button>
+            </div>
+          </div>
+        ) : null}
         {section === "files" ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
             <FilesGrid roomId={typedRoomId} />

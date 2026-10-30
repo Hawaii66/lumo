@@ -27,6 +27,10 @@ export default defineSchema({
      * Missing on older rooms → treat as empty. Not injected into chats until wired.
      */
     generalInfo: v.optional(v.string()),
+    /** Set on create/clone; missing on older rooms. */
+    createdBy: v.optional(v.id("users")),
+    /** Set when this room was cloned from a template; missing otherwise. */
+    clonedFromTemplateId: v.optional(v.id("roomTemplates")),
   }).index("by_name", ["name"]),
   files: defineTable({
     roomId: v.id("rooms"),
@@ -34,7 +38,43 @@ export default defineSchema({
     storageId: v.id("_storage"),
     /** SHA-256 from Convex storage metadata, set on upload. */
     contentHash: v.string(),
-  }).index("by_room", ["roomId"]),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_storageId", ["storageId"]),
+  /**
+   * Published snapshot of a room for others to clone.
+   * Clones never sync; expire optionally points at a replacement template.
+   */
+  roomTemplates: defineTable({
+    sourceRoomId: v.id("rooms"),
+    publisherId: v.id("users"),
+    name: v.string(),
+    description: v.string(),
+    generalInfo: v.string(),
+    status: v.union(v.literal("published"), v.literal("expired")),
+    publishedAt: v.number(),
+    /** Set when expiring; banner CTA clones this template. */
+    replacementTemplateId: v.optional(v.id("roomTemplates")),
+  })
+    .index("by_status", ["status"])
+    .index("by_sourceRoom", ["sourceRoomId"])
+    .index("by_publisher", ["publisherId"])
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["status"],
+    }),
+  roomTemplateFiles: defineTable({
+    templateId: v.id("roomTemplates"),
+    name: v.string(),
+    storageId: v.id("_storage"),
+    contentHash: v.string(),
+  })
+    .index("by_template", ["templateId"])
+    .index("by_storageId", ["storageId"]),
+  roomTemplateInfoCells: defineTable({
+    templateId: v.id("roomTemplates"),
+    contentHash: v.string(),
+  }).index("by_template", ["templateId"]),
   scanSessions: defineTable({
     token: v.string(),
     roomId: v.id("rooms"),
@@ -48,7 +88,8 @@ export default defineSchema({
     fileId: v.optional(v.id("files")),
   })
     .index("by_token", ["token"])
-    .index("by_createdBy", ["createdBy"]),
+    .index("by_createdBy", ["createdBy"])
+    .index("by_room", ["roomId"]),
   roomMembers: defineTable({
     roomId: v.id("rooms"),
     userId: v.id("users"),
