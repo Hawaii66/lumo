@@ -3,7 +3,12 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { requireRoomMember } from "./lib/roomAuth";
 import { deleteStorageIfUnreferenced } from "./lib/storageRefs";
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
 const MAX_FIELD_LENGTH = 50;
@@ -11,6 +16,7 @@ const MAX_GENERAL_INFO_LENGTH = 4000;
 const MAX_ROOMS = 100;
 const MAX_MEMBERS = 100;
 const DELETE_BATCH = 40;
+const MAX_PDF_INFO_IN_USE = 50;
 
 function trimField(value: string, label: string): string {
   const trimmed = value.trim();
@@ -150,6 +156,59 @@ export const get = query({
       clonedFromTemplateId: room.clonedFromTemplateId ?? null,
       templateExpired,
       replacementTemplate,
+    };
+  },
+});
+
+/**
+ * Room + in-use PDF method notes for the chat agent system prompt.
+ * No auth — internal only (called from roomAgent.generateResponse).
+ */
+export const getChatContext = internalQuery({
+  args: { roomId: v.id("rooms") },
+  returns: v.union(
+    v.object({
+      name: v.string(),
+      description: v.string(),
+      generalInfo: v.string(),
+      pdfInfos: v.array(v.object({ text: v.string() })),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    const room = await ctx.db.get("rooms", args.roomId);
+    if (room === null) {
+      return null;
+    }
+
+    const links = await ctx.db
+      .query("cellsInUseByRoom")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_PDF_INFO_IN_USE);
+
+    const pdfInfos: Array<{ text: string }> = [];
+    for (const link of links) {
+      const info = await ctx.db
+        .query("pdfInfo")
+        .withIndex("by_contentHash", (q) =>
+          q.eq("contentHash", link.contentHash),
+        )
+        .first();
+      if (info === null) {
+        continue;
+      }
+      const text = info.text.trim();
+      if (text.length === 0) {
+        continue;
+      }
+      pdfInfos.push({ text });
+    }
+
+    return {
+      name: room.name,
+      description: room.description,
+      generalInfo: room.generalInfo ?? "",
+      pdfInfos,
     };
   },
 });

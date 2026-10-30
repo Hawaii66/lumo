@@ -1,7 +1,7 @@
 import { sections } from "./fragments";
 
 /** Max characters stored in pdfInfo.text after distillation. */
-export const PDF_INFO_MAX_LENGTH = 2000;
+export const PDF_INFO_MAX_LENGTH = 800;
 
 /**
  * Agent instructions: PDF/OCR → expected course methods / techniques.
@@ -45,10 +45,11 @@ OUTPUT
 Svara med ETT JSON-objekt:
 { "text": "…" }
 
-• text: svenska, ren prosa — vilka metoder som förväntas; behåll åäöÅÄÖ.
-• Formulera som metodråd: "Använd …", "Föredra … framför …", "Vid … passa …".
-• Strukturera med korta stycken eller punktlistor (radbrytningar OK).
-• Max cirka ${PDF_INFO_MAX_LENGTH} tecken.
+• text: ENDAST korta svenska punktlistor — en rad per metod/konvention.
+• Format: varje rad börjar med "• " (ingen prosa, inga stycken, ingen fluff).
+• Max en kort mening per punkt; bara det viktigaste.
+• Inga inledningar, avslutningar eller "Använd gärna…"-utfyllnad.
+• Behåll åäöÅÄÖ. Max cirka ${PDF_INFO_MAX_LENGTH} tecken.
 • Hitta inte på innehåll som inte finns i källan.
 • Om inga metodråd finns: { "text": "" }.`,
 );
@@ -62,6 +63,7 @@ export function buildInfoConvertPrompt(documentText: string): string {
 
   return sections(
     `Extrahera ENDAST vilka metoder/tillvägagångssätt som förväntas.
+Skriv ENDAST korta "• "-punkter — ingen prosa.
 Ignorera uppgifter, facit och AI-/hjälpregler.
 Om dokumentet saknar metodråd → text = "".`,
     "─── OCR ───",
