@@ -8,12 +8,14 @@ export const PDF_INFO_MAX_LENGTH = 2000;
  * Not problem extraction — that is a separate pipeline.
  */
 export const LUMO_INFO_INSTRUCTIONS = sections(
-  `Du läser rå OCR-text från en PDF och ska sammanfatta vilka MATEMATISKA
+  `Du läser rå SVENSK OCR-text från en PDF och ska sammanfatta vilka MATEMATISKA
 METODER och tillvägagångssätt som förväntas i kursen / materialet.
 
 Detta är INTE uppgiftstolkning och INTE AI-beteenderegler. Du ska INTE
 återberätta uppgifter, och du ska INTE skriva om vad en assistent får/inte
 får göra (ledtrådar, facit, ton, osv.).
+
+Bevara svenska tecken å ä ö Å Ä Ö exakt i output — ta aldrig bort eller ersätt dem.
 
 ════════════════════════════════════════
 VAD DU SKA TA FRÅN TEXTEN
@@ -43,7 +45,7 @@ OUTPUT
 Svara med ETT JSON-objekt:
 { "text": "…" }
 
-• text: svenska, ren prosa — vilka metoder som förväntas.
+• text: svenska, ren prosa — vilka metoder som förväntas; behåll åäöÅÄÖ.
 • Formulera som metodråd: "Använd …", "Föredra … framför …", "Vid … passa …".
 • Strukturera med korta stycken eller punktlistor (radbrytningar OK).
 • Max cirka ${PDF_INFO_MAX_LENGTH} tecken.

@@ -3,8 +3,9 @@ import { MD_CONTENT_CONVENTIONS } from "./mdConventions";
 
 /** PDF/OCR → markdown parsed problem (one shot). */
 export const LUMO_PROBLEM_INSTRUCTIONS = sections(
-  `Du konverterar råa matematikproblem (PDF/OCR) till markdown i ETT steg.
+  `Du konverterar råa SVENSKA matematikproblem (PDF/OCR) till markdown i ETT steg.
 Svara med ETT JSON-objekt — ingen prosa utanför JSON.
+Källan är svenska: bevara å ä ö Å Ä Ö exakt i all löptext.
 
 ════════════════════════════════════════
 OUTPUT-FORMAT
@@ -37,10 +38,14 @@ Då gäller:
 Markörer som inleder lösningsväg: "Lösning:", "För att …", "Vi har …", "Eftersom …".
 
 ════════════════════════════════════════
-OCR-STÄDNING
+OCR-STÄDNING + SVENSKA TECKEN
 ════════════════════════════════════════
+• Detta är en SVENSK matematiktext. Bevara svenska tecken EXAKT: å ä ö Å Ä Ö.
+• Ta ALDRIG bort eller ersätt å/ä/ö (inte med ASCII, inte med kontrolltecken/NUL, inte alls).
+  ✓ Lös  för  värden  på
+  ✗ Ls   fr   vrden   p
 • Bevara ALL matematik och ALLA (a)/(b)/(c)-markörer i FRÅGESTAMMEN.
-• Rätta bara uppenbart skräp i löptext. Ändra inte matematiken.
+• Rätta bara uppenbart skräp i löptext. Ändra inte matematiken och inte svensk stavning.
 
 ════════════════════════════════════════
 EXEMPEL
@@ -92,7 +97,8 @@ export function buildConvertPrompt(args: {
   const answerBlock =
     args.answerText.length > 0 ? args.answerText : "(inget svar i källan)";
   return sections(
-    `Konvertera denna OCR-chunk till markdown-problem.
+    `Konvertera denna svenska OCR-chunk till markdown-problem.
+Bevara å ä ö Å Ä Ö exakt — ta aldrig bort dem.
 
 Problemnummer (förslag): ${args.suggestedNumber}
 
@@ -102,6 +108,7 @@ ${args.problemText}
 --- RÅTT SVAR ---
 ${answerBlock}`,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
+□ Svenska åäöÅÄÖ bevarade exakt (ingen NUL, ingen ASCII-ersättning)
 □ Spegel: ### (a)/(b) i fråga → samma i svar, samma ordning
 □ Rått svar har innehåll → konverterat, aldrig ersatt med "Lösning saknas"
 □ question = BARA frågestam — ingen lösningsväg
