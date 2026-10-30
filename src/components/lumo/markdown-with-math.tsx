@@ -77,20 +77,19 @@ function MathCite({
           className={
             isInline
               ? "mx-0.5 align-middle border-0 bg-transparent p-0 shadow-none"
-              : "my-1"
+              : "my-1 border-0 bg-transparent p-0 shadow-none"
           }
         />
       </span>
-      {onCiteMath ? (
+      {!isInline && onCiteMath ? (
         <Button
           type="button"
           variant="ghost"
           size="icon-xs"
           data-cite-math-btn=""
           className={cn(
-            "shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-primary",
+            "mt-1 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-primary",
             "group-hover/math:opacity-100 focus-visible:opacity-100",
-            isInline ? "self-center" : "mt-1",
           )}
           title="Citera formel"
           aria-label="Citera formel"
