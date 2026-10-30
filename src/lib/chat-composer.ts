@@ -1,10 +1,39 @@
-/** Problem-number token after `@`, e.g. `1.2`, `2.1a`, `1.2·T1`. */
-export const PROBLEM_MENTION_RE = /@(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)/gi
+/**
+ * Problem mention after `@`: always `{number}-{fileSlug}`,
+ * e.g. `1.2-tenta_2023-03`. Bare `@1.2` is still parsed for older messages.
+ * Slugged form is tried first so `@1.2-tenta` is not split into bare `@1.2`.
+ */
+export const PROBLEM_MENTION_RE =
+  /@((?:(\d+(?:\.\d+)*(?:·T\d+|[a-z])?)-(\S+))|(\d+(?:\.\d+)*(?:·T\d+|[a-z])?))/gi
 
 /** Visible rows in the @ typeahead viewport (list scrolls beyond this). */
 export const TYPEAHEAD_VISIBLE_COUNT = 8
 
 const TYPEAHEAD_MAX_OPTIONS = 40
+
+/** Slug used in `@3-slug` — strip `.pdf`, collapse whitespace to `_`. */
+export function fileSlugFromName(fileName: string): string {
+  return fileName
+    .trim()
+    .replace(/\.pdf$/i, "")
+    .replace(/\s+/g, "_")
+}
+
+/** Full mention including `@`, always with PDF slug: `@3-tenta_2023-03`. */
+export function formatProblemMention(
+  problemNumber: string,
+  fileName: string,
+): string {
+  return `@${formatProblemMentionToken(problemNumber, fileName)}`
+}
+
+/** Token without `@`, always `{number}-{fileSlug}`. */
+export function formatProblemMentionToken(
+  problemNumber: string,
+  fileName: string,
+): string {
+  return `${problemNumber.trim()}-${fileSlugFromName(fileName)}`
+}
 
 export type ProblemMentionOption = {
   id: string
@@ -13,10 +42,12 @@ export type ProblemMentionOption = {
 }
 
 export type ActiveMention = {
-  /** Full match including `@`, e.g. `@1.2` */
+  /** Full match including `@`, e.g. `@1.2` or `@1.2-tenta_2023-03` */
   raw: string
   /** Number part, e.g. `1.2` */
   number: string
+  /** PDF slug after `-` when present, e.g. `tenta_2023-03` */
+  fileSlug?: string
   start: number
   end: number
 }
@@ -28,22 +59,35 @@ export type ResolvedDraftMention =
       problemNumber: string
       fileName: string
     }
-  | { status: "missing"; problemNumber: string }
+  | { status: "missing"; problemNumber: string; fileSlug?: string }
   | {
       status: "ambiguous"
       problemNumber: string
+      fileSlug?: string
       options: Array<ProblemMentionOption>
     }
 
-/** Every `@number` token in document order. */
+/** Dedup / display token without `@` for any resolved draft mention. */
+export function mentionTokenKey(mention: ResolvedDraftMention): string {
+  if (mention.status === "resolved") {
+    return formatProblemMentionToken(mention.problemNumber, mention.fileName)
+  }
+  return mention.fileSlug
+    ? `${mention.problemNumber}-${mention.fileSlug}`
+    : mention.problemNumber
+}
+
+/** Every `@number` / `@number-slug` token in document order. */
 export function findAllMentions(text: string): Array<ActiveMention> {
   const mentions: Array<ActiveMention> = []
   for (const match of text.matchAll(PROBLEM_MENTION_RE)) {
-    const number = match[1]
+    const number = match[2] ?? match[4]
+    const fileSlug = match[3]
     if (number === undefined || match.index === undefined) continue
     mentions.push({
       raw: match[0],
       number,
+      ...(fileSlug !== undefined ? { fileSlug } : {}),
       start: match.index,
       end: match.index + match[0].length,
     })
@@ -56,24 +100,39 @@ export function resolveDraftMentions(
   text: string,
   options: Array<ProblemMentionOption>,
 ): Array<ResolvedDraftMention> {
-  const seenNumbers = new Set<string>()
+  const seenTokens = new Set<string>()
   const seenIds = new Set<string>()
   const resolved: Array<ResolvedDraftMention> = []
 
   for (const mention of findAllMentions(text)) {
-    const key = mention.number.toLowerCase()
-    if (seenNumbers.has(key)) continue
-    seenNumbers.add(key)
+    const key = mention.fileSlug
+      ? `${mention.number.toLowerCase()}-${mention.fileSlug.toLowerCase()}`
+      : mention.number.toLowerCase()
+    if (seenTokens.has(key)) continue
+    seenTokens.add(key)
 
-    const matches = resolveMentionMatches(options, mention.number)
+    const matches = resolveMentionMatches(
+      options,
+      mention.number,
+      mention.fileSlug,
+    )
     if (matches.length === 0) {
-      resolved.push({ status: "missing", problemNumber: mention.number })
+      resolved.push({
+        status: "missing",
+        problemNumber: mention.number,
+        ...(mention.fileSlug !== undefined
+          ? { fileSlug: mention.fileSlug }
+          : {}),
+      })
       continue
     }
     if (matches.length > 1) {
       resolved.push({
         status: "ambiguous",
         problemNumber: mention.number,
+        ...(mention.fileSlug !== undefined
+          ? { fileSlug: mention.fileSlug }
+          : {}),
         options: matches,
       })
       continue
@@ -92,13 +151,15 @@ export function resolveDraftMentions(
   return resolved
 }
 
-/** Mention fragment at the cursor for typeahead (`@` or `@1.2`). */
+/** Mention fragment at the cursor for typeahead (`@`, `@1.2`, `@1.2-ten`). */
 export function findMentionQueryAtCursor(
   text: string,
   cursor: number,
 ): { start: number; query: string } | null {
   const before = text.slice(0, cursor)
-  const match = before.match(/@(\d*(?:\.\d*)*(?:·T\d*|[a-z])?)$/i)
+  const match = before.match(
+    /@(\d*(?:\.\d*)*(?:·T\d*|[a-z])?(?:-[^\s]*)?)$/i,
+  )
   if (!match || match.index === undefined) return null
   return { start: match.index, query: match[1] ?? "" }
 }
@@ -157,26 +218,65 @@ export function filterSlashCommands(query: string): Array<SlashCommand> {
   return SLASH_COMMANDS.filter((cmd) => cmd.command.startsWith(normalized))
 }
 
+function compareProblemMentionOptions(
+  a: ProblemMentionOption,
+  b: ProblemMentionOption,
+): number {
+  const byFile = a.fileName.localeCompare(b.fileName, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  })
+  if (byFile !== 0) return byFile
+  return a.problemNumber.localeCompare(b.problemNumber, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  })
+}
+
 export function filterProblemOptions(
   options: Array<ProblemMentionOption>,
   query: string,
 ): Array<ProblemMentionOption> {
   const normalized = query.trim().toLowerCase()
-  if (!normalized) return options.slice(0, TYPEAHEAD_MAX_OPTIONS)
-  return options
-    .filter((option) =>
-      option.problemNumber.toLowerCase().startsWith(normalized),
-    )
+  const dash = normalized.indexOf("-")
+  const numberQuery = dash >= 0 ? normalized.slice(0, dash) : normalized
+  const slugQuery = dash >= 0 ? normalized.slice(dash + 1) : ""
+
+  const filtered = normalized
+    ? options.filter((option) => {
+        const number = option.problemNumber.toLowerCase()
+        const slug = fileSlugFromName(option.fileName).toLowerCase()
+        if (dash >= 0) {
+          const numberOk =
+            numberQuery.length === 0 || number.startsWith(numberQuery)
+          const slugOk = slugQuery.length === 0 || slug.startsWith(slugQuery)
+          return numberOk && slugOk
+        }
+        return number.startsWith(numberQuery) || slug.startsWith(numberQuery)
+      })
+    : options
+
+  return [...filtered]
+    .sort(compareProblemMentionOptions)
     .slice(0, TYPEAHEAD_MAX_OPTIONS)
 }
 
 export function resolveMentionMatches(
   options: Array<ProblemMentionOption>,
   number: string,
+  fileSlug?: string,
 ): Array<ProblemMentionOption> {
-  const normalized = number.trim().toLowerCase()
+  const normalizedNumber = number.trim().toLowerCase()
+  if (fileSlug === undefined || fileSlug.trim().length === 0) {
+    return options.filter(
+      (option) => option.problemNumber.toLowerCase() === normalizedNumber,
+    )
+  }
+  const normalizedSlug = fileSlug.trim().toLowerCase()
   return options.filter(
-    (option) => option.problemNumber.toLowerCase() === normalized,
+    (option) =>
+      option.problemNumber.toLowerCase() === normalizedNumber &&
+      fileSlugFromName(option.fileName).toLowerCase() === normalizedSlug,
   )
 }
 

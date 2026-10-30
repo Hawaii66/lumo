@@ -14,13 +14,13 @@ const MOCK_CHATS = [
   {
     id: "c1",
     title: "Hjälp med partialbråk",
-    problemNumbers: ["1.3"],
+    problemNumbers: ["1.3-tenta_2023-03"],
     ttlLabel: "2h kvar",
   },
   {
     id: "c2",
     title: "Varför blir derivatan noll?",
-    problemNumbers: ["2.1a", "2.2"],
+    problemNumbers: ["2.1a-tenta_2023-03", "2.2-tenta_2023-03"],
     ttlLabel: "45m kvar",
   },
   {
@@ -31,7 +31,7 @@ const MOCK_CHATS = [
   {
     id: "c4",
     title: "Integral med substitution",
-    problemNumbers: ["3.4"],
+    problemNumbers: ["3.4-ovning_vecka4"],
     ttlLabel: "22h kvar",
   },
 ]

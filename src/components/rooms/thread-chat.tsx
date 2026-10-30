@@ -34,6 +34,7 @@ import {
 import {
   assistantResponseNumber,
   formatReplyToAssistant,
+  mentionTokenKey,
   resolveDraftMentions,
   type ProblemMentionOption,
   type ResolvedDraftMention,
@@ -89,7 +90,7 @@ function collectThreadMentions(
       const key =
         mention.status === "resolved"
           ? `id:${mention.problemId}`
-          : `num:${mention.problemNumber.toLowerCase()}`
+          : `token:${mentionTokenKey(mention).toLowerCase()}`
       if (!byKey.has(key)) byKey.set(key, mention)
     }
   }
@@ -100,12 +101,12 @@ function collectThreadMentions(
     if (text) addFromText(text)
   }
 
-  for (const problemNumber of mentionedProblemNumbers) {
+  for (const token of mentionedProblemNumbers) {
     const already = [...byKey.values()].some(
       (mention) =>
-        mention.problemNumber.toLowerCase() === problemNumber.toLowerCase(),
+        mentionTokenKey(mention).toLowerCase() === token.toLowerCase(),
     )
-    if (!already) addFromText(`@${problemNumber}`)
+    if (!already) addFromText(`@${token}`)
   }
 
   return [...byKey.values()]

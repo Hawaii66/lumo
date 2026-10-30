@@ -23,6 +23,7 @@ import {
   formatSidebarTimeLeft,
 } from "~/lib/chat-deletion-expiry"
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
+import { formatProblemMentionToken } from "~/lib/chat-composer"
 import { chaptersFromMarkdown } from "~/lib/markdown-math"
 import {
   RoomSidebar
@@ -223,6 +224,7 @@ function RoomPage() {
 
   async function handleProblemChatSubmit(
     problemNumber: string,
+    fileName: string,
     payload: ChatInputSubmitPayload,
   ) {
     if (problemChatPending) return
@@ -235,7 +237,9 @@ function RoomPage() {
         title: `Uppgift ${problemNumber}`,
         mode: payload.mode ?? DEFAULT_CHAT_MODE,
         deletionExpiry: PROBLEM_CHAT_DELETION_EXPIRY,
-        mentionedProblemNumbers: [problemNumber],
+        mentionedProblemNumbers: [
+          formatProblemMentionToken(problemNumber, fileName),
+        ],
       })
 
       const uploaded = await Promise.all(
@@ -547,6 +551,7 @@ function RoomPage() {
                 <ProblemHelpActions
                   roomId={typedRoomId}
                   problemNumber={selectedProblem.problem.problemNumber}
+                  fileName={selectedProblem.fileName}
                   subproblemLetters={subproblemLetters}
                   pending={problemChatPending}
                   onSelect={async (draft: ProblemHelpStartDraft) => {
@@ -570,6 +575,7 @@ function RoomPage() {
                 onSubmit={(payload) =>
                   handleProblemChatSubmit(
                     selectedProblem.problem.problemNumber,
+                    selectedProblem.fileName,
                     payload,
                   )
                 }

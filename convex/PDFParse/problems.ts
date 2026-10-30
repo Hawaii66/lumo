@@ -43,6 +43,10 @@ function compareProblemNumbers(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
 
+function compareFileNames(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+}
+
 const problemRowValidator = v.object({
   problemNumber: v.string(),
   problem: v.string(),
@@ -132,6 +136,7 @@ export const listGroupedByRoom = query({
       });
     }
 
+    groups.sort((a, b) => compareFileNames(a.fileName, b.fileName));
     return groups;
   },
 });

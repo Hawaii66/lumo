@@ -1,6 +1,7 @@
 import { Lightbulb, ScanSearch } from "lucide-react"
 import { useState } from "react"
 import type { Id } from "../../../convex/_generated/dataModel"
+import { formatProblemMention } from "~/lib/chat-composer"
 import {
   buildModeStartPrompt,
   type ChatMode,
@@ -21,6 +22,7 @@ export type ProblemHelpStartDraft = {
 type ProblemHelpActionsProps = {
   roomId: Id<"rooms">
   problemNumber: string
+  fileName: string
   /** Deluppgift letters from the problem markdown, e.g. ["a","b"]. */
   subproblemLetters?: Array<string>
   onSelect: (draft: ProblemHelpStartDraft) => void | Promise<void>
@@ -31,6 +33,7 @@ type ProblemHelpActionsProps = {
 export function ProblemHelpActions({
   roomId,
   problemNumber,
+  fileName,
   subproblemLetters = [],
   onSelect,
   pending = false,
@@ -64,7 +67,12 @@ export function ProblemHelpActions({
     void start(
       {
         mode: "genomgang",
-        prompt: buildModeStartPrompt("genomgang", problemNumber, letter),
+        prompt: buildModeStartPrompt(
+          "genomgang",
+          problemNumber,
+          fileName,
+          letter,
+        ),
         subproblemLetter: letter ?? undefined,
       },
       letter !== null ? `genomgang-${letter}` : "genomgang",
@@ -72,7 +80,10 @@ export function ProblemHelpActions({
   }
 
   function handlePhotoUploaded(file: PhoneUploadCompletedFile) {
-    const mention = problemNumber.trim() ? `@${problemNumber.trim()}` : ""
+    const mention =
+      problemNumber.trim() && fileName.trim()
+        ? formatProblemMention(problemNumber, fileName)
+        : ""
     void start(
       {
         mode: "normal",

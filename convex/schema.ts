@@ -116,8 +116,8 @@ export default defineSchema({
      */
     archivedAt: v.optional(v.number()),
     /**
-     * Distinct @-mentioned problem numbers seen in this chat (display order).
-     * Updated as messages are sent; missing on older threads.
+     * Distinct @-mentioned problem tokens (`{number}-{fileSlug}`) in display
+     * order. Updated as messages are sent; missing on older threads.
      */
     mentionedProblemNumbers: v.optional(v.array(v.string())),
   })

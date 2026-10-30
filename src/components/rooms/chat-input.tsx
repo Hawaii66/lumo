@@ -24,6 +24,7 @@ import { Button } from "~/components/ui/button"
 import {
   appendUserTextToPrompt,
   composePromptWithMath,
+  fileSlugFromName,
   filterProblemOptions,
   filterSlashCommands,
   findAllMentions,
@@ -31,6 +32,7 @@ import {
   findSlashQueryAtCursor,
   formatCitationBody,
   formatMathRef,
+  formatProblemMention,
   insertCitationAtCursor,
   insertMathRefToken,
   nextMathRef,
@@ -481,7 +483,10 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
 
   function insertMention(option: ProblemMentionOption) {
     if (!mentionQuery) return
-    const insertion = `@${option.problemNumber}`
+    const insertion = formatProblemMention(
+      option.problemNumber,
+      option.fileName,
+    )
     const before = prompt.slice(0, mentionQuery.start)
     const after = prompt.slice(cursor)
     const next = `${before}${insertion}${after.startsWith(" ") ? after : ` ${after}`}`
@@ -634,26 +639,40 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       const defaultOption = problemOptions.find(
         (option) => option.id === defaultProblemId,
       )
-      if (
-        defaultOption &&
-        !findAllMentions(promptToSend).some(
-          (mention) =>
-            mention.number.toLowerCase() ===
-            defaultOption.problemNumber.toLowerCase(),
+      if (defaultOption) {
+        const defaultSlug = fileSlugFromName(defaultOption.fileName)
+        const alreadyMentioned = findAllMentions(promptToSend).some(
+          (mention) => {
+            if (
+              mention.number.toLowerCase() !==
+              defaultOption.problemNumber.toLowerCase()
+            ) {
+              return false
+            }
+            if (mention.fileSlug === undefined) return true
+            return mention.fileSlug.toLowerCase() === defaultSlug.toLowerCase()
+          },
         )
-      ) {
-        promptToSend = appendUserTextToPrompt(
-          `@${defaultOption.problemNumber}`,
-          promptToSend,
-        )
+        if (!alreadyMentioned) {
+          promptToSend = appendUserTextToPrompt(
+            formatProblemMention(
+              defaultOption.problemNumber,
+              defaultOption.fileName,
+            ),
+            promptToSend,
+          )
+        }
       }
     }
 
     const mentions = resolveDraftMentions(promptToSend, problemOptions)
     const ambiguous = mentions.find((m) => m.status === "ambiguous")
     if (ambiguous) {
+      const label = ambiguous.fileSlug
+        ? `@${ambiguous.problemNumber}-${ambiguous.fileSlug}`
+        : `@${ambiguous.problemNumber}`
       setLocalError(
-        `Flera uppgifter heter ${ambiguous.problemNumber}. Välj en i listan (@).`,
+        `Flera uppgifter matchar ${label}. Välj en i listan (@).`,
       )
       return
     }
@@ -935,7 +954,9 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
                     insertMention(option)
                   }}
                 >
-                  <span className="font-medium">@{option.problemNumber}</span>
+                  <span className="font-medium">
+                    @{option.problemNumber}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {option.fileName}
                   </span>
