@@ -13,6 +13,10 @@ import {
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import {
+  ProblemCompletionDisplay,
+  type ProblemCompletionEntry,
+} from "~/components/rooms/problem-completion"
+import {
   ProblemStarsDisplay,
   type ProblemStarEntry,
   type ProblemStars,
@@ -40,6 +44,8 @@ export type RoomSidebarProblemItem = {
   problemNumber: string
   /** Room-scoped difficulty per deluppgift (or whole problem as letter `""`). */
   starEntries: Array<ProblemStarEntry>
+  /** Room-scoped completion marks (personal; not cloned from templates). */
+  completionEntries?: Array<ProblemCompletionEntry>
   shadows?: Array<{
     id: string
     problemNumber: string
@@ -86,8 +92,8 @@ const LIST_SECTIONS: Array<{
   label: string
   icon: typeof MessageSquare
 }> = [
-  { id: "chats", label: "Chattar", icon: MessageSquare },
   { id: "problems", label: "Uppgifter", icon: FileText },
+  { id: "chats", label: "Chattar", icon: MessageSquare },
 ]
 
 export function RoomSidebar({
@@ -106,7 +112,7 @@ export function RoomSidebar({
   onOpenProblemPdfOrder,
 }: RoomSidebarProps) {
   const [listSection, setListSection] =
-    useState<RoomSidebarListSection>("chats")
+    useState<RoomSidebarListSection>("problems")
 
   // Keep list tab in sync when parent switches to chats/problems.
   const activeListSection =
@@ -562,7 +568,12 @@ function ProblemList({
                           <span className="min-w-0 flex-1 truncate">
                             {problem.problemNumber}
                           </span>
-                          <ProblemStarsDisplay entries={problem.starEntries} />
+                          <span className="inline-flex shrink-0 items-center gap-1.5">
+                            <ProblemStarsDisplay entries={problem.starEntries} />
+                            <ProblemCompletionDisplay
+                              entries={problem.completionEntries ?? []}
+                            />
+                          </span>
                         </button>
                         {shadows.length > 0 ? (
                           <ul className="mt-0.5 ml-3 flex flex-col gap-0.5 border-l border-sidebar-border pl-2">

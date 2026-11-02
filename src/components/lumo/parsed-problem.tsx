@@ -2,6 +2,11 @@ import { Eye, EyeOff } from "lucide-react"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import {
+  isCompletedForLetter,
+  ProblemCompletionControl,
+  type ProblemCompletionEntry,
+} from "~/components/rooms/problem-completion"
+import {
   ProblemStarsControl,
   starsForLetter,
   type ProblemStarEntry,
@@ -22,6 +27,10 @@ type ParsedProblemViewProps = {
   starEntries?: Array<ProblemStarEntry>
   /** `letter` is `""` for whole-problem stars when there are no deluppgifter. */
   onStarsChange?: (letter: string, stars: ProblemStars) => void
+  /** Room-scoped completion marks for this problem. */
+  completionEntries?: Array<ProblemCompletionEntry>
+  /** `letter` is `""` for whole-problem completion when there are no deluppgifter. */
+  onCompletedChange?: (letter: string, completed: boolean) => void
 }
 
 export function ParsedProblemView({
@@ -33,6 +42,8 @@ export function ParsedProblemView({
   subproblemLetters = [],
   starEntries = [],
   onStarsChange,
+  completionEntries = [],
+  onCompletedChange,
 }: ParsedProblemViewProps) {
   const letters = subproblemLetters
     .map((letter) => letter.trim().toLowerCase())
@@ -40,6 +51,8 @@ export function ParsedProblemView({
   const hasSubproblems = letters.length > 0
   const showWholeProblemStars =
     onStarsChange !== undefined && !hasSubproblems
+  const showWholeProblemCompletion =
+    onCompletedChange !== undefined && !hasSubproblems
 
   return (
     <article className={cn("space-y-4", className)}>
@@ -52,6 +65,12 @@ export function ParsedProblemView({
             <ProblemStarsControl
               stars={starsForLetter(starEntries, "")}
               onChange={(stars) => onStarsChange("", stars)}
+            />
+          ) : null}
+          {showWholeProblemCompletion ? (
+            <ProblemCompletionControl
+              completed={isCompletedForLetter(completionEntries, "")}
+              onChange={(completed) => onCompletedChange("", completed)}
             />
           ) : null}
         </div>
@@ -87,6 +106,15 @@ export function ParsedProblemView({
               ? {
                   getStars: (letter) => starsForLetter(starEntries, letter),
                   onChange: onStarsChange,
+                }
+              : undefined
+          }
+          subproblemCompletion={
+            onCompletedChange && hasSubproblems
+              ? {
+                  isCompleted: (letter) =>
+                    isCompletedForLetter(completionEntries, letter),
+                  onChange: onCompletedChange,
                 }
               : undefined
           }

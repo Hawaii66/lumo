@@ -59,10 +59,11 @@ function RoomPage() {
   const sendMessage = useMutation(api.threads.sendMessage)
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
   const setProblemStars = useMutation(api.PDFParse.problems.setStars)
+  const setProblemCompleted = useMutation(api.PDFParse.problems.setCompleted)
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
 
-  const [section, setSection] = useState<RoomSidebarSection>("chats")
+  const [section, setSection] = useState<RoomSidebarSection>("problems")
   const [settingsFocus, setSettingsFocus] =
     useState<RoomSettingsFocusSection | null>(null)
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
@@ -158,6 +159,7 @@ function RoomPage() {
           id: problem.id,
           problemNumber: problem.problemNumber,
           starEntries: problem.starEntries,
+          completionEntries: problem.completionEntries,
           shadows: problem.shadows.map((shadow) => ({
             id: shadow.id,
             problemNumber: shadow.problemNumber,
@@ -172,6 +174,16 @@ function RoomPage() {
     for (const group of problemGroupItems) {
       for (const problem of group.problems) {
         if (problem.id === selectedProblemId) return problem.starEntries
+      }
+    }
+    return []
+  }, [problemGroupItems, selectedProblemId])
+
+  const selectedProblemCompletionEntries = useMemo(() => {
+    if (selectedProblemId === null) return []
+    for (const group of problemGroupItems) {
+      for (const problem of group.problems) {
+        if (problem.id === selectedProblemId) return problem.completionEntries
       }
     }
     return []
@@ -596,6 +608,24 @@ function RoomPage() {
                             roomId: typedRoomId,
                             problemId: selectedProblem.id,
                             stars,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
+                  completionEntries={
+                    selectedProblem.isShadow
+                      ? []
+                      : selectedProblemCompletionEntries
+                  }
+                  onCompletedChange={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter, completed) => {
+                          void setProblemCompleted({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            completed,
                             subproblemLetter:
                               letter === "" ? undefined : letter,
                           })
