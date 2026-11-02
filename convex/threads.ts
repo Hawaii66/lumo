@@ -30,7 +30,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 
 const MAX_TITLE_LENGTH = 80;
 const MAX_THREADS_PER_ROOM = 100;
-const EXPIRED_THREAD_PURGE_BATCH = 25;
+const ARCHIVE_SCHEDULE_BACKFILL_BATCH = 25;
 const MAX_PROMPT_LENGTH = 4000;
 const MAX_IMAGES_PER_MESSAGE = 4;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -234,6 +234,16 @@ export const create = mutation({
         : {}),
     });
 
+    const archiveJobId = await syncArchiveSchedule(
+      ctx,
+      roomThreadId,
+      undefined,
+      deleteAt,
+    );
+    if (archiveJobId !== undefined) {
+      await ctx.db.patch(roomThreadId, { archiveJobId });
+    }
+
     return {
       roomThreadId,
       threadId,
@@ -303,9 +313,16 @@ export const setDeletionExpiry = mutation({
       args.threadId,
     );
     const deleteAt = computeDeleteAt(args.deletionExpiry);
+    const archiveJobId = await syncArchiveSchedule(
+      ctx,
+      roomThread._id,
+      roomThread.archiveJobId,
+      deleteAt,
+    );
     await ctx.db.patch(roomThread._id, {
       deletionExpiry: args.deletionExpiry,
       deleteAt,
+      archiveJobId,
     });
     return {
       deletionExpiry: args.deletionExpiry,
@@ -352,37 +369,99 @@ export const unarchive = mutation({
     const deletionExpiry: ChatDeletionExpiry =
       roomThread.deletionExpiry ?? DEFAULT_CHAT_DELETION_EXPIRY;
     const deleteAt = computeDeleteAt(deletionExpiry);
+    const archiveJobId = await syncArchiveSchedule(
+      ctx,
+      roomThread._id,
+      roomThread.archiveJobId,
+      deleteAt,
+    );
     await ctx.db.patch(roomThread._id, {
       archivedAt: undefined,
       deletionExpiry,
       deleteAt,
+      archiveJobId,
     });
     return null;
   },
 });
 
-/** Archive timed chats whose `deleteAt` has passed. Scheduled every 5 minutes. */
-export const purgeExpired = internalMutation({
-  args: {},
+/** One-shot job: archive a timed chat when its `deleteAt` is reached. */
+export const archiveIfDue = internalMutation({
+  args: {
+    roomThreadId: v.id("roomThreads"),
+  },
   returns: v.null(),
-  handler: async (ctx) => {
-    const now = Date.now();
-    const expired = await ctx.db
-      .query("roomThreads")
-      .withIndex("by_deleteAt", (q) => q.lte("deleteAt", now))
-      .take(EXPIRED_THREAD_PURGE_BATCH);
+  handler: async (ctx, args) => {
+    const roomThread = await ctx.db.get(args.roomThreadId);
+    if (roomThread === null) {
+      return null;
+    }
+    if (roomThread.archivedAt !== undefined) {
+      return null;
+    }
+    if (
+      roomThread.deleteAt === undefined ||
+      roomThread.deleteAt > Date.now()
+    ) {
+      // Deadline cleared or moved; a newer job owns the schedule.
+      return null;
+    }
+    await archiveRoomThread(ctx, roomThread);
+    return null;
+  },
+});
 
-    for (const roomThread of expired) {
+/**
+ * One-time / manual: for threads that still have `deleteAt` from the old cron
+ * era, archive overdue ones and schedule one-shot jobs for the rest.
+ * Run once from the dashboard after deploy (`backfillArchiveSchedules`).
+ */
+export const backfillArchiveSchedules = internalMutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const page = await ctx.db
+      .query("roomThreads")
+      .withIndex("by_deleteAt")
+      .paginate({
+        numItems: ARCHIVE_SCHEDULE_BACKFILL_BATCH,
+        cursor: args.cursor,
+      });
+
+    for (const roomThread of page.page) {
       if (roomThread.archivedAt !== undefined) {
-        // Clear stale deadline so the index stops resurfacing this row.
-        await ctx.db.patch(roomThread._id, { deleteAt: undefined });
+        await cancelArchiveJob(ctx, roomThread.archiveJobId);
+        await ctx.db.patch(roomThread._id, {
+          deleteAt: undefined,
+          archiveJobId: undefined,
+        });
         continue;
       }
-      await archiveRoomThread(ctx, roomThread);
+      if (roomThread.deleteAt === undefined) {
+        continue;
+      }
+      if (roomThread.deleteAt <= now) {
+        await archiveRoomThread(ctx, roomThread);
+        continue;
+      }
+      const archiveJobId = await syncArchiveSchedule(
+        ctx,
+        roomThread._id,
+        roomThread.archiveJobId,
+        roomThread.deleteAt,
+      );
+      await ctx.db.patch(roomThread._id, { archiveJobId });
     }
 
-    if (expired.length === EXPIRED_THREAD_PURGE_BATCH) {
-      await ctx.scheduler.runAfter(0, internal.threads.purgeExpired, {});
+    if (!page.isDone) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.threads.backfillArchiveSchedules,
+        { cursor: page.continueCursor },
+      );
     }
 
     return null;
@@ -483,9 +562,40 @@ async function archiveRoomThread(
   if (roomThread.archivedAt !== undefined) {
     return;
   }
+  await cancelArchiveJob(ctx, roomThread.archiveJobId);
   await ctx.db.patch(roomThread._id, {
     archivedAt: Date.now(),
     deleteAt: undefined,
+    archiveJobId: undefined,
+  });
+}
+
+async function cancelArchiveJob(
+  ctx: MutationCtx,
+  jobId: Id<"_scheduled_functions"> | undefined,
+) {
+  if (jobId === undefined) {
+    return;
+  }
+  const job = await ctx.db.system.get("_scheduled_functions", jobId);
+  if (job !== null && job.state.kind === "pending") {
+    await ctx.scheduler.cancel(jobId);
+  }
+}
+
+/** Cancel any prior job; schedule `archiveIfDue` when `deleteAt` is set. */
+async function syncArchiveSchedule(
+  ctx: MutationCtx,
+  roomThreadId: Id<"roomThreads">,
+  previousJobId: Id<"_scheduled_functions"> | undefined,
+  deleteAt: number | undefined,
+): Promise<Id<"_scheduled_functions"> | undefined> {
+  await cancelArchiveJob(ctx, previousJobId);
+  if (deleteAt === undefined) {
+    return undefined;
+  }
+  return await ctx.scheduler.runAt(deleteAt, internal.threads.archiveIfDue, {
+    roomThreadId,
   });
 }
 

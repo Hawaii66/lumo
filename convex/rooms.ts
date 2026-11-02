@@ -483,6 +483,15 @@ export const deleteCascade = internalMutation({
         .withIndex("by_room", (q) => q.eq("roomId", roomId))
         .take(DELETE_BATCH);
       for (const thread of threads) {
+        if (thread.archiveJobId !== undefined) {
+          const job = await ctx.db.system.get(
+            "_scheduled_functions",
+            thread.archiveJobId,
+          );
+          if (job !== null && job.state.kind === "pending") {
+            await ctx.scheduler.cancel(thread.archiveJobId);
+          }
+        }
         await ctx.db.delete("roomThreads", thread._id);
       }
       if (threads.length === DELETE_BATCH) {
