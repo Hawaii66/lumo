@@ -5,12 +5,15 @@ import { api, components, internal } from "../_generated/api";
 import { action } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import {
-  lumoParsedProblemSchema,
-  normalizeLumoParsedProblem,
+  isMissingAnswer,
+  lumoTwinAnswerSchema,
+  lumoTwinVariantSchema,
 } from "../lib/lumoContent";
 import {
-  LUMO_TWIN_INSTRUCTIONS,
-  buildTwinPrompt,
+  LUMO_TWIN_SOLVE_INSTRUCTIONS,
+  LUMO_TWIN_VARIANT_INSTRUCTIONS,
+  buildTwinSolvePrompt,
+  buildTwinVariantPrompt,
 } from "../lib/prompts";
 import {
   normalizeSubproblemLetter,
@@ -19,14 +22,28 @@ import {
 import { openrouter } from "../agents/openrouter";
 import { MAX_SHADOWS_PER_PARENT } from "./problems";
 
-export const lumoTwinAgent = new Agent(components.agent, {
-  name: "LumoTwinGenerator",
+const twinGenerateOpts = {
+  storageOptions: { saveMessages: "none" as const },
+  contextOptions: { recentMessages: 0 },
+};
+
+/** Step 1: invent twin question (new numbers, same structure). */
+export const lumoTwinVariantAgent = new Agent(components.agent, {
+  name: "LumoTwinVariant",
   languageModel: openrouter("openai/gpt-4.1-mini"),
-  instructions: LUMO_TWIN_INSTRUCTIONS,
+  instructions: LUMO_TWIN_VARIANT_INSTRUCTIONS,
+});
+
+/** Step 2: solve twin question cold — never sees parent facit. */
+export const lumoTwinSolveAgent = new Agent(components.agent, {
+  name: "LumoTwinSolve",
+  languageModel: openrouter("openai/gpt-4.1-mini"),
+  instructions: LUMO_TWIN_SOLVE_INSTRUCTIONS,
 });
 
 /**
  * Generate one room-scoped twin (shadow) of a parsed parent problem.
+ * Variant → solve in two LLM calls. Never salvages parent facit.
  * Rejects shadow-of-shadow and enforces per-parent cap.
  */
 export const createShadow = action({
@@ -95,32 +112,49 @@ export const createShadow = action({
 
     const suggestedNumber = `${parent.parentProblemNumber}·T${parent.existingShadowCount + 1}`;
 
-    const result = await lumoTwinAgent.generateObject(
+    const variantResult = await lumoTwinVariantAgent.generateObject(
       ctx,
       { userId },
       {
-        schema: lumoParsedProblemSchema,
-        schemaName: "LumoParsedProblem",
+        schema: lumoTwinVariantSchema,
+        schemaName: "LumoTwinVariant",
         schemaDescription:
-          "Markdown-tvilling: samma ### (a)/Fall-struktur, andra tal; question/answer som md+$",
-        prompt: buildTwinPrompt({
+          "Tvillingfråga: samma ### (a)/Fall-struktur, andra tal; ingen answer",
+        prompt: buildTwinVariantPrompt({
           suggestedNumber,
           questionText,
           answerText,
           subproblemLetter: letter ?? undefined,
         }),
       },
-      {
-        storageOptions: { saveMessages: "none" },
-        contextOptions: { recentMessages: 0 },
-      },
+      twinGenerateOpts,
     );
 
-    const normalized = normalizeLumoParsedProblem(
-      { ...result.object, problemNumber: suggestedNumber },
-      questionText,
-      answerText,
+    const twinQuestion = variantResult.object.question.trim();
+    if (twinQuestion.length === 0) {
+      throw new Error("Kunde inte skapa tvillingfråga — försök igen");
+    }
+
+    const solveResult = await lumoTwinSolveAgent.generateObject(
+      ctx,
+      { userId },
+      {
+        schema: lumoTwinAnswerSchema,
+        schemaName: "LumoTwinAnswer",
+        schemaDescription:
+          "ENBART slutfacit för tvillingfrågan: md+$; spegla ### (a)/Fall; inga lösningssteg; aldrig tom",
+        prompt: buildTwinSolvePrompt({
+          suggestedNumber,
+          questionText: twinQuestion,
+        }),
+      },
+      twinGenerateOpts,
     );
+
+    const twinAnswer = solveResult.object.answer.trim();
+    if (isMissingAnswer(twinAnswer)) {
+      throw new Error("Kunde inte skapa facit för tvillingen — försök igen");
+    }
 
     const shadowId: Id<"problems"> = await ctx.runMutation(
       internal.PDFParse.problems.insertShadow,
@@ -128,8 +162,8 @@ export const createShadow = action({
         roomId: args.roomId,
         parentProblemId: parent.parentProblemId,
         problemNumber: suggestedNumber,
-        problem: normalized.question,
-        answer: normalized.answer,
+        problem: twinQuestion,
+        answer: twinAnswer,
       },
     );
 

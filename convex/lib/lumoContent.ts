@@ -50,6 +50,31 @@ export const lumoParsedProblemValidator = v.object({
   answer: v.string(),
 });
 
+/** Twin step 1: new question only (facit comes from a separate solve call). */
+export const lumoTwinVariantSchema = z.object({
+  problemNumber: z
+    .string()
+    .min(1)
+    .describe("Exakt problemnummer från prompten, t.ex. '1.1·T1'"),
+  question: z
+    .string()
+    .min(1)
+    .describe("Tvillingfrågan i markdown med $ / $$; ### (a) för deluppgifter"),
+});
+
+export type LumoTwinVariant = z.infer<typeof lumoTwinVariantSchema>;
+
+/** Twin step 2: final facit only for the new question (no original answer in context). */
+export const lumoTwinAnswerSchema = z.object({
+  answer: z
+    .string()
+    .min(1)
+    .describe(
+      "ENBART slutfacit i markdown med $ / $$; spegla ### (a)/(b); inga lösningssteg; aldrig tom eller 'Lösning saknas'",
+    ),
+});
+export type LumoTwinAnswer = z.infer<typeof lumoTwinAnswerSchema>;
+
 /** Strip leading "P" and keep the first N.M number. */
 export function normalizeProblemNumber(
   raw: string,
@@ -70,9 +95,17 @@ export function stripProblemNumberPrefix(text: string): string {
 
 const LOSNING_SAKNAS_RE = /^lösning saknas\.?$/i;
 
+/** True when answer is empty or the forbidden placeholder. */
+export function isMissingAnswer(answer: string): boolean {
+  const trimmed = answer.trim();
+  return trimmed.length === 0 || LOSNING_SAKNAS_RE.test(trimmed);
+}
+
 /**
  * Normalize model output into stored markdown problem fields.
  * Salvages raw answer text when the model dropped a real facit.
+ * Do NOT use salvage for twin/shadow problems — pass empty rawAnswerText
+ * and reject missing answers instead.
  */
 export function normalizeLumoParsedProblem(
   raw: {
@@ -87,10 +120,7 @@ export function normalizeLumoParsedProblem(
   let answer = raw.answer.trim();
 
   const salvagedAnswer = stripProblemNumberPrefix(rawAnswerText);
-  if (
-    salvagedAnswer.length > 0 &&
-    (answer.length === 0 || LOSNING_SAKNAS_RE.test(answer))
-  ) {
+  if (salvagedAnswer.length > 0 && isMissingAnswer(answer)) {
     answer = salvagedAnswer;
   }
 

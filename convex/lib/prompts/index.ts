@@ -21,6 +21,8 @@ export {
   buildConvertPrompt,
 } from "./problem";
 export {
-  LUMO_TWIN_INSTRUCTIONS,
-  buildTwinPrompt,
+  LUMO_TWIN_SOLVE_INSTRUCTIONS,
+  LUMO_TWIN_VARIANT_INSTRUCTIONS,
+  buildTwinSolvePrompt,
+  buildTwinVariantPrompt,
 } from "./twin";
