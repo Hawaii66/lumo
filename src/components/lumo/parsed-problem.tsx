@@ -1,6 +1,10 @@
 import { Eye, EyeOff } from "lucide-react"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
+import {
+  ProblemStarsControl,
+  type ProblemStars,
+} from "~/components/rooms/problem-stars"
 import { cn } from "~/lib/utils"
 
 type ParsedProblemViewProps = {
@@ -10,6 +14,9 @@ type ParsedProblemViewProps = {
   /** When true, shows a facit toggle in the top-right of the header. */
   showFacitToggle?: boolean
   onShowAnswerChange?: (show: boolean) => void
+  /** Room-scoped difficulty; shown next to the problem number when settable. */
+  stars?: ProblemStars
+  onStarsChange?: (stars: ProblemStars) => void
 }
 
 export function ParsedProblemView({
@@ -18,13 +25,20 @@ export function ParsedProblemView({
   showAnswer = true,
   showFacitToggle = false,
   onShowAnswerChange,
+  stars,
+  onStarsChange,
 }: ParsedProblemViewProps) {
   return (
     <article className={cn("space-y-4", className)}>
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">
-          {problem.problemNumber}
-        </h2>
+        <div className="flex min-w-0 items-center gap-2">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {problem.problemNumber}
+          </h2>
+          {stars !== undefined && onStarsChange ? (
+            <ProblemStarsControl stars={stars} onChange={onStarsChange} />
+          ) : null}
+        </div>
 
         {showFacitToggle && onShowAnswerChange ? (
           <button

@@ -11,7 +11,12 @@ import {
 } from "../lib/problemAccess";
 import { MAX_FILES_PER_ROOM } from "../lib/roomFiles";
 import { requireRoomMember } from "../lib/roomAuth";
-import { internalMutation, internalQuery, query } from "../_generated/server";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 
@@ -21,6 +26,19 @@ const MAX_PROBLEMS_PER_PDF = 500;
 export const MAX_SHADOWS_PER_PARENT = 20;
 /** Hard cap for the room-wide shadow batch in listGroupedByRoom. */
 const MAX_SHADOWS_PER_ROOM = MAX_PROBLEMS_PER_PDF * MAX_SHADOWS_PER_PARENT;
+/** Hard cap for roomProblemStars batch in listGroupedByRoom. */
+const MAX_STARS_PER_ROOM = MAX_PROBLEMS_PER_PDF * MAX_FILES_PER_ROOM;
+
+const starsLevelValidator = v.union(
+  v.literal(0),
+  v.literal(1),
+  v.literal(2),
+  v.literal(3),
+);
+
+function starKey(contentHash: string, problemNumber: string): string {
+  return `${contentHash}\0${problemNumber}`;
+}
 
 export { isShadowProblem, problemVisibleInRoom } from "../lib/problemAccess";
 
@@ -75,6 +93,7 @@ export const listGroupedByRoom = query({
         v.object({
           id: v.id("problems"),
           problemNumber: v.string(),
+          stars: starsLevelValidator,
           shadows: v.array(shadowListItemValidator),
         }),
       ),
@@ -139,6 +158,16 @@ export const listGroupedByRoom = query({
       }
     }
 
+    // One indexed read for all room stars.
+    const starsByKey = new Map<string, 1 | 2 | 3>();
+    const starRows = await ctx.db
+      .query("roomProblemStars")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_STARS_PER_ROOM);
+    for (const row of starRows) {
+      starsByKey.set(starKey(row.contentHash, row.problemNumber), row.stars);
+    }
+
     const groups = [];
     for (const file of files) {
       const parsed = problemsByHash.get(file.contentHash) ?? [];
@@ -153,16 +182,86 @@ export const listGroupedByRoom = query({
           .sort((a, b) =>
             compareProblemNumbers(a.problemNumber, b.problemNumber),
           )
-          .map((row) => ({
-            id: row._id,
-            problemNumber: row.problemNumber,
-            shadows: shadowsByParent.get(row._id) ?? [],
-          })),
+          .map((row) => {
+            const stars: 0 | 1 | 2 | 3 =
+              starsByKey.get(starKey(file.contentHash, row.problemNumber)) ?? 0;
+            return {
+              id: row._id,
+              problemNumber: row.problemNumber,
+              stars,
+              shadows: shadowsByParent.get(row._id) ?? [],
+            };
+          }),
       });
     }
 
     groups.sort((a, b) => compareFileNames(a.fileName, b.fileName));
     return groups;
+  },
+});
+
+/**
+ * Set or clear the room-scoped star rating for a parsed (non-shadow) problem.
+ * stars=0 deletes the row.
+ */
+export const setStars = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+    stars: starsLevelValidator,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const problem = await ctx.db.get(args.problemId);
+    if (problem === null) {
+      throw new Error("Uppgiften hittades inte");
+    }
+    if (isShadowProblem(problem)) {
+      throw new Error("Tvillingar kan inte stjärnmärkas");
+    }
+    const contentHash = problem.contentHash;
+    if (contentHash === undefined) {
+      throw new Error("Uppgiften saknar källa");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    if (!problemVisibleInRoom(problem, args.roomId, files)) {
+      throw new Error("Uppgiften tillhör inte det här rummet");
+    }
+
+    const existing = await ctx.db
+      .query("roomProblemStars")
+      .withIndex("by_room_and_contentHash_and_problemNumber", (q) =>
+        q
+          .eq("roomId", args.roomId)
+          .eq("contentHash", contentHash)
+          .eq("problemNumber", problem.problemNumber),
+      )
+      .unique();
+
+    if (args.stars === 0) {
+      if (existing !== null) {
+        await ctx.db.delete("roomProblemStars", existing._id);
+      }
+      return null;
+    }
+
+    if (existing !== null) {
+      await ctx.db.patch("roomProblemStars", existing._id, { stars: args.stars });
+    } else {
+      await ctx.db.insert("roomProblemStars", {
+        roomId: args.roomId,
+        contentHash,
+        problemNumber: problem.problemNumber,
+        stars: args.stars,
+      });
+    }
+    return null;
   },
 });
 

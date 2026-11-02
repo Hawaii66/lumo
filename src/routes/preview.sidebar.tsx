@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState } from "react"
 import {
   RoomSidebar,
+  type RoomSidebarProblemGroup,
   type RoomSidebarSection,
 } from "~/components/rooms/room-sidebar"
 import { Button } from "~/components/ui/button"
@@ -43,20 +44,21 @@ const MOCK_PROBLEM_GROUPS = [
       {
         id: "p1",
         problemNumber: "1.3",
+        stars: 2 as const,
         shadows: [
           { id: "p1t1", problemNumber: "1.3·T1" },
           { id: "p1t2", problemNumber: "1.3·T2" },
         ],
       },
-      { id: "p2", problemNumber: "2.1" },
-      { id: "p3", problemNumber: "2.2" },
+      { id: "p2", problemNumber: "2.1", stars: 0 as const },
+      { id: "p3", problemNumber: "2.2", stars: 3 as const },
     ],
   },
   {
     fileName: "ovning_vecka4.pdf",
     problems: [
-      { id: "p4", problemNumber: "3.4" },
-      { id: "p5", problemNumber: "3.5" },
+      { id: "p4", problemNumber: "3.4", stars: 1 as const },
+      { id: "p5", problemNumber: "3.5", stars: 0 as const },
     ],
   },
 ]
@@ -74,6 +76,8 @@ function SidebarPreviewPage() {
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
     null,
   )
+  const [problemGroups] =
+    useState<RoomSidebarProblemGroup[]>(MOCK_PROBLEM_GROUPS)
   const [lastAction, setLastAction] = useState(
     "Valde chatt: Hjälp med partialbråk",
   )
@@ -106,13 +110,13 @@ function SidebarPreviewPage() {
           const chat = MOCK_CHATS.find((c) => c.id === id)
           setLastAction(`Valde chatt: ${chat?.title ?? id}`)
         }}
-        problemGroups={MOCK_PROBLEM_GROUPS}
+        problemGroups={problemGroups}
         selectedProblemId={section === "problems" ? selectedProblemId : null}
         onSelectProblem={(id) => {
           setSection("problems")
           setSelectedProblemId(id)
           setSelectedChatId(null)
-          const problem = MOCK_PROBLEM_GROUPS.flatMap((g) =>
+          const problem = problemGroups.flatMap((g) =>
             g.problems.flatMap((p) => [p, ...(p.shadows ?? [])]),
           ).find((p) => p.id === id)
           setLastAction(`Valde uppgift ${problem?.problemNumber ?? id}`)

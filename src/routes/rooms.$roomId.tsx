@@ -55,6 +55,7 @@ function RoomPage() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const sendMessage = useMutation(api.threads.sendMessage)
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
+  const setProblemStars = useMutation(api.PDFParse.problems.setStars)
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
 
@@ -150,6 +151,7 @@ function RoomPage() {
         problems: group.problems.map((problem) => ({
           id: problem.id,
           problemNumber: problem.problemNumber,
+          stars: problem.stars,
           shadows: problem.shadows.map((shadow) => ({
             id: shadow.id,
             problemNumber: shadow.problemNumber,
@@ -158,6 +160,16 @@ function RoomPage() {
       })),
     [problemGroups],
   )
+
+  const selectedProblemStars = useMemo(() => {
+    if (selectedProblemId === null) return 0 as const
+    for (const group of problemGroupItems) {
+      for (const problem of group.problems) {
+        if (problem.id === selectedProblemId) return problem.stars
+      }
+    }
+    return 0 as const
+  }, [problemGroupItems, selectedProblemId])
 
   const subproblemLetters = useMemo(() => {
     const question = selectedProblem?.problem.question
@@ -549,6 +561,22 @@ function RoomPage() {
                   showAnswer={showFacit}
                   showFacitToggle
                   onShowAnswerChange={setShowFacit}
+                  stars={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : selectedProblemStars
+                  }
+                  onStarsChange={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (stars) => {
+                          void setProblemStars({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            stars,
+                          })
+                        }
+                  }
                 />
                 <div className="flex justify-center py-6">
                   <ProblemHelpActions

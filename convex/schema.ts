@@ -75,6 +75,16 @@ export default defineSchema({
     templateId: v.id("roomTemplates"),
     contentHash: v.string(),
   }).index("by_template", ["templateId"]),
+  /**
+   * Snapshot of room problem star ratings for a published template.
+   * Copied into roomProblemStars on clone.
+   */
+  roomTemplateProblemStars: defineTable({
+    templateId: v.id("roomTemplates"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
+  }).index("by_template", ["templateId"]),
   scanSessions: defineTable({
     token: v.string(),
     roomId: v.id("rooms"),
@@ -157,6 +167,23 @@ export default defineSchema({
     .index("by_contentHash", ["contentHash"])
     .index("by_room_and_parent", ["roomId", "parentProblemId"])
     .index("by_parent", ["parentProblemId"]),
+  /**
+   * Room-scoped star rating (1–3) for a parsed problem identity.
+   * Keyed by contentHash + problemNumber so ratings survive reparse and clone.
+   * Missing / no row → 0 (easiest / unset). Shadows are not starred.
+   */
+  roomProblemStars: defineTable({
+    roomId: v.id("rooms"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_contentHash_and_problemNumber", [
+      "roomId",
+      "contentHash",
+      "problemNumber",
+    ]),
   /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.
