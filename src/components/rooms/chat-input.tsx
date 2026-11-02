@@ -1,6 +1,6 @@
 // TODO: Split this mega component into smaller pieces (composer shell, mention/slash
 // popovers, attachments, math insert, submit wiring) — do not grow further inline.
-import { Sigma, X } from "lucide-react"
+import { ScanSearch, Sigma, X } from "lucide-react"
 import {
   forwardRef,
   useEffect,
@@ -20,6 +20,7 @@ import {
 import { ComposerTextarea } from "~/components/rooms/composer-textarea"
 import { MathInputDialog } from "~/components/rooms/math-input-dialog"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
+import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import { Button } from "~/components/ui/button"
 import {
   appendUserTextToPrompt,
@@ -166,6 +167,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
   const [modeMenuIndex, setModeMenuIndex] = useState(0)
   const [draftMode, setDraftMode] = useState<ChatMode | undefined>(undefined)
   const [filePickerOpen, setFilePickerOpen] = useState(false)
+  const [phoneScanOpen, setPhoneScanOpen] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
   const [cursor, setCursor] = useState(0)
   const [typeaheadIndex, setTypeaheadIndex] = useState(0)
@@ -1065,6 +1067,16 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
             type="button"
             variant="outline"
             size="sm"
+            disabled={pending || imagesFull}
+            onClick={() => setPhoneScanOpen(true)}
+          >
+            <ScanSearch />
+            Skanna
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             disabled={pending || mathDrafts.length >= MAX_MATH_CHIPS}
             onClick={openMathDialogAtCursor}
           >
@@ -1086,6 +1098,19 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
         onPickLocalFiles={addImages}
         onPickStorageFile={addStorageFile}
         excludeStorageIds={attachedStorageIds}
+      />
+
+      <PhoneUploadDialog
+        roomId={roomId}
+        open={phoneScanOpen}
+        onOpenChange={setPhoneScanOpen}
+        showTrigger={false}
+        onCompleted={(file) => {
+          addStorageFile({
+            storageId: file.storageId,
+            filename: file.filename,
+          })
+        }}
       />
 
       <MathInputDialog
