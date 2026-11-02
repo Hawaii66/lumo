@@ -194,6 +194,25 @@ export default defineSchema({
       "subproblemLetter",
     ]),
   /**
+   * Room-scoped completion mark for a parsed problem / deluppgift.
+   * Same identity keying as roomProblemStars. Row present ⇒ completed.
+   * Personal progress — never published into templates or copied on clone.
+   * Shadows are not marked complete.
+   */
+  roomProblemCompletions: defineTable({
+    roomId: v.id("rooms"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    subproblemLetter: v.optional(v.string()),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
+      "roomId",
+      "contentHash",
+      "problemNumber",
+      "subproblemLetter",
+    ]),
+  /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.
    */

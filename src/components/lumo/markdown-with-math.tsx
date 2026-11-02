@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react"
 import { Highlighter } from "lucide-react"
 import { StaticMath } from "~/components/lumo/static-math"
+import { ProblemCompletionControl } from "~/components/rooms/problem-completion"
 import {
   ProblemStarsControl,
   type ProblemStars,
@@ -24,6 +25,11 @@ type MarkdownWithMathProps = {
   subproblemStars?: {
     getStars: (letter: string) => ProblemStars
     onChange: (letter: string, stars: ProblemStars) => void
+  }
+  /** When set, completion toggles appear on deluppgift labels. */
+  subproblemCompletion?: {
+    isCompleted: (letter: string) => boolean
+    onChange: (letter: string, completed: boolean) => void
   }
 }
 
@@ -245,6 +251,7 @@ export function MarkdownWithMath({
   onCiteMath,
   className,
   subproblemStars,
+  subproblemCompletion,
 }: MarkdownWithMathProps) {
   if (markdown.trim().length === 0) {
     return (
@@ -286,6 +293,15 @@ export function MarkdownWithMath({
                   hideLetter
                   stars={subproblemStars.getStars(letter)}
                   onChange={(stars) => subproblemStars.onChange(letter, stars)}
+                />
+              ) : null}
+              {subproblemCompletion ? (
+                <ProblemCompletionControl
+                  letter={letter}
+                  completed={subproblemCompletion.isCompleted(letter)}
+                  onChange={(completed) =>
+                    subproblemCompletion.onChange(letter, completed)
+                  }
                 />
               ) : null}
             </div>

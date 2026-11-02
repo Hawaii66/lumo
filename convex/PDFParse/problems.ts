@@ -30,11 +30,13 @@ const MAX_PROBLEMS_PER_PDF = 500;
 export const MAX_SHADOWS_PER_PARENT = 20;
 /** Hard cap for the room-wide shadow batch in listGroupedByRoom. */
 const MAX_SHADOWS_PER_ROOM = MAX_PROBLEMS_PER_PDF * MAX_SHADOWS_PER_PARENT;
-/** Max deluppgifter (a–z) we expect to star per problem. */
+/** Max deluppgifter (a–z) we expect to star / complete per problem. */
 const MAX_STAR_LETTERS_PER_PROBLEM = 26;
 /** Hard cap for roomProblemStars batch in listGroupedByRoom. */
 const MAX_STARS_PER_ROOM =
   MAX_PROBLEMS_PER_PDF * MAX_FILES_PER_ROOM * MAX_STAR_LETTERS_PER_PROBLEM;
+/** Hard cap for roomProblemCompletions batch in listGroupedByRoom. */
+const MAX_COMPLETIONS_PER_ROOM = MAX_STARS_PER_ROOM;
 
 const starsLevelValidator = v.union(
   v.literal(0),
@@ -47,6 +49,11 @@ const starEntryValidator = v.object({
   /** `""` = whole problem; otherwise `a`–`z`. */
   letter: v.string(),
   stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
+});
+
+/** Letters marked complete; `""` = whole problem. */
+const completionEntryValidator = v.object({
+  letter: v.string(),
 });
 
 function normalizeStoredStarLetter(letter: string | undefined): string {
@@ -108,6 +115,7 @@ export const listGroupedByRoom = query({
           id: v.id("problems"),
           problemNumber: v.string(),
           starEntries: v.array(starEntryValidator),
+          completionEntries: v.array(completionEntryValidator),
           shadows: v.array(shadowListItemValidator),
         }),
       ),
@@ -192,6 +200,26 @@ export const listGroupedByRoom = query({
       list.sort((a, b) => a.letter.localeCompare(b.letter));
     }
 
+    // One indexed read for all room completions → group by problem identity.
+    const completionsByProblem = new Map<
+      string,
+      Array<{ letter: string }>
+    >();
+    const completionRows = await ctx.db
+      .query("roomProblemCompletions")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_COMPLETIONS_PER_ROOM);
+    for (const row of completionRows) {
+      const letter = normalizeStoredStarLetter(row.subproblemLetter);
+      const key = `${row.contentHash}\0${row.problemNumber}`;
+      const list = completionsByProblem.get(key) ?? [];
+      list.push({ letter });
+      completionsByProblem.set(key, list);
+    }
+    for (const list of completionsByProblem.values()) {
+      list.sort((a, b) => a.letter.localeCompare(b.letter));
+    }
+
     const groups = [];
     for (const file of files) {
       const parsed = problemsByHash.get(file.contentHash) ?? [];
@@ -206,14 +234,16 @@ export const listGroupedByRoom = query({
           .sort((a, b) =>
             compareProblemNumbers(a.problemNumber, b.problemNumber),
           )
-          .map((row) => ({
-            id: row._id,
-            problemNumber: row.problemNumber,
-            starEntries:
-              starsByProblem.get(`${file.contentHash}\0${row.problemNumber}`) ??
-              [],
-            shadows: shadowsByParent.get(row._id) ?? [],
-          })),
+          .map((row) => {
+            const key = `${file.contentHash}\0${row.problemNumber}`;
+            return {
+              id: row._id,
+              problemNumber: row.problemNumber,
+              starEntries: starsByProblem.get(key) ?? [],
+              completionEntries: completionsByProblem.get(key) ?? [],
+              shadows: shadowsByParent.get(row._id) ?? [],
+            };
+          }),
       });
     }
 
@@ -305,6 +335,89 @@ export const setStars = mutation({
         problemNumber: problem.problemNumber,
         subproblemLetter: letter,
         stars: args.stars,
+      });
+    }
+    return null;
+  },
+});
+
+/**
+ * Mark or clear room-scoped completion for a parsed problem / deluppgift.
+ * completed=false deletes the row. Same letter rules as setStars.
+ * Not copied into templates.
+ */
+export const setCompleted = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+    completed: v.boolean(),
+    subproblemLetter: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const problem = await ctx.db.get(args.problemId);
+    if (problem === null) {
+      throw new Error("Uppgiften hittades inte");
+    }
+    if (isShadowProblem(problem)) {
+      throw new Error("Tvillingar kan inte markeras som klara");
+    }
+    const contentHash = problem.contentHash;
+    if (contentHash === undefined) {
+      throw new Error("Uppgiften saknar källa");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    if (!problemVisibleInRoom(problem, args.roomId, files)) {
+      throw new Error("Uppgiften tillhör inte det här rummet");
+    }
+
+    const hasParts = hasSubproblemHeadings(problem.problem);
+    let letter = "";
+    if (hasParts) {
+      const normalized = normalizeSubproblemLetter(args.subproblemLetter);
+      if (normalized === null) {
+        throw new Error("Ange deluppgift (a–z) för att markera som klar");
+      }
+      letter = normalized;
+    } else if (
+      args.subproblemLetter !== undefined &&
+      args.subproblemLetter.trim().length > 0
+    ) {
+      throw new Error("Uppgiften har inga deluppgifter");
+    }
+
+    const existing = await ctx.db
+      .query("roomProblemCompletions")
+      .withIndex(
+        "by_room_and_contentHash_and_problemNumber_and_subproblemLetter",
+        (q) =>
+          q
+            .eq("roomId", args.roomId)
+            .eq("contentHash", contentHash)
+            .eq("problemNumber", problem.problemNumber)
+            .eq("subproblemLetter", letter),
+      )
+      .unique();
+
+    if (!args.completed) {
+      if (existing !== null) {
+        await ctx.db.delete("roomProblemCompletions", existing._id);
+      }
+      return null;
+    }
+
+    if (existing === null) {
+      await ctx.db.insert("roomProblemCompletions", {
+        roomId: args.roomId,
+        contentHash,
+        problemNumber: problem.problemNumber,
+        subproblemLetter: letter,
       });
     }
     return null;
