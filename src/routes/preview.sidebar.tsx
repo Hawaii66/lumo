@@ -145,6 +145,12 @@ function SidebarPreviewPage() {
           ).find((p) => p.id === id)
           setLastAction(`Valde uppgift ${problem?.problemNumber ?? id}`)
         }}
+        onOpenProblemPdfOrder={() => {
+          setSection("settings")
+          setSelectedChatId(null)
+          setSelectedProblemId(null)
+          setLastAction("Öppnade Ordna PDF:er (inställningar)")
+        }}
       />
 
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">

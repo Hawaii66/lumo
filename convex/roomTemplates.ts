@@ -65,6 +65,9 @@ export const publishFromRoom = mutation({
         name: file.name,
         storageId: file.storageId,
         contentHash: file.contentHash,
+        ...(file.problemSortOrder !== undefined
+          ? { problemSortOrder: file.problemSortOrder }
+          : {}),
       });
     }
 
@@ -378,6 +381,9 @@ export const clone = mutation({
         name: file.name,
         storageId: file.storageId,
         contentHash: file.contentHash,
+        ...(file.problemSortOrder !== undefined
+          ? { problemSortOrder: file.problemSortOrder }
+          : {}),
       });
     }
 
