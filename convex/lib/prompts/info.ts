@@ -1,7 +1,7 @@
 import { sections } from "./fragments";
 
 /** Max characters stored in pdfInfo.text after distillation. */
-export const PDF_INFO_MAX_LENGTH = 800;
+export const PDF_INFO_MAX_LENGTH = 400;
 
 /**
  * Agent instructions: PDF/OCR → expected course methods / techniques.
