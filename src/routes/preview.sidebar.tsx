@@ -95,7 +95,7 @@ const SECTION_LABELS: Record<RoomSidebarSection, string> = {
 }
 
 function SidebarPreviewPage() {
-  const [section, setSection] = useState<RoomSidebarSection>("chats")
+  const [section, setSection] = useState<RoomSidebarSection>("problems")
   const [selectedChatId, setSelectedChatId] = useState<string | null>("c1")
   const [selectedProblemId, setSelectedProblemId] = useState<string | null>(
     null,
