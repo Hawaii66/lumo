@@ -132,7 +132,7 @@ export function ProblemHelpActions({
               aria-label="Genomgång per deluppgift"
               className="grid gap-2"
               style={{
-                gridTemplateColumns: `repeat(${letters.length}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${Math.min(letters.length, 4)}, minmax(0, 1fr))`,
               }}
             >
               {letters.map((letter) => {

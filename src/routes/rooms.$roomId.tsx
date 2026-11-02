@@ -543,30 +543,30 @@ function RoomPage() {
                   {shadowError}
                 </p>
               ) : null}
-              <div className="mt-4 min-h-0 overflow-y-auto">
+              <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-3">
                 <ParsedProblemView
                   problem={selectedProblem.problem}
                   showAnswer={showFacit}
                   showFacitToggle
                   onShowAnswerChange={setShowFacit}
                 />
-              </div>
-              <div className="flex min-h-0 flex-1 items-center justify-center py-6">
-                <ProblemHelpActions
-                  roomId={typedRoomId}
-                  problemNumber={selectedProblem.problem.problemNumber}
-                  fileName={selectedProblem.fileName}
-                  subproblemLetters={subproblemLetters}
-                  pending={problemChatPending}
-                  onSelect={async (draft: ProblemHelpStartDraft) => {
-                    await problemChatInputRef.current?.submitStartDraft({
-                      prompt: draft.prompt,
-                      mode: draft.mode,
-                      storageImages: draft.images,
-                      subproblemLetter: draft.subproblemLetter,
-                    })
-                  }}
-                />
+                <div className="flex justify-center py-6">
+                  <ProblemHelpActions
+                    roomId={typedRoomId}
+                    problemNumber={selectedProblem.problem.problemNumber}
+                    fileName={selectedProblem.fileName}
+                    subproblemLetters={subproblemLetters}
+                    pending={problemChatPending}
+                    onSelect={async (draft: ProblemHelpStartDraft) => {
+                      await problemChatInputRef.current?.submitStartDraft({
+                        prompt: draft.prompt,
+                        mode: draft.mode,
+                        storageImages: draft.images,
+                        subproblemLetter: draft.subproblemLetter,
+                      })
+                    }}
+                  />
+                </div>
               </div>
               <ChatInput
                 ref={problemChatInputRef}
