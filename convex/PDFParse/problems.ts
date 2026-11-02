@@ -19,6 +19,8 @@ import type { QueryCtx } from "../_generated/server";
 const MAX_PROBLEMS_PER_PDF = 500;
 /** Upper bound of shadow twins per parent per room. */
 export const MAX_SHADOWS_PER_PARENT = 20;
+/** Hard cap for the room-wide shadow batch in listGroupedByRoom. */
+const MAX_SHADOWS_PER_ROOM = MAX_PROBLEMS_PER_PDF * MAX_SHADOWS_PER_PARENT;
 
 export { isShadowProblem, problemVisibleInRoom } from "../lib/problemAccess";
 
@@ -89,50 +91,73 @@ export const listGroupedByRoom = query({
       .order("desc")
       .take(MAX_FILES_PER_ROOM);
 
-    const groups = [];
-    for (const file of files) {
+    // One indexed read per unique PDF hash (not per file).
+    const problemsByHash = new Map<string, Array<Doc<"problems">>>();
+    for (const hash of new Set(files.map((file) => file.contentHash))) {
       const rows = await ctx.db
         .query("problems")
-        .withIndex("by_contentHash", (q) =>
-          q.eq("contentHash", file.contentHash),
-        )
+        .withIndex("by_contentHash", (q) => q.eq("contentHash", hash))
         .take(MAX_PROBLEMS_PER_PDF);
+      problemsByHash.set(
+        hash,
+        rows.filter((row) => !isShadowProblem(row)),
+      );
+    }
 
-      // Skip shadow rows that somehow got a contentHash (shouldn't happen).
-      const parsed = rows.filter((row) => !isShadowProblem(row));
+    const parentIds = new Set<Id<"problems">>();
+    for (const rows of problemsByHash.values()) {
+      for (const row of rows) {
+        parentIds.add(row._id);
+      }
+    }
+
+    // One indexed read for all room shadows (index prefix on roomId).
+    const shadowsByParent = new Map<
+      Id<"problems">,
+      Array<{ id: Id<"problems">; problemNumber: string }>
+    >();
+    if (parentIds.size > 0) {
+      const shadowCap = Math.min(
+        parentIds.size * MAX_SHADOWS_PER_PARENT,
+        MAX_SHADOWS_PER_ROOM,
+      );
+      const shadowRows = await ctx.db
+        .query("problems")
+        .withIndex("by_room_and_parent", (q) => q.eq("roomId", args.roomId))
+        .take(shadowCap);
+      for (const shadow of shadowRows) {
+        if (shadow.parentProblemId === undefined) continue;
+        if (!parentIds.has(shadow.parentProblemId)) continue;
+        const list = shadowsByParent.get(shadow.parentProblemId) ?? [];
+        list.push({ id: shadow._id, problemNumber: shadow.problemNumber });
+        shadowsByParent.set(shadow.parentProblemId, list);
+      }
+      for (const list of shadowsByParent.values()) {
+        list.sort((a, b) =>
+          compareProblemNumbers(a.problemNumber, b.problemNumber),
+        );
+      }
+    }
+
+    const groups = [];
+    for (const file of files) {
+      const parsed = problemsByHash.get(file.contentHash) ?? [];
       if (parsed.length === 0) {
         continue;
-      }
-
-      const problems = [];
-      for (const row of parsed.sort((a, b) =>
-        compareProblemNumbers(a.problemNumber, b.problemNumber),
-      )) {
-        const shadows = await ctx.db
-          .query("problems")
-          .withIndex("by_room_and_parent", (q) =>
-            q.eq("roomId", args.roomId).eq("parentProblemId", row._id),
-          )
-          .take(MAX_SHADOWS_PER_PARENT);
-
-        problems.push({
-          id: row._id,
-          problemNumber: row.problemNumber,
-          shadows: shadows
-            .map((s) => ({
-              id: s._id,
-              problemNumber: s.problemNumber,
-            }))
-            .sort((a, b) =>
-              compareProblemNumbers(a.problemNumber, b.problemNumber),
-            ),
-        });
       }
 
       groups.push({
         fileId: file._id,
         fileName: file.name,
-        problems,
+        problems: [...parsed]
+          .sort((a, b) =>
+            compareProblemNumbers(a.problemNumber, b.problemNumber),
+          )
+          .map((row) => ({
+            id: row._id,
+            problemNumber: row.problemNumber,
+            shadows: shadowsByParent.get(row._id) ?? [],
+          })),
       });
     }
 

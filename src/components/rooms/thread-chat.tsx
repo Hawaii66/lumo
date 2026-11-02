@@ -5,7 +5,7 @@ import {
   useSmoothText,
   useUIMessages,
 } from "@convex-dev/agent/react"
-import { useMutation, useQuery } from "convex/react"
+import { useMutation } from "convex/react"
 import { Check, Copy, Pencil } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
@@ -15,6 +15,7 @@ import {
   ChatInput,
   type ChatInputHandle,
   type ChatInputSubmitPayload,
+  type RoomProblemGroup,
 } from "~/components/rooms/chat-input"
 import { SelectionCitePopup } from "~/components/rooms/selection-cite-popup"
 import { ChatDeletionExpiryPicker } from "~/components/rooms/chat-deletion-expiry-picker"
@@ -71,6 +72,8 @@ type ThreadChatProps = {
   roomId: Id<"rooms">
   threadId: string
   title: string
+  /** Shared room problem tree from the parent page subscription. */
+  problemGroups: Array<RoomProblemGroup> | undefined
   mode?: ChatMode
   deletionExpiry?: ChatDeletionExpiry
   deleteAt?: number | null
@@ -505,6 +508,7 @@ export function ThreadChat({
   roomId,
   threadId,
   title,
+  problemGroups,
   mode = DEFAULT_CHAT_MODE,
   deletionExpiry = DEFAULT_CHAT_DELETION_EXPIRY,
   deleteAt = null,
@@ -517,9 +521,6 @@ export function ThreadChat({
     { roomId, threadId },
     { initialNumItems: 50, stream: true },
   )
-  const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
-    roomId,
-  })
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const setMode = useMutation(api.threads.setMode)
   const setDeletionExpiry = useMutation(api.threads.setDeletionExpiry)
@@ -885,6 +886,7 @@ export function ThreadChat({
       <ChatInput
         ref={chatInputRef}
         roomId={roomId}
+        problemGroups={problemGroups}
         pending={pending}
         error={error}
         mode={mode}
