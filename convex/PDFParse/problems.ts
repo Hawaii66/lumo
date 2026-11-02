@@ -81,6 +81,24 @@ function compareFileNames(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
 
+/** Ordered PDFs first (ascending), then unordered by file name. */
+function compareProblemGroups(
+  a: { fileName: string; problemSortOrder?: number },
+  b: { fileName: string; problemSortOrder?: number },
+): number {
+  const aOrder = a.problemSortOrder;
+  const bOrder = b.problemSortOrder;
+  if (aOrder !== undefined && bOrder !== undefined) {
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+    return compareFileNames(a.fileName, b.fileName);
+  }
+  if (aOrder !== undefined) return -1;
+  if (bOrder !== undefined) return 1;
+  return compareFileNames(a.fileName, b.fileName);
+}
+
 const problemRowValidator = v.object({
   problemNumber: v.string(),
   problem: v.string(),
@@ -192,7 +210,17 @@ export const listGroupedByRoom = query({
       list.sort((a, b) => a.letter.localeCompare(b.letter));
     }
 
-    const groups = [];
+    const groups: Array<{
+      fileId: Id<"files">;
+      fileName: string;
+      problemSortOrder?: number;
+      problems: Array<{
+        id: Id<"problems">;
+        problemNumber: string;
+        starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>;
+        shadows: Array<{ id: Id<"problems">; problemNumber: string }>;
+      }>;
+    }> = [];
     for (const file of files) {
       const parsed = problemsByHash.get(file.contentHash) ?? [];
       if (parsed.length === 0) {
@@ -202,6 +230,9 @@ export const listGroupedByRoom = query({
       groups.push({
         fileId: file._id,
         fileName: file.name,
+        ...(file.problemSortOrder !== undefined
+          ? { problemSortOrder: file.problemSortOrder }
+          : {}),
         problems: [...parsed]
           .sort((a, b) =>
             compareProblemNumbers(a.problemNumber, b.problemNumber),
@@ -217,8 +248,8 @@ export const listGroupedByRoom = query({
       });
     }
 
-    groups.sort((a, b) => compareFileNames(a.fileName, b.fileName));
-    return groups;
+    groups.sort(compareProblemGroups);
+    return groups.map(({ problemSortOrder: _order, ...group }) => group);
   },
 });
 

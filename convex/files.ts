@@ -120,6 +120,80 @@ export const listByRoom = query({
   },
 });
 
+/**
+ * Set the Uppgifter sidebar order for parsed problem PDFs in a room.
+ * `fileIds` is the full desired order (index 0 = top). Any other room
+ * file that previously had an order is cleared.
+ */
+export const setProblemSortOrder = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    fileIds: v.array(v.id("files")),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    if (args.fileIds.length > MAX_FILES_PER_ROOM) {
+      throw new Error("För många filer");
+    }
+
+    const seen = new Set<string>();
+    for (const fileId of args.fileIds) {
+      if (seen.has(fileId)) {
+        throw new Error("Duplicerade filer i ordningen");
+      }
+      seen.add(fileId);
+    }
+
+    const roomFiles = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+
+    const filesById = new Map(roomFiles.map((file) => [file._id, file]));
+    const orderedFiles = [];
+    for (const fileId of args.fileIds) {
+      const file = filesById.get(fileId);
+      if (file === undefined) {
+        throw new Error("Filen hittades inte i rummet");
+      }
+      orderedFiles.push(file);
+    }
+
+    const hashHasProblems = new Map<string, boolean>();
+    for (const hash of new Set(orderedFiles.map((file) => file.contentHash))) {
+      const parsed = await ctx.db
+        .query("problems")
+        .withIndex("by_contentHash", (q) => q.eq("contentHash", hash))
+        .first();
+      hashHasProblems.set(hash, parsed !== null);
+    }
+
+    for (const file of orderedFiles) {
+      if (!hashHasProblems.get(file.contentHash)) {
+        throw new Error(`Filen har inga tolkade uppgifter: ${file.name}`);
+      }
+    }
+
+    for (const [index, fileId] of args.fileIds.entries()) {
+      await ctx.db.patch("files", fileId, {
+        problemSortOrder: index,
+      });
+    }
+
+    for (const file of roomFiles) {
+      if (seen.has(file._id)) continue;
+      if (file.problemSortOrder === undefined) continue;
+      await ctx.db.patch("files", file._id, {
+        problemSortOrder: undefined,
+      });
+    }
+
+    return null;
+  },
+});
+
 export const rename = mutation({
   args: {
     fileId: v.id("files"),

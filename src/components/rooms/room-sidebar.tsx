@@ -47,6 +47,7 @@ export type RoomSidebarProblemItem = {
 }
 
 export type RoomSidebarProblemGroup = {
+  fileId?: string
   fileName: string
   problems: Array<RoomSidebarProblemItem>
 }
@@ -65,6 +66,8 @@ export type RoomSidebarProps = {
   problemGroups: RoomSidebarProblemGroup[]
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
+  /** Opens settings focused on problem-PDF order. */
+  onOpenProblemPdfOrder?: () => void
 }
 
 type StarFilterLevel = 1 | 2 | 3
@@ -100,6 +103,7 @@ export function RoomSidebar({
   problemGroups,
   selectedProblemId,
   onSelectProblem,
+  onOpenProblemPdfOrder,
 }: RoomSidebarProps) {
   const [listSection, setListSection] =
     useState<RoomSidebarListSection>("chats")
@@ -201,6 +205,7 @@ export function RoomSidebar({
             }
             onSelectProblem={onSelectProblem}
             onShowFiles={() => onSectionChange("files")}
+            onOpenProblemPdfOrder={onOpenProblemPdfOrder}
           />
         )}
       </div>
@@ -305,11 +310,13 @@ function ProblemList({
   selectedProblemId,
   onSelectProblem,
   onShowFiles,
+  onOpenProblemPdfOrder,
 }: {
   groups: RoomSidebarProblemGroup[]
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
   onShowFiles: () => void
+  onOpenProblemPdfOrder?: () => void
 }) {
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Set<StarFilterLevel>>(
@@ -321,8 +328,6 @@ function ProblemList({
   const showAllStars = starLevels.size === 0
 
   const filteredGroups = useMemo(() => {
-    const compareFileNames = (a: string, b: string) =>
-      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
     const compareProblemNumbers = (a: string, b: string) =>
       a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
 
@@ -384,9 +389,8 @@ function ProblemList({
             }))
             .filter((group) => group.problems.length > 0)
 
-    return [...source]
-      .map(sortGroup)
-      .sort((a, b) => compareFileNames(a.fileName, b.fileName))
+    // Preserve backend group order (problemSortOrder); only sort within groups.
+    return source.map(sortGroup)
   }, [groups, normalizedQuery, starLevels])
 
   // While searching, force-open groups that still have matches.
@@ -518,7 +522,7 @@ function ProblemList({
         filteredGroups.map((group) => {
           const isCollapsed = collapsed[group.fileName] === true
           return (
-            <div key={group.fileName}>
+            <div key={group.fileId ?? group.fileName}>
               <button
                 type="button"
                 onClick={() => toggleGroup(group.fileName)}
@@ -593,6 +597,16 @@ function ProblemList({
           )
         })
       )}
+
+      {groups.length > 0 && onOpenProblemPdfOrder ? (
+        <button
+          type="button"
+          onClick={onOpenProblemPdfOrder}
+          className="mt-1 w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:underline"
+        >
+          Ordna PDF:er
+        </button>
+      ) : null}
     </div>
   )
 }

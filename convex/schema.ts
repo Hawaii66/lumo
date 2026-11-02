@@ -38,6 +38,11 @@ export default defineSchema({
     storageId: v.id("_storage"),
     /** SHA-256 from Convex storage metadata, set on upload. */
     contentHash: v.string(),
+    /**
+     * Display order of this PDF under Uppgifter (lower = higher).
+     * Missing on unordered/new files → sorted after ordered ones by name.
+     */
+    problemSortOrder: v.optional(v.number()),
   })
     .index("by_room", ["roomId"])
     .index("by_storageId", ["storageId"]),
@@ -68,6 +73,8 @@ export default defineSchema({
     name: v.string(),
     storageId: v.id("_storage"),
     contentHash: v.string(),
+    /** Copied from source room file; missing on older templates. */
+    problemSortOrder: v.optional(v.number()),
   })
     .index("by_template", ["templateId"])
     .index("by_storageId", ["storageId"]),

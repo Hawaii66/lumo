@@ -29,7 +29,10 @@ import {
   RoomSidebar
   
 } from "~/components/rooms/room-sidebar"
-import { RoomSettingsPanel } from "~/components/rooms/room-settings-panel"
+import {
+  RoomSettingsPanel,
+  type RoomSettingsFocusSection,
+} from "~/components/rooms/room-settings-panel"
 import { ThreadChat } from "~/components/rooms/thread-chat"
 import { Button } from "~/components/ui/button"
 import { uploadFileToStorage } from "~/lib/upload"
@@ -60,6 +63,8 @@ function RoomPage() {
   const removeRoom = useMutation(api.rooms.remove)
 
   const [section, setSection] = useState<RoomSidebarSection>("chats")
+  const [settingsFocus, setSettingsFocus] =
+    useState<RoomSettingsFocusSection | null>(null)
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [selectedProblemId, setSelectedProblemId] =
     useState<Id<"problems"> | null>(null)
@@ -147,6 +152,7 @@ function RoomPage() {
   const problemGroupItems = useMemo(
     () =>
       (problemGroups ?? []).map((group) => ({
+        fileId: group.fileId,
         fileName: group.fileName,
         problems: group.problems.map((problem) => ({
           id: problem.id,
@@ -327,6 +333,7 @@ function RoomPage() {
         section={section}
         onSectionChange={(next) => {
           setSection(next)
+          if (next !== "settings") setSettingsFocus(null)
           if (next !== "chats") setSelectedThreadId(null)
           if (next !== "problems") setSelectedProblemId(null)
         }}
@@ -338,6 +345,7 @@ function RoomPage() {
           setSection("chats")
           setSelectedThreadId(threadId)
           setSelectedProblemId(null)
+          setSettingsFocus(null)
         }}
         problemGroups={problemGroupItems}
         selectedProblemId={
@@ -349,6 +357,13 @@ function RoomPage() {
           setSelectedThreadId(null)
           setProblemChatError(null)
           setShadowError(null)
+          setSettingsFocus(null)
+        }}
+        onOpenProblemPdfOrder={() => {
+          setSettingsFocus("problemPdfOrder")
+          setSection("settings")
+          setSelectedThreadId(null)
+          setSelectedProblemId(null)
         }}
       />
 
@@ -446,7 +461,11 @@ function RoomPage() {
           </div>
         ) : section === "settings" ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <RoomSettingsPanel roomId={typedRoomId} />
+            <RoomSettingsPanel
+              roomId={typedRoomId}
+              focusSection={settingsFocus}
+              onFocusHandled={() => setSettingsFocus(null)}
+            />
           </div>
         ) : section === "problems" ? (
           selectedProblemId === null ? (
