@@ -60,7 +60,7 @@ function RoomPage() {
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
 
-  const [section, setSection] = useState<RoomSidebarSection>("chats")
+  const [section, setSection] = useState<RoomSidebarSection>("problems")
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [selectedProblemId, setSelectedProblemId] =
     useState<Id<"problems"> | null>(null)

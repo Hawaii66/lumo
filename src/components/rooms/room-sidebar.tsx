@@ -89,8 +89,8 @@ const LIST_SECTIONS: Array<{
   label: string
   icon: typeof MessageSquare
 }> = [
-  { id: "chats", label: "Chattar", icon: MessageSquare },
   { id: "problems", label: "Uppgifter", icon: FileText },
+  { id: "chats", label: "Chattar", icon: MessageSquare },
 ]
 
 export function RoomSidebar({
@@ -108,7 +108,7 @@ export function RoomSidebar({
   onSelectProblem,
 }: RoomSidebarProps) {
   const [listSection, setListSection] =
-    useState<RoomSidebarListSection>("chats")
+    useState<RoomSidebarListSection>("problems")
 
   // Keep list tab in sync when parent switches to chats/problems.
   const activeListSection =
