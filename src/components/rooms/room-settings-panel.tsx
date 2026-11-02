@@ -1,3 +1,5 @@
+// TODO: Split this mega settings panel (members, template publish/expire, danger zone,
+// generalInfo) into smaller panels/hooks — extract without changing UX.
 import { useMutation, useQuery } from "convex/react"
 import {
   Archive,

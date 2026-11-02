@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { convexQuery } from "@convex-dev/react-query"
 import { api } from "../../convex/_generated/api"
-import { Button } from "~/components/ui/button"
 import {
   Card,
   CardContent,
@@ -16,22 +15,14 @@ import { ComputeEngineDemo } from "~/components/compute-engine-demo"
 import { PdfViewerDemo } from "~/components/pdf-viewer-demo"
 import { RoomsPanel } from "~/components/rooms/rooms-panel"
 import { SignInCard } from "~/components/sign-in"
-import { useUiStore, type HelpLevel } from "~/stores/ui-store"
+import { useUiStore } from "~/stores/ui-store"
 
 export const Route = createFileRoute("/")({
   component: Home,
 })
 
-const HELP_LEVELS: { value: HelpLevel; label: string }[] = [
-  { value: "minimal", label: "Hitta fel" },
-  { value: "explain", label: "Förklara tanke" },
-  { value: "solve", label: "Lös helt" },
-]
-
 function Home() {
   const { data } = useSuspenseQuery(convexQuery(api.health.status, {}))
-  const helpLevel = useUiStore((s) => s.helpLevel)
-  const setHelpLevel = useUiStore((s) => s.setHelpLevel)
   const mathDraft = useUiStore((s) => s.mathDraft)
   const setMathDraft = useUiStore((s) => s.setMathDraft)
 
@@ -66,24 +57,6 @@ function Home() {
       <RoomsPanel />
 
       <PdfViewerDemo />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Hjälpnivå</CardTitle>
-          <CardDescription>Zustand-styrd UI-state</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          {HELP_LEVELS.map((level) => (
-            <Button
-              key={level.value}
-              variant={helpLevel === level.value ? "default" : "outline"}
-              onClick={() => setHelpLevel(level.value)}
-            >
-              {level.label}
-            </Button>
-          ))}
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>

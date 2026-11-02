@@ -1,3 +1,5 @@
+// TODO: Split this mega component into smaller pieces (composer shell, mention/slash
+// popovers, attachments, math insert, submit wiring) — do not grow further inline.
 import { useQuery } from "convex/react"
 import { Sigma, X } from "lucide-react"
 import {

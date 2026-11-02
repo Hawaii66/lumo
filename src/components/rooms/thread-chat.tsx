@@ -1,3 +1,5 @@
+// TODO: Split this mega component (message list, composer bridge, mode/expiry chrome,
+// cite/selection) into focused modules — leave behavior unchanged while extracting.
 import {
   optimisticallySendMessage,
   useSmoothText,

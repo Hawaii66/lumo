@@ -3,6 +3,11 @@
 Write your Convex functions here.
 See https://docs.convex.dev/functions for more.
 
+## Project TODOs (also listed in root README)
+
+- TODO: Add a thin `convex-test` suite for critical authz + happy paths (rooms, threads, problems).
+- Known (deferred): `listGroupedByRoom` N+1 reads + triple client `useQuery` subscribe — fix when measured pain.
+
 A query function that takes two arguments looks like:
 
 ```ts

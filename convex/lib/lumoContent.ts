@@ -104,15 +104,6 @@ export function normalizeLumoParsedProblem(
   };
 }
 
-export const helpLevelValidator = v.union(
-  v.literal("minimal"),
-  v.literal("explain"),
-  v.literal("solve"),
-  v.literal("practice"),
-);
-
-export type HelpLevel = "minimal" | "explain" | "solve" | "practice";
-
 /** Per-chat interaction mode (stored on the thread). */
 export const chatModeValidator = v.union(
   v.literal("normal"),

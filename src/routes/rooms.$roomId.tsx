@@ -303,6 +303,10 @@ function RoomPage() {
     )
   }
 
+  // TODO: Fix mobile room layout — sidebar + main shell is computer-only for now;
+  // make /rooms/$roomId usable on phone (collapse/drawer sidebar, stacking, touch).
+  // TODO: Split mega room page / wire thinner child components once chat-input,
+  // room-settings-panel, and thread-chat are broken up; add a thin convex-test suite.
   return (
     <div className="flex h-svh bg-background">
       <RoomSidebar
