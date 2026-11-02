@@ -44,21 +44,32 @@ const MOCK_PROBLEM_GROUPS = [
       {
         id: "p1",
         problemNumber: "1.3",
-        stars: 2 as const,
+        starEntries: [
+          { letter: "a", stars: 2 as const },
+          { letter: "c", stars: 1 as const },
+        ],
         shadows: [
           { id: "p1t1", problemNumber: "1.3·T1" },
           { id: "p1t2", problemNumber: "1.3·T2" },
         ],
       },
-      { id: "p2", problemNumber: "2.1", stars: 0 as const },
-      { id: "p3", problemNumber: "2.2", stars: 3 as const },
+      { id: "p2", problemNumber: "2.1", starEntries: [] },
+      {
+        id: "p3",
+        problemNumber: "2.2",
+        starEntries: [{ letter: "", stars: 3 as const }],
+      },
     ],
   },
   {
     fileName: "ovning_vecka4.pdf",
     problems: [
-      { id: "p4", problemNumber: "3.4", stars: 1 as const },
-      { id: "p5", problemNumber: "3.5", stars: 0 as const },
+      {
+        id: "p4",
+        problemNumber: "3.4",
+        starEntries: [{ letter: "", stars: 1 as const }],
+      },
+      { id: "p5", problemNumber: "3.5", starEntries: [] },
     ],
   },
 ]

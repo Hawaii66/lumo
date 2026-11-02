@@ -80,6 +80,7 @@ export const publishFromRoom = mutation({
         templateId,
         contentHash: star.contentHash,
         problemNumber: star.problemNumber,
+        subproblemLetter: star.subproblemLetter ?? "",
         stars: star.stars,
       });
     }
@@ -400,6 +401,7 @@ export const clone = mutation({
         roomId,
         contentHash: star.contentHash,
         problemNumber: star.problemNumber,
+        subproblemLetter: star.subproblemLetter ?? "",
         stars: star.stars,
       });
     }

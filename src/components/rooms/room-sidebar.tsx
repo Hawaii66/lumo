@@ -14,6 +14,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import {
   ProblemStarsDisplay,
+  type ProblemStarEntry,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
 import { Button } from "~/components/ui/button"
@@ -37,8 +38,8 @@ export type RoomSidebarChatItem = {
 export type RoomSidebarProblemItem = {
   id: string
   problemNumber: string
-  /** Room-scoped difficulty; 0 = easiest / unset. */
-  stars: ProblemStars
+  /** Room-scoped difficulty per deluppgift (or whole problem as letter `""`). */
+  starEntries: Array<ProblemStarEntry>
   shadows?: Array<{
     id: string
     problemNumber: string
@@ -376,7 +377,9 @@ function ProblemList({
             .map((group) => ({
               ...group,
               problems: group.problems.filter((problem) =>
-                starLevels.has(problem.stars as StarFilterLevel),
+                problem.starEntries.some((entry) =>
+                  starLevels.has(entry.stars as StarFilterLevel),
+                ),
               ),
             }))
             .filter((group) => group.problems.length > 0)
@@ -555,7 +558,7 @@ function ProblemList({
                           <span className="min-w-0 flex-1 truncate">
                             {problem.problemNumber}
                           </span>
-                          <ProblemStarsDisplay stars={problem.stars} />
+                          <ProblemStarsDisplay entries={problem.starEntries} />
                         </button>
                         {shadows.length > 0 ? (
                           <ul className="mt-0.5 ml-3 flex flex-col gap-0.5 border-l border-sidebar-border pl-2">

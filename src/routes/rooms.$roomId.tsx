@@ -151,7 +151,7 @@ function RoomPage() {
         problems: group.problems.map((problem) => ({
           id: problem.id,
           problemNumber: problem.problemNumber,
-          stars: problem.stars,
+          starEntries: problem.starEntries,
           shadows: problem.shadows.map((shadow) => ({
             id: shadow.id,
             problemNumber: shadow.problemNumber,
@@ -161,14 +161,14 @@ function RoomPage() {
     [problemGroups],
   )
 
-  const selectedProblemStars = useMemo(() => {
-    if (selectedProblemId === null) return 0 as const
+  const selectedProblemStarEntries = useMemo(() => {
+    if (selectedProblemId === null) return []
     for (const group of problemGroupItems) {
       for (const problem of group.problems) {
-        if (problem.id === selectedProblemId) return problem.stars
+        if (problem.id === selectedProblemId) return problem.starEntries
       }
     }
-    return 0 as const
+    return []
   }, [problemGroupItems, selectedProblemId])
 
   const subproblemLetters = useMemo(() => {
@@ -561,19 +561,24 @@ function RoomPage() {
                   showAnswer={showFacit}
                   showFacitToggle
                   onShowAnswerChange={setShowFacit}
-                  stars={
+                  subproblemLetters={
+                    selectedProblem.isShadow ? [] : subproblemLetters
+                  }
+                  starEntries={
                     selectedProblem.isShadow
-                      ? undefined
-                      : selectedProblemStars
+                      ? []
+                      : selectedProblemStarEntries
                   }
                   onStarsChange={
                     selectedProblem.isShadow
                       ? undefined
-                      : (stars) => {
+                      : (letter, stars) => {
                           void setProblemStars({
                             roomId: typedRoomId,
                             problemId: selectedProblem.id,
                             stars,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
                           })
                         }
                   }

@@ -83,6 +83,11 @@ export default defineSchema({
     templateId: v.id("roomTemplates"),
     contentHash: v.string(),
     problemNumber: v.string(),
+    /**
+     * Deluppgift letter (`a`–`z`), or `""` for the whole problem when it has
+     * no deluppgifter. Missing on older template rows → treat as `""`.
+     */
+    subproblemLetter: v.optional(v.string()),
     stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
   }).index("by_template", ["templateId"]),
   scanSessions: defineTable({
@@ -168,21 +173,25 @@ export default defineSchema({
     .index("by_room_and_parent", ["roomId", "parentProblemId"])
     .index("by_parent", ["parentProblemId"]),
   /**
-   * Room-scoped star rating (1–3) for a parsed problem identity.
-   * Keyed by contentHash + problemNumber so ratings survive reparse and clone.
-   * Missing / no row → 0 (easiest / unset). Shadows are not starred.
+   * Room-scoped star rating (1–3) for a parsed problem / deluppgift.
+   * Keyed by contentHash + problemNumber + subproblemLetter so ratings
+   * survive reparse and clone. `subproblemLetter` is `""` for whole problems
+   * without deluppgifter, otherwise `a`–`z`. Missing letter on older rows → `""`.
+   * Shadows are not starred.
    */
   roomProblemStars: defineTable({
     roomId: v.id("rooms"),
     contentHash: v.string(),
     problemNumber: v.string(),
+    subproblemLetter: v.optional(v.string()),
     stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
   })
     .index("by_room", ["roomId"])
-    .index("by_room_and_contentHash_and_problemNumber", [
+    .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
       "contentHash",
       "problemNumber",
+      "subproblemLetter",
     ]),
   /**
    * Distilled general instructions from a PDF, keyed by content hash.
