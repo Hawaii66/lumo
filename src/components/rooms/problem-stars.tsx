@@ -9,10 +9,6 @@ export type ProblemStarEntry = {
   stars: 1 | 2 | 3
 }
 
-export function nextProblemStars(current: ProblemStars): ProblemStars {
-  return ((current + 1) % 4) as ProblemStars
-}
-
 export function starsForLetter(
   entries: Array<ProblemStarEntry>,
   letter: string,
@@ -99,7 +95,7 @@ type ProblemStarsControlProps = {
   className?: string
 }
 
-/** Clickable cycle control for one problem / deluppgift. */
+/** Per-star click control: pick a level, or click the current level to clear. */
 export function ProblemStarsControl({
   stars,
   onChange,
@@ -109,40 +105,57 @@ export function ProblemStarsControl({
 }: ProblemStarsControlProps) {
   const scope =
     letter !== undefined && letter !== "" ? `deluppgift (${letter})` : "uppgiften"
-  const label =
-    stars === 0
-      ? `Ingen stjärna för ${scope} — klicka för att sätta 1`
-      : `${stars} stjärn${stars === 1 ? "a" : "or"} för ${scope} — klicka för att ändra`
+
+  function selectLevel(level: 1 | 2 | 3) {
+    onChange(stars === level ? 0 : level)
+  }
 
   return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      onClick={() => onChange(nextProblemStars(stars))}
+    <span
       className={cn(
-        "inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-0.5 transition-colors",
-        "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+        "inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-0.5",
         className,
       )}
+      role="group"
+      aria-label={`Stjärnor för ${scope}`}
     >
       {!hideLetter && letter !== undefined && letter !== "" ? (
         <span className="mr-0.5 text-xs font-semibold text-muted-foreground">
           {letter}
         </span>
       ) : null}
-      {[1, 2, 3].map((n) => (
-        <Star
-          key={n}
-          className={cn(
-            "size-3.5",
-            n <= stars
-              ? "fill-amber-500 text-amber-500"
-              : "fill-none text-muted-foreground/40",
-          )}
-          aria-hidden
-        />
-      ))}
-    </button>
+      {([1, 2, 3] as const).map((n) => {
+        const filled = n <= stars
+        const label =
+          stars === n
+            ? `Ta bort stjärnor för ${scope}`
+            : `Sätt ${n} stjärn${n === 1 ? "a" : "or"} för ${scope}`
+        return (
+          <button
+            key={n}
+            type="button"
+            title={label}
+            aria-label={label}
+            aria-pressed={stars === n}
+            onClick={() => selectLevel(n)}
+            className={cn(
+              "rounded-sm p-0.5 transition-[transform,colors,background-color] duration-100",
+              "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              "active:scale-90 active:bg-amber-500/15",
+            )}
+          >
+            <Star
+              className={cn(
+                "size-3.5 transition-[fill,color,transform] duration-150",
+                filled
+                  ? "fill-amber-500 text-amber-500 scale-110"
+                  : "fill-none text-muted-foreground/40",
+              )}
+              aria-hidden
+            />
+          </button>
+        )
+      })}
+    </span>
   )
 }
