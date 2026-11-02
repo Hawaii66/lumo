@@ -106,10 +106,12 @@ export default defineSchema({
     mode: v.optional(chatModeValidator),
     /**
      * Auto-archive preference. Missing on older threads → infinite.
-     * `deleteAt` is the absolute archive deadline when not infinite; cron archives.
+     * `deleteAt` is the absolute archive deadline when not infinite;
+     * `archiveJobId` is the one-shot scheduler job that archives at that time.
      */
     deletionExpiry: v.optional(chatDeletionExpiryValidator),
     deleteAt: v.optional(v.number()),
+    archiveJobId: v.optional(v.id("_scheduled_functions")),
     /**
      * Set when the chat is archived (manual or expiry). Missing → active.
      * Cleared on unarchive. Soft-delete: messages are kept.
