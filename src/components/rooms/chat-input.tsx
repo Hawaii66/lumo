@@ -1,6 +1,5 @@
 // TODO: Split this mega component into smaller pieces (composer shell, mention/slash
 // popovers, attachments, math insert, submit wiring) — do not grow further inline.
-import { useQuery } from "convex/react"
 import { Sigma, X } from "lucide-react"
 import {
   forwardRef,
@@ -11,7 +10,6 @@ import {
   useState,
 } from "react"
 import type { FormEvent, KeyboardEvent } from "react"
-import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { StaticMath } from "~/components/lumo/static-math"
 import {
@@ -96,12 +94,25 @@ export type ChatInputHandle = {
   insertCitation: (citation: ChatInputCitation) => void
 }
 
+/** Shape from `listGroupedByRoom` — pass from the room page; do not re-subscribe. */
+export type RoomProblemGroup = {
+  fileId: Id<"files">
+  fileName: string
+  problems: Array<{
+    id: Id<"problems">
+    problemNumber: string
+    shadows: Array<{ id: Id<"problems">; problemNumber: string }>
+  }>
+}
+
 type MathDraft = MathRefDraft & {
   id: string
 }
 
 type ChatInputProps = {
   roomId: Id<"rooms">
+  /** Room problem tree from the parent subscription (undefined while loading). */
+  problemGroups: Array<RoomProblemGroup> | undefined
   onSubmit: (payload: ChatInputSubmitPayload) => Promise<void> | void
   pending?: boolean
   error?: string | null
@@ -128,6 +139,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
   function ChatInput(
     {
       roomId,
+      problemGroups,
       onSubmit,
       pending = false,
       error = null,
@@ -169,10 +181,6 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
   const attachedImageCount =
     pendingImages.length + pendingStorageImages.length
   const imagesFull = attachedImageCount >= MAX_IMAGES
-
-  const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
-    roomId,
-  })
 
   const problemOptions = useMemo((): Array<ProblemMentionOption> => {
     if (!problemGroups) return []

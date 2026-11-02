@@ -571,6 +571,7 @@ function RoomPage() {
               <ChatInput
                 ref={problemChatInputRef}
                 roomId={typedRoomId}
+                problemGroups={problemGroups}
                 defaultProblemId={selectedProblem.id}
                 className="shrink-0"
                 pending={problemChatPending}
@@ -604,6 +605,7 @@ function RoomPage() {
             roomId={typedRoomId}
             threadId={selectedThread.threadId}
             title={selectedThread.title}
+            problemGroups={problemGroups}
             mode={selectedThread.mode}
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}

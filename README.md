@@ -83,7 +83,6 @@ Dessa speglas även som `// TODO:` i kod där det passar.
 1. **Mobil room layout** — gör `rooms.$roomId` användbart på telefon (sidebar/main shell). Computer-only tills dess.
 2. **Splitta mega-komponenter** — `chat-input.tsx`, `room-settings-panel.tsx`, `thread-chat.tsx` (och ev. rumssidan) i mindre delar.
 3. **Tunn `convex-test`-svit** — några authz/happy-path-tester för kritiska Convex-funktioner; ingen stor suite ännu.
-4. **(Känt, ej prioriterat att fixa nu)** `listGroupedByRoom` N+1 + trippel `useQuery`-prenumeration — se status review; lämnas tills mätbart problem.
 
 ---
 
