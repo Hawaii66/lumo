@@ -9,11 +9,19 @@ import {
   Pin,
   Search,
   Settings,
+  Star,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import {
+  ProblemStarsDisplay,
+  type ProblemStarEntry,
+  type ProblemStars,
+} from "~/components/rooms/problem-stars"
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { cn } from "~/lib/utils"
+
+export type { ProblemStars }
 
 export type RoomSidebarListSection = "chats" | "problems"
 export type RoomSidebarSection = RoomSidebarListSection | "files" | "settings"
@@ -30,6 +38,8 @@ export type RoomSidebarChatItem = {
 export type RoomSidebarProblemItem = {
   id: string
   problemNumber: string
+  /** Room-scoped difficulty per deluppgift (or whole problem as letter `""`). */
+  starEntries: Array<ProblemStarEntry>
   shadows?: Array<{
     id: string
     problemNumber: string
@@ -56,6 +66,17 @@ export type RoomSidebarProps = {
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
 }
+
+type StarFilterLevel = 1 | 2 | 3
+
+const STAR_LEVEL_OPTIONS: Array<{
+  level: StarFilterLevel
+  title: string
+}> = [
+  { level: 1, title: "Visa 1 stjärna" },
+  { level: 2, title: "Visa 2 stjärnor" },
+  { level: 3, title: "Visa 3 stjärnor" },
+]
 
 const LIST_SECTIONS: Array<{
   id: RoomSidebarListSection
@@ -291,9 +312,13 @@ function ProblemList({
   onShowFiles: () => void
 }) {
   const [query, setQuery] = useState("")
+  const [starLevels, setStarLevels] = useState<Set<StarFilterLevel>>(
+    () => new Set(),
+  )
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   const normalizedQuery = query.trim().toLowerCase()
+  const showAllStars = starLevels.size === 0
 
   const filteredGroups = useMemo(() => {
     const compareFileNames = (a: string, b: string) =>
@@ -315,7 +340,7 @@ function ProblemList({
         ),
     })
 
-    const source = normalizedQuery
+    const searched = normalizedQuery
       ? groups
           .map((group) => {
             const fileMatch = group.fileName
@@ -345,10 +370,24 @@ function ProblemList({
           .filter((group) => group.problems.length > 0)
       : groups
 
+    const source =
+      starLevels.size === 0
+        ? searched
+        : searched
+            .map((group) => ({
+              ...group,
+              problems: group.problems.filter((problem) =>
+                problem.starEntries.some((entry) =>
+                  starLevels.has(entry.stars as StarFilterLevel),
+                ),
+              ),
+            }))
+            .filter((group) => group.problems.length > 0)
+
     return [...source]
       .map(sortGroup)
       .sort((a, b) => compareFileNames(a.fileName, b.fileName))
-  }, [groups, normalizedQuery])
+  }, [groups, normalizedQuery, starLevels])
 
   // While searching, force-open groups that still have matches.
   useEffect(() => {
@@ -385,6 +424,26 @@ function ProblemList({
     )
   }
 
+  const emptyMessage =
+    normalizedQuery.length > 0
+      ? `Inga träffar för “${query.trim()}”.`
+      : !showAllStars
+        ? "Inga uppgifter med valda stjärnnivåer."
+        : "Inga uppgifter."
+
+  function clearStarFilter() {
+    setStarLevels(new Set())
+  }
+
+  function toggleStarLevel(level: StarFilterLevel) {
+    setStarLevels((prev) => {
+      const next = new Set(prev)
+      if (next.has(level)) next.delete(level)
+      else next.add(level)
+      return next
+    })
+  }
+
   return (
     <div className="flex flex-col gap-2" aria-label="Uppgifter">
       <div className="relative px-0.5">
@@ -398,9 +457,62 @@ function ProblemList({
         />
       </div>
 
+      <div
+        className="grid grid-cols-4 gap-0.5 rounded-lg bg-sidebar-accent/40 p-0.5"
+        role="group"
+        aria-label="Filtrera efter stjärnor"
+      >
+        <button
+          type="button"
+          title="Visa alla uppgifter (0–3 stjärnor)"
+          aria-pressed={showAllStars}
+          onClick={clearStarFilter}
+          className={cn(
+            "rounded-md px-1 py-1 text-[10px] font-medium transition-colors",
+            showAllStars
+              ? "bg-sidebar text-sidebar-foreground shadow-sm"
+              : "text-muted-foreground hover:text-sidebar-foreground",
+          )}
+        >
+          Alla
+        </button>
+        {STAR_LEVEL_OPTIONS.map((option) => {
+          const active = starLevels.has(option.level)
+          return (
+            <button
+              key={option.level}
+              type="button"
+              title={option.title}
+              aria-label={option.title}
+              aria-pressed={active}
+              onClick={() => toggleStarLevel(option.level)}
+              className={cn(
+                "flex items-center justify-center gap-px rounded-md px-1 py-1 transition-colors",
+                active
+                  ? "bg-sidebar text-sidebar-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-sidebar-foreground",
+              )}
+            >
+              {Array.from({ length: option.level }, (_, i) => (
+                <Star
+                  key={i}
+                  className={cn(
+                    "size-2.5",
+                    active
+                      ? "fill-amber-500 text-amber-500"
+                      : "fill-none text-muted-foreground",
+                  )}
+                  aria-hidden
+                />
+              ))}
+            </button>
+          )
+        })}
+      </div>
+
       {filteredGroups.length === 0 ? (
         <p className="px-2.5 py-2 text-sm text-muted-foreground">
-          Inga träffar för “{query.trim()}”.
+          {emptyMessage}
         </p>
       ) : (
         filteredGroups.map((group) => {
@@ -437,13 +549,16 @@ function ProblemList({
                           type="button"
                           onClick={() => onSelectProblem(problem.id)}
                           className={cn(
-                            "w-full rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
+                            "flex w-full items-center gap-1 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors",
                             selected
                               ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                               : "hover:bg-sidebar-accent/60",
                           )}
                         >
-                          {problem.problemNumber}
+                          <span className="min-w-0 flex-1 truncate">
+                            {problem.problemNumber}
+                          </span>
+                          <ProblemStarsDisplay entries={problem.starEntries} />
                         </button>
                         {shadows.length > 0 ? (
                           <ul className="mt-0.5 ml-3 flex flex-col gap-0.5 border-l border-sidebar-border pl-2">

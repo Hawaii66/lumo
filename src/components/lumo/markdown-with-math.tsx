@@ -1,6 +1,10 @@
 import { Fragment, type ReactNode } from "react"
 import { Highlighter } from "lucide-react"
 import { StaticMath } from "~/components/lumo/static-math"
+import {
+  ProblemStarsControl,
+  type ProblemStars,
+} from "~/components/rooms/problem-stars"
 import { Button } from "~/components/ui/button"
 import {
   isFallHeading,
@@ -16,6 +20,11 @@ type MarkdownWithMathProps = {
   scopeKey?: string
   onCiteMath?: (latex: string) => void
   className?: string
+  /** When set, star controls appear on deluppgift labels. */
+  subproblemStars?: {
+    getStars: (letter: string) => ProblemStars
+    onChange: (letter: string, stars: ProblemStars) => void
+  }
 }
 
 function InlineMd({ text }: { text: string }) {
@@ -235,6 +244,7 @@ export function MarkdownWithMath({
   scopeKey,
   onCiteMath,
   className,
+  subproblemStars,
 }: MarkdownWithMathProps) {
   if (markdown.trim().length === 0) {
     return (
@@ -255,8 +265,9 @@ export function MarkdownWithMath({
           return <div key={index} className="h-1" aria-hidden />
         }
         if (block.type === "subproblem") {
+          const letter = block.label.toLowerCase()
           return (
-            <p
+            <div
               key={index}
               id={
                 scopeKey
@@ -264,10 +275,20 @@ export function MarkdownWithMath({
                   : undefined
               }
               data-lumo-subproblem={block.label}
-              className="scroll-mt-3 text-sm font-semibold text-muted-foreground"
+              className="scroll-mt-3 flex items-center gap-1.5"
             >
-              ({block.label})
-            </p>
+              <p className="text-sm font-semibold text-muted-foreground">
+                ({block.label})
+              </p>
+              {subproblemStars ? (
+                <ProblemStarsControl
+                  letter={letter}
+                  hideLetter
+                  stars={subproblemStars.getStars(letter)}
+                  onChange={(stars) => subproblemStars.onChange(letter, stars)}
+                />
+              ) : null}
+            </div>
           )
         }
         if (block.type === "fall") {

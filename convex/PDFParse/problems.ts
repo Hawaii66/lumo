@@ -11,7 +11,16 @@ import {
 } from "../lib/problemAccess";
 import { MAX_FILES_PER_ROOM } from "../lib/roomFiles";
 import { requireRoomMember } from "../lib/roomAuth";
-import { internalMutation, internalQuery, query } from "../_generated/server";
+import {
+  hasSubproblemHeadings,
+  normalizeSubproblemLetter,
+} from "../lib/subproblemSlice";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 
@@ -21,6 +30,29 @@ const MAX_PROBLEMS_PER_PDF = 500;
 export const MAX_SHADOWS_PER_PARENT = 20;
 /** Hard cap for the room-wide shadow batch in listGroupedByRoom. */
 const MAX_SHADOWS_PER_ROOM = MAX_PROBLEMS_PER_PDF * MAX_SHADOWS_PER_PARENT;
+/** Max deluppgifter (a–z) we expect to star per problem. */
+const MAX_STAR_LETTERS_PER_PROBLEM = 26;
+/** Hard cap for roomProblemStars batch in listGroupedByRoom. */
+const MAX_STARS_PER_ROOM =
+  MAX_PROBLEMS_PER_PDF * MAX_FILES_PER_ROOM * MAX_STAR_LETTERS_PER_PROBLEM;
+
+const starsLevelValidator = v.union(
+  v.literal(0),
+  v.literal(1),
+  v.literal(2),
+  v.literal(3),
+);
+
+const starEntryValidator = v.object({
+  /** `""` = whole problem; otherwise `a`–`z`. */
+  letter: v.string(),
+  stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
+});
+
+function normalizeStoredStarLetter(letter: string | undefined): string {
+  if (letter === undefined || letter === "") return "";
+  return normalizeSubproblemLetter(letter) ?? "";
+}
 
 export { isShadowProblem, problemVisibleInRoom } from "../lib/problemAccess";
 
@@ -75,6 +107,7 @@ export const listGroupedByRoom = query({
         v.object({
           id: v.id("problems"),
           problemNumber: v.string(),
+          starEntries: v.array(starEntryValidator),
           shadows: v.array(shadowListItemValidator),
         }),
       ),
@@ -139,6 +172,26 @@ export const listGroupedByRoom = query({
       }
     }
 
+    // One indexed read for all room stars → group by problem identity.
+    const starsByProblem = new Map<
+      string,
+      Array<{ letter: string; stars: 1 | 2 | 3 }>
+    >();
+    const starRows = await ctx.db
+      .query("roomProblemStars")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_STARS_PER_ROOM);
+    for (const row of starRows) {
+      const letter = normalizeStoredStarLetter(row.subproblemLetter);
+      const key = `${row.contentHash}\0${row.problemNumber}`;
+      const list = starsByProblem.get(key) ?? [];
+      list.push({ letter, stars: row.stars });
+      starsByProblem.set(key, list);
+    }
+    for (const list of starsByProblem.values()) {
+      list.sort((a, b) => a.letter.localeCompare(b.letter));
+    }
+
     const groups = [];
     for (const file of files) {
       const parsed = problemsByHash.get(file.contentHash) ?? [];
@@ -156,6 +209,9 @@ export const listGroupedByRoom = query({
           .map((row) => ({
             id: row._id,
             problemNumber: row.problemNumber,
+            starEntries:
+              starsByProblem.get(`${file.contentHash}\0${row.problemNumber}`) ??
+              [],
             shadows: shadowsByParent.get(row._id) ?? [],
           })),
       });
@@ -163,6 +219,95 @@ export const listGroupedByRoom = query({
 
     groups.sort((a, b) => compareFileNames(a.fileName, b.fileName));
     return groups;
+  },
+});
+
+/**
+ * Set or clear the room-scoped star rating for a parsed problem / deluppgift.
+ * stars=0 deletes the row. `subproblemLetter` is required when the problem
+ * has deluppgifter; omit / empty when it does not.
+ */
+export const setStars = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+    stars: starsLevelValidator,
+    subproblemLetter: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const problem = await ctx.db.get(args.problemId);
+    if (problem === null) {
+      throw new Error("Uppgiften hittades inte");
+    }
+    if (isShadowProblem(problem)) {
+      throw new Error("Tvillingar kan inte stjärnmärkas");
+    }
+    const contentHash = problem.contentHash;
+    if (contentHash === undefined) {
+      throw new Error("Uppgiften saknar källa");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    if (!problemVisibleInRoom(problem, args.roomId, files)) {
+      throw new Error("Uppgiften tillhör inte det här rummet");
+    }
+
+    const hasParts = hasSubproblemHeadings(problem.problem);
+    let letter = "";
+    if (hasParts) {
+      const normalized = normalizeSubproblemLetter(args.subproblemLetter);
+      if (normalized === null) {
+        throw new Error("Ange deluppgift (a–z) för att stjärnmärka");
+      }
+      letter = normalized;
+    } else if (
+      args.subproblemLetter !== undefined &&
+      args.subproblemLetter.trim().length > 0
+    ) {
+      throw new Error("Uppgiften har inga deluppgifter");
+    }
+
+    const existing = await ctx.db
+      .query("roomProblemStars")
+      .withIndex(
+        "by_room_and_contentHash_and_problemNumber_and_subproblemLetter",
+        (q) =>
+          q
+            .eq("roomId", args.roomId)
+            .eq("contentHash", contentHash)
+            .eq("problemNumber", problem.problemNumber)
+            .eq("subproblemLetter", letter),
+      )
+      .unique();
+
+    if (args.stars === 0) {
+      if (existing !== null) {
+        await ctx.db.delete("roomProblemStars", existing._id);
+      }
+      return null;
+    }
+
+    if (existing !== null) {
+      await ctx.db.patch("roomProblemStars", existing._id, {
+        stars: args.stars,
+        subproblemLetter: letter,
+      });
+    } else {
+      await ctx.db.insert("roomProblemStars", {
+        roomId: args.roomId,
+        contentHash,
+        problemNumber: problem.problemNumber,
+        subproblemLetter: letter,
+        stars: args.stars,
+      });
+    }
+    return null;
   },
 });
 

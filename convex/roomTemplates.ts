@@ -10,6 +10,7 @@ const MAX_FIELD_LENGTH = 50;
 const MAX_TEMPLATES_SEARCH = 30;
 const MAX_INFO_CELLS = 200;
 const MAX_TEMPLATES_PER_SOURCE = 50;
+const MAX_PROBLEM_STARS = 500 * MAX_FILES_PER_ROOM;
 
 const templateSummaryValidator = v.object({
   _id: v.id("roomTemplates"),
@@ -43,6 +44,11 @@ export const publishFromRoom = mutation({
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_INFO_CELLS);
 
+    const problemStars = await ctx.db
+      .query("roomProblemStars")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_PROBLEM_STARS);
+
     const templateId = await ctx.db.insert("roomTemplates", {
       sourceRoomId: args.roomId,
       publisherId: userId,
@@ -66,6 +72,16 @@ export const publishFromRoom = mutation({
       await ctx.db.insert("roomTemplateInfoCells", {
         templateId,
         contentHash: cell.contentHash,
+      });
+    }
+
+    for (const star of problemStars) {
+      await ctx.db.insert("roomTemplateProblemStars", {
+        templateId,
+        contentHash: star.contentHash,
+        problemNumber: star.problemNumber,
+        subproblemLetter: star.subproblemLetter ?? "",
+        stars: star.stars,
       });
     }
 
@@ -373,6 +389,20 @@ export const clone = mutation({
       await ctx.db.insert("cellsInUseByRoom", {
         roomId,
         contentHash: cell.contentHash,
+      });
+    }
+
+    const problemStars = await ctx.db
+      .query("roomTemplateProblemStars")
+      .withIndex("by_template", (q) => q.eq("templateId", args.templateId))
+      .take(MAX_PROBLEM_STARS);
+    for (const star of problemStars) {
+      await ctx.db.insert("roomProblemStars", {
+        roomId,
+        contentHash: star.contentHash,
+        problemNumber: star.problemNumber,
+        subproblemLetter: star.subproblemLetter ?? "",
+        stars: star.stars,
       });
     }
 

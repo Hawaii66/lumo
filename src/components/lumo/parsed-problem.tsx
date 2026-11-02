@@ -1,6 +1,12 @@
 import { Eye, EyeOff } from "lucide-react"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
+import {
+  ProblemStarsControl,
+  starsForLetter,
+  type ProblemStarEntry,
+  type ProblemStars,
+} from "~/components/rooms/problem-stars"
 import { cn } from "~/lib/utils"
 
 type ParsedProblemViewProps = {
@@ -10,6 +16,12 @@ type ParsedProblemViewProps = {
   /** When true, shows a facit toggle in the top-right of the header. */
   showFacitToggle?: boolean
   onShowAnswerChange?: (show: boolean) => void
+  /** Deluppgift letters from the question markdown (e.g. ["a","b"]). */
+  subproblemLetters?: Array<string>
+  /** Room-scoped difficulty entries for this problem. */
+  starEntries?: Array<ProblemStarEntry>
+  /** `letter` is `""` for whole-problem stars when there are no deluppgifter. */
+  onStarsChange?: (letter: string, stars: ProblemStars) => void
 }
 
 export function ParsedProblemView({
@@ -18,13 +30,31 @@ export function ParsedProblemView({
   showAnswer = true,
   showFacitToggle = false,
   onShowAnswerChange,
+  subproblemLetters = [],
+  starEntries = [],
+  onStarsChange,
 }: ParsedProblemViewProps) {
+  const letters = subproblemLetters
+    .map((letter) => letter.trim().toLowerCase())
+    .filter((letter) => /^[a-z]$/.test(letter))
+  const hasSubproblems = letters.length > 0
+  const showWholeProblemStars =
+    onStarsChange !== undefined && !hasSubproblems
+
   return (
     <article className={cn("space-y-4", className)}>
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">
-          {problem.problemNumber}
-        </h2>
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {problem.problemNumber}
+          </h2>
+          {showWholeProblemStars ? (
+            <ProblemStarsControl
+              stars={starsForLetter(starEntries, "")}
+              onChange={(stars) => onStarsChange("", stars)}
+            />
+          ) : null}
+        </div>
 
         {showFacitToggle && onShowAnswerChange ? (
           <button
@@ -52,6 +82,14 @@ export function ParsedProblemView({
         <MarkdownWithMath
           markdown={problem.question}
           scopeKey={`q-${problem.problemNumber}`}
+          subproblemStars={
+            onStarsChange && hasSubproblems
+              ? {
+                  getStars: (letter) => starsForLetter(starEntries, letter),
+                  onChange: onStarsChange,
+                }
+              : undefined
+          }
         />
       </section>
 

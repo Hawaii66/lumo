@@ -101,6 +101,7 @@ export type RoomProblemGroup = {
   problems: Array<{
     id: Id<"problems">
     problemNumber: string
+    starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>
     shadows: Array<{ id: Id<"problems">; problemNumber: string }>
   }>
 }
