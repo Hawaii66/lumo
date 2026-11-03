@@ -283,4 +283,24 @@ export default defineSchema({
   })
     .index("by_inputKey", ["inputKey"])
     .index("by_mergedContentHash", ["mergedContentHash"]),
+  /**
+   * Global registry of page-range extracts, keyed by source hash + ranges.
+   * `inputKey` is `${sourceContentHash}|${pageRangesKey}` (order-sensitive).
+   */
+  pdfExtracts: defineTable({
+    inputKey: v.string(),
+    sourceContentHash: v.string(),
+    pageRanges: v.array(
+      v.object({
+        start: v.number(),
+        end: v.number(),
+      }),
+    ),
+    extractedContentHash: v.string(),
+    extractedStorageId: v.id("_storage"),
+    createdBy: v.id("users"),
+  })
+    .index("by_inputKey", ["inputKey"])
+    .index("by_extractedContentHash", ["extractedContentHash"])
+    .index("by_sourceContentHash", ["sourceContentHash"]),
 });
