@@ -45,7 +45,7 @@ Primär yta: startsida (`src/routes/index.tsx`) + rumsskal (`src/routes/rooms.$r
 | **Tauri / Electron desktop** | Future / not planned | Webbapp först. |
 | **Riktig auth + städa demos** | Later | Temp-login + startsidans MathLive/PDF/CE-demos får vara kvar tills vidare. |
 | **Mobil room layout** | Future TODO | QR-scan-sidan är mobil; själva rumsskalet är computer-only tills vidare. |
-| **Splitta mega-komponenter + tunn convex-test** | Future TODO | Se TODOs nedan — ingen split/tester nu. |
+| **Tunn convex-test** | Future TODO | Se TODOs nedan — ingen stor suite ännu. |
 
 ---
 
@@ -81,8 +81,7 @@ Se `convex/schema.ts` för det verkliga schemat (rooms, files, roomTemplates, pr
 Dessa speglas även som `// TODO:` i kod där det passar.
 
 1. **Mobil room layout** — gör `rooms.$roomId` användbart på telefon (sidebar/main shell). Computer-only tills dess.
-2. **Splitta mega-komponenter** — `chat-input.tsx`, `room-settings-panel.tsx`, `thread-chat.tsx` (och ev. rumssidan) i mindre delar.
-3. **Tunn `convex-test`-svit** — några authz/happy-path-tester för kritiska Convex-funktioner; ingen stor suite ännu.
+2. **Tunn `convex-test`-svit** — några authz/happy-path-tester för kritiska Convex-funktioner; ingen stor suite ännu.
 
 ---
 

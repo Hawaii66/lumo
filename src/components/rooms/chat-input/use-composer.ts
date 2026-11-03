@@ -1,27 +1,21 @@
-// TODO: Split this mega component into smaller pieces (composer shell, mention/slash
-// popovers, attachments, math insert, submit wiring) — do not grow further inline.
-import { ScanSearch, Sigma, X } from "lucide-react"
 import {
-  forwardRef,
   useEffect,
-  useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from "react"
-import type { FormEvent, KeyboardEvent } from "react"
-import type { Id } from "../../../convex/_generated/dataModel"
-import { StaticMath } from "~/components/lumo/static-math"
-import {
-  ChatFilePickerDialog,
-  ChatFilePickerTrigger,
-  type ChatFilePickerSelectedFile,
-} from "~/components/rooms/chat-file-picker-dialog"
-import { ComposerTextarea } from "~/components/rooms/composer-textarea"
-import { MathInputDialog } from "~/components/rooms/math-input-dialog"
-import { MentionedProblems } from "~/components/rooms/mentioned-problems"
-import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
-import { Button } from "~/components/ui/button"
+import type { FormEvent, KeyboardEvent, RefObject } from "react"
+import type { Id } from "../../../../convex/_generated/dataModel"
+import type { ChatFilePickerSelectedFile } from "~/components/rooms/chat-file-picker-dialog"
+import type { ChatInputMathDraft } from "./math-chips"
+import type {
+  ChatInputCitation,
+  ChatInputHandle,
+  ChatInputImage,
+  ChatInputStorageImage,
+  ChatInputSubmitPayload,
+  RoomProblemGroup,
+} from "./types"
 import {
   appendUserTextToPrompt,
   composePromptWithMath,
@@ -39,128 +33,43 @@ import {
   nextMathRef,
   removeAndRenumberMathRefs,
   resolveDraftMentions,
-  TYPEAHEAD_VISIBLE_COUNT,
-  type MathRefDraft,
   type ProblemMentionOption,
   type ResolvedDraftMention,
   type SlashCommand,
 } from "~/lib/chat-composer"
 import { CHAT_MODES, type ChatMode } from "~/lib/chat-mode"
-import { cn } from "~/lib/utils"
 
-export type ChatInputImage = {
-  id: string
-  file: File
-  previewUrl: string
-}
+const MAX_IMAGES = 4
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024
+export const MAX_MATH_CHIPS = 4
 
-export type ChatInputStorageImage = {
-  id: string
-  storageId: Id<"_storage">
-  filename: string
-}
-
-export type ChatInputSubmitPayload = {
-  prompt: string
-  images: Array<ChatInputImage>
-  storageImages?: Array<{ storageId: Id<"_storage">; filename: string }>
-  /** Set when starting a chat from a problem action button. */
-  mode?: ChatMode
-  problemId?: Id<"problems">
-  problemIds?: Array<Id<"problems">>
-  /** Scope agent context to this deluppgift for the submitted turn. */
-  subproblemLetter?: string
-}
-
-export type ChatStartDraft = {
-  prompt: string
-  mode: ChatMode
-  storageImages?: Array<{ storageId: Id<"_storage">; filename: string }>
-  subproblemLetter?: string
-}
-
-export type ChatInputCitation = {
-  responseNumber: number
-  text?: string
-  latex?: string
-}
-
-export type ChatInputHandle = {
-  /**
-   * Prepend an auto-generated start prompt, append any text/images already in
-   * the composer, and submit immediately with a chat mode.
-   */
-  submitStartDraft: (draft: ChatStartDraft) => Promise<void>
-  /** Insert a citation from an assistant message into the composer. */
-  insertCitation: (citation: ChatInputCitation) => void
-}
-
-/** Shape from `listGroupedByRoom` — pass from the room page; do not re-subscribe. */
-export type RoomProblemGroup = {
-  fileId: Id<"files">
-  fileName: string
-  problems: Array<{
-    id: Id<"problems">
-    problemNumber: string
-    starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>
-    completionEntries: Array<{ letter: string }>
-    shadows: Array<{ id: Id<"problems">; problemNumber: string }>
-  }>
-}
-
-type MathDraft = MathRefDraft & {
-  id: string
-}
-
-type ChatInputProps = {
-  roomId: Id<"rooms">
-  /** Room problem tree from the parent subscription (undefined while loading). */
+export type UseChatInputComposerArgs = {
   problemGroups: Array<RoomProblemGroup> | undefined
   onSubmit: (payload: ChatInputSubmitPayload) => Promise<void> | void
   pending?: boolean
   error?: string | null
-  placeholder?: string
-  className?: string
-  /** When set (e.g. problem detail view), used if the prompt has no @mention. */
   defaultProblemId?: Id<"problems">
-  /** Current chat mode (thread). Used to highlight selection in /läge. */
   mode?: ChatMode
-  /** Persist mode change (thread). Optional — /läge still works locally for draft. */
   onModeChange?: (mode: ChatMode) => void | Promise<void>
-  /**
-   * Increment to request focus on the composer textarea (e.g. after starting
-   * a new chat). Values `undefined` / `0` are ignored.
-   */
   focusSignal?: number
 }
 
-const MAX_IMAGES = 4
-const MAX_IMAGE_BYTES = 10 * 1024 * 1024
-const MAX_MATH_CHIPS = 4
-
-export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
-  function ChatInput(
-    {
-      roomId,
-      problemGroups,
-      onSubmit,
-      pending = false,
-      error = null,
-      placeholder = "Skriv ett meddelande… @1.2, /formel eller /läge",
-      className,
-      defaultProblemId,
-      mode,
-      onModeChange,
-      focusSignal,
-    },
-    ref,
-  ) {
+export function useChatInputComposer({
+  problemGroups,
+  onSubmit,
+  pending = false,
+  error = null,
+  defaultProblemId,
+  mode,
+  onModeChange,
+  focusSignal,
+}: UseChatInputComposerArgs) {
   const [prompt, setPrompt] = useState("")
   const [pendingImages, setPendingImages] = useState<Array<ChatInputImage>>([])
   const [pendingStorageImages, setPendingStorageImages] = useState<
     Array<ChatInputStorageImage>
   >([])
-  const [mathDrafts, setMathDrafts] = useState<Array<MathDraft>>([])
+  const [mathDrafts, setMathDrafts] = useState<Array<ChatInputMathDraft>>([])
   const [mathDialogOpen, setMathDialogOpen] = useState(false)
   const [editingMathId, setEditingMathId] = useState<string | null>(null)
   const [modeMenuOpen, setModeMenuOpen] = useState(false)
@@ -410,7 +319,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     setEditingMathId(null)
   }
 
-  function removeMathDraft(draft: MathDraft) {
+  function removeMathDraft(draft: ChatInputMathDraft) {
     const { text, drafts } = removeAndRenumberMathRefs(
       prompt,
       mathDrafts,
@@ -458,7 +367,6 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       }
       return [...current, ...next]
     })
-
   }
 
   function addStorageFile(file: ChatFilePickerSelectedFile) {
@@ -493,6 +401,12 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       if (target) URL.revokeObjectURL(target.previewUrl)
       return current.filter((image) => image.id !== id)
     })
+  }
+
+  function removeStorageImage(id: string) {
+    setPendingStorageImages((current) =>
+      current.filter((item) => item.id !== id),
+    )
   }
 
   function insertMention(option: ProblemMentionOption) {
@@ -801,7 +715,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
     })
   }
 
-  useImperativeHandle(ref, () => ({
+  const handle: ChatInputHandle = {
     async submitStartDraft(draft) {
       const userText = composePromptWithMath(prompt, mathDrafts)
       const combined = appendUserTextToPrompt(draft.prompt, userText)
@@ -812,318 +726,83 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       })
     },
     insertCitation,
-  }))
+  }
 
-  return (
-    <div className={cn("flex flex-col gap-2 border-t border-border pt-4", className)}>
-      {draftMentions.length > 0 ? (
-        <div className="max-h-56 overflow-y-auto">
-          <MentionedProblems
-            roomId={roomId}
-            mentions={draftMentions}
-            draft
-          />
-        </div>
-      ) : null}
+  function handlePromptChange(value: string, selectionStart: number) {
+    setPrompt(value)
+    setCursor(selectionStart)
+  }
 
-    <form
-      onSubmit={(event) => {
-        void handleSubmit(event)
-      }}
-      className="flex flex-col gap-2"
-      onPaste={(event) => {
-        const files = event.clipboardData.files
-        if (files.length === 0) return
-        const hasImage = Array.from(files).some((file) =>
-          file.type.startsWith("image/"),
-        )
-        if (hasImage) {
-          event.preventDefault()
-          addImages(files)
-        }
-      }}
-    >
-      {displayError ? (
-        <p className="text-sm text-destructive">{displayError}</p>
-      ) : null}
+  function handleCursorChange(selectionStart: number) {
+    setCursor(selectionStart)
+  }
 
-      {pendingImages.length > 0 || pendingStorageImages.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {pendingImages.map((image) => (
-            <li
-              key={image.id}
-              className="relative size-16 overflow-hidden rounded-md border border-border"
-            >
-              <img
-                src={image.previewUrl}
-                alt={image.file.name}
-                className="size-full object-cover"
-              />
-              <button
-                type="button"
-                className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
-                onClick={() => removeImage(image.id)}
-                aria-label={`Ta bort ${image.file.name}`}
-                disabled={pending}
-              >
-                <X className="size-3" />
-              </button>
-            </li>
-          ))}
-          {pendingStorageImages.map((image) => (
-            <li
-              key={image.id}
-              className="relative flex size-16 items-center justify-center overflow-hidden rounded-md border border-border bg-muted/40 px-1"
-            >
-              <span className="line-clamp-3 text-center text-[10px] leading-tight text-muted-foreground">
-                {image.filename}
-              </span>
-              <button
-                type="button"
-                className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
-                onClick={() =>
-                  setPendingStorageImages((current) =>
-                    current.filter((item) => item.id !== image.id),
-                  )
-                }
-                aria-label={`Ta bort ${image.filename}`}
-                disabled={pending}
-              >
-                <X className="size-3" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+  function handleMathDialogOpenChange(open: boolean) {
+    setMathDialogOpen(open)
+    if (!open) setEditingMathId(null)
+  }
 
-      {mathDrafts.length > 0 ? (
-        <ul className="flex flex-wrap gap-2">
-          {mathDrafts.map((draft) => (
-            <li key={draft.id} className="relative max-w-full">
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 pr-8 text-left hover:bg-muted/70"
-                onClick={() => openMathDialog(draft.id)}
-                disabled={pending}
-              >
-                <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                  {formatMathRef(draft.ref)}
-                </span>
-                <StaticMath latex={draft.latex} display="inline" />
-              </button>
-              <button
-                type="button"
-                className="absolute top-1 right-1 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
-                onClick={() => removeMathDraft(draft)}
-                aria-label={`Ta bort formel ${formatMathRef(draft.ref)}`}
-                disabled={pending}
-              >
-                <X className="size-3" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+  function handlePasteImages(files: FileList) {
+    if (files.length === 0) return false
+    const hasImage = Array.from(files).some((file) =>
+      file.type.startsWith("image/"),
+    )
+    if (!hasImage) return false
+    addImages(files)
+    return true
+  }
 
-      <div className="relative">
-        <ComposerTextarea
-          ref={textareaRef}
-          value={prompt}
-          mathRefs={mathRefNumbers}
-          onChange={(e) => {
-            setPrompt(e.target.value)
-            setCursor(e.target.selectionStart)
-          }}
-          onClick={(e) => setCursor(e.currentTarget.selectionStart)}
-          onKeyUp={(e) => setCursor(e.currentTarget.selectionStart)}
-          onSelect={(e) => setCursor(e.currentTarget.selectionStart)}
-          placeholder={placeholder}
-          rows={2}
-          disabled={pending}
-          onKeyDown={handleTextareaKeyDown}
-        />
-        {showMentionTypeahead ? (
-          <ul
-            className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
-            style={{ maxHeight: `calc(${TYPEAHEAD_VISIBLE_COUNT} * 3.25rem)` }}
-            role="listbox"
-          >
-            {typeaheadOptions.map((option, index) => (
-              <li key={`${option.id}-${option.fileName}`}>
-                <button
-                  type="button"
-                  ref={(el) => {
-                    typeaheadOptionRefs.current[index] = el
-                  }}
-                  role="option"
-                  aria-selected={index === typeaheadIndex}
-                  className={cn(
-                    "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm",
-                    index === typeaheadIndex
-                      ? "bg-accent text-accent-foreground"
-                      : "hover:bg-muted",
-                  )}
-                  onMouseDown={(event) => {
-                    event.preventDefault()
-                    insertMention(option)
-                  }}
-                >
-                  <span className="font-medium">
-                    @{option.problemNumber}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {option.fileName}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        {showSlashTypeahead ? (
-          <ul
-            className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
-            role="listbox"
-          >
-            {slashOptions.map((option, index) => (
-              <li key={option.id}>
-                <button
-                  type="button"
-                  ref={(el) => {
-                    typeaheadOptionRefs.current[index] = el
-                  }}
-                  role="option"
-                  aria-selected={index === typeaheadIndex}
-                  className={cn(
-                    "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm",
-                    index === typeaheadIndex
-                      ? "bg-accent text-accent-foreground"
-                      : "hover:bg-muted",
-                  )}
-                  onMouseDown={(event) => {
-                    event.preventDefault()
-                    runSlashCommand(option)
-                  }}
-                >
-                  <span className="font-medium">{option.label}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {option.description}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        {modeMenuOpen ? (
-          <ul
-            className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
-            role="listbox"
-            aria-label="Välj chattläge"
-          >
-            {CHAT_MODES.map((option, index) => {
-              const selected = activeMode === option.value
-              const highlighted = index === modeMenuIndex
-              return (
-                <li key={option.value}>
-                  <button
-                    type="button"
-                    ref={(el) => {
-                      modeOptionRefs.current[index] = el
-                    }}
-                    role="option"
-                    aria-selected={selected}
-                    className={cn(
-                      "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm",
-                      highlighted
-                        ? "bg-accent text-accent-foreground"
-                        : "hover:bg-muted",
-                    )}
-                    onMouseDown={(event) => {
-                      event.preventDefault()
-                      void selectMode(option.value)
-                    }}
-                  >
-                    <span className="font-medium">
-                      {option.label}
-                      {selected ? " · aktiv" : ""}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {option.description}
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        ) : null}
-      </div>
-
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-wrap gap-1.5">
-          <ChatFilePickerTrigger
-            disabled={pending || imagesFull}
-            onClick={() => setFilePickerOpen(true)}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={pending || imagesFull}
-            onClick={() => setPhoneScanOpen(true)}
-          >
-            <ScanSearch />
-            Skanna
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={pending || mathDrafts.length >= MAX_MATH_CHIPS}
-            onClick={openMathDialogAtCursor}
-          >
-            <Sigma />
-            Formel
-          </Button>
-        </div>
-        <Button type="submit" disabled={!canSend}>
-          {pending ? "Skickar…" : "Skicka"}
-        </Button>
-      </div>
-    </form>
-
-      <ChatFilePickerDialog
-        roomId={roomId}
-        open={filePickerOpen}
-        onOpenChange={setFilePickerOpen}
-        disabled={pending || imagesFull}
-        onPickLocalFiles={addImages}
-        onPickStorageFile={addStorageFile}
-        excludeStorageIds={attachedStorageIds}
-      />
-
-      <PhoneUploadDialog
-        roomId={roomId}
-        open={phoneScanOpen}
-        onOpenChange={setPhoneScanOpen}
-        showTrigger={false}
-        onCompleted={(file) => {
-          addStorageFile({
-            storageId: file.storageId,
-            filename: file.filename,
-          })
-        }}
-      />
-
-      <MathInputDialog
-        open={mathDialogOpen}
-        onOpenChange={(open) => {
-          setMathDialogOpen(open)
-          if (!open) setEditingMathId(null)
-        }}
-        initialLatex={editingDraft?.latex ?? ""}
-        onConfirm={handleMathConfirm}
-        title={editingDraft ? "Redigera formel" : "Skriv formel"}
-        confirmLabel={editingDraft ? "Spara" : "Lägg till"}
-      />
-    </div>
-  )
-})
+  return {
+    pending,
+    prompt,
+    pendingImages,
+    pendingStorageImages,
+    mathDrafts,
+    mathDialogOpen,
+    modeMenuOpen,
+    filePickerOpen,
+    setFilePickerOpen,
+    phoneScanOpen,
+    setPhoneScanOpen,
+    activeMode,
+    imagesFull,
+    mathFull: mathDrafts.length >= MAX_MATH_CHIPS,
+    draftMentions,
+    typeaheadOptions,
+    slashOptions,
+    showMentionTypeahead,
+    showSlashTypeahead,
+    typeaheadIndex,
+    modeMenuIndex,
+    displayError,
+    canSend,
+    editingDraft,
+    mathRefNumbers,
+    attachedStorageIds,
+    textareaRef,
+    typeaheadOptionRefs: typeaheadOptionRefs as RefObject<
+      Array<HTMLButtonElement | null>
+    >,
+    modeOptionRefs: modeOptionRefs as RefObject<
+      Array<HTMLButtonElement | null>
+    >,
+    handle,
+    openMathDialog,
+    openMathDialogAtCursor,
+    selectMode,
+    runSlashCommand,
+    handleMathConfirm,
+    removeMathDraft,
+    addImages,
+    addStorageFile,
+    removeImage,
+    removeStorageImage,
+    insertMention,
+    handleTextareaKeyDown,
+    handleSubmit,
+    handlePromptChange,
+    handleCursorChange,
+    handleMathDialogOpenChange,
+    handlePasteImages,
+  }
+}
