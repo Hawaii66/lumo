@@ -17,7 +17,24 @@ export default defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-  }).index("email", ["email"]),
+    /** Missing → treat as default role. */
+    roleId: v.optional(v.id("roles")),
+  })
+    .index("email", ["email"])
+    .index("by_role", ["roleId"]),
+  /**
+   * Role catalog (default / promoter / admin). Daily free credits come from
+   * `freeDailyCredits` on the user's role (fallback: default row).
+   */
+  roles: defineTable({
+    key: v.union(
+      v.literal("default"),
+      v.literal("promoter"),
+      v.literal("admin"),
+    ),
+    freeDailyCredits: v.number(),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
   rooms: defineTable({
     name: v.string(),
     description: v.string(),
@@ -352,9 +369,12 @@ export default defineSchema({
       v.literal("admin_adjust"),
     ),
     refId: v.optional(v.string()),
+    /** Set on Stripe purchase grants when Checkout metadata includes dealId. */
+    dealId: v.optional(v.id("creditDeals")),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_user_and_createdAt", ["userId", "createdAt"])
     .index("by_refId", ["refId"]),
   /**
    * Buyable credit packs (Stripe Checkout reads price/credits from here).

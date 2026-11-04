@@ -298,7 +298,12 @@ function RoomPage() {
         <p className="text-sm text-muted-foreground">
           Rummet hittades inte eller så saknar du åtkomst.
         </p>
-        <Button render={<Link to="/" />}>Tillbaka till startsidan</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button render={<Link to="/" />}>Tillbaka till startsidan</Button>
+          <Button variant="outline" render={<Link to="/profile" />}>
+            Profil
+          </Button>
+        </div>
       </div>
     )
   }
