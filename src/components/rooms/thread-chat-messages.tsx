@@ -35,38 +35,75 @@ export function chaptersFromReply(reply: ChatReply | null): Array<ChapterItem> {
   }))
 }
 
-export function collectThreadMentions(
+function mentionDedupeKey(mention: ResolvedDraftMention): string {
+  return mention.status === "resolved"
+    ? `id:${mention.problemId}`
+    : `token:${mentionTokenKey(mention).toLowerCase()}`
+}
+
+/**
+ * Thread-level problem attachments that never appear as `@` in any user
+ * message — shown once at the start of the chat flow.
+ */
+export function orphanThreadMentions(
   messages: Array<UIMessage>,
   problemOptions: Array<ProblemMentionOption>,
   mentionedProblemNumbers: string[],
 ): Array<ResolvedDraftMention> {
-  const byKey = new Map<string, ResolvedDraftMention>()
-
-  function addFromText(text: string) {
+  const inMessages = new Set<string>()
+  for (const message of messages) {
+    if (message.role !== "user") continue
+    const text = messageText(message)
+    if (!text) continue
     for (const mention of resolveDraftMentions(text, problemOptions)) {
-      const key =
-        mention.status === "resolved"
-          ? `id:${mention.problemId}`
-          : `token:${mentionTokenKey(mention).toLowerCase()}`
-      if (!byKey.has(key)) byKey.set(key, mention)
+      inMessages.add(mentionDedupeKey(mention))
+      inMessages.add(`token:${mentionTokenKey(mention).toLowerCase()}`)
     }
   }
+
+  const orphans: Array<ResolvedDraftMention> = []
+  const seen = new Set<string>()
+  for (const token of mentionedProblemNumbers) {
+    for (const mention of resolveDraftMentions(`@${token}`, problemOptions)) {
+      const key = mentionDedupeKey(mention)
+      const tokenKey = `token:${mentionTokenKey(mention).toLowerCase()}`
+      if (inMessages.has(key) || inMessages.has(tokenKey) || seen.has(key)) {
+        continue
+      }
+      seen.add(key)
+      orphans.push(mention)
+    }
+  }
+  return orphans
+}
+
+/**
+ * First-seen mentions per user message key, skipping orphans already shown at
+ * the top of the thread and later duplicate mentions of the same problem.
+ */
+export function mentionsByUserMessageKey(
+  messages: Array<UIMessage>,
+  problemOptions: Array<ProblemMentionOption>,
+  alreadyShown: Array<ResolvedDraftMention> = [],
+): Map<string, Array<ResolvedDraftMention>> {
+  const shown = new Set(alreadyShown.map(mentionDedupeKey))
+  const byKey = new Map<string, Array<ResolvedDraftMention>>()
 
   for (const message of messages) {
     if (message.role !== "user") continue
     const text = messageText(message)
-    if (text) addFromText(text)
+    if (!text) continue
+    const list: Array<ResolvedDraftMention> = []
+    for (const mention of resolveDraftMentions(text, problemOptions)) {
+      const key = mentionDedupeKey(mention)
+      if (shown.has(key)) continue
+      shown.add(key)
+      list.push(mention)
+    }
+    if (list.length > 0) byKey.set(message.key, list)
   }
 
-  for (const token of mentionedProblemNumbers) {
-    const already = [...byKey.values()].some(
-      (mention) =>
-        mentionTokenKey(mention).toLowerCase() === token.toLowerCase(),
-    )
-    if (!already) addFromText(`@${token}`)
-  }
-
-  return [...byKey.values()]
+  return byKey
 }
 
 export function messageText(message: UIMessage): string {
