@@ -1,8 +1,18 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getUserRole } from "./lib/roles";
 
 const MAX_NAME_LENGTH = 80;
+
+const roleSummaryValidator = v.object({
+  key: v.union(
+    v.literal("default"),
+    v.literal("promoter"),
+    v.literal("admin"),
+  ),
+  freeDailyCredits: v.number(),
+});
 
 const viewerFieldsValidator = v.object({
   _id: v.id("users"),
@@ -15,6 +25,7 @@ const viewerFieldsValidator = v.object({
       providerId: v.string(),
     }),
   ),
+  role: roleSummaryValidator,
 });
 
 export const viewer = query({
@@ -38,6 +49,8 @@ export const viewer = query({
       .withIndex("userIdAndProvider", (q) => q.eq("userId", userId))
       .take(10);
 
+    const roleDoc = await getUserRole(ctx, userId);
+
     return {
       _id: user._id,
       name: user.name ?? identity?.name ?? null,
@@ -47,6 +60,10 @@ export const viewer = query({
         provider: account.provider,
         providerId: account.providerAccountId,
       })),
+      role: {
+        key: roleDoc.key,
+        freeDailyCredits: roleDoc.freeDailyCredits,
+      },
     };
   },
 });

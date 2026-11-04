@@ -23,6 +23,7 @@ import {
   type CreditConfigValues,
   type CreditLedgerKind,
 } from "./lib/credits";
+import { getUserRole, getUserRoleEnsured } from "./lib/roles";
 
 type DbCtx = MutationCtx | QueryCtx;
 
@@ -88,13 +89,15 @@ async function appendLedger(
 
 /**
  * Ensure a balance row exists and today's free grant is applied (use-or-lose).
- * Requires creditConfig to already exist.
+ * Requires creditConfig. Grant amount comes from the user's role.
  */
 async function ensureBalanceWithDailyGrant(
   ctx: MutationCtx,
   userId: Id<"users">,
 ): Promise<Doc<"creditBalances">> {
-  const config = await requireConfig(ctx);
+  await requireConfig(ctx);
+  const role = await getUserRoleEnsured(ctx, userId);
+  const freeDailyCredits = role.freeDailyCredits;
   const today = stockholmDateString();
   const now = Date.now();
 
@@ -106,15 +109,15 @@ async function ensureBalanceWithDailyGrant(
   if (existing === null) {
     const id = await ctx.db.insert("creditBalances", {
       userId,
-      dailyRemaining: config.freeDailyCredits,
+      dailyRemaining: freeDailyCredits,
       dailyGrantDate: today,
       paidBalance: 0,
       updatedAt: now,
     });
     await appendLedger(ctx, {
       userId,
-      delta: config.freeDailyCredits,
-      balanceAfterDaily: config.freeDailyCredits,
+      delta: freeDailyCredits,
+      balanceAfterDaily: freeDailyCredits,
       balanceAfterPaid: 0,
       kind: "daily_grant",
     });
@@ -129,16 +132,16 @@ async function ensureBalanceWithDailyGrant(
     return existing;
   }
 
-  // New day: discard leftover daily, refill to freeDailyCredits. Paid untouched.
+  // New day: discard leftover daily, refill to role freeDailyCredits. Paid untouched.
   await ctx.db.patch(existing._id, {
-    dailyRemaining: config.freeDailyCredits,
+    dailyRemaining: freeDailyCredits,
     dailyGrantDate: today,
     updatedAt: now,
   });
   await appendLedger(ctx, {
     userId,
-    delta: config.freeDailyCredits,
-    balanceAfterDaily: config.freeDailyCredits,
+    delta: freeDailyCredits,
+    balanceAfterDaily: freeDailyCredits,
     balanceAfterPaid: existing.paidBalance,
     kind: "daily_grant",
   });
@@ -147,6 +150,20 @@ async function ensureBalanceWithDailyGrant(
     throw new Error("Kunde inte uppdatera creditBalances");
   }
   return refreshed;
+}
+
+/** Config costs with freeDailyCredits overridden to the user's effective grant. */
+async function costsForUser(
+  ctx: DbCtx,
+  userId: Id<"users">,
+  config: Doc<"creditConfig">,
+): Promise<CreditConfigValues> {
+  const role = await getUserRole(ctx, userId);
+  return {
+    freeDailyCredits: role.freeDailyCredits,
+    chatCreditCost: config.chatCreditCost,
+    twinCreditCost: config.twinCreditCost,
+  };
 }
 
 async function spendCredits(
@@ -287,7 +304,7 @@ export const getMyBalance = query({
     if (configDoc === null) {
       return null;
     }
-    const costs = configValues(configDoc);
+    const costs = await costsForUser(ctx, userId, configDoc);
     const today = stockholmDateString();
     const existing = await ctx.db
       .query("creditBalances")
@@ -625,19 +642,20 @@ export const debugGrantTodayFree = mutation({
     }
 
     const config = await requireConfig(ctx);
+    const costs = await costsForUser(ctx, userId, config);
     const today = stockholmDateString();
     const now = Date.now();
     const balance = await ensureBalanceWithDailyGrant(ctx, userId);
 
     await ctx.db.patch(balance._id, {
-      dailyRemaining: config.freeDailyCredits,
+      dailyRemaining: costs.freeDailyCredits,
       dailyGrantDate: today,
       updatedAt: now,
     });
     await appendLedger(ctx, {
       userId,
-      delta: config.freeDailyCredits,
-      balanceAfterDaily: config.freeDailyCredits,
+      delta: costs.freeDailyCredits,
+      balanceAfterDaily: costs.freeDailyCredits,
       balanceAfterPaid: balance.paidBalance,
       kind: "admin_adjust",
       refId: "debugGrantTodayFree",
@@ -652,7 +670,7 @@ export const debugGrantTodayFree = mutation({
       paidBalance: refreshed.paidBalance,
       totalAvailable: refreshed.dailyRemaining + refreshed.paidBalance,
       nextResetAt: nextStockholmMidnightMs(),
-      costs: configValues(config),
+      costs,
     };
   },
 });
@@ -672,6 +690,7 @@ export const debugTopUp = mutation({
     }
 
     const config = await requireConfig(ctx);
+    const costs = await costsForUser(ctx, userId, config);
     const balance = await ensureBalanceWithDailyGrant(ctx, userId);
     const paidBalance = balance.paidBalance + args.amount;
     const now = Date.now();
@@ -694,7 +713,7 @@ export const debugTopUp = mutation({
       paidBalance,
       totalAvailable: balance.dailyRemaining + paidBalance,
       nextResetAt: nextStockholmMidnightMs(),
-      costs: configValues(config),
+      costs,
     };
   },
 });

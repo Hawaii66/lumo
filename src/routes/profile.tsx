@@ -3,12 +3,15 @@ import {
   Authenticated,
   AuthLoading,
   Unauthenticated,
+  useQuery,
 } from "convex/react"
 import { CreditCard, Gauge, User } from "lucide-react"
 import { Suspense, useState } from "react"
+import { api } from "../../convex/_generated/api"
 import { AccountCard } from "~/components/profile/account-card"
 import { CreditsCard } from "~/components/profile/credits-card"
 import { DailySpendCard } from "~/components/profile/daily-spend"
+import { RolesAdminCard } from "~/components/profile/roles-admin-card"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -47,6 +50,17 @@ export const Route = createFileRoute("/profile")({
   },
   component: ProfilePage,
 })
+
+function AdminRolesSection() {
+  const viewer = useQuery(api.users.viewer)
+  if (viewer === undefined || viewer === null) {
+    return null
+  }
+  if (viewer.role.key !== "admin") {
+    return null
+  }
+  return <RolesAdminCard />
+}
 
 function ProfilePage() {
   const { topup, tab: tabFromSearch } = Route.useSearch()
@@ -133,8 +147,9 @@ function ProfilePage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile" className="mt-6">
+          <TabsContent value="profile" className="mt-6 space-y-6">
             <AccountCard />
+            <AdminRolesSection />
           </TabsContent>
 
           <TabsContent value="credits" className="mt-6">

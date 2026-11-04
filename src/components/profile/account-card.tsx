@@ -26,6 +26,12 @@ function providerLabel(
     .join(", ")
 }
 
+function roleLabel(key: "default" | "promoter" | "admin"): string {
+  if (key === "promoter") return "Promoter"
+  if (key === "admin") return "Admin"
+  return "Standard"
+}
+
 export function AccountCard() {
   const { signOut } = useAuthActions()
   const viewer = useQuery(api.users.viewer)
@@ -134,6 +140,18 @@ export function AccountCard() {
             <dt className="text-muted-foreground">Inloggning</dt>
             <dd className="text-right font-medium">
               {providerLabel(viewer.providers)}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Roll</dt>
+            <dd className="text-right font-medium">
+              {roleLabel(viewer.role.key)}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Free credits / dag</dt>
+            <dd className="text-right font-medium">
+              {viewer.role.freeDailyCredits}
             </dd>
           </div>
         </dl>
