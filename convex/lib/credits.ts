@@ -18,10 +18,15 @@ export function insufficientCreditsError(available: number, needed: number) {
   );
 }
 
+/** Pricing from the creditConfig singleton (chat/twin costs). */
 export type CreditConfigValues = {
-  freeDailyCredits: number;
   chatCreditCost: number;
   twinCreditCost: number;
+};
+
+/** Per-user costs shown on balance: pricing + role free daily grant. */
+export type UserCreditCosts = CreditConfigValues & {
+  freeDailyCredits: number;
 };
 
 export type CreditLedgerKind =

@@ -67,7 +67,7 @@ export function RolesAdminCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Roller (admin)</CardTitle>
+        <CardTitle>Roller</CardTitle>
         <CardDescription>
           Dagliga free credits per roll, och tilldela roll via e-post.
         </CardDescription>

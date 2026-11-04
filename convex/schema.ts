@@ -335,12 +335,13 @@ export default defineSchema({
     threadId: v.optional(v.string()),
   }).index("by_user", ["userId"]),
   /**
-   * Singleton pricing config (`key: "default"`). Mutable via `credits.updateConfig`
-   * for a future admin dashboard. Missing row → seed from code defaults on first read.
+   * Singleton pricing config (`key: "default"`). Mutable via `credits.updateConfig`.
+   * Daily free grants live on `roles.freeDailyCredits`, not here.
+   * `freeDailyCredits` is optional legacy leftover from before roles owned grants.
    */
   creditConfig: defineTable({
     key: v.literal("default"),
-    freeDailyCredits: v.number(),
+    freeDailyCredits: v.optional(v.number()),
     chatCreditCost: v.number(),
     twinCreditCost: v.number(),
     updatedAt: v.number(),

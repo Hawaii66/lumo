@@ -6,6 +6,7 @@ import {
   type CreditDealFields,
 } from "./lib/creditDeals";
 import { assertPositiveInt } from "./lib/credits";
+import { requireAdmin } from "./lib/roles";
 
 const dealValidator = v.object({
   _id: v.id("creditDeals"),
@@ -50,6 +51,33 @@ export const listActiveDeals = query({
   },
 });
 
+/** Admin: all deals (incl. inactive), ordered by sortOrder. Non-admins get []. */
+export const listAllDeals = query({
+  args: {},
+  returns: v.array(dealValidator),
+  handler: async (ctx) => {
+    try {
+      await requireAdmin(ctx);
+    } catch {
+      return [];
+    }
+
+    // Catalog is tiny (a few packs); take + sort is fine.
+    const deals = await ctx.db.query("creditDeals").take(100);
+    return deals
+      .map((d) => ({
+        _id: d._id,
+        name: d.name,
+        description: d.description,
+        priceSek: d.priceSek,
+        creditsGranted: d.creditsGranted,
+        active: d.active,
+        sortOrder: d.sortOrder,
+      }))
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+});
+
 /** Load one deal for Checkout (active only). */
 export const getActiveDeal = internalQuery({
   args: { dealId: v.id("creditDeals") },
@@ -71,7 +99,10 @@ export const getActiveDeal = internalQuery({
   },
 });
 
-/** Insert the three default packs if the catalog is empty. */
+/**
+ * Insert the three default packs if the catalog is empty.
+ * Any signed-in user may bootstrap an empty catalog (home setup strip).
+ */
 export const seedDefaultDeals = mutation({
   args: {},
   returns: v.object({ inserted: v.number() }),
@@ -110,10 +141,7 @@ export const upsertDeal = mutation({
   },
   returns: v.id("creditDeals"),
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Du måste vara inloggad");
-    }
+    await requireAdmin(ctx);
 
     assertDealFields({
       name: args.name,
@@ -160,10 +188,7 @@ export const setDealActive = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Du måste vara inloggad");
-    }
+    await requireAdmin(ctx);
     const existing = await ctx.db.get(args.dealId);
     if (existing === null) {
       throw new Error("Deal finns inte");
