@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PdfRouteImport } from './routes/pdf'
 import { Route as PreviewRouteImport } from './routes/preview'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PreviewIndexRouteImport } from './routes/preview.index'
 import { Route as PreviewSidebarRouteImport } from './routes/preview.sidebar'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms.$roomId'
@@ -30,6 +31,11 @@ const PdfRoute = PdfRouteImport.update({
 const PreviewRoute = PreviewRouteImport.update({
   id: '/preview',
   path: '/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewIndexRoute = PreviewIndexRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pdf': typeof PdfRoute
+  '/profile': typeof ProfileRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
+  '/profile': typeof ProfileRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/'
     | '/pdf'
     | '/preview'
+    | '/profile'
     | '/preview/sidebar'
     | '/rooms/$roomId'
     | '/scan/$token'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/pdf'
+    | '/profile'
     | '/preview/sidebar'
     | '/rooms/$roomId'
     | '/scan/$token'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/pdf'
     | '/preview'
+    | '/profile'
     | '/preview/sidebar'
     | '/rooms/$roomId'
     | '/scan/$token'
@@ -113,6 +125,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PdfRoute: typeof PdfRoute
   PreviewRoute: typeof PreviewRouteWithChildren
+  ProfileRoute: typeof ProfileRoute
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
   ScanTokenRoute: typeof ScanTokenRoute
 }
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       path: '/preview'
       fullPath: '/preview'
       preLoaderRoute: typeof PreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview/': {
@@ -188,6 +208,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PdfRoute: PdfRoute,
   PreviewRoute: PreviewRouteWithChildren,
+  ProfileRoute: ProfileRoute,
   RoomsRoomIdRoute: RoomsRoomIdRoute,
   ScanTokenRoute: ScanTokenRoute,
 }

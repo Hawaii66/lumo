@@ -352,9 +352,12 @@ export default defineSchema({
       v.literal("admin_adjust"),
     ),
     refId: v.optional(v.string()),
+    /** Set on Stripe purchase rows when deal metadata was present. */
+    dealId: v.optional(v.id("creditDeals")),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_user_and_createdAt", ["userId", "createdAt"])
     .index("by_refId", ["refId"]),
   /**
    * Buyable credit packs (Stripe Checkout reads price/credits from here).
