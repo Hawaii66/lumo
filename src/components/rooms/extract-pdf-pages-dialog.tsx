@@ -141,7 +141,6 @@ export function ExtractPdfPagesDialog({
       parsedRanges !== null &&
       validationError === null
       ? {
-          roomId,
           sourceContentHash: selectedPdf.contentHash,
           pageRanges: parsedRanges,
         }
@@ -303,7 +302,6 @@ export function ExtractPdfPagesDialog({
       )
       await saveFile({ roomId, name: file.name, storageId })
       await registerExtract({
-        roomId,
         sourceContentHash: selectedPdf.contentHash,
         pageRanges: parsedRanges,
         extractedStorageId: storageId,

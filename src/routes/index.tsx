@@ -274,7 +274,13 @@ function Home() {
         <p className="text-muted-foreground">
           Sokratisk studieplattform — Convex + TanStack Start är igång.
         </p>
-        <p>
+        <p className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+          <Link
+            to="/pdf"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            PDF-verktyg (slå ihop / extrahera) →
+          </Link>
           <Link
             to="/preview"
             className="text-sm text-primary underline-offset-4 hover:underline"

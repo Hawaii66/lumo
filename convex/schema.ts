@@ -274,7 +274,7 @@ export default defineSchema({
     inputHashes: v.array(v.string()),
     mergedContentHash: v.string(),
     mergedStorageId: v.id("_storage"),
-    createdBy: v.id("users"),
+    createdBy: v.optional(v.id("users")),
   })
     .index("by_inputKey", ["inputKey"])
     .index("by_mergedContentHash", ["mergedContentHash"]),
@@ -293,7 +293,7 @@ export default defineSchema({
     ),
     extractedContentHash: v.string(),
     extractedStorageId: v.id("_storage"),
-    createdBy: v.id("users"),
+    createdBy: v.optional(v.id("users")),
   })
     .index("by_inputKey", ["inputKey"])
     .index("by_extractedContentHash", ["extractedContentHash"])
