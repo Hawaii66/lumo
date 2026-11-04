@@ -1,4 +1,5 @@
 import { Agent } from "@convex-dev/agent";
+import { Output } from "ai";
 import { v } from "convex/values";
 import { z } from "zod";
 import { components } from "../_generated/api";
@@ -43,14 +44,16 @@ export const convertDocumentInfo = internalAction({
       return { text: "" };
     }
 
-    const result = await lumoInfoAgent.generateObject(
+    const result = await lumoInfoAgent.generateText(
       ctx,
       { userId: args.userId },
       {
-        schema: infoResultSchema,
-        schemaName: "PdfInfo",
-        schemaDescription:
-          "Förväntade matematiska metoder i kursen — inte uppgifter eller AI-regler; tom text om inga metodråd",
+        output: Output.object({
+          schema: infoResultSchema,
+          name: "PdfInfo",
+          description:
+            "Förväntade matematiska metoder i kursen — inte uppgifter eller AI-regler; tom text om inga metodråd",
+        }),
         prompt: buildInfoConvertPrompt(documentText),
       },
       {
@@ -59,6 +62,6 @@ export const convertDocumentInfo = internalAction({
       },
     );
 
-    return { text: clampInfoText(result.object.text) };
+    return { text: clampInfoText(result.output.text) };
   },
 });

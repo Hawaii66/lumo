@@ -1,5 +1,6 @@
 import { Agent } from "@convex-dev/agent";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { Output } from "ai";
 import { v } from "convex/values";
 import { api, components, internal } from "../_generated/api";
 import { action } from "../_generated/server";
@@ -112,14 +113,16 @@ export const createShadow = action({
 
     const suggestedNumber = `${parent.parentProblemNumber}·T${parent.existingShadowCount + 1}`;
 
-    const variantResult = await lumoTwinVariantAgent.generateObject(
+    const variantResult = await lumoTwinVariantAgent.generateText(
       ctx,
       { userId },
       {
-        schema: lumoTwinVariantSchema,
-        schemaName: "LumoTwinVariant",
-        schemaDescription:
-          "Tvillingfråga: samma ### (a)/Fall-struktur, andra tal; ingen answer",
+        output: Output.object({
+          schema: lumoTwinVariantSchema,
+          name: "LumoTwinVariant",
+          description:
+            "Tvillingfråga: samma ### (a)/Fall-struktur, andra tal; ingen answer",
+        }),
         prompt: buildTwinVariantPrompt({
           suggestedNumber,
           questionText,
@@ -130,19 +133,21 @@ export const createShadow = action({
       twinGenerateOpts,
     );
 
-    const twinQuestion = variantResult.object.question.trim();
+    const twinQuestion = variantResult.output.question.trim();
     if (twinQuestion.length === 0) {
       throw new Error("Kunde inte skapa tvillingfråga — försök igen");
     }
 
-    const solveResult = await lumoTwinSolveAgent.generateObject(
+    const solveResult = await lumoTwinSolveAgent.generateText(
       ctx,
       { userId },
       {
-        schema: lumoTwinAnswerSchema,
-        schemaName: "LumoTwinAnswer",
-        schemaDescription:
-          "ENBART slutfacit för tvillingfrågan: md+$; spegla ### (a)/Fall; inga lösningssteg; aldrig tom",
+        output: Output.object({
+          schema: lumoTwinAnswerSchema,
+          name: "LumoTwinAnswer",
+          description:
+            "ENBART slutfacit för tvillingfrågan: md+$; spegla ### (a)/Fall; inga lösningssteg; aldrig tom",
+        }),
         prompt: buildTwinSolvePrompt({
           suggestedNumber,
           questionText: twinQuestion,
@@ -151,7 +156,7 @@ export const createShadow = action({
       twinGenerateOpts,
     );
 
-    const twinAnswer = solveResult.object.answer.trim();
+    const twinAnswer = solveResult.output.answer.trim();
     if (isMissingAnswer(twinAnswer)) {
       throw new Error("Kunde inte skapa facit för tvillingen — försök igen");
     }
