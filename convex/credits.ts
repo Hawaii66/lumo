@@ -12,7 +12,6 @@ import {
   CREDIT_CONFIG_KEY,
   DEBUG_TOP_UP_AMOUNTS,
   DEFAULT_CHAT_CREDIT_COST,
-  DEFAULT_FREE_DAILY_CREDITS,
   DEFAULT_TWIN_CREDIT_COST,
   assertNonNegInt,
   assertPositiveInt,
@@ -22,10 +21,16 @@ import {
   stockholmDateString,
   type CreditConfigValues,
   type CreditLedgerKind,
+  type UserCreditCosts,
 } from "./lib/credits";
-import { getUserRole, getUserRoleEnsured } from "./lib/roles";
+import { getUserRole, getUserRoleEnsured, requireAdmin } from "./lib/roles";
 
 type DbCtx = MutationCtx | QueryCtx;
+
+const pricingValidator = v.object({
+  chatCreditCost: v.number(),
+  twinCreditCost: v.number(),
+});
 
 const costsValidator = v.object({
   chatCreditCost: v.number(),
@@ -57,7 +62,6 @@ async function requireConfig(ctx: DbCtx): Promise<Doc<"creditConfig">> {
 
 function configValues(doc: Doc<"creditConfig">): CreditConfigValues {
   return {
-    freeDailyCredits: doc.freeDailyCredits,
     chatCreditCost: doc.chatCreditCost,
     twinCreditCost: doc.twinCreditCost,
   };
@@ -152,12 +156,12 @@ async function ensureBalanceWithDailyGrant(
   return refreshed;
 }
 
-/** Config costs with freeDailyCredits overridden to the user's effective grant. */
+/** Pricing from config + freeDailyCredits from the user's role. */
 async function costsForUser(
   ctx: DbCtx,
   userId: Id<"users">,
   config: Doc<"creditConfig">,
-): Promise<CreditConfigValues> {
+): Promise<UserCreditCosts> {
   const role = await getUserRole(ctx, userId);
   return {
     freeDailyCredits: role.freeDailyCredits,
@@ -246,9 +250,8 @@ export const createConfig = mutation({
   args: {
     chatCreditCost: v.optional(v.number()),
     twinCreditCost: v.optional(v.number()),
-    freeDailyCredits: v.optional(v.number()),
   },
-  returns: costsValidator,
+  returns: pricingValidator,
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -265,22 +268,18 @@ export const createConfig = mutation({
 
     const chatCreditCost = args.chatCreditCost ?? DEFAULT_CHAT_CREDIT_COST;
     const twinCreditCost = args.twinCreditCost ?? DEFAULT_TWIN_CREDIT_COST;
-    const freeDailyCredits =
-      args.freeDailyCredits ?? DEFAULT_FREE_DAILY_CREDITS;
 
     assertPositiveInt("chatCreditCost", chatCreditCost);
     assertPositiveInt("twinCreditCost", twinCreditCost);
-    assertNonNegInt("freeDailyCredits", freeDailyCredits);
 
     await ctx.db.insert("creditConfig", {
       key: CREDIT_CONFIG_KEY,
       chatCreditCost,
       twinCreditCost,
-      freeDailyCredits,
       updatedAt: Date.now(),
     });
 
-    return { chatCreditCost, twinCreditCost, freeDailyCredits };
+    return { chatCreditCost, twinCreditCost };
   },
 });
 
@@ -576,7 +575,7 @@ export const myDailySpend = query({
 
 export const getConfig = query({
   args: {},
-  returns: v.union(v.null(), costsValidator),
+  returns: v.union(v.null(), pricingValidator),
   handler: async (ctx) => {
     const existing = await ctx.db
       .query("creditConfig")
@@ -593,23 +592,16 @@ export const updateConfig = mutation({
   args: {
     chatCreditCost: v.optional(v.number()),
     twinCreditCost: v.optional(v.number()),
-    freeDailyCredits: v.optional(v.number()),
   },
-  returns: costsValidator,
+  returns: pricingValidator,
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Du måste vara inloggad");
-    }
+    await requireAdmin(ctx);
 
     if (args.chatCreditCost !== undefined) {
       assertPositiveInt("chatCreditCost", args.chatCreditCost);
     }
     if (args.twinCreditCost !== undefined) {
       assertPositiveInt("twinCreditCost", args.twinCreditCost);
-    }
-    if (args.freeDailyCredits !== undefined) {
-      assertNonNegInt("freeDailyCredits", args.freeDailyCredits);
     }
 
     const config = await requireConfig(ctx);
@@ -619,9 +611,6 @@ export const updateConfig = mutation({
     }
     if (args.twinCreditCost !== undefined) {
       patch.twinCreditCost = args.twinCreditCost;
-    }
-    if (args.freeDailyCredits !== undefined) {
-      patch.freeDailyCredits = args.freeDailyCredits;
     }
     await ctx.db.patch(config._id, patch);
     const updated = await ctx.db.get(config._id);

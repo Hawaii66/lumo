@@ -5,10 +5,12 @@ import {
   Unauthenticated,
   useQuery,
 } from "convex/react"
-import { CreditCard, Gauge, User } from "lucide-react"
-import { Suspense, useState } from "react"
+import { CreditCard, Gauge, Shield, User } from "lucide-react"
+import { Suspense, useEffect, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import { AccountCard } from "~/components/profile/account-card"
+import { CreditConfigAdminCard } from "~/components/profile/credit-config-admin-card"
+import { CreditDealsAdminCard } from "~/components/profile/credit-deals-admin-card"
 import { CreditsCard } from "~/components/profile/credits-card"
 import { DailySpendCard } from "~/components/profile/daily-spend"
 import { RolesAdminCard } from "~/components/profile/roles-admin-card"
@@ -22,7 +24,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { SignInCard } from "~/components/sign-in"
 
-type ProfileTab = "profile" | "credits" | "usage"
+type ProfileTab = "profile" | "credits" | "usage" | "admin"
 
 type ProfileSearch = {
   topup?: "success" | "canceled"
@@ -30,7 +32,12 @@ type ProfileSearch = {
 }
 
 function parseTab(raw: unknown): ProfileTab | undefined {
-  if (raw === "profile" || raw === "credits" || raw === "usage") {
+  if (
+    raw === "profile" ||
+    raw === "credits" ||
+    raw === "usage" ||
+    raw === "admin"
+  ) {
     return raw
   }
   return undefined
@@ -51,26 +58,44 @@ export const Route = createFileRoute("/profile")({
   component: ProfilePage,
 })
 
-function AdminRolesSection() {
+function useIsAdmin() {
   const viewer = useQuery(api.users.viewer)
-  if (viewer === undefined || viewer === null) {
-    return null
-  }
-  if (viewer.role.key !== "admin") {
-    return null
-  }
-  return <RolesAdminCard />
+  if (viewer === undefined) return undefined
+  if (viewer === null) return false
+  return viewer.role.key === "admin"
 }
 
 function ProfilePage() {
   const { topup, tab: tabFromSearch } = Route.useSearch()
   const navigate = Route.useNavigate()
+  const isAdmin = useIsAdmin()
   const initialTab: ProfileTab =
     tabFromSearch ?? (topup !== undefined ? "credits" : "profile")
   const [tab, setTab] = useState<ProfileTab>(initialTab)
 
+  useEffect(() => {
+    if (isAdmin === false && tab === "admin") {
+      setTab("profile")
+      void navigate({
+        search: (prev) => {
+          const { tab: _removed, ...rest } = prev
+          return rest
+        },
+        replace: true,
+      })
+    }
+  }, [isAdmin, tab, navigate])
+
   function onTabChange(value: string | number | null) {
-    if (value !== "profile" && value !== "credits" && value !== "usage") {
+    if (
+      value !== "profile" &&
+      value !== "credits" &&
+      value !== "usage" &&
+      value !== "admin"
+    ) {
+      return
+    }
+    if (value === "admin" && isAdmin !== true) {
       return
     }
     setTab(value)
@@ -82,6 +107,8 @@ function ProfilePage() {
       replace: true,
     })
   }
+
+  const tabCount = isAdmin === true ? 4 : 3
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
@@ -121,7 +148,9 @@ function ProfilePage() {
       <Authenticated>
         <Tabs value={tab} onValueChange={onTabChange}>
           <TabsList
-            className="grid h-auto! w-full grid-cols-3 bg-sidebar-accent/40"
+            className={`grid h-auto! w-full bg-sidebar-accent/40 ${
+              tabCount === 4 ? "grid-cols-4" : "grid-cols-3"
+            }`}
             aria-label="Profilsektioner"
           >
             <TabsTrigger
@@ -145,11 +174,19 @@ function ProfilePage() {
               <Gauge className="size-3.5" />
               Användning
             </TabsTrigger>
+            {isAdmin === true ? (
+              <TabsTrigger
+                value="admin"
+                className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+              >
+                <Shield className="size-3.5" />
+                Admin
+              </TabsTrigger>
+            ) : null}
           </TabsList>
 
           <TabsContent value="profile" className="mt-6 space-y-6">
             <AccountCard />
-            <AdminRolesSection />
           </TabsContent>
 
           <TabsContent value="credits" className="mt-6">
@@ -181,6 +218,14 @@ function ProfilePage() {
               <DailySpendCard />
             </Suspense>
           </TabsContent>
+
+          {isAdmin === true ? (
+            <TabsContent value="admin" className="mt-6 space-y-6">
+              <RolesAdminCard />
+              <CreditConfigAdminCard />
+              <CreditDealsAdminCard />
+            </TabsContent>
+          ) : null}
         </Tabs>
       </Authenticated>
     </main>

@@ -54,7 +54,7 @@ function CreditsHomeCard() {
           <CardTitle>Credits</CardTitle>
           <CardDescription>
             creditConfig saknas. Skapa den innan chat/tvilling kan debiteras
-            (standard: chat 1 · tvilling 5 · free/dag 30).
+            (standard: chat 1 · tvilling 5).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
