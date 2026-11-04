@@ -826,6 +826,7 @@ export const sendMessage = mutation({
     await ctx.scheduler.runAfter(0, internal.agents.roomAgent.generateResponse, {
       threadId: args.threadId,
       promptMessageId: messageId,
+      userId,
       mode,
       roomId: args.roomId,
       problemIds: problemIds.length > 0 ? problemIds : undefined,

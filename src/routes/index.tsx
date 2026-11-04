@@ -21,6 +21,72 @@ export const Route = createFileRoute("/")({
   component: Home,
 })
 
+function formatTokens(n: number) {
+  return n.toLocaleString("sv-SE")
+}
+
+function formatUsd(n: number) {
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  })
+}
+
+function UsageDebugCard() {
+  const { data } = useSuspenseQuery(convexQuery(api.usage.myUsage, {}))
+
+  if (data === null) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>AI-användning (temp)</CardTitle>
+          <CardDescription>
+            Logga in för att se kostnad (chatt + tvillingar).
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>AI-användning (temp)</CardTitle>
+        <CardDescription>
+          OpenRouter-kostnad (USD) — PDF-parse räknas inte. Totalt{" "}
+          {formatUsd(data.costUsd)} · {formatTokens(data.totalTokens)} tokens (
+          {data.eventCount} debiteringar).
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <div className="space-y-1">
+          <p className="font-medium">Chat</p>
+          <p className="text-muted-foreground">
+            {formatUsd(data.bySource.chat.costUsd)} ·{" "}
+            {formatTokens(data.bySource.chat.totalTokens)} tokens ·{" "}
+            {data.bySource.chat.eventCount} meddelanden
+          </p>
+          <p className="text-muted-foreground pl-3">
+            normal: {formatUsd(data.bySource.chat.byMode.normal.costUsd)} ·
+            genomgång: {formatUsd(data.bySource.chat.byMode.genomgang.costUsd)}
+          </p>
+        </div>
+        <div className="space-y-1">
+          <p className="font-medium">Tvillinggenerering</p>
+          <p className="text-muted-foreground">
+            {formatUsd(data.bySource.twin_generation.costUsd)} ·{" "}
+            {formatTokens(data.bySource.twin_generation.totalTokens)} tokens ·{" "}
+            {data.bySource.twin_generation.eventCount} tvillingar (variant+lös
+            sammanslaget)
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 function Home() {
   const { data } = useSuspenseQuery(convexQuery(api.health.status, {}))
   const mathDraft = useUiStore((s) => s.mathDraft)
@@ -53,6 +119,8 @@ function Home() {
       </Card>
 
       <SignInCard />
+
+      <UsageDebugCard />
 
       <RoomsPanel />
 

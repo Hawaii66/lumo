@@ -51,6 +51,7 @@ import type * as roomTemplates from "../roomTemplates.js";
 import type * as rooms from "../rooms.js";
 import type * as scanSessions from "../scanSessions.js";
 import type * as threads from "../threads.js";
+import type * as usage from "../usage.js";
 import type * as users from "../users.js";
 
 import type {
@@ -103,6 +104,7 @@ declare const fullApi: ApiFromModules<{
   rooms: typeof rooms;
   scanSessions: typeof scanSessions;
   threads: typeof threads;
+  usage: typeof usage;
   users: typeof users;
 }>;
 

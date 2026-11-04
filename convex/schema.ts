@@ -2,6 +2,7 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import {
+  chargeSourceValidator,
   chatDeletionExpiryValidator,
   chatModeValidator,
 } from "./lib/lumoContent";
@@ -297,4 +298,23 @@ export default defineSchema({
     .index("by_inputKey", ["inputKey"])
     .index("by_extractedContentHash", ["extractedContentHash"])
     .index("by_sourceContentHash", ["sourceContentHash"]),
+  /**
+   * Per-call LLM token usage for billable features (chat + twin generation).
+   * PDF parse agents are intentionally not recorded here.
+   */
+  llmUsage: defineTable({
+    userId: v.id("users"),
+    chargeSource: chargeSourceValidator,
+    /** Set only for chargeSource === "chat". */
+    chatMode: v.optional(chatModeValidator),
+    agentName: v.optional(v.string()),
+    model: v.string(),
+    provider: v.string(),
+    inputTokens: v.number(),
+    outputTokens: v.number(),
+    totalTokens: v.number(),
+    /** OpenRouter-reported USD cost; missing on older rows or if accounting omitted. */
+    costUsd: v.optional(v.number()),
+    threadId: v.optional(v.string()),
+  }).index("by_user", ["userId"]),
 });
