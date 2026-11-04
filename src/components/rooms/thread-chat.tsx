@@ -24,6 +24,7 @@ import {
   UserMessageContent,
 } from "~/components/rooms/thread-chat-messages"
 import { ThreadTitleEditor } from "~/components/rooms/thread-title-editor"
+import { Input } from "~/components/ui/input"
 import {
   DEFAULT_CHAT_DELETION_EXPIRY,
   type ChatDeletionExpiry,
@@ -53,6 +54,17 @@ type ThreadChatProps = {
   /** Increment to focus the composer (e.g. after starting a new chat). */
   composerFocusSignal?: number
 }
+
+type DraftThreadChatProps = {
+  roomId: Id<"rooms">
+  problemGroups: Array<RoomProblemGroup> | undefined
+  /** Increment to focus the composer. */
+  composerFocusSignal?: number
+  /** Called after the first message creates and selects a real thread. */
+  onCreated: (threadId: string) => void
+}
+
+const DEFAULT_DRAFT_TITLE = "Ny tråd"
 
 export function ThreadChat({
   roomId,
@@ -461,6 +473,172 @@ export function ThreadChat({
         onSubmit={async ({ prompt, images, problemIds, storageImages }) => {
           await sendPrompt(prompt, images, problemIds, storageImages)
         }}
+      />
+    </div>
+  )
+}
+
+/** Empty composer until the first send — creates the thread only then. */
+export function DraftThreadChat({
+  roomId,
+  problemGroups,
+  composerFocusSignal,
+  onCreated,
+}: DraftThreadChatProps) {
+  const createThread = useMutation(api.threads.create)
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+  const sendMessage = useMutation(api.threads.sendMessage)
+
+  const [title, setTitle] = useState(DEFAULT_DRAFT_TITLE)
+  const [mode, setMode] = useState<ChatMode>(DEFAULT_CHAT_MODE)
+  const [deletionExpiry, setDeletionExpiry] = useState<ChatDeletionExpiry>(
+    DEFAULT_CHAT_DELETION_EXPIRY,
+  )
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState(DEFAULT_DRAFT_TITLE)
+  const chatInputRef = useRef<ChatInputHandle>(null)
+  const titleInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (editingTitle) {
+      titleInputRef.current?.focus()
+      titleInputRef.current?.select()
+    }
+  }, [editingTitle])
+
+  function commitTitleEdit() {
+    const next = titleDraft.trim().slice(0, 80)
+    if (next.length === 0) {
+      setTitleDraft(title)
+      setEditingTitle(false)
+      return
+    }
+    setTitle(next)
+    setTitleDraft(next)
+    setEditingTitle(false)
+  }
+
+  async function handleSubmit({
+    prompt,
+    images,
+    problemIds,
+    storageImages,
+  }: ChatInputSubmitPayload) {
+    const trimmed = prompt.trim()
+    const readyStorage = storageImages ?? []
+    if ((!trimmed && images.length === 0 && readyStorage.length === 0) || pending)
+      return
+
+    setError(null)
+    setPending(true)
+    try {
+      const result = await createThread({
+        roomId,
+        title,
+        mode,
+        deletionExpiry,
+      })
+
+      const uploaded = await Promise.all(
+        images.map(async (image) => {
+          const storageId = await uploadFileToStorage(image.file, () =>
+            generateUploadUrl({ roomId }),
+          )
+          return { storageId, filename: image.file.name }
+        }),
+      )
+      const allImages = [...readyStorage, ...uploaded]
+
+      await sendMessage({
+        roomId,
+        threadId: result.threadId,
+        prompt: trimmed,
+        images: allImages.length > 0 ? allImages : undefined,
+        problemIds,
+        problemId: problemIds?.[0],
+      })
+
+      onCreated(result.threadId)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Kunde inte skicka")
+      throw err
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="space-y-3 border-b border-border pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {editingTitle ? (
+              <Input
+                ref={titleInputRef}
+                value={titleDraft}
+                maxLength={80}
+                aria-label="Chattitel"
+                className="h-9 min-w-0 flex-1 text-lg font-medium"
+                onChange={(event) => setTitleDraft(event.target.value)}
+                onBlur={commitTitleEdit}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault()
+                    commitTitleEdit()
+                  } else if (event.key === "Escape") {
+                    event.preventDefault()
+                    setTitleDraft(title)
+                    setEditingTitle(false)
+                  }
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                className="h-auto min-w-0 truncate px-0 text-left text-lg font-medium text-foreground hover:underline"
+                title={`${title} — klicka för att byta titel`}
+                onClick={() => {
+                  setTitleDraft(title)
+                  setEditingTitle(true)
+                }}
+              >
+                {title}
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <ChatModePicker
+              value={mode}
+              onChange={setMode}
+              disabled={pending}
+            />
+            <ChatDeletionExpiryPicker
+              value={deletionExpiry}
+              onChange={setDeletionExpiry}
+              disabled={pending}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="relative min-h-0 flex-1 overflow-y-auto py-4 pr-3">
+        <p className="text-sm text-muted-foreground">
+          Skriv ett meddelande eller bifoga en bild för att börja.
+        </p>
+      </div>
+
+      <ChatInput
+        ref={chatInputRef}
+        roomId={roomId}
+        problemGroups={problemGroups}
+        pending={pending}
+        error={error}
+        mode={mode}
+        onModeChange={setMode}
+        focusSignal={composerFocusSignal}
+        onSubmit={handleSubmit}
       />
     </div>
   )
