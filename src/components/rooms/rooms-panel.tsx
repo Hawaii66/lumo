@@ -289,6 +289,14 @@ export function RoomsPanel() {
             <CardTitle>Rum</CardTitle>
             <CardDescription>Logga in för att skapa och öppna rum.</CardDescription>
           </CardHeader>
+          <CardContent>
+            <Link
+              to="/pdf"
+              className="text-sm text-primary underline-offset-4 hover:underline"
+            >
+              PDF-verktyg →
+            </Link>
+          </CardContent>
         </Card>
       </Unauthenticated>
       <Authenticated>
@@ -307,6 +315,12 @@ export function RoomsPanel() {
             ) : null}
           </CardHeader>
           <CardContent className="space-y-4">
+            <Link
+              to="/pdf"
+              className="inline-block text-sm text-primary underline-offset-4 hover:underline"
+            >
+              PDF-verktyg →
+            </Link>
             <div
               role="tablist"
               aria-label="Rum och mallar"

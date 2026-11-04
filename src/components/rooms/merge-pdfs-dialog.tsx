@@ -66,7 +66,7 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
   const existingMerge = useQuery(
     api.pdfMerges.findByInputHashes,
     open && inputHashes.length >= MIN_MERGE_INPUTS
-      ? { roomId, inputHashes }
+      ? { inputHashes }
       : "skip",
   )
 
@@ -169,7 +169,6 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
       )
       await saveFile({ roomId, name: file.name, storageId })
       await registerMerge({
-        roomId,
         inputHashes,
         mergedStorageId: storageId,
       })

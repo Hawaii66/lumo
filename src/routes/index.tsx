@@ -122,6 +122,12 @@ function Home() {
         </p>
         <p className="flex flex-wrap gap-x-4 gap-y-1">
           <Link
+            to="/pdf"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            PDF-verktyg (slå ihop / extrahera) →
+          </Link>
+          <Link
             to="/preview"
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
