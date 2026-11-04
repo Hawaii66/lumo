@@ -26,7 +26,7 @@ import {
   RoomSettingsPanel,
   type RoomSettingsFocusSection,
 } from "~/components/rooms/room-settings-panel"
-import { ThreadChat } from "~/components/rooms/thread-chat"
+import { DraftThreadChat, ThreadChat } from "~/components/rooms/thread-chat"
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert"
 import { Button } from "~/components/ui/button"
 import {
@@ -76,7 +76,8 @@ function RoomPage() {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [selectedProblemId, setSelectedProblemId] =
     useState<Id<"problems"> | null>(null)
-  const [creatingChat, setCreatingChat] = useState(false)
+  const [isDraftChat, setIsDraftChat] = useState(false)
+  const [draftChatKey, setDraftChatKey] = useState(0)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
   const [bannerPending, setBannerPending] = useState(false)
@@ -205,23 +206,19 @@ function RoomPage() {
 
   function openThread(threadId: string) {
     setSection("chats")
+    setIsDraftChat(false)
     setSelectedThreadId(threadId)
     setSelectedProblemId(null)
   }
 
-  async function handleNewChat(title?: string) {
-    if (creatingChat) return
-    setCreatingChat(true)
-    try {
-      const result = await createThread({
-        roomId: typedRoomId,
-        title,
-      })
-      openThread(result.threadId)
-      setComposerFocusSignal((n) => n + 1)
-    } finally {
-      setCreatingChat(false)
-    }
+  function handleNewChat() {
+    setSection("chats")
+    setSelectedThreadId(null)
+    setSelectedProblemId(null)
+    setSettingsFocus(null)
+    setIsDraftChat(true)
+    setDraftChatKey((n) => n + 1)
+    setComposerFocusSignal((n) => n + 1)
   }
 
   async function handleProblemChatSubmit(
@@ -318,15 +315,19 @@ function RoomPage() {
           onSectionChange={(next) => {
             setSection(next)
             if (next !== "settings") setSettingsFocus(null)
-            if (next !== "chats") setSelectedThreadId(null)
+            if (next !== "chats") {
+              setSelectedThreadId(null)
+              setIsDraftChat(false)
+            }
             if (next !== "problems") setSelectedProblemId(null)
           }}
           onBack={() => void navigate({ to: "/" })}
-          onNewChat={() => void handleNewChat()}
+          onNewChat={handleNewChat}
           chats={chatItems}
           selectedChatId={section === "chats" ? selectedThreadId : null}
           onSelectChat={(threadId) => {
             setSection("chats")
+            setIsDraftChat(false)
             setSelectedThreadId(threadId)
             setSelectedProblemId(null)
             setSettingsFocus(null)
@@ -339,6 +340,7 @@ function RoomPage() {
             setSection("problems")
             setSelectedProblemId(id as Id<"problems">)
             setSelectedThreadId(null)
+            setIsDraftChat(false)
             setProblemChatError(null)
             setShadowError(null)
             setSettingsFocus(null)
@@ -347,6 +349,7 @@ function RoomPage() {
             setSettingsFocus("problemPdfOrder")
             setSection("settings")
             setSelectedThreadId(null)
+            setIsDraftChat(false)
             setSelectedProblemId(null)
           }}
         />
@@ -630,6 +633,14 @@ function RoomPage() {
               />
             </div>
           )
+        ) : isDraftChat ? (
+          <DraftThreadChat
+            key={draftChatKey}
+            roomId={typedRoomId}
+            problemGroups={problemGroups}
+            composerFocusSignal={composerFocusSignal}
+            onCreated={openThread}
+          />
         ) : selectedThreadId === null ? (
           <>
             <h2 className="text-lg font-medium">Chattar</h2>
@@ -653,7 +664,10 @@ function RoomPage() {
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
-            onArchived={() => setSelectedThreadId(null)}
+            onArchived={() => {
+              setSelectedThreadId(null)
+              setIsDraftChat(false)
+            }}
             composerFocusSignal={composerFocusSignal}
           />
         )}
