@@ -74,8 +74,8 @@ export const createDealCheckout = action({
       priceId: "price_unused_overridden",
       customerId: customer.customerId,
       mode: "payment",
-      successUrl: `${siteUrl}/?topup=success`,
-      cancelUrl: `${siteUrl}/?topup=canceled`,
+      successUrl: `${siteUrl}/profile?topup=success`,
+      cancelUrl: `${siteUrl}/profile?topup=canceled`,
       metadata,
       paymentIntentMetadata: metadata,
       params: {

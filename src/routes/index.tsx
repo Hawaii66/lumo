@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { convexQuery } from "@convex-dev/react-query"
-import { useAction, useMutation } from "convex/react"
+import { useMutation } from "convex/react"
 import { useState } from "react"
 import { api } from "../../convex/_generated/api"
 import {
@@ -24,42 +24,14 @@ export const Route = createFileRoute("/")({
   component: Home,
 })
 
-function formatTokens(n: number) {
-  return n.toLocaleString("sv-SE")
-}
-
-function formatUsd(n: number) {
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 6,
-  })
-}
-
-function formatResetAt(ms: number) {
-  return new Date(ms).toLocaleString("sv-SE", {
-    timeZone: "Europe/Stockholm",
-    dateStyle: "short",
-    timeStyle: "short",
-  })
-}
-
-function CreditsAndUsageDebugCard() {
-  const { data: usage } = useSuspenseQuery(convexQuery(api.usage.myUsage, {}))
+/** Slim home strip: link to profile + bootstrap when creditConfig is missing. */
+function CreditsHomeCard() {
   const { data: config } = useSuspenseQuery(
     convexQuery(api.credits.getConfig, {}),
-  )
-  const { data: balance } = useSuspenseQuery(
-    convexQuery(api.credits.getMyBalance, {}),
-  )
-  const { data: deals } = useSuspenseQuery(
-    convexQuery(api.creditDeals.listActiveDeals, {}),
   )
   const createConfig = useMutation(api.credits.createConfig)
   const seedDeals = useMutation(api.creditDeals.seedDefaultDeals)
   const grantToday = useMutation(api.credits.debugGrantTodayFree)
-  const createCheckout = useAction(api.billing.createDealCheckout)
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -75,39 +47,11 @@ function CreditsAndUsageDebugCard() {
     }
   }
 
-  async function buyDeal(dealId: (typeof deals)[number]["_id"]) {
-    setBusy(`deal-${dealId}`)
-    setActionError(null)
-    try {
-      const { url } = await createCheckout({ dealId })
-      if (!url) {
-        throw new Error("Stripe returnerade ingen checkout-URL")
-      }
-      window.location.assign(url)
-    } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : "Något gick fel")
-      setBusy(null)
-    }
-  }
-
-  if (usage === null) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Credits & användning (temp)</CardTitle>
-          <CardDescription>
-            Logga in för att se credits och AI-kostnad (chatt + tvillingar).
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
   if (config === null) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Credits & användning (temp)</CardTitle>
+          <CardTitle>Credits</CardTitle>
           <CardDescription>
             creditConfig saknas. Skapa den innan chat/tvilling kan debiteras
             (standard: chat 1 · tvilling 5 · free/dag 30).
@@ -135,128 +79,30 @@ function CreditsAndUsageDebugCard() {
     )
   }
 
-  if (balance === null) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Credits & användning (temp)</CardTitle>
-          <CardDescription>
-            Logga in för att se credits och AI-kostnad (chatt + tvillingar).
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    )
-  }
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Credits & användning (temp)</CardTitle>
+        <CardTitle>Credits</CardTitle>
         <CardDescription>
-          Daglig free resetar (Stockholm). Betalda credits sparas. PDF-parse
-          räknas inte i tokens.
+          Saldo, köp och daglig förbrukning finns under Profil.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5 text-sm">
-        <div className="space-y-1">
-          <p className="font-medium">Credits</p>
-          <p className="text-muted-foreground">
-            Totalt {balance.totalAvailable} · daglig {balance.dailyRemaining} ·
-            köpta {balance.paidBalance}
-          </p>
-          <p className="text-muted-foreground">
-            Kostnad: chat {balance.costs.chatCreditCost} · tvilling{" "}
-            {balance.costs.twinCreditCost} · free/dag{" "}
-            {balance.costs.freeDailyCredits}
-          </p>
-          <p className="text-muted-foreground">
-            Nästa free-reset: {formatResetAt(balance.nextResetAt)}
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <p className="font-medium">Köp credits</p>
-          {deals.length === 0 ? (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={busy !== null}
-                onClick={() =>
-                  void runDebug("seed-deals", () => seedDeals({}))
-                }
-              >
-                {busy === "seed-deals" ? "…" : "Skapa standard-deals"}
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {deals.map((deal) => (
-                <Button
-                  key={deal._id}
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={busy !== null}
-                  title={deal.description}
-                  onClick={() => void buyDeal(deal._id)}
-                >
-                  {busy === `deal-${deal._id}`
-                    ? "…"
-                    : `Köp ${deal.creditsGranted} — ${deal.priceSek} kr`}
-                </Button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            disabled={busy !== null}
-            onClick={() =>
-              void runDebug("grant", () => grantToday({}))
-            }
-          >
-            {busy === "grant" ? "…" : "Ge dagens free credits"}
-          </Button>
-        </div>
+      <CardContent className="flex flex-wrap items-center gap-2">
+        <Button size="sm" render={<Link to="/profile" />}>
+          Öppna profil
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          disabled={busy !== null}
+          onClick={() => void runDebug("grant", () => grantToday({}))}
+        >
+          {busy === "grant" ? "…" : "Ge dagens free credits (debug)"}
+        </Button>
         {actionError !== null ? (
-          <p className="text-destructive text-xs">{actionError}</p>
+          <p className="text-destructive w-full text-xs">{actionError}</p>
         ) : null}
-
-        <div className="space-y-3 border-t pt-4">
-          <p className="font-medium">Token-spend (OpenRouter)</p>
-          <p className="text-muted-foreground">
-            Totalt {formatUsd(usage.costUsd)} ·{" "}
-            {formatTokens(usage.totalTokens)} tokens ({usage.eventCount}{" "}
-            debiteringar)
-          </p>
-          <div className="space-y-1">
-            <p className="font-medium">Chat</p>
-            <p className="text-muted-foreground">
-              {formatUsd(usage.bySource.chat.costUsd)} ·{" "}
-              {formatTokens(usage.bySource.chat.totalTokens)} tokens ·{" "}
-              {usage.bySource.chat.eventCount} meddelanden
-            </p>
-            <p className="text-muted-foreground pl-3">
-              normal: {formatUsd(usage.bySource.chat.byMode.normal.costUsd)} ·
-              genomgång:{" "}
-              {formatUsd(usage.bySource.chat.byMode.genomgang.costUsd)}
-            </p>
-          </div>
-          <div className="space-y-1">
-            <p className="font-medium">Tvillinggenerering</p>
-            <p className="text-muted-foreground">
-              {formatUsd(usage.bySource.twin_generation.costUsd)} ·{" "}
-              {formatTokens(usage.bySource.twin_generation.totalTokens)} tokens
-              · {usage.bySource.twin_generation.eventCount} tvillingar
-            </p>
-          </div>
-        </div>
       </CardContent>
     </Card>
   )
@@ -274,12 +120,18 @@ function Home() {
         <p className="text-muted-foreground">
           Sokratisk studieplattform — Convex + TanStack Start är igång.
         </p>
-        <p>
+        <p className="flex flex-wrap gap-x-4 gap-y-1">
           <Link
             to="/preview"
             className="text-sm text-primary underline-offset-4 hover:underline"
           >
             Problem preview (klistra in PDF-JSON) →
+          </Link>
+          <Link
+            to="/profile"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            Profil →
           </Link>
         </p>
       </div>
@@ -295,7 +147,7 @@ function Home() {
 
       <SignInCard />
 
-      <CreditsAndUsageDebugCard />
+      <CreditsHomeCard />
 
       <RoomsPanel />
 

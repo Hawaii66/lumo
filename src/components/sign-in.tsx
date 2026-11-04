@@ -1,4 +1,5 @@
 import { useAuthActions } from "@convex-dev/auth/react"
+import { Link } from "@tanstack/react-router"
 import {
   Authenticated,
   AuthLoading,
@@ -71,16 +72,19 @@ function SignedInCard() {
             </div>
           </dl>
         )}
-        <Button
-          variant="outline"
-          disabled={signingOut}
-          onClick={() => {
-            setSigningOut(true)
-            void signOut().finally(() => setSigningOut(false))
-          }}
-        >
-          {signingOut ? "Loggar ut…" : "Logga ut"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button render={<Link to="/profile" />}>Profil</Button>
+          <Button
+            variant="outline"
+            disabled={signingOut}
+            onClick={() => {
+              setSigningOut(true)
+              void signOut().finally(() => setSigningOut(false))
+            }}
+          >
+            {signingOut ? "Loggar ut…" : "Logga ut"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
