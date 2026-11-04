@@ -79,14 +79,15 @@ export function ThreadTitleEditor({
   if (!editing) {
     return (
       <div className="flex min-w-0 items-center gap-1.5">
-        <button
+        <Button
           type="button"
-          className="min-w-0 truncate text-left text-lg font-medium hover:underline"
+          variant="link"
+          className="h-auto min-w-0 truncate px-0 text-left text-lg font-medium text-foreground"
           title={`${title} — klicka för att byta titel`}
           onClick={startEdit}
         >
           {title}
-        </button>
+        </Button>
         <Button
           variant="ghost"
           size="sm"

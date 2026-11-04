@@ -9,6 +9,7 @@ type ChatInputModeMenuProps = {
   onSelect: (mode: ChatMode) => void
 }
 
+/** Composer mode list — custom listbox (not DropdownMenu) so keyboard selection in use-composer stays intact. */
 export function ChatInputModeMenu({
   activeMode,
   selectedIndex,
@@ -17,7 +18,7 @@ export function ChatInputModeMenu({
 }: ChatInputModeMenuProps) {
   return (
     <ul
-      className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+      className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-md"
       role="listbox"
       aria-label="Välj chattläge"
     >
@@ -33,11 +34,12 @@ export function ChatInputModeMenu({
               }}
               role="option"
               aria-selected={selected}
+              data-selected={highlighted ? "true" : undefined}
               className={cn(
-                "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm",
+                "flex w-full flex-col items-start rounded-lg px-2 py-1.5 text-left text-sm outline-hidden",
                 highlighted
-                  ? "bg-accent text-accent-foreground"
-                  : "hover:bg-muted",
+                  ? "bg-muted text-foreground"
+                  : "hover:bg-muted/70",
               )}
               onMouseDown={(event) => {
                 event.preventDefault()

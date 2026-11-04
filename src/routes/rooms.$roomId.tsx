@@ -1,23 +1,19 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useAction, useMutation, useQuery } from "convex/react"
 import { ChevronDown, CopyPlus } from "lucide-react"
-import { useEffect, useId, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
-import type {ChatInputHandle, ChatInputSubmitPayload} from "~/components/rooms/chat-input";
-import type {ProblemHelpStartDraft} from "~/components/rooms/problem-help-actions";
-import type {RoomSidebarSection} from "~/components/rooms/room-sidebar";
-import { ParsedProblemView } from "~/components/lumo/parsed-problem"
-import {
-  ChatInput
-  
-  
+import type {
+  ChatInputHandle,
+  ChatInputSubmitPayload,
 } from "~/components/rooms/chat-input"
+import type { ProblemHelpStartDraft } from "~/components/rooms/problem-help-actions"
+import type { RoomSidebarSection } from "~/components/rooms/room-sidebar"
+import { ParsedProblemView } from "~/components/lumo/parsed-problem"
+import { ChatInput } from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
-import {
-  ProblemHelpActions
-  
-} from "~/components/rooms/problem-help-actions"
+import { ProblemHelpActions } from "~/components/rooms/problem-help-actions"
 import {
   PROBLEM_CHAT_DELETION_EXPIRY,
   formatSidebarTimeLeft,
@@ -25,18 +21,29 @@ import {
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
 import { formatProblemMentionToken } from "~/lib/chat-composer"
 import { chaptersFromMarkdown } from "~/lib/markdown-math"
-import {
-  RoomSidebar
-  
-} from "~/components/rooms/room-sidebar"
+import { RoomSidebar } from "~/components/rooms/room-sidebar"
 import {
   RoomSettingsPanel,
   type RoomSettingsFocusSection,
 } from "~/components/rooms/room-settings-panel"
 import { ThreadChat } from "~/components/rooms/thread-chat"
+import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert"
 import { Button } from "~/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
+import { ScrollArea } from "~/components/ui/scroll-area"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "~/components/ui/sidebar"
+import { Skeleton } from "~/components/ui/skeleton"
+import { TooltipProvider } from "~/components/ui/tooltip"
 import { uploadFileToStorage } from "~/lib/upload"
-import { cn } from "~/lib/utils"
 import { useUiStore } from "~/stores/ui-store"
 
 export const Route = createFileRoute("/rooms/$roomId")({
@@ -72,44 +79,19 @@ function RoomPage() {
   const [creatingChat, setCreatingChat] = useState(false)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
-  const [twinMenuOpen, setTwinMenuOpen] = useState(false)
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
   const problemChatInputRef = useRef<ChatInputHandle>(null)
-  const twinMenuRef = useRef<HTMLDivElement>(null)
-  const twinMenuListId = useId()
   const showFacit = useUiStore((s) => s.showFacit)
   const setShowFacit = useUiStore((s) => s.setShowFacit)
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     setShadowError(null)
-    setTwinMenuOpen(false)
   }, [selectedProblemId])
-
-  useEffect(() => {
-    if (!twinMenuOpen) return
-
-    function handlePointerDown(event: MouseEvent) {
-      if (!twinMenuRef.current?.contains(event.target as Node)) {
-        setTwinMenuOpen(false)
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setTwinMenuOpen(false)
-    }
-
-    document.addEventListener("mousedown", handlePointerDown)
-    document.addEventListener("keydown", handleKeyDown)
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown)
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [twinMenuOpen])
 
   const hasTimedChats = useMemo(
     () => (threads ?? []).some((thread) => thread.deleteAt != null),
@@ -203,7 +185,6 @@ function RoomPage() {
     ) {
       return
     }
-    setTwinMenuOpen(false)
     setCreatingShadow(true)
     setShadowError(null)
     try {
@@ -220,15 +201,6 @@ function RoomPage() {
     } finally {
       setCreatingShadow(false)
     }
-  }
-
-  function handleTwinButtonClick() {
-    if (creatingShadow || selectedProblem?.isShadow) return
-    if (subproblemLetters.length === 0) {
-      void handleCreateShadow(null)
-      return
-    }
-    setTwinMenuOpen((open) => !open)
   }
 
   function openThread(threadId: string) {
@@ -316,8 +288,9 @@ function RoomPage() {
 
   if (room === undefined) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-6 text-sm text-muted-foreground">
-        Hämtar rum…
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-6">
+        <Skeleton className="h-4 w-40" />
+        <p className="text-sm text-muted-foreground">Hämtar rum…</p>
       </div>
     )
   }
@@ -333,170 +306,173 @@ function RoomPage() {
     )
   }
 
-  // TODO: Fix mobile room layout — sidebar + main shell is computer-only for now;
-  // make /rooms/$roomId usable on phone (collapse/drawer sidebar, stacking, touch).
   // TODO: Split mega room page / wire thinner child components once chat-input,
   // room-settings-panel, and thread-chat are broken up; add a thin convex-test suite.
   return (
-    <div className="flex h-svh bg-background">
-      <RoomSidebar
-        roomName={room.name}
-        roomDescription={room.description}
-        section={section}
-        onSectionChange={(next) => {
-          setSection(next)
-          if (next !== "settings") setSettingsFocus(null)
-          if (next !== "chats") setSelectedThreadId(null)
-          if (next !== "problems") setSelectedProblemId(null)
-        }}
-        onBack={() => void navigate({ to: "/" })}
-        onNewChat={() => void handleNewChat()}
-        chats={chatItems}
-        selectedChatId={section === "chats" ? selectedThreadId : null}
-        onSelectChat={(threadId) => {
-          setSection("chats")
-          setSelectedThreadId(threadId)
-          setSelectedProblemId(null)
-          setSettingsFocus(null)
-        }}
-        problemGroups={problemGroupItems}
-        selectedProblemId={
-          section === "problems" ? selectedProblemId : null
-        }
-        onSelectProblem={(id) => {
-          setSection("problems")
-          setSelectedProblemId(id as Id<"problems">)
-          setSelectedThreadId(null)
-          setProblemChatError(null)
-          setShadowError(null)
-          setSettingsFocus(null)
-        }}
-        onOpenProblemPdfOrder={() => {
-          setSettingsFocus("problemPdfOrder")
-          setSection("settings")
-          setSelectedThreadId(null)
-          setSelectedProblemId(null)
-        }}
-      />
+    <TooltipProvider>
+      <SidebarProvider className="h-svh! min-h-0">
+        <RoomSidebar
+          roomName={room.name}
+          roomDescription={room.description}
+          section={section}
+          onSectionChange={(next) => {
+            setSection(next)
+            if (next !== "settings") setSettingsFocus(null)
+            if (next !== "chats") setSelectedThreadId(null)
+            if (next !== "problems") setSelectedProblemId(null)
+          }}
+          onBack={() => void navigate({ to: "/" })}
+          onNewChat={() => void handleNewChat()}
+          chats={chatItems}
+          selectedChatId={section === "chats" ? selectedThreadId : null}
+          onSelectChat={(threadId) => {
+            setSection("chats")
+            setSelectedThreadId(threadId)
+            setSelectedProblemId(null)
+            setSettingsFocus(null)
+          }}
+          problemGroups={problemGroupItems}
+          selectedProblemId={
+            section === "problems" ? selectedProblemId : null
+          }
+          onSelectProblem={(id) => {
+            setSection("problems")
+            setSelectedProblemId(id as Id<"problems">)
+            setSelectedThreadId(null)
+            setProblemChatError(null)
+            setShadowError(null)
+            setSettingsFocus(null)
+          }}
+          onOpenProblemPdfOrder={() => {
+            setSettingsFocus("problemPdfOrder")
+            setSection("settings")
+            setSelectedThreadId(null)
+            setSelectedProblemId(null)
+          }}
+        />
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+        <SidebarInset className="min-h-0 overflow-hidden">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4 md:hidden">
+            <SidebarTrigger />
+            <span className="truncate text-sm font-medium">{room.name}</span>
+          </header>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-6">
         {room.templateExpired ? (
-          <div
-            className="mb-4 shrink-0 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3"
-            role="status"
-          >
-            <p className="text-sm font-medium">Mallen för det här rummet är utgången</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {room.replacementTemplate
-                ? `Klona den nya mallen “${room.replacementTemplate.name}” och radera det här rummet om du inte längre behöver det.`
-                : "Sök upp en ny mall på startsidan under Mallar, klona den, och radera det här rummet om du inte längre behöver det."}
-            </p>
-            {bannerError ? (
-              <p className="mt-2 text-sm text-destructive">{bannerError}</p>
-            ) : null}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {room.replacementTemplate ? (
+          <Alert className="mb-4 shrink-0 border-amber-500/40 bg-amber-500/10">
+            <AlertTitle>Mallen för det här rummet är utgången</AlertTitle>
+            <AlertDescription>
+              <p>
+                {room.replacementTemplate
+                  ? `Klona den nya mallen “${room.replacementTemplate.name}” och radera det här rummet om du inte längre behöver det.`
+                  : "Sök upp en ny mall på startsidan under Mallar, klona den, och radera det här rummet om du inte längre behöver det."}
+              </p>
+              {bannerError ? (
+                <p className="mt-2 text-destructive">{bannerError}</p>
+              ) : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {room.replacementTemplate ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={bannerPending}
+                    onClick={() => {
+                      if (!room.replacementTemplate) return
+                      const replacementId = room.replacementTemplate._id
+                      setBannerError(null)
+                      setBannerPending(true)
+                      void cloneTemplate({ templateId: replacementId })
+                        .then(async (newRoomId) => {
+                          try {
+                            await removeRoom({ roomId: typedRoomId })
+                          } catch {
+                            // New room exists; old room may remain if delete fails.
+                          }
+                          void navigate({
+                            to: "/rooms/$roomId",
+                            params: { roomId: newRoomId },
+                          })
+                        })
+                        .catch((err: unknown) => {
+                          setBannerError(
+                            err instanceof Error
+                              ? err.message
+                              : "Kunde inte klona ersättningsmallen",
+                          )
+                        })
+                        .finally(() => setBannerPending(false))
+                    }}
+                  >
+                    {bannerPending
+                      ? "Klonar…"
+                      : `Klona “${room.replacementTemplate.name}” och radera detta`}
+                  </Button>
+                ) : (
+                  <Button type="button" size="sm" render={<Link to="/" />}>
+                    Till mallar
+                  </Button>
+                )}
                 <Button
                   type="button"
                   size="sm"
+                  variant="outline"
                   disabled={bannerPending}
                   onClick={() => {
-                    if (!room.replacementTemplate) return
-                    const replacementId = room.replacementTemplate._id
                     setBannerError(null)
                     setBannerPending(true)
-                    void cloneTemplate({ templateId: replacementId })
-                      .then(async (newRoomId) => {
-                        try {
-                          await removeRoom({ roomId: typedRoomId })
-                        } catch {
-                          // New room exists; old room may remain if delete fails.
-                        }
-                        void navigate({
-                          to: "/rooms/$roomId",
-                          params: { roomId: newRoomId },
-                        })
+                    void removeRoom({ roomId: typedRoomId })
+                      .then(() => {
+                        void navigate({ to: "/" })
                       })
                       .catch((err: unknown) => {
                         setBannerError(
                           err instanceof Error
                             ? err.message
-                            : "Kunde inte klona ersättningsmallen",
+                            : "Kunde inte radera rummet",
                         )
                       })
                       .finally(() => setBannerPending(false))
                   }}
                 >
-                  {bannerPending
-                    ? "Klonar…"
-                    : `Klona “${room.replacementTemplate.name}” och radera detta`}
+                  Radera det här rummet
                 </Button>
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  render={<Link to="/" />}
-                >
-                  Till mallar
-                </Button>
-              )}
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                disabled={bannerPending}
-                onClick={() => {
-                  setBannerError(null)
-                  setBannerPending(true)
-                  void removeRoom({ roomId: typedRoomId })
-                    .then(() => {
-                      void navigate({ to: "/" })
-                    })
-                    .catch((err: unknown) => {
-                      setBannerError(
-                        err instanceof Error
-                          ? err.message
-                          : "Kunde inte radera rummet",
-                      )
-                    })
-                    .finally(() => setBannerPending(false))
-                }}
-              >
-                Radera det här rummet
-              </Button>
-            </div>
-          </div>
+              </div>
+            </AlertDescription>
+          </Alert>
         ) : null}
         {section === "files" ? (
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <ScrollArea className="min-h-0 flex-1">
             <FilesGrid roomId={typedRoomId} />
-          </div>
+          </ScrollArea>
         ) : section === "settings" ? (
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <ScrollArea className="min-h-0 flex-1">
             <RoomSettingsPanel
               roomId={typedRoomId}
               focusSection={settingsFocus}
               onFocusHandled={() => setSettingsFocus(null)}
             />
-          </div>
+          </ScrollArea>
         ) : section === "problems" ? (
           selectedProblemId === null ? (
             <div className="overflow-y-auto">
               <h2 className="text-lg font-medium">Uppgifter</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
-                <button
+                <Button
                   type="button"
-                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                  variant="link"
+                  className="h-auto p-0 font-medium"
                   onClick={() => setSection("files")}
                 >
                   Filer
-                </button>
+                </Button>
                 .
               </p>
             </div>
           ) : selectedProblem === undefined ? (
-            <p className="text-sm text-muted-foreground">Hämtar uppgift…</p>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-48" />
+              <p className="text-sm text-muted-foreground">Hämtar uppgift…</p>
+            </div>
           ) : selectedProblem === null ? (
             <p className="text-sm text-muted-foreground">
               Uppgiften hittades inte eller så saknar du åtkomst.
@@ -515,70 +491,55 @@ function RoomPage() {
                     : null}
                 </p>
                 {!selectedProblem.isShadow ? (
-                  <div ref={twinMenuRef} className="relative">
+                  subproblemLetters.length === 0 ? (
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       className="gap-1.5"
                       disabled={creatingShadow}
-                      aria-haspopup={
-                        subproblemLetters.length > 0 ? "listbox" : undefined
-                      }
-                      aria-expanded={
-                        subproblemLetters.length > 0 ? twinMenuOpen : undefined
-                      }
-                      aria-controls={
-                        twinMenuOpen ? twinMenuListId : undefined
-                      }
-                      onClick={handleTwinButtonClick}
+                      onClick={() => void handleCreateShadow(null)}
                     >
                       <CopyPlus className="size-3.5" />
                       {creatingShadow ? "Skapar…" : "Skapa tvilling"}
-                      {subproblemLetters.length > 0 ? (
+                    </Button>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5"
+                            disabled={creatingShadow}
+                          />
+                        }
+                      >
+                        <CopyPlus className="size-3.5" />
+                        {creatingShadow ? "Skapar…" : "Skapa tvilling"}
                         <ChevronDown
                           className="size-3.5 opacity-60"
                           aria-hidden
                         />
-                      ) : null}
-                    </Button>
-
-                    {twinMenuOpen && subproblemLetters.length > 0 ? (
-                      <ul
-                        id={twinMenuListId}
-                        role="listbox"
-                        aria-label="Välj omfång för tvilling"
-                        className="absolute right-0 z-20 mt-1 min-w-[12rem] overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md"
-                      >
-                        <li role="option">
-                          <button
-                            type="button"
-                            className={cn(
-                              "flex w-full whitespace-nowrap px-3 py-1.5 text-left text-xs font-medium",
-                              "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
-                            )}
-                            onClick={() => void handleCreateShadow(null)}
-                          >
-                            Hela uppgiften
-                          </button>
-                        </li>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-48">
+                        <DropdownMenuItem
+                          onClick={() => void handleCreateShadow(null)}
+                        >
+                          Hela uppgiften
+                        </DropdownMenuItem>
                         {subproblemLetters.map((letter) => (
-                          <li key={letter} role="option">
-                            <button
-                              type="button"
-                              className={cn(
-                                "flex w-full whitespace-nowrap px-3 py-1.5 text-left text-xs font-medium",
-                                "hover:bg-muted focus-visible:bg-muted focus-visible:outline-none",
-                              )}
-                              onClick={() => void handleCreateShadow(letter)}
-                            >
-                              Deluppgift ({letter})
-                            </button>
-                          </li>
+                          <DropdownMenuItem
+                            key={letter}
+                            onClick={() => void handleCreateShadow(letter)}
+                          >
+                            Deluppgift ({letter})
+                          </DropdownMenuItem>
                         ))}
-                      </ul>
-                    ) : null}
-                  </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )
                 ) : null}
               </div>
               {shadowError ? (
@@ -696,7 +657,9 @@ function RoomPage() {
             composerFocusSignal={composerFocusSignal}
           />
         )}
-      </main>
-    </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   )
 }

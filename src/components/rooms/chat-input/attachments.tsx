@@ -1,4 +1,5 @@
 import { X } from "lucide-react"
+import { Button } from "~/components/ui/button"
 import type {
   ChatInputImage,
   ChatInputStorageImage,
@@ -35,15 +36,17 @@ export function ChatInputAttachments({
             alt={image.file.name}
             className="size-full object-cover"
           />
-          <button
+          <Button
             type="button"
-            className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
+            variant="secondary"
+            size="icon-xs"
+            className="absolute top-0.5 right-0.5 size-5 rounded-full bg-background/90 shadow-sm"
             onClick={() => onRemoveImage(image.id)}
             aria-label={`Ta bort ${image.file.name}`}
             disabled={pending}
           >
             <X className="size-3" />
-          </button>
+          </Button>
         </li>
       ))}
       {pendingStorageImages.map((image) => (
@@ -54,15 +57,17 @@ export function ChatInputAttachments({
           <span className="line-clamp-3 text-center text-[10px] leading-tight text-muted-foreground">
             {image.filename}
           </span>
-          <button
+          <Button
             type="button"
-            className="absolute top-0.5 right-0.5 rounded-full bg-background/90 p-0.5 text-foreground shadow-sm"
+            variant="secondary"
+            size="icon-xs"
+            className="absolute top-0.5 right-0.5 size-5 rounded-full bg-background/90 shadow-sm"
             onClick={() => onRemoveStorageImage(image.id)}
             aria-label={`Ta bort ${image.filename}`}
             disabled={pending}
           >
             <X className="size-3" />
-          </button>
+          </Button>
         </li>
       ))}
     </ul>

@@ -12,6 +12,7 @@ type ChatInputMentionTypeaheadProps = {
   onSelect: (option: ProblemMentionOption) => void
 }
 
+/** Mention typeahead — custom listbox so composer keyboard nav stays intact. */
 export function ChatInputMentionTypeahead({
   options,
   selectedIndex,
@@ -20,7 +21,7 @@ export function ChatInputMentionTypeahead({
 }: ChatInputMentionTypeaheadProps) {
   return (
     <ul
-      className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+      className="absolute bottom-full left-0 z-20 mb-1 w-full overflow-y-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-md"
       style={{ maxHeight: `calc(${TYPEAHEAD_VISIBLE_COUNT} * 3.25rem)` }}
       role="listbox"
     >
@@ -33,11 +34,12 @@ export function ChatInputMentionTypeahead({
             }}
             role="option"
             aria-selected={index === selectedIndex}
+            data-selected={index === selectedIndex ? "true" : undefined}
             className={cn(
-              "flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm",
+              "flex w-full flex-col items-start rounded-lg px-2 py-1.5 text-left text-sm outline-hidden",
               index === selectedIndex
-                ? "bg-accent text-accent-foreground"
-                : "hover:bg-muted",
+                ? "bg-muted text-foreground"
+                : "hover:bg-muted/70",
             )}
             onMouseDown={(event) => {
               event.preventDefault()
