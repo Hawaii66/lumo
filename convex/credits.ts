@@ -464,6 +464,63 @@ export const debugTopUp = mutation({
   },
 });
 
+/**
+ * Grant paid credits after Stripe Checkout succeeds.
+ * Idempotent on `stripeRefId` (Checkout session id).
+ */
+export const grantPurchaseFromStripe = internalMutation({
+  args: {
+    userId: v.id("users"),
+    credits: v.number(),
+    stripeRefId: v.string(),
+    dealId: v.optional(v.string()),
+  },
+  returns: v.object({
+    granted: v.boolean(),
+    paidBalance: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    assertPositiveInt("credits", args.credits);
+    if (args.stripeRefId.trim().length === 0) {
+      throw new Error("stripeRefId krävs");
+    }
+
+    const user = await ctx.db.get(args.userId);
+    if (user === null) {
+      throw new Error("Användare finns inte");
+    }
+
+    const existing = await ctx.db
+      .query("creditLedger")
+      .withIndex("by_refId", (q) => q.eq("refId", args.stripeRefId))
+      .first();
+    if (existing !== null) {
+      const balance = await ensureBalanceWithDailyGrant(ctx, args.userId);
+      return { granted: false, paidBalance: balance.paidBalance };
+    }
+
+    await requireConfig(ctx);
+    const balance = await ensureBalanceWithDailyGrant(ctx, args.userId);
+    const paidBalance = balance.paidBalance + args.credits;
+    const now = Date.now();
+
+    await ctx.db.patch(balance._id, {
+      paidBalance,
+      updatedAt: now,
+    });
+    await appendLedger(ctx, {
+      userId: args.userId,
+      delta: args.credits,
+      balanceAfterDaily: balance.dailyRemaining,
+      balanceAfterPaid: paidBalance,
+      kind: "purchase",
+      refId: args.stripeRefId,
+    });
+
+    return { granted: true, paidBalance };
+  },
+});
+
 export const spendForChat = internalMutation({
   args: {
     userId: v.id("users"),

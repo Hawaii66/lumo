@@ -25,11 +25,14 @@ import type * as agents_roomAgent from "../agents/roomAgent.js";
 import type * as auth from "../auth.js";
 import type * as authProviders_openai from "../authProviders/openai.js";
 import type * as authProviders_temp from "../authProviders/temp.js";
+import type * as billing from "../billing.js";
+import type * as creditDeals from "../creditDeals.js";
 import type * as credits from "../credits.js";
 import type * as crons from "../crons.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as lib_creditDeals from "../lib/creditDeals.js";
 import type * as lib_credits from "../lib/credits.js";
 import type * as lib_lumoContent from "../lib/lumoContent.js";
 import type * as lib_pdfExtract from "../lib/pdfExtract.js";
@@ -80,11 +83,14 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   "authProviders/openai": typeof authProviders_openai;
   "authProviders/temp": typeof authProviders_temp;
+  billing: typeof billing;
+  creditDeals: typeof creditDeals;
   credits: typeof credits;
   crons: typeof crons;
   files: typeof files;
   health: typeof health;
   http: typeof http;
+  "lib/creditDeals": typeof lib_creditDeals;
   "lib/credits": typeof lib_credits;
   "lib/lumoContent": typeof lib_lumoContent;
   "lib/pdfExtract": typeof lib_pdfExtract;
@@ -140,4 +146,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
+  stripe: import("@convex-dev/stripe/_generated/component.js").ComponentApi<"stripe">;
 };

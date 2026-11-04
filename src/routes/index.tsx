@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { convexQuery } from "@convex-dev/react-query"
-import { useMutation } from "convex/react"
+import { useAction, useMutation } from "convex/react"
 import { useState } from "react"
 import { api } from "../../convex/_generated/api"
-import { DEBUG_TOP_UP_AMOUNTS } from "../../convex/lib/credits"
 import {
   Card,
   CardContent,
@@ -54,9 +53,13 @@ function CreditsAndUsageDebugCard() {
   const { data: balance } = useSuspenseQuery(
     convexQuery(api.credits.getMyBalance, {}),
   )
+  const { data: deals } = useSuspenseQuery(
+    convexQuery(api.creditDeals.listActiveDeals, {}),
+  )
   const createConfig = useMutation(api.credits.createConfig)
+  const seedDeals = useMutation(api.creditDeals.seedDefaultDeals)
   const grantToday = useMutation(api.credits.debugGrantTodayFree)
-  const topUp = useMutation(api.credits.debugTopUp)
+  const createCheckout = useAction(api.billing.createDealCheckout)
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -68,6 +71,21 @@ function CreditsAndUsageDebugCard() {
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : "Något gick fel")
     } finally {
+      setBusy(null)
+    }
+  }
+
+  async function buyDeal(dealId: (typeof deals)[number]["_id"]) {
+    setBusy(`deal-${dealId}`)
+    setActionError(null)
+    try {
+      const { url } = await createCheckout({ dealId })
+      if (!url) {
+        throw new Error("Stripe returnerade ingen checkout-URL")
+      }
+      window.location.assign(url)
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Något gick fel")
       setBusy(null)
     }
   }
@@ -101,10 +119,13 @@ function CreditsAndUsageDebugCard() {
             size="sm"
             disabled={busy !== null}
             onClick={() =>
-              void runDebug("create-config", () => createConfig({}))
+              void runDebug("create-config", async () => {
+                await createConfig({})
+                await seedDeals({})
+              })
             }
           >
-            {busy === "create-config" ? "…" : "Skapa creditConfig"}
+            {busy === "create-config" ? "…" : "Skapa creditConfig + deals"}
           </Button>
           {actionError !== null ? (
             <p className="text-destructive text-xs">{actionError}</p>
@@ -153,6 +174,43 @@ function CreditsAndUsageDebugCard() {
           </p>
         </div>
 
+        <div className="space-y-2">
+          <p className="font-medium">Köp credits</p>
+          {deals.length === 0 ? (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy !== null}
+                onClick={() =>
+                  void runDebug("seed-deals", () => seedDeals({}))
+                }
+              >
+                {busy === "seed-deals" ? "…" : "Skapa standard-deals"}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {deals.map((deal) => (
+                <Button
+                  key={deal._id}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={busy !== null}
+                  title={deal.description}
+                  onClick={() => void buyDeal(deal._id)}
+                >
+                  {busy === `deal-${deal._id}`
+                    ? "…"
+                    : `Köp ${deal.creditsGranted} — ${deal.priceSek} kr`}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
@@ -165,20 +223,6 @@ function CreditsAndUsageDebugCard() {
           >
             {busy === "grant" ? "…" : "Ge dagens free credits"}
           </Button>
-          {DEBUG_TOP_UP_AMOUNTS.map((amount) => (
-            <Button
-              key={amount}
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={busy !== null}
-              onClick={() =>
-                void runDebug(`top-${amount}`, () => topUp({ amount }))
-              }
-            >
-              {busy === `top-${amount}` ? "…" : `Top up ${amount}`}
-            </Button>
-          ))}
         </div>
         {actionError !== null ? (
           <p className="text-destructive text-xs">{actionError}</p>
