@@ -317,4 +317,41 @@ export default defineSchema({
     costUsd: v.optional(v.number()),
     threadId: v.optional(v.string()),
   }).index("by_user", ["userId"]),
+  /**
+   * Singleton pricing config (`key: "default"`). Mutable via `credits.updateConfig`
+   * for a future admin dashboard. Missing row → seed from code defaults on first read.
+   */
+  creditConfig: defineTable({
+    key: v.literal("default"),
+    freeDailyCredits: v.number(),
+    chatCreditCost: v.number(),
+    twinCreditCost: v.number(),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+  /** Per-user credit wallets: daily free (resets) + paid top-ups (never expire). */
+  creditBalances: defineTable({
+    userId: v.id("users"),
+    dailyRemaining: v.number(),
+    /** YYYY-MM-DD in Europe/Stockholm when dailyRemaining was last granted. */
+    dailyGrantDate: v.string(),
+    paidBalance: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+  /** Append-only credit movements for audit / debug. */
+  creditLedger: defineTable({
+    userId: v.id("users"),
+    delta: v.number(),
+    balanceAfterDaily: v.number(),
+    balanceAfterPaid: v.number(),
+    kind: v.union(
+      v.literal("daily_grant"),
+      v.literal("purchase"),
+      v.literal("spend_chat"),
+      v.literal("spend_twin"),
+      v.literal("refund"),
+      v.literal("admin_adjust"),
+    ),
+    refId: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
 });

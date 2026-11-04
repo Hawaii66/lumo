@@ -117,93 +117,109 @@ export const createShadow = action({
 
     const suggestedNumber = `${parent.parentProblemNumber}·T${parent.existingShadowCount + 1}`;
 
-    const variantResult = await lumoTwinVariantAgent.generateText(
-      ctx,
-      { userId },
-      {
-        output: Output.object({
-          schema: lumoTwinVariantSchema,
-          name: "LumoTwinVariant",
-          description:
-            "Tvillingfråga: samma ### (a)/Fall-struktur, andra tal; ingen answer",
-        }),
-        prompt: buildTwinVariantPrompt({
-          suggestedNumber,
-          questionText,
-          answerText,
-          subproblemLetter: letter ?? undefined,
-        }),
-      },
-      twinGenerateOpts,
-    );
+    const spent: { fromDaily: number; fromPaid: number } =
+      await ctx.runMutation(internal.credits.spendForTwin, {
+        userId,
+        refId: args.parentProblemId,
+      });
 
-    const twinQuestion = variantResult.output.question.trim();
-    if (twinQuestion.length === 0) {
-      throw new Error("Kunde inte skapa tvillingfråga — försök igen");
+    try {
+      const variantResult = await lumoTwinVariantAgent.generateText(
+        ctx,
+        { userId },
+        {
+          output: Output.object({
+            schema: lumoTwinVariantSchema,
+            name: "LumoTwinVariant",
+            description:
+              "Tvillingfråga: samma ### (a)/Fall-struktur, andra tal; ingen answer",
+          }),
+          prompt: buildTwinVariantPrompt({
+            suggestedNumber,
+            questionText,
+            answerText,
+            subproblemLetter: letter ?? undefined,
+          }),
+        },
+        twinGenerateOpts,
+      );
+
+      const twinQuestion = variantResult.output.question.trim();
+      if (twinQuestion.length === 0) {
+        throw new Error("Kunde inte skapa tvillingfråga — försök igen");
+      }
+
+      const solveResult = await lumoTwinSolveAgent.generateText(
+        ctx,
+        { userId },
+        {
+          output: Output.object({
+            schema: lumoTwinAnswerSchema,
+            name: "LumoTwinAnswer",
+            description:
+              "ENBART slutfacit för tvillingfrågan: md+$; spegla ### (a)/Fall; inga lösningssteg; aldrig tom",
+          }),
+          prompt: buildTwinSolvePrompt({
+            suggestedNumber,
+            questionText: twinQuestion,
+          }),
+        },
+        twinGenerateOpts,
+      );
+
+      const twinAnswer = solveResult.output.answer.trim();
+      if (isMissingAnswer(twinAnswer)) {
+        throw new Error("Kunde inte skapa facit för tvillingen — försök igen");
+      }
+
+      // One billable row for the whole twin (variant + solve), not two LLM steps.
+      const variantTokens = tokensFromSdkUsage(variantResult.usage);
+      const solveTokens = tokensFromSdkUsage(solveResult.usage);
+      const variantCost = costUsdFromProviderMetadata(
+        variantResult.providerMetadata as Record<string, unknown> | undefined,
+      );
+      const solveCost = costUsdFromProviderMetadata(
+        solveResult.providerMetadata as Record<string, unknown> | undefined,
+      );
+      const costParts = [variantCost, solveCost].filter(
+        (c): c is number => typeof c === "number",
+      );
+
+      await ctx.runMutation(internal.usage.insertUsage, {
+        userId,
+        chargeSource: "twin_generation",
+        agentName: "LumoTwin",
+        model: "openai/gpt-4.1-mini",
+        provider: "openrouter",
+        inputTokens: variantTokens.inputTokens + solveTokens.inputTokens,
+        outputTokens: variantTokens.outputTokens + solveTokens.outputTokens,
+        totalTokens: variantTokens.totalTokens + solveTokens.totalTokens,
+        costUsd:
+          costParts.length > 0
+            ? costParts.reduce((sum, c) => sum + c, 0)
+            : undefined,
+      });
+
+      const shadowId: Id<"problems"> = await ctx.runMutation(
+        internal.PDFParse.problems.insertShadow,
+        {
+          roomId: args.roomId,
+          parentProblemId: parent.parentProblemId,
+          problemNumber: suggestedNumber,
+          problem: twinQuestion,
+          answer: twinAnswer,
+        },
+      );
+
+      return shadowId;
+    } catch (err) {
+      await ctx.runMutation(internal.credits.refundSpend, {
+        userId,
+        fromDaily: spent.fromDaily,
+        fromPaid: spent.fromPaid,
+        refId: args.parentProblemId,
+      });
+      throw err;
     }
-
-    const solveResult = await lumoTwinSolveAgent.generateText(
-      ctx,
-      { userId },
-      {
-        output: Output.object({
-          schema: lumoTwinAnswerSchema,
-          name: "LumoTwinAnswer",
-          description:
-            "ENBART slutfacit för tvillingfrågan: md+$; spegla ### (a)/Fall; inga lösningssteg; aldrig tom",
-        }),
-        prompt: buildTwinSolvePrompt({
-          suggestedNumber,
-          questionText: twinQuestion,
-        }),
-      },
-      twinGenerateOpts,
-    );
-
-    const twinAnswer = solveResult.output.answer.trim();
-    if (isMissingAnswer(twinAnswer)) {
-      throw new Error("Kunde inte skapa facit för tvillingen — försök igen");
-    }
-
-    // One billable row for the whole twin (variant + solve), not two LLM steps.
-    const variantTokens = tokensFromSdkUsage(variantResult.usage);
-    const solveTokens = tokensFromSdkUsage(solveResult.usage);
-    const variantCost = costUsdFromProviderMetadata(
-      variantResult.providerMetadata as Record<string, unknown> | undefined,
-    );
-    const solveCost = costUsdFromProviderMetadata(
-      solveResult.providerMetadata as Record<string, unknown> | undefined,
-    );
-    const costParts = [variantCost, solveCost].filter(
-      (c): c is number => typeof c === "number",
-    );
-
-    await ctx.runMutation(internal.usage.insertUsage, {
-      userId,
-      chargeSource: "twin_generation",
-      agentName: "LumoTwin",
-      model: "openai/gpt-4.1-mini",
-      provider: "openrouter",
-      inputTokens: variantTokens.inputTokens + solveTokens.inputTokens,
-      outputTokens: variantTokens.outputTokens + solveTokens.outputTokens,
-      totalTokens: variantTokens.totalTokens + solveTokens.totalTokens,
-      costUsd:
-        costParts.length > 0
-          ? costParts.reduce((sum, c) => sum + c, 0)
-          : undefined,
-    });
-
-    const shadowId: Id<"problems"> = await ctx.runMutation(
-      internal.PDFParse.problems.insertShadow,
-      {
-        roomId: args.roomId,
-        parentProblemId: parent.parentProblemId,
-        problemNumber: suggestedNumber,
-        problem: twinQuestion,
-        answer: twinAnswer,
-      },
-    );
-
-    return shadowId;
   },
 });

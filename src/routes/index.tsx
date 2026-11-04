@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { convexQuery } from "@convex-dev/react-query"
+import { useMutation } from "convex/react"
+import { useState } from "react"
 import { api } from "../../convex/_generated/api"
+import { DEBUG_TOP_UP_AMOUNTS } from "../../convex/lib/credits"
 import {
   Card,
   CardContent,
@@ -9,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card"
+import { Button } from "~/components/ui/button"
 import { Label } from "~/components/ui/label"
 import { MathField } from "~/components/math-field"
 import { ComputeEngineDemo } from "~/components/compute-engine-demo"
@@ -34,16 +38,89 @@ function formatUsd(n: number) {
   })
 }
 
-function UsageDebugCard() {
-  const { data } = useSuspenseQuery(convexQuery(api.usage.myUsage, {}))
+function formatResetAt(ms: number) {
+  return new Date(ms).toLocaleString("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    dateStyle: "short",
+    timeStyle: "short",
+  })
+}
 
-  if (data === null) {
+function CreditsAndUsageDebugCard() {
+  const { data: usage } = useSuspenseQuery(convexQuery(api.usage.myUsage, {}))
+  const { data: config } = useSuspenseQuery(
+    convexQuery(api.credits.getConfig, {}),
+  )
+  const { data: balance } = useSuspenseQuery(
+    convexQuery(api.credits.getMyBalance, {}),
+  )
+  const createConfig = useMutation(api.credits.createConfig)
+  const grantToday = useMutation(api.credits.debugGrantTodayFree)
+  const topUp = useMutation(api.credits.debugTopUp)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  async function runDebug(label: string, fn: () => Promise<unknown>) {
+    setBusy(label)
+    setActionError(null)
+    try {
+      await fn()
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Något gick fel")
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  if (usage === null) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>AI-användning (temp)</CardTitle>
+          <CardTitle>Credits & användning (temp)</CardTitle>
           <CardDescription>
-            Logga in för att se kostnad (chatt + tvillingar).
+            Logga in för att se credits och AI-kostnad (chatt + tvillingar).
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    )
+  }
+
+  if (config === null) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Credits & användning (temp)</CardTitle>
+          <CardDescription>
+            creditConfig saknas. Skapa den innan chat/tvilling kan debiteras
+            (standard: chat 1 · tvilling 5 · free/dag 30).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button
+            type="button"
+            size="sm"
+            disabled={busy !== null}
+            onClick={() =>
+              void runDebug("create-config", () => createConfig({}))
+            }
+          >
+            {busy === "create-config" ? "…" : "Skapa creditConfig"}
+          </Button>
+          {actionError !== null ? (
+            <p className="text-destructive text-xs">{actionError}</p>
+          ) : null}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (balance === null) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Credits & användning (temp)</CardTitle>
+          <CardDescription>
+            Logga in för att se credits och AI-kostnad (chatt + tvillingar).
           </CardDescription>
         </CardHeader>
       </Card>
@@ -53,34 +130,88 @@ function UsageDebugCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>AI-användning (temp)</CardTitle>
+        <CardTitle>Credits & användning (temp)</CardTitle>
         <CardDescription>
-          OpenRouter-kostnad (USD) — PDF-parse räknas inte. Totalt{" "}
-          {formatUsd(data.costUsd)} · {formatTokens(data.totalTokens)} tokens (
-          {data.eventCount} debiteringar).
+          Daglig free resetar (Stockholm). Betalda credits sparas. PDF-parse
+          räknas inte i tokens.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-5 text-sm">
         <div className="space-y-1">
-          <p className="font-medium">Chat</p>
+          <p className="font-medium">Credits</p>
           <p className="text-muted-foreground">
-            {formatUsd(data.bySource.chat.costUsd)} ·{" "}
-            {formatTokens(data.bySource.chat.totalTokens)} tokens ·{" "}
-            {data.bySource.chat.eventCount} meddelanden
+            Totalt {balance.totalAvailable} · daglig {balance.dailyRemaining} ·
+            köpta {balance.paidBalance}
           </p>
-          <p className="text-muted-foreground pl-3">
-            normal: {formatUsd(data.bySource.chat.byMode.normal.costUsd)} ·
-            genomgång: {formatUsd(data.bySource.chat.byMode.genomgang.costUsd)}
+          <p className="text-muted-foreground">
+            Kostnad: chat {balance.costs.chatCreditCost} · tvilling{" "}
+            {balance.costs.twinCreditCost} · free/dag{" "}
+            {balance.costs.freeDailyCredits}
+          </p>
+          <p className="text-muted-foreground">
+            Nästa free-reset: {formatResetAt(balance.nextResetAt)}
           </p>
         </div>
-        <div className="space-y-1">
-          <p className="font-medium">Tvillinggenerering</p>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy !== null}
+            onClick={() =>
+              void runDebug("grant", () => grantToday({}))
+            }
+          >
+            {busy === "grant" ? "…" : "Ge dagens free credits"}
+          </Button>
+          {DEBUG_TOP_UP_AMOUNTS.map((amount) => (
+            <Button
+              key={amount}
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={busy !== null}
+              onClick={() =>
+                void runDebug(`top-${amount}`, () => topUp({ amount }))
+              }
+            >
+              {busy === `top-${amount}` ? "…" : `Top up ${amount}`}
+            </Button>
+          ))}
+        </div>
+        {actionError !== null ? (
+          <p className="text-destructive text-xs">{actionError}</p>
+        ) : null}
+
+        <div className="space-y-3 border-t pt-4">
+          <p className="font-medium">Token-spend (OpenRouter)</p>
           <p className="text-muted-foreground">
-            {formatUsd(data.bySource.twin_generation.costUsd)} ·{" "}
-            {formatTokens(data.bySource.twin_generation.totalTokens)} tokens ·{" "}
-            {data.bySource.twin_generation.eventCount} tvillingar (variant+lös
-            sammanslaget)
+            Totalt {formatUsd(usage.costUsd)} ·{" "}
+            {formatTokens(usage.totalTokens)} tokens ({usage.eventCount}{" "}
+            debiteringar)
           </p>
+          <div className="space-y-1">
+            <p className="font-medium">Chat</p>
+            <p className="text-muted-foreground">
+              {formatUsd(usage.bySource.chat.costUsd)} ·{" "}
+              {formatTokens(usage.bySource.chat.totalTokens)} tokens ·{" "}
+              {usage.bySource.chat.eventCount} meddelanden
+            </p>
+            <p className="text-muted-foreground pl-3">
+              normal: {formatUsd(usage.bySource.chat.byMode.normal.costUsd)} ·
+              genomgång:{" "}
+              {formatUsd(usage.bySource.chat.byMode.genomgang.costUsd)}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="font-medium">Tvillinggenerering</p>
+            <p className="text-muted-foreground">
+              {formatUsd(usage.bySource.twin_generation.costUsd)} ·{" "}
+              {formatTokens(usage.bySource.twin_generation.totalTokens)} tokens
+              · {usage.bySource.twin_generation.eventCount} tvillingar
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -120,7 +251,7 @@ function Home() {
 
       <SignInCard />
 
-      <UsageDebugCard />
+      <CreditsAndUsageDebugCard />
 
       <RoomsPanel />
 
