@@ -463,8 +463,12 @@ function ProblemList({
         multiple
         value={starLevels}
         onValueChange={(next) => {
-          // Empty selection = show all; "all" sentinel clears filters.
-          setStarLevels(next.filter((v) => v !== "all"))
+          if(next.includes("all")){
+            setStarLevels([])
+            return;
+          }
+
+          setStarLevels(next)
         }}
         size="sm"
         variant="outline"
@@ -479,7 +483,6 @@ function ProblemList({
             "h-7 min-w-0 flex-1 rounded-md! border-0 px-1 text-[10px] font-medium leading-none shadow-none",
             showAllStars && "bg-sidebar text-sidebar-foreground shadow-sm",
           )}
-          onClick={() => setStarLevels([])}
         >
           Alla
         </ToggleGroupItem>
