@@ -1,4 +1,5 @@
 import { Agent } from "@convex-dev/agent";
+import { Output } from "ai";
 import { v } from "convex/values";
 import { components } from "../_generated/api";
 import { internalAction } from "../_generated/server";
@@ -39,14 +40,16 @@ export const convertProblemChunk = internalAction({
       args.problemNumber,
     );
 
-    const result = await lumoProblemAgent.generateObject(
+    const result = await lumoProblemAgent.generateText(
       ctx,
       { userId: args.userId },
       {
-        schema: lumoParsedProblemSchema,
-        schemaName: "LumoParsedProblem",
-        schemaDescription:
-          "Markdown-problem: problemNumber, question (md+$), answer (md+$); ### (a) / #### Fall N",
+        output: Output.object({
+          schema: lumoParsedProblemSchema,
+          name: "LumoParsedProblem",
+          description:
+            "Markdown-problem: problemNumber, question (md+$), answer (md+$); ### (a) / #### Fall N",
+        }),
         prompt: buildConvertPrompt({
           suggestedNumber,
           problemText,
@@ -60,7 +63,7 @@ export const convertProblemChunk = internalAction({
     );
 
     const normalized = normalizeLumoParsedProblem(
-      result.object,
+      result.output,
       problemText,
       answerText,
     );
