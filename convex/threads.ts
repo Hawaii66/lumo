@@ -752,6 +752,11 @@ export const sendMessage = mutation({
       content.push({ type: "text", text: prompt });
     }
 
+    await ctx.runMutation(internal.credits.spendForChat, {
+      userId,
+      refId: args.threadId,
+    });
+
     const { messageId } =
       fileIds.length === 0
         ? await saveMessage(ctx, components.agent, {
