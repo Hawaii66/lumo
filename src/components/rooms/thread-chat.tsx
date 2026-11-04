@@ -18,8 +18,9 @@ import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import {
   AssistantMessageRow,
-  collectThreadMentions,
   CopyChatTextButton,
+  mentionsByUserMessageKey,
+  orphanThreadMentions,
   UserMessageContent,
 } from "~/components/rooms/thread-chat-messages"
 import { ThreadTitleEditor } from "~/components/rooms/thread-title-editor"
@@ -125,10 +126,15 @@ export function ThreadChat({
     )
   }, [problemGroups])
 
-  const threadMentions = useMemo(
+  const seedMentions = useMemo(
     () =>
-      collectThreadMentions(messages, problemOptions, mentionedProblemNumbers),
+      orphanThreadMentions(messages, problemOptions, mentionedProblemNumbers),
     [mentionedProblemNumbers, messages, problemOptions],
+  )
+
+  const mentionsByMessageKey = useMemo(
+    () => mentionsByUserMessageKey(messages, problemOptions, seedMentions),
+    [messages, problemOptions, seedMentions],
   )
 
   const lastUserMessageKey = useMemo(() => {
@@ -314,45 +320,35 @@ export function ThreadChat({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="space-y-3 border-b border-border pb-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <ThreadTitleEditor
-              roomId={roomId}
-              threadId={threadId}
-              title={title}
-            />
-            {import.meta.env.DEV ? (
-              <CopyChatTextButton messages={messages} />
-            ) : null}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ChatModePicker
-              value={mode}
-              onChange={(next) => {
-                void handleModeChange(next)
-              }}
-              disabled={modePending || pending}
-            />
-            <ChatDeletionExpiryPicker
-              value={deletionExpiry}
-              deleteAt={deleteAt}
-              onChange={(next) => {
-                void handleDeletionExpiryChange(next)
-              }}
-              onArchiveNow={handleArchiveNow}
-              disabled={expiryPending || pending}
-            />
-          </div>
-        </div>
-        {threadMentions.length > 0 ? (
-          <MentionedProblems
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <ThreadTitleEditor
             roomId={roomId}
-            mentions={threadMentions}
-            align="start"
-            className="max-h-64 overflow-y-auto"
+            threadId={threadId}
+            title={title}
           />
-        ) : null}
+          {import.meta.env.DEV ? (
+            <CopyChatTextButton messages={messages} />
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ChatModePicker
+            value={mode}
+            onChange={(next) => {
+              void handleModeChange(next)
+            }}
+            disabled={modePending || pending}
+          />
+          <ChatDeletionExpiryPicker
+            value={deletionExpiry}
+            deleteAt={deleteAt}
+            onChange={(next) => {
+              void handleDeletionExpiryChange(next)
+            }}
+            onArchiveNow={handleArchiveNow}
+            disabled={expiryPending || pending}
+          />
+        </div>
       </div>
 
       <div
@@ -361,32 +357,53 @@ export function ThreadChat({
       >
         {status === "LoadingFirstPage" ? (
           <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
-        ) : messages.length === 0 ? (
+        ) : messages.length === 0 && seedMentions.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Skriv ett meddelande eller bifoga en bild för att börja.
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
-            {messages.map((message) =>
-              message.role === "user" ? (
-                <li
-                  key={message.key}
-                  ref={(node) => {
-                    if (node) messageNodeRefs.current.set(message.key, node)
-                    else messageNodeRefs.current.delete(message.key)
-                  }}
-                  className="flex flex-col items-end gap-2"
-                >
-                  <div
-                    className={cn(
-                      "max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                      "bg-primary text-primary-foreground",
-                    )}
+            {seedMentions.length > 0 ? (
+              <li className="flex w-full flex-col gap-2">
+                <MentionedProblems
+                  roomId={roomId}
+                  mentions={seedMentions}
+                  align="start"
+                />
+              </li>
+            ) : null}
+            {messages.map((message) => {
+              if (message.role === "user") {
+                const messageMentions = mentionsByMessageKey.get(message.key)
+                return (
+                  <li
+                    key={message.key}
+                    ref={(node) => {
+                      if (node) messageNodeRefs.current.set(message.key, node)
+                      else messageNodeRefs.current.delete(message.key)
+                    }}
+                    className="flex w-full flex-col gap-2"
                   >
-                    <UserMessageContent message={message} />
-                  </div>
-                </li>
-              ) : (
+                    {messageMentions && messageMentions.length > 0 ? (
+                      <MentionedProblems
+                        roomId={roomId}
+                        mentions={messageMentions}
+                        align="start"
+                      />
+                    ) : null}
+                    <div
+                      className={cn(
+                        "ml-auto max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                        "bg-primary text-primary-foreground",
+                      )}
+                    >
+                      <UserMessageContent message={message} />
+                    </div>
+                  </li>
+                )
+              }
+
+              return (
                 <AssistantMessageRow
                   key={message.key}
                   message={message}
@@ -420,8 +437,8 @@ export function ThreadChat({
                   }}
                   quickRepliesDisabled={pending}
                 />
-              ),
-            )}
+              )
+            })}
           </ul>
         )}
         <SelectionCitePopup
