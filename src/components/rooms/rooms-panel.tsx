@@ -59,7 +59,16 @@ function CreateRoomDialog() {
         if (!next) resetForm()
       }}
     >
-      <DialogTrigger render={<Button />}>Skapa rum</DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            className="border-primary bg-white text-primary hover:bg-primary/10 hover:text-primary"
+          />
+        }
+      >
+        Skapa rum
+      </DialogTrigger>
       <DialogContent>
         <form
           className="grid gap-4"
@@ -72,7 +81,7 @@ function CreateRoomDialog() {
                 setOpen(false)
                 resetForm()
                 void navigate({
-                  to: "/rooms/$roomId",
+                  to: "/dashboard/rooms/$roomId",
                   params: { roomId },
                 })
               })
@@ -153,17 +162,28 @@ function RoomsList() {
   return (
     <ul className="divide-y divide-border rounded-lg border border-border">
       {rooms.map((room) => (
-        <li key={room._id}>
-          <Link
-            to="/rooms/$roomId"
-            params={{ roomId: room._id }}
-            className="flex flex-col gap-0.5 px-3 py-3 transition-colors hover:bg-muted/60"
-          >
+        <li
+          key={room._id}
+          className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="min-w-0 flex flex-col gap-0.5">
             <span className="font-medium">{room.name}</span>
             <span className="text-sm text-muted-foreground line-clamp-2">
               {room.description}
             </span>
-          </Link>
+          </div>
+          <Button
+            size="sm"
+            className="shrink-0"
+            render={
+              <Link
+                to="/dashboard/rooms/$roomId"
+                params={{ roomId: room._id }}
+              />
+            }
+          >
+            Öppna
+          </Button>
         </li>
       ))}
     </ul>
@@ -246,7 +266,7 @@ function TemplatesBrowser() {
                   void cloneTemplate({ templateId: template._id })
                     .then((roomId) => {
                       void navigate({
-                        to: "/rooms/$roomId",
+                        to: "/dashboard/rooms/$roomId",
                         params: { roomId },
                       })
                     })
@@ -289,14 +309,6 @@ export function RoomsPanel() {
             <CardTitle>Rum</CardTitle>
             <CardDescription>Logga in för att skapa och öppna rum.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Link
-              to="/pdf"
-              className="text-sm text-primary underline-offset-4 hover:underline"
-            >
-              PDF-verktyg →
-            </Link>
-          </CardContent>
         </Card>
       </Unauthenticated>
       <Authenticated>
@@ -315,12 +327,6 @@ export function RoomsPanel() {
             ) : null}
           </CardHeader>
           <CardContent className="space-y-4">
-            <Link
-              to="/pdf"
-              className="inline-block text-sm text-primary underline-offset-4 hover:underline"
-            >
-              PDF-verktyg →
-            </Link>
             <div
               role="tablist"
               aria-label="Rum och mallar"

@@ -16,7 +16,6 @@ import { Label } from "~/components/ui/label"
 import { MathField } from "~/components/math-field"
 import { ComputeEngineDemo } from "~/components/compute-engine-demo"
 import { PdfViewerDemo } from "~/components/pdf-viewer-demo"
-import { RoomsPanel } from "~/components/rooms/rooms-panel"
 import { SignInCard } from "~/components/sign-in"
 import { useUiStore } from "~/stores/ui-store"
 
@@ -88,8 +87,11 @@ function CreditsHomeCard() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-2">
-        <Button size="sm" render={<Link to="/profile" />}>
-          Öppna profil
+        <Button size="sm" render={<Link to="/dashboard" />}>
+          Öppna dashboard
+        </Button>
+        <Button size="sm" variant="outline" render={<Link to="/profile" />}>
+          Profil
         </Button>
         <Button
           type="button"
@@ -121,6 +123,12 @@ function Home() {
           Sokratisk studieplattform — Convex + TanStack Start är igång.
         </p>
         <p className="flex flex-wrap gap-x-4 gap-y-1">
+          <Link
+            to="/dashboard"
+            className="text-sm text-primary underline-offset-4 hover:underline"
+          >
+            Dashboard →
+          </Link>
           <Link
             to="/pdf"
             className="text-sm text-primary underline-offset-4 hover:underline"
@@ -154,8 +162,6 @@ function Home() {
       <SignInCard />
 
       <CreditsHomeCard />
-
-      <RoomsPanel />
 
       <PdfViewerDemo />
 
