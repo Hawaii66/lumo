@@ -1,0 +1,56 @@
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { Suspense } from "react"
+import { CreditsBalanceSummary } from "~/components/profile/credits-balance-summary"
+import { RoomsPanel } from "~/components/rooms/rooms-panel"
+import { Button } from "~/components/ui/button"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card"
+
+export const Route = createFileRoute("/dashboard/")({
+  component: DashboardIndexPage,
+})
+
+function DashboardIndexPage() {
+  return (
+    <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Credits, rum, mallar och PDF-verktyg.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" render={<Link to="/pdf" />}>
+            PDF-verktyg
+          </Button>
+          <Button variant="outline" size="sm" render={<Link to="/profile" />}>
+            Profil
+          </Button>
+          <Button variant="outline" size="sm" render={<Link to="/" />}>
+            Startsida
+          </Button>
+        </div>
+      </div>
+
+      <Suspense
+        fallback={
+          <Card>
+            <CardHeader>
+              <CardTitle>Credits</CardTitle>
+              <CardDescription>Hämtar saldo…</CardDescription>
+            </CardHeader>
+          </Card>
+        }
+      >
+        <CreditsBalanceSummary buyCreditsHref />
+      </Suspense>
+
+      <RoomsPanel />
+    </main>
+  )
+}

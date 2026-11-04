@@ -93,7 +93,7 @@ export function RoomDangerZoneCard({ roomId }: { roomId: Id<"rooms"> }) {
                 void removeRoom({ roomId })
                   .then(() => {
                     setDeleteOpen(false)
-                    void navigate({ to: "/" })
+                    void navigate({ to: "/dashboard" })
                   })
                   .catch((err: unknown) => {
                     setDeleteError(

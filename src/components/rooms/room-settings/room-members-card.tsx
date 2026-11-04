@@ -129,7 +129,7 @@ export function RoomMembersCard({ roomId }: { roomId: Id<"rooms"> }) {
                     })
                       .then(() => {
                         if (member.isViewer) {
-                          void navigate({ to: "/" })
+                          void navigate({ to: "/dashboard" })
                         }
                       })
                       .catch((err: unknown) => {
