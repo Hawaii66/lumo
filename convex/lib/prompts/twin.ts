@@ -99,12 +99,16 @@ export function buildTwinVariantPrompt(args: {
     args.answerText.length > 0
       ? args.answerText
       : "(inget svar i källan — använd bara frågestrukturen)";
-  const scopeBlock =
-    args.subproblemLetter !== undefined
-      ? `Omfång: endast deluppgift (${args.subproblemLetter}) + eventuell gemensam ingress.
-Behåll utdragets struktur (kan vara en enda ### (${args.subproblemLetter}) + #### Fall N).
+  const isSubproblemTwin = args.subproblemLetter !== undefined;
+  const scopeBlock = isSubproblemTwin
+    ? `Omfång: tvilling av endast deluppgift (${args.subproblemLetter}) + eventuell gemensam ingress.
+Tvillingen är en FRISTÅENDE hel uppgift — skriv INTE ### (${args.subproblemLetter}) eller andra ### (a)/(b)-rubriker.
+Behåll gemensam ingress + delens brödtext; behåll #### Fall N om de finns i utdraget.
 Skapa INTE övriga deluppgifter som saknas i utdraget.`
-      : `Behåll samma ### (a)/(b)/(c) och #### Fall N som originalet (samma ordning).`;
+    : `Behåll samma ### (a)/(b)/(c) och #### Fall N som originalet (samma ordning).`;
+  const structureCheck = isSubproblemTwin
+    ? `□ Fristående hel uppgift — ingen ### (${args.subproblemLetter}) / ### (a)/(b); behåll #### Fall N om de fanns; andra tal`
+    : `□ Samma ### / #### Fall-struktur som utdraget ovan, men andra tal`;
   return sections(
     `Skapa EN tvilling-FRÅGA baserad på originalet (inga facit).
 
@@ -119,7 +123,7 @@ ${args.questionText}
 ${answerBlock}`,
     `--- VERIFIERA TYST INNAN DU SVARAR ---
 □ problemNumber är exakt "${args.suggestedNumber}"
-□ Samma ### / #### Fall-struktur som utdraget ovan, men andra tal
+${structureCheck}
 □ JSON har bara problemNumber + question (ingen answer)
 □ Matte bara i $ / $$`,
   );
