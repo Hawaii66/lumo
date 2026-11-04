@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/outfit";
 @import "mathlive/static.css";
 @import "mathlive/fonts.css";
 
@@ -40,7 +41,7 @@
   --sidebar-accent-foreground: oklch(0.3791 0.1378 265.5222);
   --sidebar-border: oklch(0.9276 0.0058 264.5313);
   --sidebar-ring: oklch(0.6397 0.1720 36.4421);
-  --font-sans: Outfit, sans-serif;
+  --font-sans: "Outfit Variable", Outfit, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Fira Code, monospace;
   --radius: 0.5rem;
@@ -95,7 +96,7 @@
   --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
   --sidebar-border: oklch(0.3290 0 0);
   --sidebar-ring: oklch(0.6397 0.1720 36.4421);
-  --font-sans: Outfit, sans-serif;
+  --font-sans: "Outfit Variable", Outfit, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Fira Code, monospace;
   --radius: 0.5rem;
