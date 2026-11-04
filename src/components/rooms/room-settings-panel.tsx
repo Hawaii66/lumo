@@ -2,9 +2,9 @@ import { useQuery } from "convex/react"
 import { Archive, Settings2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
-import type { LucideIcon } from "lucide-react"
 import type { Id } from "../../../convex/_generated/dataModel"
-import { cn } from "~/lib/utils"
+import { Skeleton } from "~/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ArchivedThreadsCard } from "./room-settings/archived-threads-card"
 import { CourseInfoCellsCard } from "./room-settings/course-info-cells-card"
 import { ProblemPdfOrderCard } from "./room-settings/problem-pdf-order-card"
@@ -14,15 +14,6 @@ import { RoomMembersCard } from "./room-settings/room-members-card"
 import { RoomTemplatesCard } from "./room-settings/room-templates-card"
 
 type SettingsTab = "general" | "archived"
-
-const SETTINGS_TABS: Array<{
-  id: SettingsTab
-  label: string
-  icon: LucideIcon
-}> = [
-  { id: "general", label: "Allmänt", icon: Settings2 },
-  { id: "archived", label: "Arkiverade", icon: Archive },
-]
 
 export type RoomSettingsFocusSection = "problemPdfOrder"
 
@@ -60,7 +51,10 @@ export function RoomSettingsPanel({
 
   if (room === undefined) {
     return (
-      <p className="text-sm text-muted-foreground">Hämtar inställningar…</p>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-48" />
+        <p className="text-sm text-muted-foreground">Hämtar inställningar…</p>
+      </div>
     )
   }
 
@@ -81,37 +75,31 @@ export function RoomSettingsPanel({
         </p>
       </div>
 
-      <div
-        role="tablist"
-        aria-label="Inställningar"
-        className="grid grid-cols-2 gap-0.5 rounded-lg bg-muted/60 p-0.5"
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as SettingsTab)}
       >
-        {SETTINGS_TABS.map((item) => {
-          const Icon = item.icon
-          const selected = tab === item.id
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              className={cn(
-                "flex flex-col items-center gap-0.5 rounded-md px-1 py-2 text-[10px] font-medium tracking-wide uppercase transition-colors",
-                selected
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-              onClick={() => setTab(item.id)}
-            >
-              <Icon className="size-3.5" />
-              {item.label}
-            </button>
-          )
-        })}
-      </div>
+        <TabsList
+          className="grid h-auto! w-full grid-cols-2"
+          aria-label="Inställningar"
+        >
+          <TabsTrigger
+            value="general"
+            className="flex h-auto! flex-col gap-0.5 py-2 text-[10px] font-medium tracking-wide uppercase"
+          >
+            <Settings2 className="size-3.5" />
+            Allmänt
+          </TabsTrigger>
+          <TabsTrigger
+            value="archived"
+            className="flex h-auto! flex-col gap-0.5 py-2 text-[10px] font-medium tracking-wide uppercase"
+          >
+            <Archive className="size-3.5" />
+            Arkiverade
+          </TabsTrigger>
+        </TabsList>
 
-      {tab === "general" ? (
-        <>
+        <TabsContent value="general" className="mt-6 flex flex-col gap-6">
           <RoomDetailsCard roomId={roomId} />
           <CourseInfoCellsCard roomId={roomId} />
           <div ref={problemPdfOrderRef}>
@@ -120,10 +108,12 @@ export function RoomSettingsPanel({
           <RoomTemplatesCard roomId={roomId} />
           <RoomMembersCard roomId={roomId} />
           <RoomDangerZoneCard roomId={roomId} />
-        </>
-      ) : (
-        <ArchivedThreadsCard roomId={roomId} />
-      )}
+        </TabsContent>
+
+        <TabsContent value="archived" className="mt-6">
+          <ArchivedThreadsCard roomId={roomId} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

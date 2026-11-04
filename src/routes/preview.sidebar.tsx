@@ -6,6 +6,12 @@ import {
   type RoomSidebarSection,
 } from "~/components/rooms/room-sidebar"
 import { Button } from "~/components/ui/button"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "~/components/ui/sidebar"
+import { TooltipProvider } from "~/components/ui/tooltip"
 
 export const Route = createFileRoute("/preview/sidebar")({
   component: SidebarPreviewPage,
@@ -112,91 +118,107 @@ function SidebarPreviewPage() {
   }
 
   return (
-    <div className="flex h-svh bg-background">
-      <RoomSidebar
-        roomName="Flervariabelanalys SF1626"
-        roomDescription="Kursrum för övningar, tentor och sokratisk hjälp. Mock-data — inget är kopplat."
-        section={section}
-        onSectionChange={handleSectionChange}
-        onBack={() => setLastAction("Tillbaka (mock)")}
-        onNewChat={() => {
-          setSection("chats")
-          setSelectedChatId(null)
-          setSelectedProblemId(null)
-          setLastAction("Öppnade Ny chatt (staging — mock)")
-        }}
-        chats={MOCK_CHATS}
-        selectedChatId={section === "chats" ? selectedChatId : null}
-        onSelectChat={(id) => {
-          setSection("chats")
-          setSelectedChatId(id)
-          setSelectedProblemId(null)
-          const chat = MOCK_CHATS.find((c) => c.id === id)
-          setLastAction(`Valde chatt: ${chat?.title ?? id}`)
-        }}
-        problemGroups={problemGroups}
-        selectedProblemId={section === "problems" ? selectedProblemId : null}
-        onSelectProblem={(id) => {
-          setSection("problems")
-          setSelectedProblemId(id)
-          setSelectedChatId(null)
-          const problem = problemGroups.flatMap((g) =>
-            g.problems.flatMap((p) => [p, ...(p.shadows ?? [])]),
-          ).find((p) => p.id === id)
-          setLastAction(`Valde uppgift ${problem?.problemNumber ?? id}`)
-        }}
-        onOpenProblemPdfOrder={() => {
-          setSection("settings")
-          setSelectedChatId(null)
-          setSelectedProblemId(null)
-          setLastAction("Öppnade Ordna PDF:er (inställningar)")
-        }}
-      />
+    <TooltipProvider>
+      <SidebarProvider className="h-svh! min-h-0">
+        <RoomSidebar
+          roomName="Flervariabelanalys SF1626"
+          roomDescription="Kursrum för övningar, tentor och sokratisk hjälp. Mock-data — inget är kopplat."
+          section={section}
+          onSectionChange={handleSectionChange}
+          onBack={() => setLastAction("Tillbaka (mock)")}
+          onNewChat={() => {
+            setSection("chats")
+            setSelectedChatId(null)
+            setSelectedProblemId(null)
+            setLastAction("Öppnade Ny chatt (staging — mock)")
+          }}
+          chats={MOCK_CHATS}
+          selectedChatId={section === "chats" ? selectedChatId : null}
+          onSelectChat={(id) => {
+            setSection("chats")
+            setSelectedChatId(id)
+            setSelectedProblemId(null)
+            const chat = MOCK_CHATS.find((c) => c.id === id)
+            setLastAction(`Valde chatt: ${chat?.title ?? id}`)
+          }}
+          problemGroups={problemGroups}
+          selectedProblemId={section === "problems" ? selectedProblemId : null}
+          onSelectProblem={(id) => {
+            setSection("problems")
+            setSelectedProblemId(id)
+            setSelectedChatId(null)
+            const problem = problemGroups
+              .flatMap((g) =>
+                g.problems.flatMap((p) => [p, ...(p.shadows ?? [])]),
+              )
+              .find((p) => p.id === id)
+            setLastAction(`Valde uppgift ${problem?.problemNumber ?? id}`)
+          }}
+          onOpenProblemPdfOrder={() => {
+            setSection("settings")
+            setSelectedChatId(null)
+            setSelectedProblemId(null)
+            setLastAction("Öppnade Ordna PDF:er (inställningar)")
+          }}
+        />
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Preview
-            </p>
-            <h2 className="text-lg font-medium">Room sidebar</h2>
-            <p className="mt-1 max-w-lg text-sm text-muted-foreground">
-              Interaktiv mock av Chattar / Uppgifter + Filer längst ner. Ingen
-              Convex-data.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" render={<Link to="/preview" />}>
-              Problem preview
-            </Button>
-            <Button variant="outline" size="sm" render={<Link to="/" />}>
-              Startsida
-            </Button>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Senaste åtgärd
-          </p>
-          <p className="mt-1 font-medium">{lastAction}</p>
-        </div>
-
-        <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-          <p>
-            Aktiv sektion:{" "}
-            <span className="font-medium text-foreground">
-              {SECTION_LABELS[section]}
+        <SidebarInset className="min-h-0 overflow-hidden">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-4 md:hidden">
+            <SidebarTrigger />
+            <span className="truncate text-sm font-medium">
+              Flervariabelanalys SF1626
             </span>
-          </p>
-          {section === "files" ? (
-            <p>
-              Filer öppnar huvudytan (FilesGrid i riktiga rummet). Listan i
-              sidopanelen behåller Chattar/Uppgifter.
-            </p>
-          ) : null}
-        </div>
-      </main>
-    </div>
+          </header>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                  Preview
+                </p>
+                <h2 className="text-lg font-medium">Room sidebar</h2>
+                <p className="mt-1 max-w-lg text-sm text-muted-foreground">
+                  Interaktiv mock av Chattar / Uppgifter + Filer längst ner.
+                  Ingen Convex-data.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  render={<Link to="/preview" />}
+                >
+                  Problem preview
+                </Button>
+                <Button variant="outline" size="sm" render={<Link to="/" />}>
+                  Startsida
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Senaste åtgärd
+              </p>
+              <p className="mt-1 font-medium">{lastAction}</p>
+            </div>
+
+            <div className="mt-6 space-y-2 text-sm text-muted-foreground">
+              <p>
+                Aktiv sektion:{" "}
+                <span className="font-medium text-foreground">
+                  {SECTION_LABELS[section]}
+                </span>
+              </p>
+              {section === "files" ? (
+                <p>
+                  Filer öppnar huvudytan (FilesGrid i riktiga rummet). Listan i
+                  sidopanelen behåller Chattar/Uppgifter.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   )
 }

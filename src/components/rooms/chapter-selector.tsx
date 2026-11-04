@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react"
+import { Button } from "~/components/ui/button"
 import { cn } from "~/lib/utils"
 
 export type ChapterItem = {
@@ -44,24 +45,19 @@ export function ChapterSelector({
       {chapters.map((chapter) => {
         const active = activePartIndex === chapter.partIndex
         return (
-          <button
+          <Button
             key={`${chapter.partIndex}-${chapter.label}`}
             type="button"
+            variant={active ? "secondary" : "ghost"}
+            size="icon-sm"
             title={`Hoppa till deluppgift ${chapter.label}`}
             aria-label={`Deluppgift ${chapter.label}`}
             aria-current={active ? "true" : undefined}
-            className={cn(
-              "flex size-7 items-center justify-center rounded-md text-xs font-semibold tabular-nums transition-colors",
-              "hover:bg-muted hover:text-foreground",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-              active
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground",
-            )}
+            className="text-xs font-semibold tabular-nums"
             onClick={() => onSelect(chapter.partIndex)}
           >
             {chapter.label}
-          </button>
+          </Button>
         )
       })}
     </nav>

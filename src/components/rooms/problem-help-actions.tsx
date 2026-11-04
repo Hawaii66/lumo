@@ -10,6 +10,7 @@ import {
   PhoneUploadDialog,
   type PhoneUploadCompletedFile,
 } from "~/components/rooms/phone-upload-dialog"
+import { Button } from "~/components/ui/button"
 import { cn } from "~/lib/utils"
 
 export type ProblemHelpStartDraft = {
@@ -106,14 +107,14 @@ export function ProblemHelpActions({
             letters.length === 0 && "flex h-full flex-col",
           )}
         >
-          <button
+          <Button
             type="button"
+            variant="outline"
             disabled={busy}
             onClick={() => startGenomgang(null)}
             className={cn(
-              "flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary transition-colors",
-              "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/40",
-              "disabled:pointer-events-none disabled:opacity-50",
+              "flex h-auto min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary whitespace-normal",
+              "hover:bg-primary/10 hover:text-primary",
               letters.length === 0 && "h-full",
             )}
           >
@@ -121,10 +122,10 @@ export function ProblemHelpActions({
             <span className="text-lg font-semibold tracking-tight">
               {localPending === "genomgang" ? "Startar…" : "Genomgång"}
             </span>
-            <span className="text-sm text-primary/80">
+            <span className="text-sm font-normal text-primary/80">
               Gå igenom uppgiften steg för steg
             </span>
-          </button>
+          </Button>
 
           {letters.length > 0 ? (
             <div
@@ -139,9 +140,10 @@ export function ProblemHelpActions({
                 const pendingKey = `genomgang-${letter}` as const
                 const letterPending = localPending === pendingKey
                 return (
-                  <button
+                  <Button
                     key={letter}
                     type="button"
+                    variant="outline"
                     disabled={busy}
                     title={`Genomgång av deluppgift (${letter})`}
                     aria-label={`Genomgång av deluppgift ${letter}`}
@@ -150,15 +152,13 @@ export function ProblemHelpActions({
                       startGenomgang(letter)
                     }}
                     className={cn(
-                      "flex min-h-10 items-center justify-center rounded-xl border-2 border-primary bg-background px-2 py-2 text-sm font-semibold tabular-nums text-primary transition-colors",
-                      "hover:bg-primary/10",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-                      "disabled:pointer-events-none disabled:opacity-50",
+                      "h-auto min-h-10 rounded-xl border-2 border-primary bg-background px-2 py-2 text-sm font-semibold tabular-nums text-primary",
+                      "hover:bg-primary/10 hover:text-primary",
                       letterPending && "bg-primary/10",
                     )}
                   >
                     {letterPending ? "…" : `(${letter})`}
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -166,27 +166,24 @@ export function ProblemHelpActions({
         </div>
 
         {/* Right column: Scan */}
-        <button
+        <Button
           type="button"
+          variant="outline"
           disabled={busy}
           onClick={() => {
             if (busy) return
             setQrOpen(true)
           }}
-          className={cn(
-            "flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary transition-colors",
-            "hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/40",
-            "disabled:pointer-events-none disabled:opacity-50",
-          )}
+          className="flex h-auto min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary whitespace-normal hover:bg-primary/10 hover:text-primary"
         >
           <ScanSearch className="size-8 stroke-[1.75]" />
           <span className="text-lg font-semibold tracking-tight">
             {localPending === "scan" ? "Startar…" : "Skanna mitt arbete"}
           </span>
-          <span className="text-sm text-primary/80">
+          <span className="text-sm font-normal text-primary/80">
             Ladda upp från telefon
           </span>
-        </button>
+        </Button>
       </div>
 
       <PhoneUploadDialog
