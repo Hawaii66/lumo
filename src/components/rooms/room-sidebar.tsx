@@ -466,10 +466,9 @@ function ProblemList({
           // Empty selection = show all; "all" sentinel clears filters.
           setStarLevels(next.filter((v) => v !== "all"))
         }}
-        spacing={0}
         size="sm"
         variant="outline"
-        className="grid w-full grid-cols-4 gap-0.5 rounded-lg border-0 bg-sidebar-accent/40 p-0.5"
+        className="flex w-full items-stretch gap-0.5 rounded-lg border-0 bg-sidebar-accent/40 p-0.5"
         aria-label="Filtrera efter stjärnor"
       >
         <ToggleGroupItem
@@ -477,41 +476,54 @@ function ProblemList({
           aria-label="Visa alla uppgifter (0–3 stjärnor)"
           aria-pressed={showAllStars}
           className={cn(
-            "h-auto rounded-md border-0 px-1 py-1 text-[10px] font-medium shadow-none",
+            "h-7 min-w-0 flex-1 rounded-md! border-0 px-1 text-[10px] font-medium leading-none shadow-none",
             showAllStars && "bg-sidebar text-sidebar-foreground shadow-sm",
           )}
           onClick={() => setStarLevels([])}
         >
           Alla
         </ToggleGroupItem>
-        {STAR_LEVEL_OPTIONS.map((option) => {
-          const active = starLevelSet.has(option.level)
-          return (
-            <ToggleGroupItem
-              key={option.level}
-              value={String(option.level)}
-              title={option.title}
-              aria-label={option.title}
-              className={cn(
-                "h-auto gap-px rounded-md border-0 px-1 py-1 shadow-none",
-                active && "bg-sidebar text-sidebar-foreground shadow-sm",
-              )}
-            >
-              {Array.from({ length: option.level }, (_, i) => (
-                <Star
-                  key={i}
-                  className={cn(
-                    "size-2.5",
-                    active
-                      ? "fill-amber-500 text-amber-500"
-                      : "fill-none text-muted-foreground",
-                  )}
-                  aria-hidden
-                />
-              ))}
-            </ToggleGroupItem>
-          )
-        })}
+        <div className="flex min-w-0 flex-[3] items-stretch">
+          {STAR_LEVEL_OPTIONS.map((option) => {
+            const active = starLevelSet.has(option.level)
+            const joinsLeft =
+              active &&
+              starLevelSet.has((option.level - 1) as StarFilterLevel)
+            const joinsRight =
+              active &&
+              starLevelSet.has((option.level + 1) as StarFilterLevel)
+            return (
+              <ToggleGroupItem
+                key={option.level}
+                value={String(option.level)}
+                title={option.title}
+                aria-label={option.title}
+                className={cn(
+                  "h-7 min-w-0 flex-1 gap-px border-0 px-1 shadow-none",
+                  active && "bg-sidebar text-sidebar-foreground shadow-sm",
+                  // Contiguous selections share flat edges; outer ends stay rounded.
+                  !joinsLeft && !joinsRight && "rounded-md!",
+                  !joinsLeft && joinsRight && "rounded-l-md! rounded-r-none!",
+                  joinsLeft && !joinsRight && "rounded-l-none! rounded-r-md!",
+                  joinsLeft && joinsRight && "rounded-none!",
+                )}
+              >
+                {Array.from({ length: option.level }, (_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "size-2.5",
+                      active
+                        ? "fill-amber-500 text-amber-500"
+                        : "fill-none text-muted-foreground",
+                    )}
+                    aria-hidden
+                  />
+                ))}
+              </ToggleGroupItem>
+            )
+          })}
+        </div>
       </ToggleGroup>
 
       {filteredGroups.length === 0 ? (
