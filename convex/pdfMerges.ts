@@ -57,12 +57,10 @@ const suggestionValidator = v.object({
 
 export const findByInputHashes = query({
   args: {
-    roomId: v.id("rooms"),
     inputHashes: v.array(v.string()),
   },
   returns: v.union(mergeSummaryValidator, v.null()),
   handler: async (ctx, args) => {
-    await requireRoomMember(ctx, args.roomId);
     if (
       args.inputHashes.length < MIN_MERGE_INPUTS ||
       args.inputHashes.length > MAX_MERGE_INPUTS
@@ -163,18 +161,25 @@ export const listSuggestionsForRoom = query({
 
 export const register = mutation({
   args: {
-    roomId: v.id("rooms"),
     inputHashes: v.array(v.string()),
     mergedStorageId: v.id("_storage"),
   },
   returns: v.id("pdfMerges"),
   handler: async (ctx, args) => {
-    const userId = await requireRoomMember(ctx, args.roomId);
+    const userId = await getAuthUserId(ctx);
     validateInputHashes(args.inputHashes);
 
     const metadata = await ctx.db.system.get("_storage", args.mergedStorageId);
     if (metadata === null) {
       throw new Error("Den sammanslagna filen hittades inte i lagringen");
+    }
+    const contentType = (metadata.contentType ?? "").toLowerCase();
+    if (
+      contentType !== "application/pdf" &&
+      contentType !== "application/octet-stream" &&
+      contentType !== ""
+    ) {
+      throw new Error("Den sammanslagna filen måste vara en PDF");
     }
     const mergedContentHash = metadata.sha256;
     const inputKey = inputKeyFromHashes(args.inputHashes);
@@ -198,7 +203,7 @@ export const register = mutation({
       inputHashes: args.inputHashes,
       mergedContentHash,
       mergedStorageId: args.mergedStorageId,
-      createdBy: userId,
+      ...(userId !== null ? { createdBy: userId } : {}),
     });
   },
 });

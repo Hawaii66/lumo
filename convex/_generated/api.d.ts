@@ -53,6 +53,7 @@ import type * as lib_storageRefs from "../lib/storageRefs.js";
 import type * as lib_subproblemSlice from "../lib/subproblemSlice.js";
 import type * as pdfExtracts from "../pdfExtracts.js";
 import type * as pdfMerges from "../pdfMerges.js";
+import type * as pdfTools from "../pdfTools.js";
 import type * as roles from "../roles.js";
 import type * as roomTemplates from "../roomTemplates.js";
 import type * as rooms from "../rooms.js";
@@ -113,6 +114,7 @@ declare const fullApi: ApiFromModules<{
   "lib/subproblemSlice": typeof lib_subproblemSlice;
   pdfExtracts: typeof pdfExtracts;
   pdfMerges: typeof pdfMerges;
+  pdfTools: typeof pdfTools;
   roles: typeof roles;
   roomTemplates: typeof roomTemplates;
   rooms: typeof rooms;

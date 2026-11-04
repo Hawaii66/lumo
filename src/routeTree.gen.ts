@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PdfRouteImport } from './routes/pdf'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PreviewIndexRouteImport } from './routes/preview.index'
@@ -20,6 +21,11 @@ import { Route as ScanTokenRouteImport } from './routes/scan.$token'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PdfRoute = PdfRouteImport.update({
+  id: '/pdf',
+  path: '/pdf',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PreviewRoute = PreviewRouteImport.update({
@@ -55,6 +61,7 @@ const ScanTokenRoute = ScanTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/pdf': typeof PdfRoute
   '/profile': typeof ProfileRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
@@ -73,6 +81,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
@@ -84,6 +93,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/pdf'
     | '/preview'
     | '/profile'
     | '/preview/sidebar'
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/pdf'
     | '/profile'
     | '/preview/sidebar'
     | '/rooms/$roomId'
@@ -101,6 +112,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/pdf'
     | '/preview'
     | '/profile'
     | '/preview/sidebar'
@@ -111,6 +123,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PdfRoute: typeof PdfRoute
   PreviewRoute: typeof PreviewRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
@@ -124,6 +137,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pdf': {
+      id: '/pdf'
+      path: '/pdf'
+      fullPath: '/pdf'
+      preLoaderRoute: typeof PdfRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/preview': {
@@ -186,6 +206,7 @@ const PreviewRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PdfRoute: PdfRoute,
   PreviewRoute: PreviewRouteWithChildren,
   ProfileRoute: ProfileRoute,
   RoomsRoomIdRoute: RoomsRoomIdRoute,

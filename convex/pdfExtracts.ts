@@ -49,13 +49,11 @@ const suggestionValidator = v.object({
 
 export const findBySourceAndRanges = query({
   args: {
-    roomId: v.id("rooms"),
     sourceContentHash: v.string(),
     pageRanges: v.array(pageRangeValidator),
   },
   returns: v.union(extractSummaryValidator, v.null()),
   handler: async (ctx, args) => {
-    await requireRoomMember(ctx, args.roomId);
     try {
       assertValidPageRanges(args.pageRanges);
     } catch {
@@ -168,14 +166,13 @@ export const listSuggestionsForRoom = query({
 
 export const register = mutation({
   args: {
-    roomId: v.id("rooms"),
     sourceContentHash: v.string(),
     pageRanges: v.array(pageRangeValidator),
     extractedStorageId: v.id("_storage"),
   },
   returns: v.id("pdfExtracts"),
   handler: async (ctx, args) => {
-    const userId = await requireRoomMember(ctx, args.roomId);
+    const userId = await getAuthUserId(ctx);
     if (args.sourceContentHash.length === 0) {
       throw new Error("Ogiltig källfilhash");
     }
@@ -187,6 +184,14 @@ export const register = mutation({
     );
     if (metadata === null) {
       throw new Error("Den extraherade filen hittades inte i lagringen");
+    }
+    const contentType = (metadata.contentType ?? "").toLowerCase();
+    if (
+      contentType !== "application/pdf" &&
+      contentType !== "application/octet-stream" &&
+      contentType !== ""
+    ) {
+      throw new Error("Den extraherade filen måste vara en PDF");
     }
     const extractedContentHash = metadata.sha256;
     const inputKey = inputKeyFromExtract(
@@ -213,7 +218,7 @@ export const register = mutation({
       pageRanges: args.pageRanges as PageRange[],
       extractedContentHash,
       extractedStorageId: args.extractedStorageId,
-      createdBy: userId,
+      ...(userId !== null ? { createdBy: userId } : {}),
     });
   },
 });

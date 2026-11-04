@@ -291,7 +291,7 @@ export default defineSchema({
     inputHashes: v.array(v.string()),
     mergedContentHash: v.string(),
     mergedStorageId: v.id("_storage"),
-    createdBy: v.id("users"),
+    createdBy: v.optional(v.id("users")),
   })
     .index("by_inputKey", ["inputKey"])
     .index("by_mergedContentHash", ["mergedContentHash"]),
@@ -310,7 +310,7 @@ export default defineSchema({
     ),
     extractedContentHash: v.string(),
     extractedStorageId: v.id("_storage"),
-    createdBy: v.id("users"),
+    createdBy: v.optional(v.id("users")),
   })
     .index("by_inputKey", ["inputKey"])
     .index("by_extractedContentHash", ["extractedContentHash"])
@@ -369,7 +369,7 @@ export default defineSchema({
       v.literal("admin_adjust"),
     ),
     refId: v.optional(v.string()),
-    /** Set on Stripe purchase grants when Checkout metadata includes dealId. */
+    /** Set on Stripe purchase rows when deal metadata was present. */
     dealId: v.optional(v.id("creditDeals")),
     createdAt: v.number(),
   })
