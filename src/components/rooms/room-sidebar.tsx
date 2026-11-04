@@ -205,7 +205,7 @@ export function RoomSidebar({
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="gap-0">
+      <SidebarContent className="gap-0 overflow-hidden!">
         <ScrollArea className="h-full">
           <SidebarGroup className="px-2 py-2">
             <SidebarGroupContent>
@@ -547,7 +547,7 @@ function ProblemList({
                 }))
               }
             >
-              <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
                 <ChevronDown
                   className={cn(
                     "size-3.5 shrink-0 transition-transform",
