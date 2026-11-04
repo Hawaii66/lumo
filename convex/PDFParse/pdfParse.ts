@@ -1,9 +1,7 @@
-import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
-import { api, internal } from "../_generated/api";
+import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import {
-  action,
   internalAction,
   type ActionCtx,
 } from "../_generated/server";
@@ -349,51 +347,6 @@ export const runParseJob = internalAction({
     }
 
     return null;
-  },
-});
-
-/**
- * Parse a math PDF into Lumo problems.
- *
- * 1. Load files row (contentHash set on upload)
- * 2. Reuse problems for that hash when present (skip AI)
- * 3. Otherwise MinerU + agents, then save problems keyed by hash
- */
-export const parseProblems = action({
-  args: {
-    fileId: v.id("files"),
-  },
-  returns: lumoProblemListValidator,
-  handler: async (ctx, args): Promise<LumoParsedProblem[]> => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Du måste vara inloggad");
-    }
-
-    const file = await loadFile(ctx, args.fileId);
-
-    const cached: LumoParsedProblem[] | null = await ctx.runQuery(
-      api.PDFParse.problems.listByFileId,
-      { fileId: args.fileId },
-    );
-    if (cached !== null) {
-      return cached;
-    }
-
-    const blob = await ctx.storage.get(file.storageId);
-    if (blob === null) {
-      throw new Error("PDF-filen hittades inte i lagringen");
-    }
-
-    const problems: LumoParsedProblem[] = await parsePdfBytesToProblems(
-      ctx,
-      userId,
-      await blob.arrayBuffer(),
-      file.contentHash,
-      blob.type,
-    );
-    await saveParsedProblems(ctx, file.contentHash, problems);
-    return problems;
   },
 });
 

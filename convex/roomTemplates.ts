@@ -186,69 +186,6 @@ export const search = query({
   },
 });
 
-export const get = query({
-  args: {
-    templateId: v.id("roomTemplates"),
-  },
-  returns: v.union(
-    v.object({
-      _id: v.id("roomTemplates"),
-      name: v.string(),
-      description: v.string(),
-      generalInfo: v.string(),
-      status: v.union(v.literal("published"), v.literal("expired")),
-      publishedAt: v.number(),
-      publisherName: v.union(v.string(), v.null()),
-      sourceRoomId: v.id("rooms"),
-      files: v.array(
-        v.object({
-          name: v.string(),
-          contentHash: v.string(),
-        }),
-      ),
-      infoCellCount: v.number(),
-    }),
-    v.null(),
-  ),
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      return null;
-    }
-
-    const template = await ctx.db.get("roomTemplates", args.templateId);
-    if (template === null) {
-      return null;
-    }
-
-    const publisher = await ctx.db.get("users", template.publisherId);
-    const files = await ctx.db
-      .query("roomTemplateFiles")
-      .withIndex("by_template", (q) => q.eq("templateId", args.templateId))
-      .take(MAX_FILES_PER_ROOM);
-    const infoCells = await ctx.db
-      .query("roomTemplateInfoCells")
-      .withIndex("by_template", (q) => q.eq("templateId", args.templateId))
-      .take(MAX_INFO_CELLS);
-
-    return {
-      _id: template._id,
-      name: template.name,
-      description: template.description,
-      generalInfo: template.generalInfo,
-      status: template.status,
-      publishedAt: template.publishedAt,
-      publisherName: publisher?.name ?? publisher?.email ?? null,
-      sourceRoomId: template.sourceRoomId,
-      files: files.map((f) => ({
-        name: f.name,
-        contentHash: f.contentHash,
-      })),
-      infoCellCount: infoCells.length,
-    };
-  },
-});
-
 export const listBySourceRoom = query({
   args: {
     roomId: v.id("rooms"),

@@ -172,7 +172,3 @@ export function computeDeleteAt(
   if (expiry === "infinite") return undefined;
   return now + DELETION_EXPIRY_MS[expiry];
 }
-
-export function stringifyChatReply(reply: ChatReply): string {
-  return JSON.stringify(reply);
-}

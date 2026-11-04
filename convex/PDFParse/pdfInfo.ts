@@ -64,34 +64,6 @@ async function bestFileNameForHash(
   return match?.name ?? "PDF";
 }
 
-export const getByContentHash = internalQuery({
-  args: { contentHash: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("pdfInfo"),
-      contentHash: v.string(),
-      text: v.string(),
-    }),
-    v.null(),
-  ),
-  handler: async (ctx, args) => {
-    const row = await ctx.db
-      .query("pdfInfo")
-      .withIndex("by_contentHash", (q) =>
-        q.eq("contentHash", args.contentHash),
-      )
-      .first();
-    if (row === null) {
-      return null;
-    }
-    return {
-      _id: row._id,
-      contentHash: row.contentHash,
-      text: row.text,
-    };
-  },
-});
-
 export const existsForContentHash = internalQuery({
   args: { contentHash: v.string() },
   returns: v.boolean(),
@@ -316,34 +288,6 @@ export const removeFromRoom = mutation({
       .first();
     if (existing !== null) {
       await ctx.db.delete(existing._id);
-    }
-    return null;
-  },
-});
-
-/**
- * Drop in-use rows for a content hash in a room when no remaining files
- * share that hash (called from files.remove).
- */
-export const cleanupInUseAfterFileRemove = internalMutation({
-  args: {
-    roomId: v.id("rooms"),
-    contentHash: v.string(),
-  },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    if (await roomHasFileWithHash(ctx, args.roomId, args.contentHash)) {
-      return null;
-    }
-
-    const link = await ctx.db
-      .query("cellsInUseByRoom")
-      .withIndex("by_room_and_contentHash", (q) =>
-        q.eq("roomId", args.roomId).eq("contentHash", args.contentHash),
-      )
-      .first();
-    if (link !== null) {
-      await ctx.db.delete(link._id);
     }
     return null;
   },

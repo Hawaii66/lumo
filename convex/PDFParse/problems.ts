@@ -587,40 +587,6 @@ export const getManyForRoom = query({
 });
 
 /**
- * Resolve file id → contentHash → cached problems.
- * Null when the file is missing or has no saved problems.
- */
-export const listByFileId = query({
-  args: { fileId: v.id("files") },
-  returns: v.union(v.array(lumoParsedProblemValidator), v.null()),
-  handler: async (ctx, args) => {
-    const file = await ctx.db.get(args.fileId);
-    if (file === null) {
-      return null;
-    }
-    await requireRoomMember(ctx, file.roomId);
-
-    const rows = await ctx.db
-      .query("problems")
-      .withIndex("by_contentHash", (q) => q.eq("contentHash", file.contentHash))
-      .take(MAX_PROBLEMS_PER_PDF);
-
-    const parsed = rows.filter((r) => !isShadowProblem(r));
-    if (parsed.length === 0) {
-      return null;
-    }
-
-    return parsed.map(
-      (r): LumoParsedProblem => ({
-        problemNumber: r.problemNumber,
-        question: r.problem,
-        answer: r.answer,
-      }),
-    );
-  },
-});
-
-/**
  * Problem texts for the room agent. Skips ids that are missing or not in room.
  */
 export const getPromptContexts = internalQuery({

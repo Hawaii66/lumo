@@ -16,9 +16,7 @@ export default defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
-  })
-    .index("email", ["email"])
-    .index("phone", ["phone"]),
+  }).index("email", ["email"]),
   rooms: defineTable({
     name: v.string(),
     description: v.string(),
@@ -31,7 +29,7 @@ export default defineSchema({
     createdBy: v.optional(v.id("users")),
     /** Set when this room was cloned from a template; missing otherwise. */
     clonedFromTemplateId: v.optional(v.id("roomTemplates")),
-  }).index("by_name", ["name"]),
+  }),
   files: defineTable({
     roomId: v.id("rooms"),
     name: v.string(),
@@ -63,7 +61,6 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_sourceRoom", ["sourceRoomId"])
-    .index("by_publisher", ["publisherId"])
     .searchIndex("search_name", {
       searchField: "name",
       filterFields: ["status"],
@@ -110,7 +107,6 @@ export default defineSchema({
     fileId: v.optional(v.id("files")),
   })
     .index("by_token", ["token"])
-    .index("by_createdBy", ["createdBy"])
     .index("by_room", ["roomId"]),
   roomMembers: defineTable({
     roomId: v.id("rooms"),
@@ -233,8 +229,7 @@ export default defineSchema({
     contentHash: v.string(),
   })
     .index("by_room", ["roomId"])
-    .index("by_room_and_contentHash", ["roomId", "contentHash"])
-    .index("by_contentHash", ["contentHash"]),
+    .index("by_room_and_contentHash", ["roomId", "contentHash"]),
   /**
    * Async PDF parse jobs (problems or info).
    * `statusUpdates` is a short progress log the workflow appends to.
@@ -267,7 +262,6 @@ export default defineSchema({
   })
     .index("by_file", ["fileId"])
     .index("by_contentHash", ["contentHash"])
-    .index("by_contentHash_and_kind", ["contentHash", "kind"])
     .index("by_file_and_kind", ["fileId", "kind"])
     .index("by_room", ["roomId"]),
   /**
