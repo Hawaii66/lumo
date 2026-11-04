@@ -184,7 +184,7 @@ export function RoomSidebar({
                 className={cn(
                   "flex flex-col items-center gap-0.5 rounded-md px-1 py-1.5 text-[10px] font-medium tracking-wide uppercase transition-colors",
                   active
-                    ? "bg-sidebar text-sidebar-foreground shadow-sm"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-sidebar-foreground",
                 )}
               >
