@@ -587,16 +587,20 @@ function ProblemList({
                           </span>
                         </SidebarMenuButton>
                         {shadows.length > 0 ? (
-                          <SidebarMenuSub>
+                          <SidebarMenuSub className="mx-0 ml-3 mr-0">
                             {shadows.map((shadow) => {
                               const shadowSelected =
                                 shadow.id === selectedProblemId
                               return (
-                                <SidebarMenuSubItem key={shadow.id}>
+                                <SidebarMenuSubItem
+                                  key={shadow.id}
+                                  className="w-full"
+                                >
                                   <SidebarMenuSubButton
                                     render={<button type="button" />}
                                     isActive={shadowSelected}
                                     size="sm"
+                                    className="w-full"
                                     onClick={() => onSelectProblem(shadow.id)}
                                   >
                                     {shadow.problemNumber}
