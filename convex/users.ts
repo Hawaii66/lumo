@@ -1,8 +1,25 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query } from "./_generated/server";
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+
+const MAX_NAME_LENGTH = 80;
+
+const viewerFieldsValidator = v.object({
+  _id: v.id("users"),
+  name: v.union(v.string(), v.null()),
+  email: v.union(v.string(), v.null()),
+  image: v.union(v.string(), v.null()),
+  providers: v.array(
+    v.object({
+      provider: v.string(),
+      providerId: v.string(),
+    }),
+  ),
+});
 
 export const viewer = query({
   args: {},
+  returns: v.union(v.null(), viewerFieldsValidator),
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
@@ -31,5 +48,36 @@ export const viewer = query({
         providerId: account.providerAccountId,
       })),
     };
+  },
+});
+
+export const updateName = mutation({
+  args: { name: v.string() },
+  returns: v.object({
+    _id: v.id("users"),
+    name: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+
+    const name = args.name.trim();
+    if (name.length === 0) {
+      throw new Error("Namnet får inte vara tomt");
+    }
+    if (name.length > MAX_NAME_LENGTH) {
+      throw new Error(`Namnet får vara högst ${MAX_NAME_LENGTH} tecken`);
+    }
+
+    const user = await ctx.db.get(userId);
+    if (user === null) {
+      throw new Error("Användaren hittades inte");
+    }
+
+    await ctx.db.patch(userId, { name });
+
+    return { _id: userId, name };
   },
 });
