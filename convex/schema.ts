@@ -353,5 +353,21 @@ export default defineSchema({
     ),
     refId: v.optional(v.string()),
     createdAt: v.number(),
-  }).index("by_user", ["userId"]),
+  })
+    .index("by_user", ["userId"])
+    .index("by_refId", ["refId"]),
+  /**
+   * Buyable credit packs (Stripe Checkout reads price/credits from here).
+   * Seed via creditDeals.seedDefaultDeals; edit via upsertDeal.
+   */
+  creditDeals: defineTable({
+    name: v.string(),
+    description: v.string(),
+    /** Whole kronor charged at Checkout (öre = priceSek * 100). */
+    priceSek: v.number(),
+    creditsGranted: v.number(),
+    active: v.boolean(),
+    sortOrder: v.number(),
+    updatedAt: v.number(),
+  }).index("by_active_and_sortOrder", ["active", "sortOrder"]),
 });
