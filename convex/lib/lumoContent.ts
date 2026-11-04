@@ -142,6 +142,22 @@ export const chatModeValidator = v.union(
 
 export type ChatMode = "normal" | "genomgang";
 
+/**
+ * Billable product feature that caused LLM spend.
+ * Add literals here when new chargeable modes ship (e.g. exam_mode).
+ */
+export const chargeSourceValidator = v.union(
+  v.literal("chat"),
+  v.literal("twin_generation"),
+);
+
+export type ChargeSource = "chat" | "twin_generation";
+
+export const CHARGE_SOURCES: Array<ChargeSource> = [
+  "chat",
+  "twin_generation",
+];
+
 export const DEFAULT_CHAT_MODE: ChatMode = "normal";
 
 /** How long until a chat is eligible for auto-archive. Missing → infinite. */

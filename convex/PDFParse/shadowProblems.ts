@@ -20,7 +20,11 @@ import {
   normalizeSubproblemLetter,
   sliceProblemTexts,
 } from "../lib/subproblemSlice";
-import { openrouter } from "../agents/openrouter";
+import { lumoChatModel } from "../agents/openrouter";
+import {
+  costUsdFromProviderMetadata,
+  tokensFromSdkUsage,
+} from "../usage";
 import { MAX_SHADOWS_PER_PARENT } from "./problems";
 
 const twinGenerateOpts = {
@@ -31,14 +35,14 @@ const twinGenerateOpts = {
 /** Step 1: invent twin question (new numbers, same structure). */
 export const lumoTwinVariantAgent = new Agent(components.agent, {
   name: "LumoTwinVariant",
-  languageModel: openrouter("openai/gpt-4.1-mini"),
+  languageModel: lumoChatModel,
   instructions: LUMO_TWIN_VARIANT_INSTRUCTIONS,
 });
 
 /** Step 2: solve twin question cold — never sees parent facit. */
 export const lumoTwinSolveAgent = new Agent(components.agent, {
   name: "LumoTwinSolve",
-  languageModel: openrouter("openai/gpt-4.1-mini"),
+  languageModel: lumoChatModel,
   instructions: LUMO_TWIN_SOLVE_INSTRUCTIONS,
 });
 
@@ -160,6 +164,34 @@ export const createShadow = action({
     if (isMissingAnswer(twinAnswer)) {
       throw new Error("Kunde inte skapa facit för tvillingen — försök igen");
     }
+
+    // One billable row for the whole twin (variant + solve), not two LLM steps.
+    const variantTokens = tokensFromSdkUsage(variantResult.usage);
+    const solveTokens = tokensFromSdkUsage(solveResult.usage);
+    const variantCost = costUsdFromProviderMetadata(
+      variantResult.providerMetadata as Record<string, unknown> | undefined,
+    );
+    const solveCost = costUsdFromProviderMetadata(
+      solveResult.providerMetadata as Record<string, unknown> | undefined,
+    );
+    const costParts = [variantCost, solveCost].filter(
+      (c): c is number => typeof c === "number",
+    );
+
+    await ctx.runMutation(internal.usage.insertUsage, {
+      userId,
+      chargeSource: "twin_generation",
+      agentName: "LumoTwin",
+      model: "openai/gpt-4.1-mini",
+      provider: "openrouter",
+      inputTokens: variantTokens.inputTokens + solveTokens.inputTokens,
+      outputTokens: variantTokens.outputTokens + solveTokens.outputTokens,
+      totalTokens: variantTokens.totalTokens + solveTokens.totalTokens,
+      costUsd:
+        costParts.length > 0
+          ? costParts.reduce((sum, c) => sum + c, 0)
+          : undefined,
+    });
 
     const shadowId: Id<"problems"> = await ctx.runMutation(
       internal.PDFParse.problems.insertShadow,

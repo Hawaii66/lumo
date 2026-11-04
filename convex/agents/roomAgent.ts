@@ -18,12 +18,13 @@ import {
   normalizeSubproblemLetter,
   sliceProblemTexts,
 } from "../lib/subproblemSlice";
-import { openrouter } from "./openrouter";
+import { chatUsageHandler } from "../usage";
+import { lumoChatModel } from "./openrouter";
 
 /** Single-pass chat: solve + present as markdown + quickReplies. */
 export const roomAgent = new Agent(components.agent, {
   name: "Lumo",
-  languageModel: openrouter("openai/gpt-4.1-mini"),
+  languageModel: lumoChatModel,
   instructions: LUMO_CHAT_INSTRUCTIONS,
 });
 
@@ -82,6 +83,7 @@ export const generateResponse = internalAction({
   args: {
     threadId: v.string(),
     promptMessageId: v.string(),
+    userId: v.id("users"),
     mode: v.optional(chatModeValidator),
     roomId: v.optional(v.id("rooms")),
     problemIds: v.optional(v.array(v.id("problems"))),
@@ -125,7 +127,7 @@ export const generateResponse = internalAction({
 
     const result = await roomAgent.streamText(
       ctx,
-      { threadId: args.threadId },
+      { threadId: args.threadId, userId: args.userId },
       {
         promptMessageId: args.promptMessageId,
         output: Output.object({
@@ -138,6 +140,7 @@ export const generateResponse = internalAction({
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
+        usageHandler: chatUsageHandler(mode),
       },
     );
 
