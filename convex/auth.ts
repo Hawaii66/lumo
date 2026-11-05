@@ -5,6 +5,15 @@ import { TempCredentials } from "./authProviders/temp";
 // Later (when OpenAI ships SIWC with token usage): import OpenAI SIWC
 // provider and add it to `providers`. See ./authProviders/openai.ts.
 
+const oauthProviders = [Google, MicrosoftAnyAccount()];
+
+/** Dev-only password provider. Register only when TEMP credentials are set. */
+const allowTempAuth =
+  Boolean(process.env.TEMP_AUTH_EMAIL?.trim()) &&
+  Boolean(process.env.TEMP_AUTH_PASSWORD);
+
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [TempCredentials, Google, MicrosoftAnyAccount()],
+  providers: allowTempAuth
+    ? [TempCredentials, ...oauthProviders]
+    : oauthProviders,
 });
