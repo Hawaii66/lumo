@@ -1,3 +1,4 @@
+import { unzipSync } from "fflate";
 import {
   middleJsonSchema,
   parseMineruCreateTaskResponse,
@@ -38,55 +39,19 @@ function resolveMinerUUrl(pathOrUrl: string): string {
   return `${MINERU_BASE_URL}/${pathOrUrl}`;
 }
 
-/**
- * Read one named entry from a ZIP (store or deflate). Assumes local headers
- * carry sizes (no data descriptors), which MinerU result ZIPs use.
- */
-async function readZipEntry(
-  zipBytes: ArrayBuffer,
-  entryName: string,
-): Promise<Uint8Array> {
-  const bytes = new Uint8Array(zipBytes);
-  const view = new DataView(zipBytes);
-  let offset = 0;
-
-  while (offset + 30 <= bytes.length) {
-    if (view.getUint32(offset, true) !== 0x04034b50) {
-      break;
-    }
-    const flags = view.getUint16(offset + 6, true);
-    const compression = view.getUint16(offset + 8, true);
-    const compressedSize = view.getUint32(offset + 18, true);
-    const nameLen = view.getUint16(offset + 26, true);
-    const extraLen = view.getUint16(offset + 28, true);
-    const nameStart = offset + 30;
-    const nameEnd = nameStart + nameLen;
-    const dataStart = nameEnd + extraLen;
-
-    if ((flags & 0x8) !== 0 || dataStart + compressedSize > bytes.length) {
-      throw new Error("MinerU-ZIP använder data descriptor / ofullständig entry");
-    }
-
-    const name = new TextDecoder().decode(bytes.subarray(nameStart, nameEnd));
-    const compressed = bytes.subarray(dataStart, dataStart + compressedSize);
-    offset = dataStart + compressedSize;
-
-    if (name !== entryName && !name.endsWith(`/${entryName}`)) {
-      continue;
-    }
-
-    if (compression === 0) {
-      return compressed;
-    }
-    if (compression === 8) {
-      const stream = new Blob([compressed])
-        .stream()
-        .pipeThrough(new DecompressionStream("deflate-raw"));
-      return new Uint8Array(await new Response(stream).arrayBuffer());
-    }
-    throw new Error(`MinerU-ZIP: okänd kompression ${compression}`);
+/** Extract one named entry from a MinerU result ZIP. */
+function readZipEntry(zipBytes: ArrayBuffer, entryName: string): Uint8Array {
+  const files = unzipSync(new Uint8Array(zipBytes));
+  const exact = files[entryName];
+  if (exact !== undefined) {
+    return exact;
   }
-
+  const nested = Object.entries(files).find(
+    ([name]) => name === entryName || name.endsWith(`/${entryName}`),
+  );
+  if (nested !== undefined) {
+    return nested[1];
+  }
   throw new Error(`MinerU-ZIP saknar ${entryName}`);
 }
 
@@ -179,7 +144,7 @@ async function downloadMiddleJson(resultUrl: string): Promise<MiddleJson> {
     );
   }
 
-  const entry = await readZipEntry(await res.arrayBuffer(), MIDDLE_JSON_ENTRY);
+  const entry = readZipEntry(await res.arrayBuffer(), MIDDLE_JSON_ENTRY);
   const parsed = middleJsonSchema.safeParse(
     JSON.parse(new TextDecoder().decode(entry)),
   );
