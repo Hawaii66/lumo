@@ -1,10 +1,13 @@
 import {
   IconChartBar,
+  IconChevronDown,
   IconCircleCheck,
   IconCoin,
   IconFileText,
   IconMathFunction,
   IconMessageChatbot,
+  IconSearch,
+  IconStarFilled,
 } from "@tabler/icons-react"
 import { Star } from "lucide-react"
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react"
@@ -20,6 +23,110 @@ function Skeleton({ className }: { className?: string }) {
         className,
       )}
     />
+  )
+}
+
+/** Mini mock of the room sidebar problem selector (search + stars + grouped list). */
+function ProblemSelectorSkeleton() {
+  const groups = [
+    {
+      file: "Tentamen 2024-03.pdf",
+      count: 12,
+      problems: [
+        { num: "1", stars: 1 as const, selected: false, done: true },
+        { num: "2a", stars: 2 as const, selected: true, done: false },
+        { num: "2b", stars: 3 as const, selected: false, done: false },
+        { num: "3", stars: 2 as const, selected: false, done: false },
+      ],
+    },
+    {
+      file: "Övningar.pdf",
+      count: 8,
+      problems: [
+        { num: "1.1", stars: 1 as const, selected: false, done: false },
+        { num: "1.2", stars: 2 as const, selected: false, done: true },
+      ],
+    },
+  ]
+
+  return (
+    <div
+      aria-hidden
+      className="flex h-full min-h-[12rem] w-full flex-1 flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/90 p-2"
+    >
+      <div className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-neutral-950 px-2 text-[9px] text-neutral-500">
+        <IconSearch className="size-2.5 shrink-0" />
+        <span className="truncate">Sök uppgifter…</span>
+      </div>
+
+      <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-800/50 p-0.5">
+        <div className="flex h-5 min-w-0 flex-1 items-center justify-center rounded bg-neutral-950 text-[8px] font-medium text-neutral-200 shadow-sm">
+          Alla
+        </div>
+        <div className="flex min-w-0 flex-[3] items-stretch">
+          {([1, 2, 3] as const).map((level) => (
+            <div
+              key={level}
+              className="flex h-5 min-w-0 flex-1 items-center justify-center gap-px rounded-md"
+            >
+              {Array.from({ length: level }, (_, i) => (
+                <IconStarFilled
+                  key={i}
+                  className="size-2 text-neutral-500"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Intrinsic height — avoid flex-1/min-h-0 or the list collapses in auto-sized cards */}
+      <div className="flex shrink-0 flex-col gap-1.5">
+        {groups.map((group) => (
+          <div key={group.file} className="min-w-0">
+            <div className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
+              <IconChevronDown className="size-2.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate normal-case">
+                {group.file}
+              </span>
+              <span className="shrink-0 rounded bg-neutral-800 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-400">
+                {group.count}
+              </span>
+            </div>
+            <div className="mt-0.5 space-y-0.5">
+              {group.problems.map((problem) => (
+                <div
+                  key={problem.num}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px]",
+                    problem.selected
+                      ? "bg-primary/20 text-white"
+                      : "text-neutral-300",
+                  )}
+                >
+                  <span className="min-w-0 flex-1 truncate font-medium tabular-nums">
+                    {problem.num}
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-1">
+                    <span className="inline-flex items-center gap-px">
+                      {Array.from({ length: problem.stars }, (_, i) => (
+                        <IconStarFilled
+                          key={i}
+                          className="size-2 text-amber-500"
+                        />
+                      ))}
+                    </span>
+                    {problem.done ? (
+                      <IconCircleCheck className="size-2.5 text-emerald-500" />
+                    ) : null}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -173,7 +280,7 @@ const items: BentoItem[] = [
     title: "Uppgiftsväljare → chatt",
     description:
       "Välj uppgifter från alla parsade PDF:er (exempelsamlingar, tentor, kontrollskrivningar, egna) på ett ställe och starta en chatt direkt från den uppgiften.",
-    header: <Skeleton className="from-accent via-muted to-primary/10" />,
+    header: <ProblemSelectorSkeleton />,
     className: "md:col-start-3 md:row-start-2 md:row-span-2",
     icon: <IconMessageChatbot className="h-4 w-4 text-primary" />,
     flyIndex: 4,
