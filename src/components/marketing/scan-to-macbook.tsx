@@ -248,34 +248,61 @@ export function ScanToMacbook() {
                 }}
                 className="absolute inset-x-0 top-0 aspect-[16/10] w-full rounded-2xl bg-[#010101] p-2 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
               >
-                <div className="relative flex h-full overflow-hidden rounded-xl bg-[#161618]">
-                  {/* Sidebar chrome */}
-                  <div className="hidden h-full w-[22%] flex-col gap-2 border-r border-white/5 bg-[#121214] p-2 sm:flex">
-                    <div className="mb-2 h-2 w-10 rounded bg-primary/50" />
-                    <div className="h-2 w-full rounded bg-white/10" />
-                    <div className="h-2 w-4/5 rounded bg-white/10" />
-                    <div className="h-2 w-3/5 rounded bg-white/10" />
-                    <div className="mt-auto h-2 w-2/3 rounded bg-white/5" />
+                <div
+                  className="relative flex h-full overflow-hidden rounded-xl bg-[#161618] [backface-visibility:hidden] [transform:translateZ(0)] [-webkit-font-smoothing:antialiased]"
+                >
+                  {/* Skeleton chat list */}
+                  <div className="flex h-full w-[28%] flex-col gap-1.5 border-r border-white/5 bg-[#121214] p-2 sm:w-[26%]">
+                    <div className="mb-1.5 leading-tight text-white">
+                      <div className="text-[11px] font-semibold sm:text-[12px]">
+                        TATB01
+                      </div>
+                      <div className="text-[10px] text-white/70 sm:text-[11px]">
+                        Grunken
+                      </div>
+                    </div>
+                    {[
+                      "w-full",
+                      "w-4/5",
+                      "w-full",
+                      "w-3/5",
+                      "w-[90%]",
+                      "w-2/3",
+                      "w-4/5",
+                    ].map((width, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-1.5 rounded-md bg-white/[0.03] px-1.5 py-1.5"
+                      >
+                        <div className="size-2 shrink-0 rounded-full bg-white/10" />
+                        <div
+                          className={`h-1.5 rounded bg-white/10 ${width}`}
+                        />
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Main dashboard — worksheet as a square card */}
-                  <div className="flex flex-1 flex-col">
-                    <div className="flex h-7 items-center gap-2 border-b border-white/5 px-3">
-                      <div className="flex gap-1">
-                        <span className="size-1.5 rounded-full bg-red-500/70" />
-                        <span className="size-1.5 rounded-full bg-amber-400/70" />
-                        <span className="size-1.5 rounded-full bg-emerald-500/70" />
-                      </div>
-                      <span className="text-[9px] text-neutral-500">Lumo</span>
+                  {/* Main — user Q, paper square, AI answer */}
+                  <div className="flex flex-1 flex-col [backface-visibility:hidden] [transform:translateZ(0)]">
+                    <div className="flex h-7 items-center border-b border-white/5 px-3">
+                      <span className="text-[11px] font-medium text-neutral-400">
+                        Lumo
+                      </span>
                     </div>
-                    <div className="flex flex-1 items-center justify-center bg-[#1c1c1f] p-3 sm:p-4">
-                      <div className="aspect-square w-[55%] max-w-[220px] overflow-hidden rounded-lg border border-white/10 bg-[#f4f1ea] shadow-lg">
+                    <div className="flex flex-1 flex-col justify-center gap-2.5 bg-[#1c1c1f] px-3 py-2 sm:gap-3 sm:px-4">
+                      <div className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-primary/30 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-white sm:text-[13px]">
+                        Vad är fel?
+                      </div>
+                      <div className="aspect-square w-[48%] max-w-[180px] self-end overflow-hidden rounded-lg border border-white/10 bg-[#f4f1ea] shadow-lg">
                         <img
                           src={WORKSHEET_SRC}
                           alt=""
                           className="h-full w-full object-cover"
                           draggable={false}
                         />
+                      </div>
+                      <div className="max-w-[90%] self-start rounded-lg rounded-bl-sm bg-white/10 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-neutral-100 sm:text-[13px]">
+                        Saknar minustecken på rad 2
                       </div>
                     </div>
                   </div>
