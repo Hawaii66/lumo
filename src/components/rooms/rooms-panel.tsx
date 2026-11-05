@@ -291,7 +291,11 @@ function TemplatesBrowser() {
 }
 
 export function RoomsPanel() {
-  const [tab, setTab] = useState<HomeTab>("rooms")
+  const rooms = useQuery(api.rooms.list)
+  const [tabOverride, setTabOverride] = useState<HomeTab | null>(null)
+  const defaultTab: HomeTab =
+    rooms !== undefined && rooms.length === 0 ? "templates" : "rooms"
+  const tab = tabOverride ?? defaultTab
 
   return (
     <>
@@ -329,7 +333,7 @@ export function RoomsPanel() {
           <CardContent className="space-y-4">
             <Tabs
               value={tab}
-              onValueChange={(value) => setTab(value as HomeTab)}
+              onValueChange={(value) => setTabOverride(value as HomeTab)}
             >
               <TabsList
                 className="grid h-auto! w-full grid-cols-2 bg-sidebar-accent/40"
