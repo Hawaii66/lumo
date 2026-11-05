@@ -2,6 +2,7 @@ import { useAuthActions } from "@convex-dev/auth/react"
 import { useMutation, useQuery } from "convex/react"
 import { useEffect, useState } from "react"
 import { api } from "../../../convex/_generated/api"
+import { authProvidersLabel } from "~/lib/auth-providers"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -12,19 +13,6 @@ import {
 } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-
-function providerLabel(
-  providers: Array<{ provider: string }> | undefined,
-): string {
-  if (!providers || providers.length === 0) return "—"
-  return providers
-    .map((p) => {
-      if (p.provider === "temp") return "Temp"
-      if (p.provider === "openai") return "ChatGPT"
-      return p.provider
-    })
-    .join(", ")
-}
 
 function roleLabel(key: "default" | "promoter" | "admin"): string {
   if (key === "promoter") return "Promoter"
@@ -139,7 +127,7 @@ export function AccountCard() {
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Inloggning</dt>
             <dd className="text-right font-medium">
-              {providerLabel(viewer.providers)}
+              {authProvidersLabel(viewer.providers)}
             </dd>
           </div>
           <div className="flex justify-between gap-4">
