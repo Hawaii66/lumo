@@ -115,8 +115,8 @@ async function fetchAndCacheMiddleJson(
 
 /**
  * Reuse cached MinerU middle_json when present; otherwise single-flight
- * POST to MinerU so concurrent problems/info jobs for the same PDF
- * do not double-call the API.
+ * Tasks API call so concurrent problems/info jobs for the same PDF
+ * do not double-call MinerU.
  */
 export async function getOrFetchMiddleJson(
   ctx: ActionCtx,

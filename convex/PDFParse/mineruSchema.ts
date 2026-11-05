@@ -39,76 +39,70 @@ export type MiddleJson = z.infer<typeof middleJsonSchema>;
 export type MiddleBlock = z.infer<typeof middleBlockSchema>;
 export type MiddlePage = z.infer<typeof middlePageSchema>;
 
-const mineruFileErrorSchema = z.union([
+const mineruErrorSchema = z.union([
   z.string(),
+  z.looseObject({
+    code: z.string().optional(),
+    message: z.string().optional(),
+  }),
   z.record(z.string(), z.unknown()),
 ]);
 
-/**
- * One file entry in a completed MinerU parse response.
- * Requires inline content.middle_json (response_format=json).
- */
-export const mineruFileSchema = z
-  .looseObject({
-    status: z.string().optional(),
-    error: mineruFileErrorSchema.nullable().optional(),
-    content: z.looseObject({
-      middle_json: middleJsonSchema,
-    }),
-  })
-  .superRefine((file, ctx) => {
-    if (file.error !== null && file.error !== undefined) {
-      ctx.addIssue({
-        code: "custom",
-        message: `MinerU-filfel: ${JSON.stringify(file.error)}`,
-        path: ["error"],
-      });
-    }
-  });
-
-/**
- * Completed MinerU parse payload with the fields we need to extract problems.
- * Extra top-level fields (task_id, links, progress, …) are allowed.
- */
-export const mineruCompletedResponseSchema = z.looseObject({
-  status: z.literal("completed").optional(),
-  files: z.array(mineruFileSchema).min(1),
+const mineruUploadLinkSchema = z.looseObject({
+  url: z.string().min(1),
+  headers: z.record(z.string(), z.string()).default({}),
+  expires_at: z.number().optional(),
 });
 
-export type MineruCompletedResponse = z.infer<
-  typeof mineruCompletedResponseSchema
+/**
+ * 202 create-task receipt (MinerU 4.1 Tasks API).
+ */
+export const mineruCreateTaskResponseSchema = z.looseObject({
+  task_id: z.string().min(1),
+  status: z.string(),
+  files: z
+    .array(
+      z.looseObject({
+        file_id: z.string().min(1),
+        file_name: z.string(),
+        status: z.string(),
+        upload: mineruUploadLinkSchema.nullable().optional(),
+      }),
+    )
+    .min(1),
+});
+
+export type MineruCreateTaskResponse = z.infer<
+  typeof mineruCreateTaskResponseSchema
 >;
 
 /**
- * Job status while polling — only needs status + poll URLs.
- * Used before the completed schema is applied.
+ * Task detail while polling / after completion.
  */
-export const mineruJobStatusSchema = z.looseObject({
-  status: z.string().optional(),
-  status_url: z.string().optional(),
-  result_url: z.string().optional(),
-  files: z.array(z.unknown()).optional(),
+export const mineruTaskDetailSchema = z.looseObject({
+  task_id: z.string().min(1),
+  status: z.string(),
+  files: z.array(
+    z.looseObject({
+      file_id: z.string().min(1),
+      file_name: z.string().optional(),
+      status: z.string(),
+      result_url: z.string().nullable().optional(),
+      error: mineruErrorSchema.nullable().optional(),
+    }),
+  ),
+  error: mineruErrorSchema.nullable().optional(),
 });
 
-export type MineruJobStatus = z.infer<typeof mineruJobStatusSchema>;
+export type MineruTaskDetail = z.infer<typeof mineruTaskDetailSchema>;
 
-export function parseMineruJobStatus(data: unknown): MineruJobStatus {
-  const parsed = mineruJobStatusSchema.safeParse(data);
-  if (!parsed.success) {
-    throw new Error(
-      `Ogiltigt MinerU status-svar: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
-    );
-  }
-  return parsed.data;
-}
-
-export function parseMineruCompletedResponse(
+export function parseMineruCreateTaskResponse(
   data: unknown,
-): MineruCompletedResponse {
-  const parsed = mineruCompletedResponseSchema.safeParse(data);
+): MineruCreateTaskResponse {
+  const parsed = mineruCreateTaskResponseSchema.safeParse(data);
   if (!parsed.success) {
     throw new Error(
-      `Ogiltigt MinerU completed-svar: ${parsed.error.issues
+      `Ogiltigt MinerU create-svar: ${parsed.error.issues
         .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
         .join("; ")}`,
     );
@@ -116,8 +110,14 @@ export function parseMineruCompletedResponse(
   return parsed.data;
 }
 
-export function extractMiddleJson(
-  response: MineruCompletedResponse,
-): MiddleJson {
-  return response.files[0]!.content.middle_json;
+export function parseMineruTaskDetail(data: unknown): MineruTaskDetail {
+  const parsed = mineruTaskDetailSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error(
+      `Ogiltigt MinerU status-svar: ${parsed.error.issues
+        .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+        .join("; ")}`,
+    );
+  }
+  return parsed.data;
 }
