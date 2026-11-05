@@ -6,37 +6,74 @@ import {
   useTransform,
 } from "motion/react"
 
-/** Inline worksheet used on the paper and as a square in the dashboard. */
+/** 4:3 worksheet: blurry header / question / solution, mostly-straight broken lines. */
 export const WORKSHEET_SRC = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
-  <rect width="1280" height="800" fill="#f4f1ea"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+  <defs>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="1.6"/>
+    </filter>
+    <filter id="heavy" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="2.6"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="900" fill="#f4f1ea"/>
   <g stroke="#d6d0c4" stroke-width="1">
-    ${Array.from({ length: 18 }, (_, i) => `<line x1="64" y1="${90 + i * 36}" x2="1216" y2="${90 + i * 36}" />`).join("")}
+    ${Array.from({ length: 20 }, (_, i) => `<line x1="72" y1="${96 + i * 36}" x2="1128" y2="${96 + i * 36}" />`).join("")}
   </g>
-  <text x="80" y="70" font-family="Georgia, serif" font-size="28" fill="#2a2a2a">Uppgift 3.2</text>
-  <text x="80" y="140" font-family="Georgia, serif" font-size="22" fill="#333">Bestäm alla reella x som uppfyller</text>
-  <text x="80" y="200" font-family="Georgia, serif" font-size="26" fill="#1a1a1a">x + √(1 − 4x) = 1</text>
-  <path d="M90 280 C 140 250, 180 320, 230 290 S 320 250, 380 300" fill="none" stroke="#e8590c" stroke-width="3" stroke-linecap="round"/>
-  <text x="90" y="360" font-family="Georgia, serif" font-size="20" fill="#555">försök: isolera roten…</text>
-  <text x="90" y="420" font-family="Georgia, serif" font-size="22" fill="#222">√(1 − 4x) = 1 − x</text>
-  <rect x="980" y="560" width="180" height="180" fill="#fff" stroke="#222" stroke-width="4"/>
-  <g fill="#111">
-    <rect x="1000" y="580" width="28" height="28"/>
-    <rect x="1040" y="580" width="28" height="28"/>
-    <rect x="1080" y="580" width="28" height="28"/>
-    <rect x="1120" y="580" width="28" height="28"/>
-    <rect x="1000" y="620" width="28" height="28"/>
-    <rect x="1080" y="620" width="28" height="28"/>
-    <rect x="1120" y="620" width="28" height="28"/>
-    <rect x="1000" y="660" width="28" height="28"/>
-    <rect x="1040" y="660" width="28" height="28"/>
-    <rect x="1120" y="660" width="28" height="28"/>
-    <rect x="1000" y="700" width="28" height="28"/>
-    <rect x="1040" y="700" width="28" height="28"/>
-    <rect x="1080" y="700" width="28" height="28"/>
-    <rect x="1120" y="700" width="28" height="28"/>
+
+  <!-- Problem header -->
+  <g filter="url(#soft)" fill="#2a2a2a" font-family="Georgia, serif">
+    <text x="96" y="78" font-size="28" font-weight="700">Uppgift 3.2</text>
   </g>
-  <text x="980" y="770" font-family="ui-sans-serif, system-ui" font-size="16" fill="#666">Lumo scan</text>
+
+  <!-- Question -->
+  <g filter="url(#soft)" fill="#444" font-family="Georgia, serif" font-size="18">
+    <text x="96" y="130">Fråga</text>
+  </g>
+  <g filter="url(#heavy)" fill="none" stroke="#333" stroke-width="2.6" stroke-linecap="round">
+    <path d="M96 168 C 140 162, 190 174, 240 166"/>
+    <path d="M275 166 C 330 172, 390 160, 450 168"/>
+    <path d="M485 168 C 540 162, 595 174, 650 166"/>
+    <path d="M96 210 C 130 216, 170 204, 210 212"/>
+    <path d="M245 211 C 295 205, 350 217, 410 209"/>
+    <path d="M445 210 C 495 216, 550 204, 600 212"/>
+    <path d="M635 212 C 680 206, 730 218, 780 210"/>
+    <path d="M96 252 C 155 246, 215 258, 280 250"/>
+    <path d="M315 251 C 375 257, 440 245, 510 253"/>
+  </g>
+
+  <!-- Solution -->
+  <g filter="url(#soft)" fill="#555" font-family="Georgia, serif" font-size="18">
+    <text x="96" y="330">Lösning</text>
+  </g>
+  <g filter="url(#heavy)" fill="none" stroke="#333" stroke-width="2.5" stroke-linecap="round">
+    <path d="M96 372 C 140 366, 185 378, 230 370"/>
+    <path d="M265 371 C 315 377, 370 365, 430 373"/>
+    <path d="M465 372 C 515 366, 565 378, 620 370"/>
+    <path d="M96 414 C 125 420, 155 408, 190 416"/>
+    <path d="M225 415 C 270 409, 320 421, 370 413"/>
+    <path d="M405 414 C 455 420, 505 408, 560 416"/>
+    <path d="M595 416 C 645 410, 695 422, 750 414"/>
+    <path d="M96 456 C 150 450, 210 462, 270 454"/>
+    <path d="M305 455 C 360 461, 420 449, 480 457"/>
+    <path d="M515 456 C 565 450, 620 462, 680 454"/>
+    <path d="M96 498 C 135 504, 175 492, 220 500"/>
+    <path d="M255 499 C 305 493, 360 505, 420 497"/>
+    <path d="M455 498 C 510 504, 570 492, 630 500"/>
+    <path d="M96 540 C 160 534, 230 546, 300 538"/>
+    <path d="M335 539 C 395 545, 460 533, 530 541"/>
+    <path d="M96 582 C 130 588, 165 576, 200 584"/>
+    <path d="M235 583 C 285 577, 340 589, 400 581"/>
+    <path d="M435 582 C 485 588, 540 576, 600 584"/>
+    <path d="M96 624 C 145 618, 200 630, 260 622"/>
+    <path d="M295 623 C 345 629, 400 617, 460 625"/>
+    <path d="M495 624 C 545 618, 600 630, 660 622"/>
+    <path d="M96 666 C 135 672, 175 660, 220 668"/>
+    <path d="M255 667 C 310 661, 370 673, 430 665"/>
+    <path d="M96 708 C 155 702, 215 714, 280 706"/>
+    <path d="M315 707 C 370 713, 430 701, 500 709"/>
+  </g>
 </svg>
 `)}`
 
@@ -183,7 +220,7 @@ export function ScanToMacbook() {
                 <img
                   src={WORKSHEET_SRC}
                   alt=""
-                  className="aspect-[4/3] w-full rounded-[2px] object-cover"
+                  className="aspect-[4/3] w-full rounded-[2px] object-contain"
                   draggable={false}
                 />
               </div>
@@ -315,11 +352,11 @@ export function ScanToMacbook() {
                       <div className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-primary/30 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-white sm:text-[13px]">
                         Vad är fel?
                       </div>
-                      <div className="aspect-square w-[48%] max-w-[180px] self-end overflow-hidden rounded-lg border border-white/10 bg-[#f4f1ea] shadow-lg">
+                      <div className="aspect-[4/3] w-[55%] max-w-[200px] self-end overflow-hidden rounded-lg border border-white/10 bg-[#f4f1ea] shadow-lg">
                         <img
                           src={WORKSHEET_SRC}
                           alt=""
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                           draggable={false}
                         />
                       </div>
