@@ -6,9 +6,11 @@ node_modules
 .DS_Store
 .cache
 .vercel
+.wrangler
 .output
 .nitro
 .tanstack
+worker-configuration.d.ts
 
 /build/
 /api/

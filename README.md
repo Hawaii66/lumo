@@ -6,6 +6,9 @@ Detta dokument speglar **vad som faktiskt finns i kodbasen**. Äldre vision (RAG
 
 ---
 
+## TODO
+- privacy policy
+
 ## Stack (nu)
 
 | Lager | Teknik |
