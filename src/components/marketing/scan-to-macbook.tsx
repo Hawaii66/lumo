@@ -169,7 +169,7 @@ export function ScanToMacbook() {
   return (
     <section
       ref={ref}
-      className="relative h-[320vh] bg-[oklch(0.12_0.01_250)]"
+      className="relative h-[320vh] bg-[oklch(0.94_0.008_236)] dark:bg-[oklch(0.12_0.01_250)]"
     >
       <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden [perspective:1200px]">
         <motion.div
@@ -187,10 +187,10 @@ export function ScanToMacbook() {
           style={{ opacity: titleOpacity, y: titleY }}
           className="absolute top-12 left-1/2 z-40 w-[min(92vw,40rem)] -translate-x-1/2 px-4 text-center"
         >
-          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl dark:text-white">
             Skanna med telefon
           </h2>
-          <p className="mt-3 text-pretty text-sm text-neutral-400 md:text-base">
+          <p className="mt-3 text-pretty text-sm text-neutral-600 md:text-base dark:text-neutral-400">
             Ladda upp ditt pågående arbete till AI via skanna-med-telefon, så den
             kan hjälpa dig där du kört fast eller hitta små slarvfel.
           </p>
@@ -198,7 +198,7 @@ export function ScanToMacbook() {
 
         <motion.p
           style={{ opacity: hintOpacity }}
-          className="absolute bottom-8 left-1/2 z-40 -translate-x-1/2 text-xs tracking-wide text-neutral-500 uppercase"
+          className="absolute bottom-8 left-1/2 z-40 -translate-x-1/2 text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-500"
         >
           Scrolla
         </motion.p>

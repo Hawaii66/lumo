@@ -5,6 +5,7 @@ import { motion, useInView } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import { useHejPhrase } from "~/components/marketing/hej-phrase"
+import { HomeAppearanceToggle } from "~/components/marketing/home-appearance-toggle"
 import { Button } from "~/components/ui/button"
 import { FlipWords } from "~/components/ui/flip-words"
 import { cn } from "~/lib/utils"
@@ -309,7 +310,7 @@ function FeatureCard({
       animate={inView ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.5, delay: enterDelay }}
       className={cn(
-        "flex flex-col rounded-3xl border border-neutral-800 bg-neutral-950/80 p-6",
+        "flex flex-col rounded-3xl border border-neutral-200 bg-white/80 p-6 dark:border-neutral-800 dark:bg-neutral-950/80",
       )}
     >
       <div className="mb-6">
@@ -321,10 +322,10 @@ function FeatureCard({
           <TabletIllustration active={active} />
         )}
       </div>
-      <h3 className="text-lg font-semibold tracking-tight text-white">
+      <h3 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
         {title}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+      <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
         {description}
       </p>
     </motion.div>
@@ -337,55 +338,58 @@ export function FeatureHighlights() {
   const displayName = viewer?.name?.trim() || viewer?.email || "there"
 
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.14_0.01_250)] bg-grid-white px-6 pt-6 pb-20 md:px-8 md:pt-8 md:pb-28">
+    <section className="relative overflow-hidden bg-[oklch(0.96_0.008_236)] bg-grid-white px-6 pt-6 pb-20 md:px-8 md:pt-8 md:pb-28 dark:bg-[oklch(0.14_0.01_250)]">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[oklch(0.14_0.01_250)] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+        className="pointer-events-none absolute inset-0 bg-[oklch(0.96_0.008_236)] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] dark:bg-[oklch(0.14_0.01_250)]"
       />
       <header className="relative z-10 mx-auto mb-10 flex max-w-7xl items-center justify-between md:mb-14">
         <span className="text-lg font-semibold tracking-tight text-primary">
           Lumo
         </span>
-        {viewer === null ? (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
-              render={<Link to="/signin" />}
-            >
-              Logga in
-            </Button>
-            <Button
-              size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              render={<Link to="/signup" />}
-            >
-              Skapa konto
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <HomeAppearanceToggle />
+          {viewer === null ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
+                render={<Link to="/signin" />}
+              >
+                Logga in
+              </Button>
+              <Button
+                size="sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                render={<Link to="/signup" />}
+              >
+                Skapa konto
+              </Button>
+            </>
+          ) : null}
+        </div>
       </header>
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="mb-3 text-5xl font-semibold tracking-tight text-primary sm:text-6xl md:text-7xl">
             Lumo
           </p>
-          <h1 className="text-balance text-2xl font-medium tracking-tight text-white/90 sm:text-3xl md:text-4xl">
+          <h1 className="text-balance text-2xl font-medium tracking-tight text-neutral-900/90 sm:text-3xl md:text-4xl dark:text-white/90">
             AI-plugg gjort{" "}
             <FlipWords
               words={heroFlipWords}
               className="px-1 text-primary"
             />
           </h1>
-          <p className="mt-3 text-pretty text-neutral-400 md:text-lg">
+          <p className="mt-3 text-pretty text-neutral-600 md:text-lg dark:text-neutral-400">
             Skapa rum för varje kurs där allt som hör till kursen samlas —
             AI-chattar, PDF:er, bilder, uppgifter, tentor.
           </p>
         </div>
         {viewer != null ? (
           <div className="mb-12 flex flex-wrap items-center justify-center gap-4 md:mb-14">
-            <span className="text-lg text-neutral-300 md:text-xl">
+            <span className="text-lg text-neutral-700 md:text-xl dark:text-neutral-300">
               {hej} {displayName}
             </span>
             <Button

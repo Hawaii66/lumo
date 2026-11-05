@@ -485,17 +485,17 @@ function FlyingBentoCard({
     <motion.div
       style={{ y, x, scale, opacity, rotate, zIndex }}
       className={cn(
-        "group/bento row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-neutral-800 bg-neutral-950 p-4 shadow-sm will-change-transform",
+        "group/bento row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm will-change-transform dark:border-neutral-800 dark:bg-neutral-950",
         item.className,
       )}
     >
       {item.header}
       <div className="transition duration-200 group-hover/bento:translate-x-2">
         {item.icon}
-        <div className="mt-2 mb-2 font-sans font-bold text-white">
+        <div className="mt-2 mb-2 font-sans font-bold text-neutral-900 dark:text-white">
           {item.title}
         </div>
-        <div className="font-sans text-xs font-normal text-neutral-400">
+        <div className="font-sans text-xs font-normal text-neutral-600 dark:text-neutral-400">
           {item.description}
         </div>
       </div>
@@ -530,7 +530,7 @@ export function FeatureBento() {
   }, [])
 
   return (
-    <section className="relative bg-[oklch(0.14_0.01_250)]">
+    <section className="relative bg-[oklch(0.96_0.008_236)] dark:bg-[oklch(0.14_0.01_250)]">
       <div className="mx-auto w-full max-w-7xl px-6 pt-16 md:px-8 md:pt-20">
         <div
           ref={gridRef}
