@@ -169,8 +169,7 @@ export function CreditsCard({ topup }: { topup: TopupStatus }) {
               </span>
             </p>
             <p className="text-muted-foreground mt-1 text-sm">
-              Fylls på vid midnatt (Stockholm). Oanvända dagliga credits sparas
-              inte.
+              Fylls på vid midnatt. Oanvända dagliga credits sparas inte.
             </p>
           </li>
         </ul>

@@ -97,7 +97,7 @@ export function CreditsBalanceCard({
               {formatResetRelative(balance.nextResetAt)}
             </p>
             <p className="text-muted-foreground mt-1 text-xs">
-              {formatResetAt(balance.nextResetAt)} (Stockholm)
+              {formatResetAt(balance.nextResetAt)}
             </p>
           </div>
         </div>

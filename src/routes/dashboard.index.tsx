@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
 import { Suspense } from "react"
+import { api } from "../../convex/_generated/api"
+import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { CreditsBalanceSummary } from "~/components/profile/credits-balance-summary"
 import { RoomsPanel } from "~/components/rooms/rooms-panel"
 import { Button } from "~/components/ui/button"
@@ -15,13 +18,17 @@ export const Route = createFileRoute("/dashboard/")({
 })
 
 function DashboardIndexPage() {
+  const viewer = useQuery(api.users.viewer)
+  const hej = useHejPhrase()
+  const displayName = viewer?.name?.trim() || viewer?.email || "there"
+
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-4xl font-semibold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Credits, rum, mallar och PDF-verktyg.
+            {hej} {displayName}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

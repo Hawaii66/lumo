@@ -29,8 +29,8 @@ import {
 } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Textarea } from "~/components/ui/textarea"
-import { cn } from "~/lib/utils"
 
 const MAX_FIELD_LENGTH = 50
 
@@ -327,38 +327,34 @@ export function RoomsPanel() {
             ) : null}
           </CardHeader>
           <CardContent className="space-y-4">
-            <div
-              role="tablist"
-              aria-label="Rum och mallar"
-              className="grid grid-cols-2 gap-0.5 rounded-lg bg-muted/60 p-0.5"
+            <Tabs
+              value={tab}
+              onValueChange={(value) => setTab(value as HomeTab)}
             >
-              {(
-                [
-                  { id: "rooms", label: "Mina rum" },
-                  { id: "templates", label: "Mallar" },
-                ] as const
-              ).map((item) => {
-                const selected = tab === item.id
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    className={cn(
-                      "rounded-md px-2 py-2 text-sm font-medium transition-colors",
-                      selected
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                    onClick={() => setTab(item.id)}
-                  >
-                    {item.label}
-                  </button>
-                )
-              })}
-            </div>
-            {tab === "rooms" ? <RoomsList /> : <TemplatesBrowser />}
+              <TabsList
+                className="grid h-auto! w-full grid-cols-2 bg-sidebar-accent/40"
+                aria-label="Rum och mallar"
+              >
+                <TabsTrigger
+                  value="rooms"
+                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+                >
+                  Mina rum
+                </TabsTrigger>
+                <TabsTrigger
+                  value="templates"
+                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+                >
+                  Mallar
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="rooms" className="mt-4">
+                <RoomsList />
+              </TabsContent>
+              <TabsContent value="templates" className="mt-4">
+                <TemplatesBrowser />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </Authenticated>
