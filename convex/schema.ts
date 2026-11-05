@@ -19,6 +19,19 @@ export default defineSchema({
     isAnonymous: v.optional(v.boolean()),
     /** Missing → treat as default role. */
     roleId: v.optional(v.id("roles")),
+    /**
+     * Dashboard-only appearance. Missing → treat as "light".
+     * Applied under /dashboard; marketing and other routes stay on :root.
+     */
+    theme: v.optional(
+      v.union(
+        v.literal("light"),
+        v.literal("dark"),
+        v.literal("purple"),
+        v.literal("ocean"),
+        v.literal("rose"),
+      ),
+    ),
   })
     .index("email", ["email"])
     .index("by_role", ["roleId"]),
