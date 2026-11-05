@@ -64,6 +64,12 @@ export function ScanToMacbook() {
     [0.22, 0.25, 0.3],
     [0, 0.28, 0],
   )
+  // Capture button squish (both axes) during flash
+  const captureScale = useTransform(
+    scrollYProgress,
+    [0.22, 0.25, 0.3],
+    [1, 0.62, 1],
+  )
 
   // Paper stays put until phone is gone, then moves down into the computer
   const deskOpacity = useTransform(
@@ -192,19 +198,35 @@ export function ScanToMacbook() {
                 className="absolute top-1/2 left-1/2 z-10 origin-center -translate-x-1/2 -translate-y-[42%]"
               >
                 <div className="relative h-[200px] w-[100px] rotate-[-8deg] rounded-[1.35rem] border border-neutral-600 bg-neutral-950 p-1 shadow-2xl sm:h-[220px] sm:w-[110px]">
-                  <div className="relative h-full overflow-hidden rounded-[1.05rem] bg-neutral-900">
-                    <div className="absolute top-1.5 left-1/2 z-10 h-1 w-10 -translate-x-1/2 rounded-full bg-neutral-800" />
-                    <img
-                      src={WORKSHEET_SRC}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover opacity-90"
-                      draggable={false}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
-                    <div className="absolute inset-5 rounded-md border border-primary/80 shadow-[0_0_0_999px_rgba(0,0,0,0.22)]" />
-                    <div className="absolute top-7 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-1.5 py-0.5 text-[9px] tracking-wide text-primary">
-                      Skanna
+                  <div className="relative h-full overflow-hidden rounded-[1.05rem] bg-white">
+                    <div className="absolute top-1.5 left-1/2 z-10 h-1 w-10 -translate-x-1/2 rounded-full bg-neutral-300" />
+                    {/* Larger QR frame, higher up; subtle orange pulse */}
+                    <div className="absolute top-[18%] left-1/2 size-[68px] -translate-x-1/2 sm:size-[74px]">
+                      <motion.span
+                        className="absolute -inset-1 rounded-md border border-primary/50"
+                        animate={{
+                          scale: [1, 1.08, 1],
+                          opacity: [0.35, 0.7, 0.35],
+                        }}
+                        transition={{
+                          duration: 1.4,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                      <span className="absolute inset-0 rounded-md border-2 border-primary" />
+                      <span className="absolute top-0 left-0 size-3.5 border-t-2 border-l-2 border-primary" />
+                      <span className="absolute top-0 right-0 size-3.5 border-t-2 border-r-2 border-primary" />
+                      <span className="absolute bottom-0 left-0 size-3.5 border-b-2 border-l-2 border-primary" />
+                      <span className="absolute right-0 bottom-0 size-3.5 border-b-2 border-r-2 border-primary" />
                     </div>
+                    {/* Capture shutter — squish on flash */}
+                    <motion.div
+                      style={{ scale: captureScale }}
+                      className="absolute bottom-3 left-1/2 flex size-9 -translate-x-1/2 items-center justify-center rounded-full border-[2.5px] border-neutral-800 bg-white sm:size-10"
+                    >
+                      <div className="size-6 rounded-full bg-neutral-800 sm:size-7" />
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
