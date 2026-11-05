@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { FeatureBento } from "~/components/marketing/feature-bento"
 import { FeatureHighlights } from "~/components/marketing/feature-highlights"
-import { HomeHero } from "~/components/marketing/home-hero"
 import { ScanToMacbook } from "~/components/marketing/scan-to-macbook"
 
 export const Route = createFileRoute("/")({
@@ -11,7 +10,6 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <main className="min-h-svh">
-      <HomeHero />
       <FeatureHighlights />
       <ScanToMacbook />
       <FeatureBento />
