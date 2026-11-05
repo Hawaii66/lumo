@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as LabRouteImport } from './routes/lab'
 import { Route as PdfRouteImport } from './routes/pdf'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -32,11 +31,6 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LabRoute = LabRouteImport.update({
-  id: '/lab',
-  path: '/lab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PdfRoute = PdfRouteImport.update({
@@ -98,7 +92,6 @@ const DashboardRoomsRoomIdRoute = DashboardRoomsRoomIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
-  '/lab': typeof LabRoute
   '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
@@ -113,7 +106,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/lab': typeof LabRoute
   '/pdf': typeof PdfRoute
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
@@ -129,7 +121,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
-  '/lab': typeof LabRoute
   '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
@@ -147,7 +138,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
-    | '/lab'
     | '/pdf'
     | '/preview'
     | '/profile'
@@ -162,7 +152,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/lab'
     | '/pdf'
     | '/profile'
     | '/signin'
@@ -177,7 +166,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
-    | '/lab'
     | '/pdf'
     | '/preview'
     | '/profile'
@@ -194,7 +182,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
-  LabRoute: typeof LabRoute
   PdfRoute: typeof PdfRoute
   PreviewRoute: typeof PreviewRouteWithChildren
   ProfileRoute: typeof ProfileRoute
@@ -218,13 +205,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lab': {
-      id: '/lab'
-      path: '/lab'
-      fullPath: '/lab'
-      preLoaderRoute: typeof LabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pdf': {
@@ -337,7 +317,6 @@ const PreviewRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
-  LabRoute: LabRoute,
   PdfRoute: PdfRoute,
   PreviewRoute: PreviewRouteWithChildren,
   ProfileRoute: ProfileRoute,
