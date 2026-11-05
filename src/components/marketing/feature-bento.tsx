@@ -16,6 +16,32 @@ import { StaticMath } from "~/components/lumo/static-math"
 import { CtaDashedGrid } from "~/components/marketing/cta-dashed-grid"
 import { cn } from "~/lib/utils"
 
+/** Aceternity grid background shell for bento headers. */
+function BentoHeaderShell({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        "relative flex h-full min-h-[5rem] w-full flex-1 items-center justify-center overflow-hidden rounded-lg bg-neutral-950 bg-grid-white px-4 py-3",
+        className,
+      )}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-neutral-950 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+      />
+      <div className="relative z-10 flex h-full w-full min-h-0 flex-1 items-center justify-center">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 /** Mini mock of the room sidebar problem selector (search + stars + grouped list). */
 function ProblemSelectorSkeleton() {
   const groups = [
@@ -40,17 +66,17 @@ function ProblemSelectorSkeleton() {
   ]
 
   return (
-    <div className="flex h-full min-h-[12rem] w-full flex-1 items-stretch justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/15 p-2.5">
+    <BentoHeaderShell className="min-h-[12rem] p-2.5">
       <div
         aria-hidden
-        className="flex min-h-0 w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/90 p-2"
+        className="flex min-h-0 w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 p-2"
       >
         <div className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-neutral-950 px-2 text-[9px] text-neutral-500">
           <IconSearch className="size-2.5 shrink-0" />
           <span className="truncate">Sök uppgifter…</span>
         </div>
 
-        <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-800/50 p-0.5">
+        <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-800 p-0.5">
           <div className="flex h-5 min-w-0 flex-1 items-center justify-center rounded bg-neutral-950 text-[8px] font-medium text-neutral-200 shadow-sm">
             Alla
           </div>
@@ -118,7 +144,7 @@ function ProblemSelectorSkeleton() {
           ))}
         </div>
       </div>
-    </div>
+    </BentoHeaderShell>
   )
 }
 
@@ -136,8 +162,8 @@ function MarkCompleteHeader() {
   }
 
   return (
-    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-emerald-500/10 px-4 py-3">
-      <div className="flex w-full max-w-[11rem] flex-col gap-1 rounded-lg bg-neutral-900/70 p-1.5">
+    <BentoHeaderShell>
+      <div className="flex w-full max-w-[11rem] flex-col gap-1 rounded-lg bg-neutral-900 p-1.5">
         {problems.map((num) => {
           const done = completed[num]
           const label = done
@@ -180,17 +206,17 @@ function MarkCompleteHeader() {
           )
         })}
       </div>
-    </div>
+    </BentoHeaderShell>
   )
 }
 
 /** Simple chat bubble with rendered math inline. */
 function FormelCommandHeader() {
   return (
-    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/15 px-4 py-3">
+    <BentoHeaderShell>
       <div
         aria-hidden
-        className="inline-flex max-w-full items-baseline gap-x-1.5 whitespace-nowrap rounded-2xl bg-neutral-900/80 px-3.5 py-2.5 text-sm text-neutral-100"
+        className="inline-flex max-w-full items-baseline gap-x-1.5 whitespace-nowrap rounded-2xl bg-neutral-900 px-3.5 py-2.5 text-sm text-neutral-100"
       >
         <span>Kvadratkomplettera</span>
         <StaticMath
@@ -200,17 +226,17 @@ function FormelCommandHeader() {
         />
         <span>och bestäm största/minsta värde</span>
       </div>
-    </div>
+    </BentoHeaderShell>
   )
 }
 
 /** Daily credits balance mock, matching the profile credits card. */
 function DailyCreditsHeader() {
   return (
-    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-amber-500/10 px-4 py-3">
+    <BentoHeaderShell>
       <div
         aria-hidden
-        className="w-full max-w-[9.5rem] rounded-lg bg-neutral-900/70 px-3 py-3"
+        className="w-full max-w-[9.5rem] rounded-lg bg-neutral-900 px-3 py-3"
       >
         <div className="flex items-center gap-1.5">
           <IconCoin className="size-3 text-amber-500" />
@@ -223,22 +249,22 @@ function DailyCreditsHeader() {
         </p>
         <p className="mt-0.5 text-[10px] text-neutral-500">av 25 gratis/dag</p>
       </div>
-    </div>
+    </BentoHeaderShell>
   )
 }
 
 /** Tolka button mock, matching the files-page ParsePdfDialog trigger. */
 function TolkaButtonHeader() {
   return (
-    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/15 px-4 py-3">
+    <BentoHeaderShell>
       <div
         aria-hidden
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-900/80 px-4 text-sm font-medium text-neutral-200 shadow-sm"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-900 px-4 text-sm font-medium text-neutral-200 shadow-sm"
       >
         <ScanSearch className="size-4 shrink-0" />
         Tolka
       </div>
-    </div>
+    </BentoHeaderShell>
   )
 }
 
@@ -273,9 +299,9 @@ function DifficultyStarsHeader() {
   }
 
   return (
-    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-amber-500/10 px-4 py-3">
+    <BentoHeaderShell>
       <div
-        className="flex w-full max-w-sm items-stretch gap-0.5 rounded-lg bg-neutral-900/70 p-0.5"
+        className="flex w-full max-w-sm items-stretch gap-0.5 rounded-lg bg-neutral-900 p-0.5"
         role="group"
         aria-label="Filtrera efter stjärnor"
       >
@@ -334,7 +360,7 @@ function DifficultyStarsHeader() {
           })}
         </div>
       </div>
-    </div>
+    </BentoHeaderShell>
   )
 }
 
@@ -458,7 +484,7 @@ function FlyingBentoCard({
     <motion.div
       style={{ y, x, scale, opacity, rotate, zIndex }}
       className={cn(
-        "group/bento row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-neutral-800 bg-neutral-950/80 p-4 shadow-sm will-change-transform",
+        "group/bento row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-neutral-800 bg-neutral-950 p-4 shadow-sm will-change-transform",
         item.className,
       )}
     >
