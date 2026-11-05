@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { Logo } from "~/components/brand/logo"
 import { FeatureBento } from "~/components/marketing/feature-bento"
 import { FeatureHighlights } from "~/components/marketing/feature-highlights"
@@ -34,10 +34,10 @@ function Home() {
               </p>
               <div className="space-y-1.5 text-sm text-neutral-600 dark:text-neutral-400">
                 <a
-                  href="mailto:hej@lumo.se"
+                  href="mailto:lumo@hawaiidev.sh"
                   className="block hover:text-neutral-900 dark:hover:text-neutral-200"
                 >
-                  hej@lumo.se
+                  lumo@hawaiidev.sh
                 </a>
                 <a
                   href="tel:+46812345678"
@@ -45,6 +45,12 @@ function Home() {
                 >
                   08-123 45 678
                 </a>
+                <Link
+                  to="/privacy-policy"
+                  className="block hover:text-neutral-900 dark:hover:text-neutral-200"
+                >
+                  Integritetspolicy
+                </Link>
               </div>
             </div>
           </div>
