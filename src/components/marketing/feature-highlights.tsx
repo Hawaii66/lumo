@@ -5,6 +5,7 @@ import { motion, useInView } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import { useHejPhrase } from "~/components/marketing/hej-phrase"
+import { HomeAppearanceToggle } from "~/components/marketing/home-appearance-toggle"
 import { Button } from "~/components/ui/button"
 import { FlipWords } from "~/components/ui/flip-words"
 import { cn } from "~/lib/utils"
@@ -47,8 +48,8 @@ function LaptopIllustration({ active }: { active: boolean }) {
         style={{ transformOrigin: "bottom center", transformPerspective: 800 }}
         className="w-full"
       >
-        <div className="rounded-t-lg border border-neutral-700 bg-neutral-950 p-1 shadow-xl">
-          <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-neutral-900">
+        <div className="rounded-t-lg border border-neutral-300 bg-white p-1 shadow-xl dark:border-neutral-700 dark:bg-neutral-950">
+          <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-neutral-100 dark:bg-neutral-900">
             <motion.div
               initial={false}
               animate={{ opacity: active ? 1 : 0 }}
@@ -56,20 +57,24 @@ function LaptopIllustration({ active }: { active: boolean }) {
               className="absolute inset-0 flex"
             >
               {/* Problem list */}
-              <div className="flex w-[28%] shrink-0 flex-col gap-1 border-r border-neutral-800 bg-neutral-950 p-1.5">
-                <div className="h-1.5 w-full rounded bg-neutral-700" />
+              <div className="flex w-[28%] shrink-0 flex-col gap-1 border-r border-neutral-200 bg-neutral-50 p-1.5 dark:border-neutral-800 dark:bg-neutral-950">
+                <div className="h-1.5 w-full rounded bg-neutral-300 dark:bg-neutral-700" />
                 {["1", "2a", "2b", "3"].map((num, i) => (
                   <div
                     key={num}
                     className={cn(
                       "flex items-center rounded px-1 py-0.5",
-                      i === 1 ? "bg-primary/25" : "bg-neutral-800/60",
+                      i === 1
+                        ? "bg-primary/25"
+                        : "bg-neutral-200/80 dark:bg-neutral-800/60",
                     )}
                   >
                     <span
                       className={cn(
                         "text-[7px] font-medium tabular-nums",
-                        i === 1 ? "text-white" : "text-neutral-400",
+                        i === 1
+                          ? "text-neutral-900 dark:text-white"
+                          : "text-neutral-500 dark:text-neutral-400",
                       )}
                     >
                       {num}
@@ -80,15 +85,15 @@ function LaptopIllustration({ active }: { active: boolean }) {
 
               {/* Main: problem + actions + text input */}
               <div className="flex min-w-0 flex-1 flex-col">
-                <div className="shrink-0 space-y-1 border-b border-neutral-800 px-2 py-1.5">
+                <div className="shrink-0 space-y-1 border-b border-neutral-200 px-2 py-1.5 dark:border-neutral-800">
                   <div className="flex items-center gap-1">
-                    <span className="text-[8px] font-semibold text-neutral-200">
+                    <span className="text-[8px] font-semibold text-neutral-800 dark:text-neutral-200">
                       2a
                     </span>
-                    <div className="h-1 flex-1 rounded bg-neutral-700" />
+                    <div className="h-1 flex-1 rounded bg-neutral-300 dark:bg-neutral-700" />
                   </div>
-                  <div className="h-1 w-4/5 rounded bg-neutral-600" />
-                  <div className="h-1 w-3/5 rounded bg-neutral-700" />
+                  <div className="h-1 w-4/5 rounded bg-neutral-300 dark:bg-neutral-600" />
+                  <div className="h-1 w-3/5 rounded bg-neutral-200 dark:bg-neutral-700" />
                 </div>
 
                 <div className="flex flex-1 items-center justify-center gap-1.5 px-2 py-1.5">
@@ -106,8 +111,8 @@ function LaptopIllustration({ active }: { active: boolean }) {
                   </div>
                 </div>
 
-                <div className="shrink-0 border-t border-neutral-800 px-1.5 py-1">
-                  <div className="flex h-3.5 items-center rounded border border-neutral-700 bg-neutral-950 px-1.5">
+                <div className="shrink-0 border-t border-neutral-200 px-1.5 py-1 dark:border-neutral-800">
+                  <div className="flex h-3.5 items-center rounded border border-neutral-300 bg-white px-1.5 dark:border-neutral-700 dark:bg-neutral-950">
                     <span className="truncate text-[6px] text-neutral-500">
                       Skriv ett meddelande…
                     </span>
@@ -117,8 +122,8 @@ function LaptopIllustration({ active }: { active: boolean }) {
             </motion.div>
           </div>
         </div>
-        <div className="mx-auto h-1.5 w-[108%] -translate-x-[4%] rounded-b-md border border-t-0 border-neutral-700 bg-neutral-800" />
-        <div className="mx-auto h-0.5 w-1/3 rounded-b bg-neutral-700" />
+        <div className="mx-auto h-1.5 w-[108%] -translate-x-[4%] rounded-b-md border border-t-0 border-neutral-300 bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800" />
+        <div className="mx-auto h-0.5 w-1/3 rounded-b bg-neutral-300 dark:bg-neutral-700" />
       </motion.div>
     </div>
   )
@@ -166,7 +171,7 @@ function PhoneIllustration({ active }: { active: boolean }) {
       >
         <div
           aria-hidden
-          className="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-neutral-700 bg-neutral-900 text-neutral-200 shadow-sm"
+          className="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-neutral-300 bg-white text-neutral-700 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
         >
           <FileText className="size-12" />
         </div>
@@ -199,10 +204,10 @@ function PhoneIllustration({ active }: { active: boolean }) {
               transition={{ duration: 0.25 }}
               className="text-center"
             >
-              <p className="text-2xl font-semibold tracking-tight text-neutral-100 tabular-nums leading-none">
+              <p className="text-2xl font-semibold tracking-tight text-neutral-900 tabular-nums leading-none dark:text-neutral-100">
                 {count}
               </p>
-              <p className="mt-1 text-[10px] leading-tight text-neutral-400">
+              <p className="mt-1 text-[10px] leading-tight text-neutral-500 dark:text-neutral-400">
                 tolkade uppgifter
               </p>
             </motion.div>
@@ -225,18 +230,20 @@ function TabletIllustration({ active }: { active: boolean }) {
             opacity: active ? 1 : 0.7,
           }}
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
-          className="absolute top-3 left-1/2 z-10 w-[64%] -translate-x-1/2 rounded-xl border border-neutral-700 bg-neutral-950 p-3 shadow-xl"
+          className="absolute top-3 left-1/2 z-10 w-[64%] -translate-x-1/2 rounded-xl border border-neutral-300 bg-white p-3 shadow-xl dark:border-neutral-700 dark:bg-neutral-950"
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-200">2a</span>
-            <span className="rounded bg-neutral-800 px-1.5 py-0.5 text-[9px] text-neutral-400">
+            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+              2a
+            </span>
+            <span className="rounded bg-neutral-200 px-1.5 py-0.5 text-[9px] text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
               Original
             </span>
           </div>
           <div className="space-y-1.5">
-            <div className="h-2 w-full rounded bg-neutral-700" />
-            <div className="h-2 w-4/5 rounded bg-neutral-700" />
-            <div className="h-2 w-3/5 rounded bg-neutral-800" />
+            <div className="h-2 w-full rounded bg-neutral-300 dark:bg-neutral-700" />
+            <div className="h-2 w-4/5 rounded bg-neutral-300 dark:bg-neutral-700" />
+            <div className="h-2 w-3/5 rounded bg-neutral-200 dark:bg-neutral-800" />
           </div>
         </motion.div>
 
@@ -254,18 +261,20 @@ function TabletIllustration({ active }: { active: boolean }) {
             damping: 18,
             delay: active ? 0.12 : 0,
           }}
-          className="absolute top-3 left-1/2 z-20 w-[64%] -translate-x-1/2 rounded-xl border border-primary/40 bg-neutral-950 p-3 shadow-xl"
+          className="absolute top-3 left-1/2 z-20 w-[64%] -translate-x-1/2 rounded-xl border border-primary/40 bg-white p-3 shadow-xl dark:bg-neutral-950"
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-neutral-200">2a′</span>
+            <span className="text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+              2a′
+            </span>
             <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[9px] text-primary">
               Tvilling
             </span>
           </div>
           <div className="space-y-1.5">
-            <div className="h-2 w-full rounded bg-neutral-700" />
+            <div className="h-2 w-full rounded bg-neutral-300 dark:bg-neutral-700" />
             <div className="h-2 w-[70%] rounded bg-primary/40" />
-            <div className="h-2 w-3/5 rounded bg-neutral-800" />
+            <div className="h-2 w-3/5 rounded bg-neutral-200 dark:bg-neutral-800" />
           </div>
         </motion.div>
 
@@ -276,7 +285,7 @@ function TabletIllustration({ active }: { active: boolean }) {
             scale: active ? 1 : 0.6,
           }}
           transition={{ duration: 0.35, delay: active ? 0.05 : 0 }}
-          className="absolute top-1/2 left-1/2 z-30 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-700 bg-neutral-900 text-primary shadow-md"
+          className="absolute top-1/2 left-1/2 z-30 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-300 bg-white text-primary shadow-md dark:border-neutral-700 dark:bg-neutral-900"
         >
           <Copy className="size-4" />
         </motion.div>
@@ -309,7 +318,7 @@ function FeatureCard({
       animate={inView ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: 0.5, delay: enterDelay }}
       className={cn(
-        "flex flex-col rounded-3xl border border-neutral-800 bg-neutral-950/80 p-6",
+        "flex flex-col rounded-3xl border border-neutral-200 bg-white/80 p-6 dark:border-neutral-800 dark:bg-neutral-950/80",
       )}
     >
       <div className="mb-6">
@@ -321,10 +330,10 @@ function FeatureCard({
           <TabletIllustration active={active} />
         )}
       </div>
-      <h3 className="text-lg font-semibold tracking-tight text-white">
+      <h3 className="text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
         {title}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+      <p className="mt-2 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
         {description}
       </p>
     </motion.div>
@@ -337,55 +346,58 @@ export function FeatureHighlights() {
   const displayName = viewer?.name?.trim() || viewer?.email || "there"
 
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.14_0.01_250)] bg-grid-white px-6 pt-6 pb-20 md:px-8 md:pt-8 md:pb-28">
+    <section className="relative overflow-hidden bg-[oklch(0.96_0.008_236)] bg-grid-white px-6 pt-6 pb-20 md:px-8 md:pt-8 md:pb-28 dark:bg-[oklch(0.14_0.01_250)]">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[oklch(0.14_0.01_250)] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+        className="pointer-events-none absolute inset-0 bg-[oklch(0.96_0.008_236)] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] dark:bg-[oklch(0.14_0.01_250)]"
       />
       <header className="relative z-10 mx-auto mb-10 flex max-w-7xl items-center justify-between md:mb-14">
         <span className="text-lg font-semibold tracking-tight text-primary">
           Lumo
         </span>
-        {viewer === null ? (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
-              render={<Link to="/signin" />}
-            >
-              Logga in
-            </Button>
-            <Button
-              size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              render={<Link to="/signup" />}
-            >
-              Skapa konto
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <HomeAppearanceToggle />
+          {viewer === null ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
+                render={<Link to="/signin" />}
+              >
+                Logga in
+              </Button>
+              <Button
+                size="sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                render={<Link to="/signup" />}
+              >
+                Skapa konto
+              </Button>
+            </>
+          ) : null}
+        </div>
       </header>
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <p className="mb-3 text-5xl font-semibold tracking-tight text-primary sm:text-6xl md:text-7xl">
             Lumo
           </p>
-          <h1 className="text-balance text-2xl font-medium tracking-tight text-white/90 sm:text-3xl md:text-4xl">
+          <h1 className="text-balance text-2xl font-medium tracking-tight text-neutral-900/90 sm:text-3xl md:text-4xl dark:text-white/90">
             AI-plugg gjort{" "}
             <FlipWords
               words={heroFlipWords}
               className="px-1 text-primary"
             />
           </h1>
-          <p className="mt-3 text-pretty text-neutral-400 md:text-lg">
+          <p className="mt-3 text-pretty text-neutral-600 md:text-lg dark:text-neutral-400">
             Skapa rum för varje kurs där allt som hör till kursen samlas —
             AI-chattar, PDF:er, bilder, uppgifter, tentor.
           </p>
         </div>
         {viewer != null ? (
           <div className="mb-12 flex flex-wrap items-center justify-center gap-4 md:mb-14">
-            <span className="text-lg text-neutral-300 md:text-xl">
+            <span className="text-lg text-neutral-700 md:text-xl dark:text-neutral-300">
               {hej} {displayName}
             </span>
             <Button

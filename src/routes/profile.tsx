@@ -8,6 +8,7 @@ import {
 import { CreditCard, Gauge, Shield, User } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 import { api } from "../../convex/_generated/api"
+import { DashboardThemeShell } from "~/components/dashboard/dashboard-theme-shell"
 import { AccountCard } from "~/components/profile/account-card"
 import { CreditConfigAdminCard } from "~/components/profile/credit-config-admin-card"
 import { CreditDealsAdminCard } from "~/components/profile/credit-deals-admin-card"
@@ -110,126 +111,128 @@ function ProfilePage() {
   const tabCount = isAdmin === true ? 4 : 3
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
-      <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">
-          <Link
-            to="/dashboard"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            ← Tillbaka
-          </Link>
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight">Profil</h1>
-        <p className="text-muted-foreground">
-          Konto, credits och daglig förbrukning.
-        </p>
-      </div>
-
-      <AuthLoading>
-        <Card>
-          <CardHeader>
-            <CardTitle>Profil</CardTitle>
-            <CardDescription>Laddar session…</CardDescription>
-          </CardHeader>
-        </Card>
-      </AuthLoading>
-
-      <Unauthenticated>
-        <Card>
-          <CardHeader>
-            <CardTitle>Logga in</CardTitle>
-            <CardDescription>
-              Du måste vara inloggad för att se din profil.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <SignInCard />
-      </Unauthenticated>
-
-      <Authenticated>
-        <Tabs value={tab} onValueChange={onTabChange}>
-          <TabsList
-            className={`grid h-auto! w-full bg-sidebar-accent/40 ${
-              tabCount === 4 ? "grid-cols-4" : "grid-cols-3"
-            }`}
-            aria-label="Profilsektioner"
-          >
-            <TabsTrigger
-              value="profile"
-              className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+    <DashboardThemeShell>
+      <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            <Link
+              to="/dashboard"
+              className="text-muted-foreground underline-offset-4 hover:underline"
             >
-              <User className="size-3.5" />
-              Profil
-            </TabsTrigger>
-            <TabsTrigger
-              value="credits"
-              className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+              ← Tillbaka
+            </Link>
+          </p>
+          <h1 className="text-4xl font-semibold tracking-tight">Profil</h1>
+          <p className="text-muted-foreground">
+            Konto, credits och daglig förbrukning.
+          </p>
+        </div>
+
+        <AuthLoading>
+          <Card>
+            <CardHeader>
+              <CardTitle>Profil</CardTitle>
+              <CardDescription>Laddar session…</CardDescription>
+            </CardHeader>
+          </Card>
+        </AuthLoading>
+
+        <Unauthenticated>
+          <Card>
+            <CardHeader>
+              <CardTitle>Logga in</CardTitle>
+              <CardDescription>
+                Du måste vara inloggad för att se din profil.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <SignInCard />
+        </Unauthenticated>
+
+        <Authenticated>
+          <Tabs value={tab} onValueChange={onTabChange}>
+            <TabsList
+              className={`grid h-auto! w-full bg-sidebar-accent/40 ${
+                tabCount === 4 ? "grid-cols-4" : "grid-cols-3"
+              }`}
+              aria-label="Profilsektioner"
             >
-              <CreditCard className="size-3.5" />
-              Credits
-            </TabsTrigger>
-            <TabsTrigger
-              value="usage"
-              className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
-            >
-              <Gauge className="size-3.5" />
-              Användning
-            </TabsTrigger>
-            {isAdmin === true ? (
               <TabsTrigger
-                value="admin"
+                value="profile"
                 className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
               >
-                <Shield className="size-3.5" />
-                Admin
+                <User className="size-3.5" />
+                Profil
               </TabsTrigger>
-            ) : null}
-          </TabsList>
+              <TabsTrigger
+                value="credits"
+                className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+              >
+                <CreditCard className="size-3.5" />
+                Credits
+              </TabsTrigger>
+              <TabsTrigger
+                value="usage"
+                className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+              >
+                <Gauge className="size-3.5" />
+                Användning
+              </TabsTrigger>
+              {isAdmin === true ? (
+                <TabsTrigger
+                  value="admin"
+                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
+                >
+                  <Shield className="size-3.5" />
+                  Admin
+                </TabsTrigger>
+              ) : null}
+            </TabsList>
 
-          <TabsContent value="profile" className="mt-6 space-y-6">
-            <AccountCard />
-          </TabsContent>
-
-          <TabsContent value="credits" className="mt-6">
-            <Suspense
-              fallback={
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Credits</CardTitle>
-                    <CardDescription>Hämtar saldo…</CardDescription>
-                  </CardHeader>
-                </Card>
-              }
-            >
-              <CreditsCard topup={topup} />
-            </Suspense>
-          </TabsContent>
-
-          <TabsContent value="usage" className="mt-6">
-            <Suspense
-              fallback={
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Användning</CardTitle>
-                    <CardDescription>Hämtar förbrukning…</CardDescription>
-                  </CardHeader>
-                </Card>
-              }
-            >
-              <DailySpendCard />
-            </Suspense>
-          </TabsContent>
-
-          {isAdmin === true ? (
-            <TabsContent value="admin" className="mt-6 space-y-6">
-              <RolesAdminCard />
-              <CreditConfigAdminCard />
-              <CreditDealsAdminCard />
+            <TabsContent value="profile" className="mt-6 space-y-6">
+              <AccountCard />
             </TabsContent>
-          ) : null}
-        </Tabs>
-      </Authenticated>
-    </main>
+
+            <TabsContent value="credits" className="mt-6">
+              <Suspense
+                fallback={
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Credits</CardTitle>
+                      <CardDescription>Hämtar saldo…</CardDescription>
+                    </CardHeader>
+                  </Card>
+                }
+              >
+                <CreditsCard topup={topup} />
+              </Suspense>
+            </TabsContent>
+
+            <TabsContent value="usage" className="mt-6">
+              <Suspense
+                fallback={
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Användning</CardTitle>
+                      <CardDescription>Hämtar förbrukning…</CardDescription>
+                    </CardHeader>
+                  </Card>
+                }
+              >
+                <DailySpendCard />
+              </Suspense>
+            </TabsContent>
+
+            {isAdmin === true ? (
+              <TabsContent value="admin" className="mt-6 space-y-6">
+                <RolesAdminCard />
+                <CreditConfigAdminCard />
+                <CreditDealsAdminCard />
+              </TabsContent>
+            ) : null}
+          </Tabs>
+        </Authenticated>
+      </main>
+    </DashboardThemeShell>
   )
 }

@@ -169,7 +169,7 @@ export function ScanToMacbook() {
   return (
     <section
       ref={ref}
-      className="relative h-[320vh] bg-[oklch(0.12_0.01_250)]"
+      className="relative h-[320vh] bg-[oklch(0.94_0.008_236)] dark:bg-[oklch(0.12_0.01_250)]"
     >
       <div className="sticky top-0 flex h-svh items-center justify-center overflow-hidden [perspective:1200px]">
         <motion.div
@@ -187,10 +187,10 @@ export function ScanToMacbook() {
           style={{ opacity: titleOpacity, y: titleY }}
           className="absolute top-12 left-1/2 z-40 w-[min(92vw,40rem)] -translate-x-1/2 px-4 text-center"
         >
-          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
+          <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl dark:text-white">
             Skanna med telefon
           </h2>
-          <p className="mt-3 text-pretty text-sm text-neutral-400 md:text-base">
+          <p className="mt-3 text-pretty text-sm text-neutral-600 md:text-base dark:text-neutral-400">
             Ladda upp ditt pågående arbete till AI via skanna-med-telefon, så den
             kan hjälpa dig där du kört fast eller hitta små slarvfel.
           </p>
@@ -198,7 +198,7 @@ export function ScanToMacbook() {
 
         <motion.p
           style={{ opacity: hintOpacity }}
-          className="absolute bottom-8 left-1/2 z-40 -translate-x-1/2 text-xs tracking-wide text-neutral-500 uppercase"
+          className="absolute bottom-8 left-1/2 z-40 -translate-x-1/2 text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-500"
         >
           Scrolla
         </motion.p>
@@ -281,15 +281,15 @@ export function ScanToMacbook() {
           >
             <div className="relative mx-auto w-full [perspective:900px]">
               <div
-                className="relative mx-auto aspect-[16/10] w-full rounded-2xl bg-[#0a0a0a] p-2 shadow-2xl"
+                className="relative mx-auto aspect-[16/10] w-full rounded-2xl bg-neutral-300 p-2 shadow-2xl dark:bg-[#0a0a0a]"
                 style={{
                   transform: "rotateX(-18deg)",
                   transformOrigin: "bottom",
                   transformStyle: "preserve-3d",
                 }}
               >
-                <div className="flex h-full items-center justify-center rounded-xl bg-[#111]">
-                  <span className="text-xs tracking-[0.3em] text-neutral-600 uppercase">
+                <div className="flex h-full items-center justify-center rounded-xl bg-neutral-100 dark:bg-[#111]">
+                  <span className="text-xs tracking-[0.3em] text-neutral-400 uppercase dark:text-neutral-600">
                     Lumo
                   </span>
                 </div>
@@ -305,18 +305,18 @@ export function ScanToMacbook() {
                   transformOrigin: "top",
                   transformStyle: "preserve-3d",
                 }}
-                className="absolute inset-x-0 top-0 aspect-[16/10] w-full rounded-2xl bg-[#010101] p-2 shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
+                className="absolute inset-x-0 top-0 aspect-[16/10] w-full rounded-2xl bg-neutral-200 p-2 shadow-[0_30px_80px_rgba(0,0,0,0.18)] dark:bg-[#010101] dark:shadow-[0_30px_80px_rgba(0,0,0,0.55)]"
               >
                 <div
-                  className="relative flex h-full overflow-hidden rounded-xl bg-[#161618] [backface-visibility:hidden] [transform:translateZ(0)] [-webkit-font-smoothing:antialiased]"
+                  className="relative flex h-full overflow-hidden rounded-xl bg-white [backface-visibility:hidden] [transform:translateZ(0)] [-webkit-font-smoothing:antialiased] dark:bg-[#161618]"
                 >
                   {/* Skeleton chat list */}
-                  <div className="flex h-full w-[28%] flex-col gap-1.5 border-r border-white/5 bg-[#121214] p-2 sm:w-[26%]">
-                    <div className="mb-1.5 leading-tight text-white">
+                  <div className="flex h-full w-[28%] flex-col gap-1.5 border-r border-neutral-200 bg-neutral-50 p-2 sm:w-[26%] dark:border-white/5 dark:bg-[#121214]">
+                    <div className="mb-1.5 leading-tight text-neutral-900 dark:text-white">
                       <div className="text-[11px] font-semibold sm:text-[12px]">
                         TATB01
                       </div>
-                      <div className="text-[10px] text-white/70 sm:text-[11px]">
+                      <div className="text-[10px] text-neutral-500 sm:text-[11px] dark:text-white/70">
                         Grunken
                       </div>
                     </div>
@@ -331,11 +331,11 @@ export function ScanToMacbook() {
                     ].map((width, i) => (
                       <div
                         key={i}
-                        className="flex items-center gap-1.5 rounded-md bg-white/[0.03] px-1.5 py-1.5"
+                        className="flex items-center gap-1.5 rounded-md bg-neutral-200/70 px-1.5 py-1.5 dark:bg-white/[0.03]"
                       >
-                        <div className="size-2 shrink-0 rounded-full bg-white/10" />
+                        <div className="size-2 shrink-0 rounded-full bg-neutral-300 dark:bg-white/10" />
                         <div
-                          className={`h-1.5 rounded bg-white/10 ${width}`}
+                          className={`h-1.5 rounded bg-neutral-300 dark:bg-white/10 ${width}`}
                         />
                       </div>
                     ))}
@@ -343,16 +343,16 @@ export function ScanToMacbook() {
 
                   {/* Main — user Q, paper square, AI answer */}
                   <div className="flex flex-1 flex-col [backface-visibility:hidden] [transform:translateZ(0)]">
-                    <div className="flex h-7 items-center border-b border-white/5 px-3">
-                      <span className="text-[11px] font-medium text-neutral-400">
+                    <div className="flex h-7 items-center border-b border-neutral-200 px-3 dark:border-white/5">
+                      <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
                         Lumo
                       </span>
                     </div>
-                    <div className="flex flex-1 flex-col justify-center gap-2.5 bg-[#1c1c1f] px-3 py-2 sm:gap-3 sm:px-4">
-                      <div className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-primary/30 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-white sm:text-[13px]">
+                    <div className="flex flex-1 flex-col justify-center gap-2.5 bg-neutral-50 px-3 py-2 sm:gap-3 sm:px-4 dark:bg-[#1c1c1f]">
+                      <div className="max-w-[85%] self-end rounded-lg rounded-br-sm bg-primary/30 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-neutral-900 sm:text-[13px] dark:text-white">
                         Vad är fel?
                       </div>
-                      <div className="aspect-[4/3] w-[55%] max-w-[200px] self-end overflow-hidden rounded-lg border border-white/10 bg-[#f4f1ea] shadow-lg">
+                      <div className="aspect-[4/3] w-[55%] max-w-[200px] self-end overflow-hidden rounded-lg border border-neutral-200 bg-[#f4f1ea] shadow-lg dark:border-white/10">
                         <img
                           src={WORKSHEET_SRC}
                           alt=""
@@ -360,7 +360,7 @@ export function ScanToMacbook() {
                           draggable={false}
                         />
                       </div>
-                      <div className="max-w-[90%] self-start rounded-lg rounded-bl-sm bg-white/10 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-neutral-100 sm:text-[13px]">
+                      <div className="max-w-[90%] self-start rounded-lg rounded-bl-sm bg-neutral-200/80 px-2.5 py-1.5 text-[12px] leading-snug font-medium text-neutral-800 sm:text-[13px] dark:bg-white/10 dark:text-neutral-100">
                         Saknar minustecken på rad 2
                       </div>
                     </div>
@@ -369,10 +369,10 @@ export function ScanToMacbook() {
               </motion.div>
             </div>
 
-            <div className="relative mx-auto -mt-1 h-28 w-[98%] overflow-hidden rounded-b-2xl bg-[#272729] sm:h-36">
-              <div className="mx-auto mt-2 h-3 w-[78%] rounded-sm bg-[#050505]" />
-              <div className="mx-auto mt-3 h-14 w-[70%] rounded-md bg-[#0c0c0c] sm:h-20" />
-              <div className="mx-auto mt-2 h-10 w-[38%] rounded-xl bg-[#1a1a1a] shadow-[inset_0_0_0_1px_#00000040]" />
+            <div className="relative mx-auto -mt-1 h-28 w-[98%] overflow-hidden rounded-b-2xl bg-neutral-300 sm:h-36 dark:bg-[#272729]">
+              <div className="mx-auto mt-2 h-3 w-[78%] rounded-sm bg-neutral-400 dark:bg-[#050505]" />
+              <div className="mx-auto mt-3 h-14 w-[70%] rounded-md bg-neutral-200 sm:h-20 dark:bg-[#0c0c0c]" />
+              <div className="mx-auto mt-2 h-10 w-[38%] rounded-xl bg-neutral-100 shadow-[inset_0_0_0_1px_#00000014] dark:bg-[#1a1a1a] dark:shadow-[inset_0_0_0_1px_#00000040]" />
             </div>
           </motion.div>
         </div>

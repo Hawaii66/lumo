@@ -120,7 +120,7 @@ export const MathField = forwardRef<MathFieldHandle, MathFieldProps>(
     return createElement("math-field", {
       ref,
       className: cn(
-        "block w-full rounded-lg border border-input bg-background px-3 py-2 text-base shadow-xs",
+        "block w-full rounded-lg border border-input bg-background px-3 py-2 text-base text-foreground shadow-xs",
         className,
       ),
     })

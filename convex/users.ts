@@ -5,6 +5,14 @@ import { getUserRole } from "./lib/roles";
 
 const MAX_NAME_LENGTH = 80;
 
+const themeValidator = v.union(
+  v.literal("light"),
+  v.literal("dark"),
+  v.literal("purple"),
+  v.literal("ocean"),
+  v.literal("rose"),
+);
+
 const roleSummaryValidator = v.object({
   key: v.union(
     v.literal("default"),
@@ -26,6 +34,7 @@ const viewerFieldsValidator = v.object({
     }),
   ),
   role: roleSummaryValidator,
+  theme: themeValidator,
 });
 
 export const viewer = query({
@@ -64,7 +73,31 @@ export const viewer = query({
         key: roleDoc.key,
         freeDailyCredits: roleDoc.freeDailyCredits,
       },
+      theme: user.theme ?? "light",
     };
+  },
+});
+
+export const updateTheme = mutation({
+  args: { theme: themeValidator },
+  returns: v.object({
+    _id: v.id("users"),
+    theme: themeValidator,
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (user === null) {
+      throw new Error("Användaren hittades inte");
+    }
+
+    await ctx.db.patch(userId, { theme: args.theme });
+
+    return { _id: userId, theme: args.theme };
   },
 });
 

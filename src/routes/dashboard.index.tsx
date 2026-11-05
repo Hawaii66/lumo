@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
 import { Suspense } from "react"
 import { api } from "../../convex/_generated/api"
+import { ThemeSelector } from "~/components/dashboard/theme-selector"
 import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { CreditsBalanceSummary } from "~/components/profile/credits-balance-summary"
 import { RoomsPanel } from "~/components/rooms/rooms-panel"
@@ -31,7 +32,8 @@ function DashboardIndexPage() {
             {hej} {displayName}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ThemeSelector />
           <Button variant="outline" size="sm" render={<Link to="/pdf" />}>
             PDF-verktyg
           </Button>

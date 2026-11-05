@@ -4,6 +4,7 @@ import {
   AuthLoading,
   Unauthenticated,
 } from "convex/react"
+import { DashboardThemeShell } from "~/components/dashboard/dashboard-theme-shell"
 import { SignInCard } from "~/components/sign-in"
 import { Button } from "~/components/ui/button"
 import {
@@ -59,7 +60,9 @@ function DashboardLayout() {
       </Unauthenticated>
 
       <Authenticated>
-        <Outlet />
+        <DashboardThemeShell>
+          <Outlet />
+        </DashboardThemeShell>
       </Authenticated>
     </>
   )

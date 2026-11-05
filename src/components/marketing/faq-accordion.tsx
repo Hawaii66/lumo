@@ -79,7 +79,7 @@ function FaqItem({
             )}
           />
         </span>
-        <span className="min-w-0 flex-1 text-base font-medium text-white md:text-lg">
+        <span className="min-w-0 flex-1 text-base font-medium text-neutral-900 md:text-lg dark:text-white">
           {question}
         </span>
       </button>
@@ -93,7 +93,7 @@ function FaqItem({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <p className="pt-3 pl-8 text-sm leading-relaxed text-neutral-400 md:pl-8 md:text-base">
+            <p className="pt-3 pl-8 text-sm leading-relaxed text-neutral-600 md:pl-8 md:text-base dark:text-neutral-400">
               {answer}
             </p>
           </motion.div>
@@ -110,11 +110,11 @@ export function FaqAccordion({ className }: { className?: string }) {
   return (
     <section className={cn("w-full py-16 md:py-24", className)}>
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 md:grid-cols-2 md:gap-16">
-        <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl lg:text-5xl">
+        <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 md:text-4xl lg:text-5xl dark:text-white">
           Vanliga frågor
         </h2>
 
-        <div className="divide-y divide-neutral-800 border-y border-neutral-800">
+        <div className="divide-y divide-neutral-200 border-y border-neutral-200 dark:divide-neutral-800 dark:border-neutral-800">
           {faqs.map((faq, index) => (
             <FaqItem
               key={faq.question}

@@ -20,7 +20,7 @@ function GridLineHorizontal({
         } as React.CSSProperties
       }
       className={cn(
-        "pointer-events-none absolute h-px w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)] [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]",
+        "pointer-events-none absolute h-px w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,transparent,rgb(212_212_212)_10%,rgb(212_212_212)_90%,transparent)] [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)] dark:bg-[linear-gradient(to_right,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)]",
         className,
       )}
     />
@@ -42,7 +42,7 @@ function GridLineVertical({
         } as React.CSSProperties
       }
       className={cn(
-        "pointer-events-none absolute w-px h-[calc(100%+var(--offset))] bg-[linear-gradient(to_bottom,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]",
+        "pointer-events-none absolute w-px h-[calc(100%+var(--offset))] bg-[linear-gradient(to_bottom,transparent,rgb(212_212_212)_10%,rgb(212_212_212)_90%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)] dark:bg-[linear-gradient(to_bottom,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)]",
         className,
       )}
     />
@@ -59,7 +59,7 @@ export function CtaDashedGrid({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative z-30 mx-auto w-full max-w-5xl overflow-hidden rounded-xl border border-dashed border-neutral-700 bg-neutral-950 shadow-lg",
+        "relative z-30 mx-auto w-full max-w-5xl overflow-hidden rounded-xl border border-dashed border-neutral-300 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-950",
         className,
       )}
     >
@@ -70,14 +70,14 @@ export function CtaDashedGrid({ className }: { className?: string }) {
 
       <div className="grid md:grid-cols-3">
         <div className="flex flex-col justify-center gap-5 p-8 md:col-span-2 md:p-10 md:pr-8">
-          <h2 className="pt-2 text-3xl font-semibold tracking-tight text-white md:pt-4 md:text-4xl">
+          <h2 className="pt-2 text-3xl font-semibold tracking-tight text-neutral-900 md:pt-4 md:text-4xl dark:text-white">
             AI-plugg gjort{" "}
             <span className="text-primary">rätt</span>
           </h2>
           <div className="flex flex-wrap gap-3">
             {signedIn ? (
               <>
-                <span className="text-sm text-neutral-300 self-center">
+                <span className="self-center text-sm text-neutral-700 dark:text-neutral-300">
                   {hej} {displayName}
                 </span>
                 <Button
@@ -110,8 +110,8 @@ export function CtaDashedGrid({ className }: { className?: string }) {
           </div>
         </div>
 
-        <div className="flex flex-col justify-center border-t border-dashed border-neutral-700 p-8 md:border-t-0 md:border-l md:p-10">
-          <p className="text-sm leading-relaxed text-neutral-400">
+        <div className="flex flex-col justify-center border-t border-dashed border-neutral-300 p-8 md:border-t-0 md:border-l md:p-10 dark:border-neutral-700">
+          <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
             Skapa rum för varje kurs där allt som hör till kursen samlas —
             AI-chattar, PDF:er, bilder, uppgifter, tentor.
           </p>
