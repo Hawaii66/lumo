@@ -9,22 +9,12 @@ import {
   IconSearch,
   IconStarFilled,
 } from "@tabler/icons-react"
-import { Star } from "lucide-react"
+import { Check, ScanSearch, Star } from "lucide-react"
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
+import { StaticMath } from "~/components/lumo/static-math"
 import { CtaDashedGrid } from "~/components/marketing/cta-dashed-grid"
 import { cn } from "~/lib/utils"
-
-function Skeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "flex h-full min-h-[5rem] w-full flex-1 rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/20",
-        className,
-      )}
-    />
-  )
-}
 
 /** Mini mock of the room sidebar problem selector (search + stars + grouped list). */
 function ProblemSelectorSkeleton() {
@@ -50,81 +40,203 @@ function ProblemSelectorSkeleton() {
   ]
 
   return (
-    <div
-      aria-hidden
-      className="flex h-full min-h-[12rem] w-full flex-1 flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/90 p-2"
-    >
-      <div className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-neutral-950 px-2 text-[9px] text-neutral-500">
-        <IconSearch className="size-2.5 shrink-0" />
-        <span className="truncate">Sök uppgifter…</span>
-      </div>
-
-      <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-800/50 p-0.5">
-        <div className="flex h-5 min-w-0 flex-1 items-center justify-center rounded bg-neutral-950 text-[8px] font-medium text-neutral-200 shadow-sm">
-          Alla
+    <div className="flex h-full min-h-[12rem] w-full flex-1 items-stretch justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/15 p-2.5">
+      <div
+        aria-hidden
+        className="flex min-h-0 w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/90 p-2"
+      >
+        <div className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-neutral-950 px-2 text-[9px] text-neutral-500">
+          <IconSearch className="size-2.5 shrink-0" />
+          <span className="truncate">Sök uppgifter…</span>
         </div>
-        <div className="flex min-w-0 flex-[3] items-stretch">
-          {([1, 2, 3] as const).map((level) => (
-            <div
-              key={level}
-              className="flex h-5 min-w-0 flex-1 items-center justify-center gap-px rounded-md"
-            >
-              {Array.from({ length: level }, (_, i) => (
-                <IconStarFilled
-                  key={i}
-                  className="size-2 text-neutral-500"
-                />
-              ))}
+
+        <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-800/50 p-0.5">
+          <div className="flex h-5 min-w-0 flex-1 items-center justify-center rounded bg-neutral-950 text-[8px] font-medium text-neutral-200 shadow-sm">
+            Alla
+          </div>
+          <div className="flex min-w-0 flex-[3] items-stretch">
+            {([1, 2, 3] as const).map((level) => (
+              <div
+                key={level}
+                className="flex h-5 min-w-0 flex-1 items-center justify-center gap-px rounded-md"
+              >
+                {Array.from({ length: level }, (_, i) => (
+                  <IconStarFilled
+                    key={i}
+                    className="size-2 text-neutral-500"
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Intrinsic height — avoid flex-1/min-h-0 or the list collapses in auto-sized cards */}
+        <div className="flex shrink-0 flex-col gap-1.5">
+          {groups.map((group) => (
+            <div key={group.file} className="min-w-0">
+              <div className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
+                <IconChevronDown className="size-2.5 shrink-0" />
+                <span className="min-w-0 flex-1 truncate normal-case">
+                  {group.file}
+                </span>
+                <span className="shrink-0 rounded bg-neutral-800 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-400">
+                  {group.count}
+                </span>
+              </div>
+              <div className="mt-0.5 space-y-0.5">
+                {group.problems.map((problem) => (
+                  <div
+                    key={problem.num}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px]",
+                      problem.selected
+                        ? "bg-primary/20 text-white"
+                        : "text-neutral-300",
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium tabular-nums">
+                      {problem.num}
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1">
+                      <span className="inline-flex items-center gap-px">
+                        {Array.from({ length: problem.stars }, (_, i) => (
+                          <IconStarFilled
+                            key={i}
+                            className="size-2 text-amber-500"
+                          />
+                        ))}
+                      </span>
+                      {problem.done ? (
+                        <IconCircleCheck className="size-2.5 text-emerald-500" />
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  )
+}
 
-      {/* Intrinsic height — avoid flex-1/min-h-0 or the list collapses in auto-sized cards */}
-      <div className="flex shrink-0 flex-col gap-1.5">
-        {groups.map((group) => (
-          <div key={group.file} className="min-w-0">
-            <div className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
-              <IconChevronDown className="size-2.5 shrink-0" />
-              <span className="min-w-0 flex-1 truncate normal-case">
-                {group.file}
+/** Interactive mark-complete control, matching the problem detail toggle. */
+function MarkCompleteHeader() {
+  const problems = ["1", "2a", "2b"] as const
+  const [completed, setCompleted] = useState<Record<string, boolean>>({
+    "1": true,
+    "2a": false,
+    "2b": false,
+  })
+
+  function toggle(num: string) {
+    setCompleted((current) => ({ ...current, [num]: !current[num] }))
+  }
+
+  return (
+    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-emerald-500/10 px-4 py-3">
+      <div className="flex w-full max-w-[11rem] flex-col gap-1 rounded-lg bg-neutral-900/70 p-1.5">
+        {problems.map((num) => {
+          const done = completed[num]
+          const label = done
+            ? `Markera ${num} som inte klar`
+            : `Markera ${num} som klar`
+          return (
+            <div
+              key={num}
+              className="flex items-center gap-7 rounded-md px-2.5 py-1.5"
+            >
+              <span className="min-w-0 flex-1 text-sm font-semibold tracking-tight text-neutral-100 tabular-nums">
+                {num}
               </span>
-              <span className="shrink-0 rounded bg-neutral-800 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-400">
-                {group.count}
-              </span>
-            </div>
-            <div className="mt-0.5 space-y-0.5">
-              {group.problems.map((problem) => (
-                <div
-                  key={problem.num}
+              <button
+                type="button"
+                title={label}
+                aria-label={label}
+                aria-pressed={done}
+                onClick={() => toggle(num)}
+                className={cn(
+                  "inline-flex size-6 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40",
+                  "active:scale-90",
+                  done
+                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25"
+                    : "border-neutral-700 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300",
+                )}
+              >
+                <Check
                   className={cn(
-                    "flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px]",
-                    problem.selected
-                      ? "bg-primary/20 text-white"
-                      : "text-neutral-300",
+                    "size-3 transition-[opacity,transform] duration-150",
+                    done
+                      ? "stroke-[3] opacity-100 scale-100"
+                      : "opacity-40 scale-90",
                   )}
-                >
-                  <span className="min-w-0 flex-1 truncate font-medium tabular-nums">
-                    {problem.num}
-                  </span>
-                  <span className="inline-flex shrink-0 items-center gap-1">
-                    <span className="inline-flex items-center gap-px">
-                      {Array.from({ length: problem.stars }, (_, i) => (
-                        <IconStarFilled
-                          key={i}
-                          className="size-2 text-amber-500"
-                        />
-                      ))}
-                    </span>
-                    {problem.done ? (
-                      <IconCircleCheck className="size-2.5 text-emerald-500" />
-                    ) : null}
-                  </span>
-                </div>
-              ))}
+                  aria-hidden
+                />
+              </button>
             </div>
-          </div>
-        ))}
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/** Simple chat bubble with rendered math inline. */
+function FormelCommandHeader() {
+  return (
+    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/15 px-4 py-3">
+      <div
+        aria-hidden
+        className="inline-flex max-w-full items-baseline gap-x-1.5 whitespace-nowrap rounded-2xl bg-neutral-900/80 px-3.5 py-2.5 text-sm text-neutral-100"
+      >
+        <span>Kvadratkomplettera</span>
+        <StaticMath
+          latex={String.raw`f(x)=x^{2}-5x+25`}
+          display="inline"
+          className="text-neutral-100"
+        />
+        <span>och bestäm största/minsta värde</span>
+      </div>
+    </div>
+  )
+}
+
+/** Daily credits balance mock, matching the profile credits card. */
+function DailyCreditsHeader() {
+  return (
+    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-amber-500/10 px-4 py-3">
+      <div
+        aria-hidden
+        className="w-full max-w-[9.5rem] rounded-lg bg-neutral-900/70 px-3 py-3"
+      >
+        <div className="flex items-center gap-1.5">
+          <IconCoin className="size-3 text-amber-500" />
+          <p className="text-[10px] font-medium tracking-wide text-neutral-500 uppercase">
+            Dagliga
+          </p>
+        </div>
+        <p className="mt-1 text-2xl font-semibold tracking-tight text-neutral-100 tabular-nums">
+          25
+        </p>
+        <p className="mt-0.5 text-[10px] text-neutral-500">av 25 gratis/dag</p>
+      </div>
+    </div>
+  )
+}
+
+/** Tolka button mock, matching the files-page ParsePdfDialog trigger. */
+function TolkaButtonHeader() {
+  return (
+    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-primary/15 px-4 py-3">
+      <div
+        aria-hidden
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-900/80 px-4 text-sm font-medium text-neutral-200 shadow-sm"
+      >
+        <ScanSearch className="size-4 shrink-0" />
+        Tolka
       </div>
     </div>
   )
@@ -246,7 +358,7 @@ const items: BentoItem[] = [
     title: "Korrekt matematikinput",
     description:
       "Skriv till AI med korrekt formaterad matematik så den direkt förstår vad du faktiskt menar — och kommunikationen blir tydligare.",
-    header: <Skeleton className="from-primary/20 via-muted to-accent" />,
+    header: <FormelCommandHeader />,
     className: "md:col-start-1 md:col-span-2 md:row-start-1",
     icon: <IconMathFunction className="h-4 w-4 text-primary" />,
     flyIndex: 0,
@@ -254,7 +366,7 @@ const items: BentoItem[] = [
   {
     title: "Markera som klar",
     description: "Markera färdiga uppgifter som klara.",
-    header: <Skeleton className="from-primary/15 via-muted to-accent" />,
+    header: <MarkCompleteHeader />,
     className: "md:col-start-3 md:row-start-1",
     icon: <IconCircleCheck className="h-4 w-4 text-primary" />,
     flyIndex: 1,
@@ -262,7 +374,7 @@ const items: BentoItem[] = [
   {
     title: "Gratis dagliga credits",
     description: "Gratis dagliga credits för motiverande vardagsplugg.",
-    header: <Skeleton className="from-accent via-primary/10 to-muted" />,
+    header: <DailyCreditsHeader />,
     className: "md:col-start-1 md:row-start-2",
     icon: <IconCoin className="h-4 w-4 text-primary" />,
     flyIndex: 2,
@@ -271,7 +383,7 @@ const items: BentoItem[] = [
     title: "PDF → studiemetoder",
     description:
       "Ladda upp PDF:er och extrahera information som rekommenderade metoder så att AI hjälper dig på rätt sätt från början.",
-    header: <Skeleton className="from-muted via-primary/10 to-accent" />,
+    header: <TolkaButtonHeader />,
     className: "md:col-start-2 md:row-start-2",
     icon: <IconFileText className="h-4 w-4 text-primary" />,
     flyIndex: 3,
