@@ -19,7 +19,6 @@ import {
 import {
   ProblemStarsDisplay,
   type ProblemStarEntry,
-  type ProblemStars,
 } from "~/components/rooms/problem-stars"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
@@ -48,12 +47,10 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
 import { cn } from "~/lib/utils"
 
-export type { ProblemStars }
-
 export type RoomSidebarListSection = "chats" | "problems"
 export type RoomSidebarSection = RoomSidebarListSection | "files" | "settings"
 
-export type RoomSidebarChatItem = {
+type RoomSidebarChatItem = {
   id: string
   title: string
   /** Remaining time label, e.g. "2h kvar". Omit when kept forever. */
@@ -62,7 +59,7 @@ export type RoomSidebarChatItem = {
   problemNumbers?: string[]
 }
 
-export type RoomSidebarProblemItem = {
+type RoomSidebarProblemItem = {
   id: string
   problemNumber: string
   /** Room-scoped difficulty per deluppgift (or whole problem as letter `""`). */

@@ -41,7 +41,7 @@ import { CHAT_MODES, type ChatMode } from "~/lib/chat-mode"
 
 const MAX_IMAGES = 4
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
-export const MAX_MATH_CHIPS = 4
+const MAX_MATH_CHIPS = 4
 
 export type UseChatInputComposerArgs = {
   problemGroups: Array<RoomProblemGroup> | undefined

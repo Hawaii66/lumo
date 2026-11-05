@@ -21,12 +21,8 @@ import type {
 import { useChatInputComposer } from "./use-composer"
 
 export type {
-  ChatInputCitation,
   ChatInputHandle,
-  ChatInputImage,
-  ChatInputStorageImage,
   ChatInputSubmitPayload,
-  ChatStartDraft,
   RoomProblemGroup,
 } from "./types"
 

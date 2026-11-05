@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 /** One textbook problem: markdown question + answer. */
-export const lumoParsedProblemSchema = z.object({
+const lumoParsedProblemSchema = z.object({
   problemNumber: z.string().min(1),
   question: z.string(),
   answer: z.string(),
@@ -71,20 +71,3 @@ export function parseLumoParsedProblems(input: string): {
 
   return { problems, error: null }
 }
-
-// Re-export chat reply helpers for convenience.
-export {
-  parseChatReply,
-  chatReplyHasVisibleContent,
-  chatReplySchema,
-  type ChatReply,
-  type ChatQuickReplyChoice,
-} from "./chat-reply"
-
-export {
-  chaptersFromMarkdown,
-  normalizeSubproblemLetter,
-  sliceSubproblemMarkdown,
-  subproblemAnchorId,
-  type ChapterHeading,
-} from "./markdown-math"
