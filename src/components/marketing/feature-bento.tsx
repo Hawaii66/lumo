@@ -28,13 +28,13 @@ function BentoHeaderShell({
   return (
     <div
       className={cn(
-        "relative flex h-full min-h-[5rem] w-full flex-1 items-center justify-center overflow-hidden rounded-lg bg-neutral-950 bg-grid-white px-4 py-3",
+        "relative flex h-full min-h-[5rem] w-full flex-1 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 bg-grid-white px-4 py-3 dark:bg-neutral-950",
         className,
       )}
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-neutral-950 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+        className="pointer-events-none absolute inset-0 bg-neutral-100 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] dark:bg-neutral-950"
       />
       <div className="relative z-10 flex h-full w-full min-h-0 flex-1 items-center justify-center">
         {children}
@@ -70,15 +70,15 @@ function ProblemSelectorSkeleton() {
     <BentoHeaderShell className="min-h-[12rem] p-2.5">
       <div
         aria-hidden
-        className="flex min-h-0 w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900 p-2"
+        className="flex min-h-0 w-full flex-col gap-1.5 overflow-hidden rounded-lg border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900"
       >
-        <div className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-neutral-950 px-2 text-[9px] text-neutral-500">
+        <div className="flex h-6 shrink-0 items-center gap-1.5 rounded-md bg-neutral-100 px-2 text-[9px] text-neutral-500 dark:bg-neutral-950">
           <IconSearch className="size-2.5 shrink-0" />
           <span className="truncate">Sök uppgifter…</span>
         </div>
 
-        <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-800 p-0.5">
-          <div className="flex h-5 min-w-0 flex-1 items-center justify-center rounded bg-neutral-950 text-[8px] font-medium text-neutral-200 shadow-sm">
+        <div className="flex shrink-0 items-stretch gap-0.5 rounded-md bg-neutral-200 p-0.5 dark:bg-neutral-800">
+          <div className="flex h-5 min-w-0 flex-1 items-center justify-center rounded bg-white text-[8px] font-medium text-neutral-800 shadow-sm dark:bg-neutral-950 dark:text-neutral-200">
             Alla
           </div>
           <div className="flex min-w-0 flex-[3] items-stretch">
@@ -107,7 +107,7 @@ function ProblemSelectorSkeleton() {
                 <span className="min-w-0 flex-1 truncate normal-case">
                   {group.file}
                 </span>
-                <span className="shrink-0 rounded bg-neutral-800 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-400">
+                <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
                   {group.count}
                 </span>
               </div>
@@ -118,8 +118,8 @@ function ProblemSelectorSkeleton() {
                     className={cn(
                       "flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px]",
                       problem.selected
-                        ? "bg-primary/20 text-white"
-                        : "text-neutral-300",
+                        ? "bg-primary/20 text-neutral-900 dark:text-white"
+                        : "text-neutral-700 dark:text-neutral-300",
                     )}
                   >
                     <span className="min-w-0 flex-1 truncate font-medium tabular-nums">
@@ -164,7 +164,7 @@ function MarkCompleteHeader() {
 
   return (
     <BentoHeaderShell>
-      <div className="flex w-full max-w-[11rem] flex-col gap-1 rounded-lg bg-neutral-900 p-1.5">
+      <div className="flex w-full max-w-[11rem] flex-col gap-1 rounded-lg bg-white p-1.5 dark:bg-neutral-900">
         {problems.map((num) => {
           const done = completed[num]
           const label = done
@@ -175,7 +175,7 @@ function MarkCompleteHeader() {
               key={num}
               className="flex items-center gap-7 rounded-md px-2.5 py-1.5"
             >
-              <span className="min-w-0 flex-1 text-sm font-semibold tracking-tight text-neutral-100 tabular-nums">
+              <span className="min-w-0 flex-1 text-sm font-semibold tracking-tight text-neutral-900 tabular-nums dark:text-neutral-100">
                 {num}
               </span>
               <button
@@ -189,8 +189,8 @@ function MarkCompleteHeader() {
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40",
                   "active:scale-90",
                   done
-                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25"
-                    : "border-neutral-700 text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300",
+                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25 dark:text-emerald-400"
+                    : "border-neutral-300 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 dark:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-300",
                 )}
               >
                 <Check
@@ -217,13 +217,13 @@ function FormelCommandHeader() {
     <BentoHeaderShell>
       <div
         aria-hidden
-        className="inline-flex max-w-full items-baseline gap-x-1.5 whitespace-nowrap rounded-2xl bg-neutral-900 px-3.5 py-2.5 text-sm text-neutral-100"
+        className="inline-flex max-w-full items-baseline gap-x-1.5 whitespace-nowrap rounded-2xl bg-white px-3.5 py-2.5 text-sm text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
       >
         <span>Kvadratkomplettera</span>
         <StaticMath
           latex={String.raw`f(x)=x^{2}-5x+25`}
           display="inline"
-          className="text-neutral-100"
+          className="text-neutral-900 dark:text-neutral-100"
         />
         <span>och bestäm största/minsta värde</span>
       </div>
@@ -237,7 +237,7 @@ function DailyCreditsHeader() {
     <BentoHeaderShell>
       <div
         aria-hidden
-        className="w-full max-w-[9.5rem] rounded-lg bg-neutral-900 px-3 py-3"
+        className="w-full max-w-[9.5rem] rounded-lg bg-white px-3 py-3 dark:bg-neutral-900"
       >
         <div className="flex items-center gap-1.5">
           <IconCoin className="size-3 text-amber-500" />
@@ -245,7 +245,7 @@ function DailyCreditsHeader() {
             Dagliga
           </p>
         </div>
-        <p className="mt-1 text-2xl font-semibold tracking-tight text-neutral-100 tabular-nums">
+        <p className="mt-1 text-2xl font-semibold tracking-tight text-neutral-900 tabular-nums dark:text-neutral-100">
           25
         </p>
         <p className="mt-0.5 text-[10px] text-neutral-500">av 25 gratis/dag</p>
@@ -260,7 +260,7 @@ function TolkaButtonHeader() {
     <BentoHeaderShell>
       <div
         aria-hidden
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-900 px-4 text-sm font-medium text-neutral-200 shadow-sm"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 shadow-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
       >
         <ScanSearch className="size-4 shrink-0" />
         Tolka
@@ -302,7 +302,7 @@ function DifficultyStarsHeader() {
   return (
     <BentoHeaderShell>
       <div
-        className="flex w-full max-w-sm items-stretch gap-0.5 rounded-lg bg-neutral-900 p-0.5"
+        className="flex w-full max-w-sm items-stretch gap-0.5 rounded-lg bg-white p-0.5 dark:bg-neutral-900"
         role="group"
         aria-label="Filtrera efter stjärnor"
       >
@@ -312,8 +312,9 @@ function DifficultyStarsHeader() {
           aria-pressed={showAllStars}
           onClick={toggleAll}
           className={cn(
-            "h-9 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium leading-none text-neutral-400 transition-colors",
-            showAllStars && "bg-neutral-800 text-neutral-100 shadow-sm",
+            "h-9 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium leading-none text-neutral-500 transition-colors dark:text-neutral-400",
+            showAllStars &&
+              "bg-neutral-100 text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-neutral-100",
           )}
         >
           Alla
@@ -337,7 +338,8 @@ function DifficultyStarsHeader() {
                 onClick={() => toggleLevel(option.level)}
                 className={cn(
                   "flex h-9 min-w-0 flex-1 items-center justify-center gap-px border-0 px-1 transition-colors",
-                  active && "bg-neutral-800 text-neutral-100 shadow-sm",
+                  active &&
+                    "bg-neutral-100 text-neutral-900 shadow-sm dark:bg-neutral-800 dark:text-neutral-100",
                   !joinsLeft && !joinsRight && "rounded-md",
                   !joinsLeft && joinsRight && "rounded-l-md rounded-r-none",
                   joinsLeft && !joinsRight && "rounded-l-none rounded-r-md",
@@ -351,7 +353,7 @@ function DifficultyStarsHeader() {
                       "size-3.5",
                       active
                         ? "fill-amber-500 text-amber-500"
-                        : "fill-none text-neutral-500",
+                        : "fill-none text-neutral-400 dark:text-neutral-500",
                     )}
                     aria-hidden
                   />

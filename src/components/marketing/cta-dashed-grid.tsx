@@ -20,7 +20,7 @@ function GridLineHorizontal({
         } as React.CSSProperties
       }
       className={cn(
-        "pointer-events-none absolute h-px w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)] [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]",
+        "pointer-events-none absolute h-px w-[calc(100%+var(--offset))] bg-[linear-gradient(to_right,transparent,rgb(212_212_212)_10%,rgb(212_212_212)_90%,transparent)] [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)] dark:bg-[linear-gradient(to_right,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)]",
         className,
       )}
     />
@@ -42,7 +42,7 @@ function GridLineVertical({
         } as React.CSSProperties
       }
       className={cn(
-        "pointer-events-none absolute w-px h-[calc(100%+var(--offset))] bg-[linear-gradient(to_bottom,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]",
+        "pointer-events-none absolute w-px h-[calc(100%+var(--offset))] bg-[linear-gradient(to_bottom,transparent,rgb(212_212_212)_10%,rgb(212_212_212)_90%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)] dark:bg-[linear-gradient(to_bottom,transparent,rgb(64_64_64)_10%,rgb(64_64_64)_90%,transparent)]",
         className,
       )}
     />
