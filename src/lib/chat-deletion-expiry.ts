@@ -22,15 +22,7 @@ export type ChatDeletionExpiry =
 export const DEFAULT_CHAT_DELETION_EXPIRY: ChatDeletionExpiry = "infinite"
 export const PROBLEM_CHAT_DELETION_EXPIRY: ChatDeletionExpiry = "3h"
 
-export function isChatDeletionExpiry(
-  value: string,
-): value is ChatDeletionExpiry {
-  return CHAT_DELETION_EXPIRIES.some((item) => item.value === value)
-}
-
-export function chatDeletionExpiryLabel(
-  expiry: ChatDeletionExpiry,
-): string {
+function chatDeletionExpiryLabel(expiry: ChatDeletionExpiry): string {
   return (
     CHAT_DELETION_EXPIRIES.find((item) => item.value === expiry)?.label ??
     expiry
@@ -38,10 +30,7 @@ export function chatDeletionExpiryLabel(
 }
 
 /** Live countdown for the closed dropdown trigger (timed chats only). */
-export function formatTimeUntilDelete(
-  deleteAt: number,
-  now = Date.now(),
-): string {
+function formatTimeUntilDelete(deleteAt: number, now = Date.now()): string {
   const remainingMs = deleteAt - now
   if (remainingMs <= 0) return "snart"
 

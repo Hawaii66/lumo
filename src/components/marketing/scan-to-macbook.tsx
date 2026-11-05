@@ -7,7 +7,7 @@ import {
 } from "motion/react"
 
 /** 4:3 worksheet: blurry header / question / solution, mostly-straight broken lines. */
-export const WORKSHEET_SRC = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+const WORKSHEET_SRC = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
   <defs>
     <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">

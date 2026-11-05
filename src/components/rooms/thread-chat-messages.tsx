@@ -27,7 +27,7 @@ import {
 } from "~/lib/markdown-math"
 import { cn } from "~/lib/utils"
 
-export function chaptersFromReply(reply: ChatReply | null): Array<ChapterItem> {
+function chaptersFromReply(reply: ChatReply | null): Array<ChapterItem> {
   if (!reply) return []
   return chaptersFromMarkdown(reply.markdown).map((chapter) => ({
     partIndex: chapter.index,
@@ -106,7 +106,7 @@ export function mentionsByUserMessageKey(
   return byKey
 }
 
-export function messageText(message: UIMessage): string {
+function messageText(message: UIMessage): string {
   return (
     message.text ||
     message.parts
@@ -118,7 +118,7 @@ export function messageText(message: UIMessage): string {
   )
 }
 
-export function formatAssistantText(text: string): string {
+function formatAssistantText(text: string): string {
   try {
     return JSON.stringify(JSON.parse(text) as unknown, null, 2)
   } catch {
@@ -126,7 +126,7 @@ export function formatAssistantText(text: string): string {
   }
 }
 
-export function formatChatTranscript(messages: Array<UIMessage>): string | null {
+function formatChatTranscript(messages: Array<UIMessage>): string | null {
   const blocks: Array<string> = []
   for (const message of messages) {
     if (message.role !== "user" && message.role !== "assistant") continue
@@ -178,7 +178,7 @@ export function CopyChatTextButton({ messages }: { messages: Array<UIMessage> })
   )
 }
 
-export function StreamingIndicator({ empty }: { empty?: boolean }) {
+function StreamingIndicator({ empty }: { empty?: boolean }) {
   return (
     <span
       className={cn(
@@ -199,7 +199,7 @@ export function StreamingIndicator({ empty }: { empty?: boolean }) {
   )
 }
 
-export function useAssistantChatReply(message: UIMessage): {
+function useAssistantChatReply(message: UIMessage): {
   reply: ChatReply | null
   streaming: boolean
   chapters: Array<ChapterItem>

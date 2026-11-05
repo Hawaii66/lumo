@@ -1,11 +1,11 @@
 import { z } from "zod"
 
-export const chatQuickReplyChoiceSchema = z.object({
+const chatQuickReplyChoiceSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
 })
 
-export const chatReplySchema = z.object({
+const chatReplySchema = z.object({
   version: z.literal(2),
   markdown: z.string(),
   quickReplies: z.array(chatQuickReplyChoiceSchema).max(4),

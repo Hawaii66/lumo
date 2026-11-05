@@ -171,7 +171,7 @@ export type SlashCommand = {
   description: string
 }
 
-export const SLASH_COMMANDS: Array<SlashCommand> = [
+const SLASH_COMMANDS: Array<SlashCommand> = [
   {
     id: "formel",
     command: "formel",
@@ -261,7 +261,7 @@ export function filterProblemOptions(
     .slice(0, TYPEAHEAD_MAX_OPTIONS)
 }
 
-export function resolveMentionMatches(
+function resolveMentionMatches(
   options: Array<ProblemMentionOption>,
   number: string,
   fileSlug?: string,
@@ -342,7 +342,7 @@ export function insertMathRefToken(
 }
 
 /** Remove all `(n)` tokens for a math ref and tidy spaces. */
-export function removeMathRefFromText(text: string, ref: number): string {
+function removeMathRefFromText(text: string, ref: number): string {
   const re = new RegExp(`\\(${ref}\\)`, "g")
   return text
     .replace(re, "")
@@ -450,7 +450,7 @@ function sanitizeCitationContent(content: string): string {
   return content.trim().replace(/"/g, "'")
 }
 
-export function formatCitationPrefix(responseNumber: number): string {
+function formatCitationPrefix(responseNumber: number): string {
   return `[citat svar ${responseNumber}]`
 }
 

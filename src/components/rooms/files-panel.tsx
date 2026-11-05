@@ -4,7 +4,6 @@ import {
   Download,
   Eye,
   File as FileIcon,
-  FolderOpen,
   Pencil,
   Trash2,
   Upload,
@@ -41,35 +40,9 @@ import {
 } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
 import { uploadFileToStorage } from "~/lib/upload"
-import { cn } from "~/lib/utils"
 
 type FilesPanelProps = {
   roomId: Id<"rooms">
-}
-
-export function RoomFilesTabBar({
-  filesActive,
-  onShowFiles,
-}: {
-  filesActive: boolean
-  onShowFiles: () => void
-}) {
-  return (
-    <div className="border-t border-sidebar-border p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className={cn(
-          "w-full justify-start gap-1.5",
-          filesActive && "bg-sidebar-accent text-sidebar-accent-foreground",
-        )}
-        onClick={onShowFiles}
-      >
-        <FolderOpen />
-        Filer
-      </Button>
-    </div>
-  )
 }
 
 function UploadButton({ roomId }: { roomId: Id<"rooms"> }) {
