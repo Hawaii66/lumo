@@ -995,10 +995,10 @@ export function PdfToolsPage() {
       <div className="space-y-2">
         <p className="text-sm text-muted-foreground">
           <Link
-            to="/"
-            className="text-primary underline-offset-4 hover:underline"
+            to="/dashboard"
+            className="text-muted-foreground underline-offset-4 hover:underline"
           >
-            ← Lumo
+            ← Tillbaka
           </Link>
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">PDF-verktyg</h1>

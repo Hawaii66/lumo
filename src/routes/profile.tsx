@@ -14,7 +14,6 @@ import { CreditDealsAdminCard } from "~/components/profile/credit-deals-admin-ca
 import { CreditsCard } from "~/components/profile/credits-card"
 import { DailySpendCard } from "~/components/profile/daily-spend"
 import { RolesAdminCard } from "~/components/profile/roles-admin-card"
-import { Button } from "~/components/ui/button"
 import {
   Card,
   CardDescription,
@@ -112,16 +111,19 @@ function ProfilePage() {
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-semibold tracking-tight">Profil</h1>
-          <p className="text-muted-foreground">
-            Konto, credits och daglig förbrukning.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" render={<Link to="/" />}>
-          Startsida
-        </Button>
+      <div className="space-y-2">
+        <p className="text-sm text-muted-foreground">
+          <Link
+            to="/dashboard"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            ← Tillbaka
+          </Link>
+        </p>
+        <h1 className="text-4xl font-semibold tracking-tight">Profil</h1>
+        <p className="text-muted-foreground">
+          Konto, credits och daglig förbrukning.
+        </p>
       </div>
 
       <AuthLoading>
