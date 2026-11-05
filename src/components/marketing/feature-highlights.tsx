@@ -4,6 +4,7 @@ import { Copy, FileText, Lightbulb, ScanSearch } from "lucide-react"
 import { motion, useInView } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
+import { Logo } from "~/components/brand/logo"
 import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { HomeAppearanceToggle } from "~/components/marketing/home-appearance-toggle"
 import { Button } from "~/components/ui/button"
@@ -352,9 +353,7 @@ export function FeatureHighlights() {
         className="pointer-events-none absolute inset-0 bg-[oklch(0.96_0.008_236)] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] dark:bg-[oklch(0.14_0.01_250)]"
       />
       <header className="relative z-10 mx-auto mb-10 flex max-w-7xl items-center justify-between md:mb-14">
-        <span className="text-lg font-semibold tracking-tight text-primary">
-          Lumo
-        </span>
+        <Logo asLink size="sm" />
         <div className="flex items-center gap-2">
           <HomeAppearanceToggle />
           {viewer === null ? (

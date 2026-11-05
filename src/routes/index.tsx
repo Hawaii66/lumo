@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { Logo } from "~/components/brand/logo"
 import { FeatureBento } from "~/components/marketing/feature-bento"
 import { FeatureHighlights } from "~/components/marketing/feature-highlights"
 import { HomeAppearanceShell } from "~/components/marketing/home-appearance-shell"
@@ -18,9 +19,10 @@ function Home() {
         <footer className="border-t border-neutral-200 bg-neutral-100 px-6 py-12 md:px-8 dark:border-neutral-800 dark:bg-black">
           <div className="mx-auto flex max-w-7xl flex-col gap-10 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              <p className="text-sm font-medium text-neutral-900 dark:text-white">
-                Lumo
-              </p>
+              <Logo
+                size="sm"
+                wordmarkClassName="text-sm font-medium text-neutral-900 dark:text-white"
+              />
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 AI-plugg gjort rätt
               </p>

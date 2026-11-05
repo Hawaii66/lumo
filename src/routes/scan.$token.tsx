@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react"
 import { Camera, CheckCircle2, ImagePlus, Loader2 } from "lucide-react"
 import { useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
+import { Logo } from "~/components/brand/logo"
 import { Button } from "~/components/ui/button"
 import { uploadFileToStorage } from "~/lib/upload"
 
@@ -100,9 +101,7 @@ function PhoneScanPage() {
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col gap-6 bg-background p-6">
       <div className="space-y-2 pt-4">
-        <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
-          Lumo
-        </p>
+        <Logo size="sm" />
         <h1 className="text-2xl font-semibold tracking-tight">
           Ladda upp till {session.roomName}
         </h1>
