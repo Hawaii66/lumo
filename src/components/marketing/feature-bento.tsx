@@ -14,6 +14,7 @@ import { motion, useScroll, useTransform, type MotionValue } from "motion/react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { StaticMath } from "~/components/lumo/static-math"
 import { CtaDashedGrid } from "~/components/marketing/cta-dashed-grid"
+import { FaqAccordion } from "~/components/marketing/faq-accordion"
 import { cn } from "~/lib/utils"
 
 /** Aceternity grid background shell for bento headers. */
@@ -549,8 +550,9 @@ export function FeatureBento() {
           <CtaDashedGrid />
         </div>
 
-        {/* Room for upcoming sections below */}
-        <div className="h-[70vh] md:h-[90vh]" aria-hidden />
+        <div className="relative z-20 mt-20 md:mt-28">
+          <FaqAccordion />
+        </div>
       </div>
     </section>
   )
