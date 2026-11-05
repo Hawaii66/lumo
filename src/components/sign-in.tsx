@@ -8,6 +8,7 @@ import {
 } from "convex/react"
 import { useState } from "react"
 import { api } from "../../convex/_generated/api"
+import { authProvidersLabel } from "~/lib/auth-providers"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -26,14 +27,7 @@ function SignedInCard() {
   const viewer = useQuery(api.users.viewer)
   const [signingOut, setSigningOut] = useState(false)
 
-  const providerLabel =
-    viewer?.providers
-      ?.map((p) => {
-        if (p.provider === "temp") return "Temp"
-        if (p.provider === "openai") return "ChatGPT"
-        return p.provider
-      })
-      .join(", ") || "—"
+  const providerLabel = authProvidersLabel(viewer?.providers)
 
   return (
     <Card>
@@ -95,14 +89,33 @@ function SignedInCard() {
   )
 }
 
+function signInErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === "string") return err
+  return "Sign-in failed"
+}
+
 function SignInForm({ mode }: { mode: AuthMode }) {
   const { signIn } = useAuthActions()
   const [email, setEmail] = useState("hawaiilive@outlook.com")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [pending, setPending] = useState(false)
+  const [pending, setPending] = useState<
+    null | "temp" | "google" | "microsoft-entra-id"
+  >(null)
 
   const isSignUp = mode === "signUp"
+  const busy = pending !== null
+
+  const startOAuth = (provider: "google" | "microsoft-entra-id") => {
+    setError(null)
+    setPending(provider)
+    void signIn(provider)
+      .catch((err: unknown) => {
+        setError(signInErrorMessage(err))
+        setPending(null)
+      })
+  }
 
   return (
     <Card>
@@ -110,17 +123,44 @@ function SignInForm({ mode }: { mode: AuthMode }) {
         <CardTitle>{isSignUp ? "Skapa konto" : "Logga in"}</CardTitle>
         <CardDescription>
           {isSignUp
-            ? "Skapa ditt Lumo-konto med e-post och lösenord."
-            : "Logga in med e-post och lösenord."}
+            ? "Skapa ditt Lumo-konto med Google, Microsoft eller e-post."
+            : "Logga in med Google, Microsoft eller e-post."}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => startOAuth("google")}
+          >
+            {pending === "google" ? "Öppnar Google…" : "Fortsätt med Google"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => startOAuth("microsoft-entra-id")}
+          >
+            {pending === "microsoft-entra-id"
+              ? "Öppnar Microsoft…"
+              : "Fortsätt med Microsoft"}
+          </Button>
+        </div>
+
+        <div className="relative flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">eller</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
         <form
           className="flex flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault()
             setError(null)
-            setPending(true)
+            setPending("temp")
             void signIn("temp", { email, password })
               .then((result) => {
                 if (!result.signingIn) {
@@ -130,15 +170,9 @@ function SignInForm({ mode }: { mode: AuthMode }) {
                 }
               })
               .catch((err: unknown) => {
-                const message =
-                  err instanceof Error
-                    ? err.message
-                    : typeof err === "string"
-                      ? err
-                      : "Sign-in failed"
-                setError(message)
+                setError(signInErrorMessage(err))
               })
-              .finally(() => setPending(false))
+              .finally(() => setPending(null))
           }}
         >
           <div className="space-y-2">
@@ -168,8 +202,8 @@ function SignInForm({ mode }: { mode: AuthMode }) {
           {error ? (
             <p className="text-sm text-destructive">{error}</p>
           ) : null}
-          <Button type="submit" disabled={pending}>
-            {pending
+          <Button type="submit" disabled={busy}>
+            {pending === "temp"
               ? isSignUp
                 ? "Skapar konto…"
                 : "Loggar in…"

@@ -23,6 +23,7 @@ import type * as PDFParse_shadowProblems from "../PDFParse/shadowProblems.js";
 import type * as agents_openrouter from "../agents/openrouter.js";
 import type * as agents_roomAgent from "../agents/roomAgent.js";
 import type * as auth from "../auth.js";
+import type * as authProviders_microsoft from "../authProviders/microsoft.js";
 import type * as authProviders_openai from "../authProviders/openai.js";
 import type * as authProviders_temp from "../authProviders/temp.js";
 import type * as billing from "../billing.js";
@@ -84,6 +85,7 @@ declare const fullApi: ApiFromModules<{
   "agents/openrouter": typeof agents_openrouter;
   "agents/roomAgent": typeof agents_roomAgent;
   auth: typeof auth;
+  "authProviders/microsoft": typeof authProviders_microsoft;
   "authProviders/openai": typeof authProviders_openai;
   "authProviders/temp": typeof authProviders_temp;
   billing: typeof billing;
