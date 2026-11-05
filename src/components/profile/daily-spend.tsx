@@ -44,7 +44,7 @@ export function DailySpendCard() {
       <CardHeader>
         <CardTitle>Användning</CardTitle>
         <CardDescription>
-          Credits använda senaste 14 dagarna (Stockholm). Idag:{" "}
+          Credits använda senaste 14 dagarna. Idag:{" "}
           {data.todayNetSpent} credits.
         </CardDescription>
       </CardHeader>
