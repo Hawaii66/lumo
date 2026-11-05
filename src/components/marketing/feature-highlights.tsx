@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
 import { motion, useInView } from "motion/react"
 import { useEffect, useRef, useState } from "react"
+import { api } from "../../../convex/_generated/api"
+import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { Button } from "~/components/ui/button"
 import { FlipWords } from "~/components/ui/flip-words"
 import { cn } from "~/lib/utils"
@@ -188,6 +191,10 @@ function FeatureCard({
 }
 
 export function FeatureHighlights() {
+  const viewer = useQuery(api.users.viewer)
+  const hej = useHejPhrase()
+  const displayName = viewer?.name?.trim() || viewer?.email || "there"
+
   return (
     <section className="relative overflow-hidden bg-[oklch(0.14_0.01_250)] bg-grid-white px-6 pt-6 pb-20 md:px-8 md:pt-8 md:pb-28">
       <div
@@ -198,23 +205,25 @@ export function FeatureHighlights() {
         <span className="text-lg font-semibold tracking-tight text-primary">
           Lumo
         </span>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
-            render={<Link to="/signin" />}
-          >
-            Logga in
-          </Button>
-          <Button
-            size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-            render={<Link to="/signup" />}
-          >
-            Skapa konto
-          </Button>
-        </div>
+        {viewer === null ? (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
+              render={<Link to="/signin" />}
+            >
+              Logga in
+            </Button>
+            <Button
+              size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              render={<Link to="/signup" />}
+            >
+              Skapa konto
+            </Button>
+          </div>
+        ) : null}
       </header>
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mx-auto mb-14 max-w-2xl text-center">
@@ -233,6 +242,20 @@ export function FeatureHighlights() {
             AI-chattar, PDF:er, bilder, uppgifter, tentor.
           </p>
         </div>
+        {viewer != null ? (
+          <div className="mb-12 flex flex-wrap items-center justify-center gap-4 md:mb-14">
+            <span className="text-lg text-neutral-300 md:text-xl">
+              {hej} {displayName}
+            </span>
+            <Button
+              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              render={<Link to="/dashboard" />}
+            >
+              Dashboard
+            </Button>
+          </div>
+        ) : null}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
           {features.map((feature, index) => (
             <FeatureCard key={feature.title} {...feature} index={index} />
