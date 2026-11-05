@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { useQuery } from "convex/react"
+import { Copy, FileText, Lightbulb, ScanSearch } from "lucide-react"
 import { motion, useInView } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
@@ -32,9 +33,10 @@ const features = [
   },
 ]
 
+/** Mini room UI: problem list | problem + Genomgång/Skanna | text input. */
 function LaptopIllustration({ active }: { active: boolean }) {
   return (
-    <div className="relative mx-auto flex h-44 w-full max-w-[280px] items-end justify-center">
+    <div className="relative mx-auto flex h-44 w-full max-w-[210px] items-end justify-center">
       <motion.div
         initial={false}
         animate={{
@@ -45,36 +47,113 @@ function LaptopIllustration({ active }: { active: boolean }) {
         style={{ transformOrigin: "bottom center", transformPerspective: 800 }}
         className="w-full"
       >
-        <div className="rounded-t-lg border border-neutral-700 bg-neutral-950 p-1.5 shadow-xl">
+        <div className="rounded-t-lg border border-neutral-700 bg-neutral-950 p-1 shadow-xl">
           <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-neutral-900">
             <motion.div
               initial={false}
               animate={{ opacity: active ? 1 : 0 }}
               transition={{ duration: 0.45, delay: active ? 0.15 : 0 }}
-              className="absolute inset-0 space-y-2 p-3"
+              className="absolute inset-0 flex"
             >
-              <div className="h-2 w-1/3 rounded bg-primary/80" />
-              <div className="h-1.5 w-2/3 rounded bg-neutral-600" />
-              <div className="mt-3 grid grid-cols-3 gap-1.5">
-                <div className="h-10 rounded bg-neutral-800" />
-                <div className="h-10 rounded bg-neutral-800" />
-                <div className="h-10 rounded bg-primary/25" />
+              {/* Problem list */}
+              <div className="flex w-[28%] shrink-0 flex-col gap-1 border-r border-neutral-800 bg-neutral-950 p-1.5">
+                <div className="h-1.5 w-full rounded bg-neutral-700" />
+                {["1", "2a", "2b", "3"].map((num, i) => (
+                  <div
+                    key={num}
+                    className={cn(
+                      "flex items-center rounded px-1 py-0.5",
+                      i === 1 ? "bg-primary/25" : "bg-neutral-800/60",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "text-[7px] font-medium tabular-nums",
+                        i === 1 ? "text-white" : "text-neutral-400",
+                      )}
+                    >
+                      {num}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="h-1.5 w-full rounded bg-neutral-700" />
-              <div className="h-1.5 w-4/5 rounded bg-neutral-700" />
+
+              {/* Main: problem + actions + text input */}
+              <div className="flex min-w-0 flex-1 flex-col">
+                <div className="shrink-0 space-y-1 border-b border-neutral-800 px-2 py-1.5">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[8px] font-semibold text-neutral-200">
+                      2a
+                    </span>
+                    <div className="h-1 flex-1 rounded bg-neutral-700" />
+                  </div>
+                  <div className="h-1 w-4/5 rounded bg-neutral-600" />
+                  <div className="h-1 w-3/5 rounded bg-neutral-700" />
+                </div>
+
+                <div className="flex flex-1 items-center justify-center gap-1.5 px-2 py-1.5">
+                  <div className="flex flex-1 flex-col items-center gap-0.5 rounded-md border border-primary/60 bg-primary/10 px-1 py-1.5 text-primary">
+                    <Lightbulb className="size-2.5 stroke-[1.75]" />
+                    <span className="text-[6px] font-semibold leading-none">
+                      Genomgång
+                    </span>
+                  </div>
+                  <div className="flex flex-1 flex-col items-center gap-0.5 rounded-md border border-primary/60 bg-primary/10 px-1 py-1.5 text-primary">
+                    <ScanSearch className="size-2.5 stroke-[1.75]" />
+                    <span className="text-[6px] font-semibold leading-none">
+                      Skanna
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0 border-t border-neutral-800 px-1.5 py-1">
+                  <div className="flex h-3.5 items-center rounded border border-neutral-700 bg-neutral-950 px-1.5">
+                    <span className="truncate text-[6px] text-neutral-500">
+                      Skriv ett meddelande…
+                    </span>
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
-        <div className="mx-auto h-2 w-[108%] -translate-x-[4%] rounded-b-md border border-t-0 border-neutral-700 bg-neutral-800" />
-        <div className="mx-auto h-1 w-1/3 rounded-b bg-neutral-700" />
+        <div className="mx-auto h-1.5 w-[108%] -translate-x-[4%] rounded-b-md border border-t-0 border-neutral-700 bg-neutral-800" />
+        <div className="mx-auto h-0.5 w-1/3 rounded-b bg-neutral-700" />
       </motion.div>
     </div>
   )
 }
 
+const TOLKA_TARGET = 34
+
+/** PDF icon + Tolka; click swaps to a count-up. */
 function PhoneIllustration({ active }: { active: boolean }) {
+  const [started, setStarted] = useState(false)
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!started) {
+      setCount(0)
+      return
+    }
+
+    let frame = 0
+    const durationMs = 1600
+    const start = performance.now()
+
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs)
+      const eased = 1 - (1 - t) ** 2.4
+      setCount(Math.round(eased * TOLKA_TARGET))
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [started])
+
   return (
-    <div className="relative mx-auto flex h-44 items-center justify-center">
+    <div className="relative mx-auto flex h-44 w-full max-w-[260px] items-center justify-center">
       <motion.div
         initial={false}
         animate={{
@@ -83,63 +162,125 @@ function PhoneIllustration({ active }: { active: boolean }) {
           scale: active ? 1 : 0.96,
         }}
         transition={{ type: "spring", stiffness: 140, damping: 18 }}
-        className="h-40 w-[72px] rounded-[1.1rem] border border-neutral-700 bg-neutral-950 p-1 shadow-xl"
+        className="flex w-full items-center justify-center gap-5"
       >
-        <div className="relative h-full overflow-hidden rounded-[0.85rem] bg-neutral-900">
-          <div className="absolute top-1 left-1/2 h-1 w-8 -translate-x-1/2 rounded-full bg-neutral-800" />
-          <motion.div
-            initial={false}
-            animate={{ opacity: active ? 1 : 0 }}
-            transition={{ duration: 0.4, delay: active ? 0.12 : 0 }}
-            className="absolute inset-x-1.5 top-4 space-y-1.5"
-          >
-            <div className="mx-auto flex size-8 items-center justify-center rounded-lg border border-dashed border-primary/50 bg-primary/10">
-              <div className="size-4 rounded-sm border border-primary/70" />
-            </div>
-            <div className="h-1.5 rounded bg-neutral-600" />
-            <div className="h-1.5 w-3/4 rounded bg-neutral-700" />
-            <div className="mt-2 space-y-1">
-              <div className="h-6 rounded bg-neutral-800" />
-              <div className="h-6 rounded bg-neutral-800" />
-            </div>
-          </motion.div>
+        <div
+          aria-hidden
+          className="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-neutral-700 bg-neutral-900 text-neutral-200 shadow-sm"
+        >
+          <FileText className="size-12" />
+        </div>
+
+        <div className="relative flex h-14 min-w-[5.5rem] items-center justify-center">
+          {!started ? (
+            <motion.button
+              type="button"
+              aria-label="Tolka PDF"
+              onClick={() => setStarted(true)}
+              animate={
+                active
+                  ? { scale: [1, 1.05, 1], opacity: [1, 0.85, 1] }
+                  : { scale: 1, opacity: 1 }
+              }
+              transition={
+                active
+                  ? { duration: 0.9, repeat: Infinity, ease: "easeInOut" }
+                  : { duration: 0.25 }
+              }
+              className="inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm"
+            >
+              <ScanSearch className="size-4 shrink-0" />
+              Tolka
+            </motion.button>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.25 }}
+              className="text-center"
+            >
+              <p className="text-2xl font-semibold tracking-tight text-neutral-100 tabular-nums leading-none">
+                {count}
+              </p>
+              <p className="mt-1 text-[10px] leading-tight text-neutral-400">
+                tolkade uppgifter
+              </p>
+            </motion.div>
+          )}
         </div>
       </motion.div>
     </div>
   )
 }
 
+/** Twin/clone: original problem card duplicates into a sibling. */
 function TabletIllustration({ active }: { active: boolean }) {
   return (
-    <div className="relative mx-auto flex h-44 w-full max-w-[220px] items-center justify-center">
-      <motion.div
-        initial={false}
-        animate={{
-          x: active ? 0 : 24,
-          opacity: active ? 1 : 0.5,
-        }}
-        transition={{ type: "spring", stiffness: 120, damping: 20 }}
-        className="h-36 w-full rounded-2xl border border-neutral-700 bg-neutral-950 p-1.5 shadow-xl"
-      >
-        <div className="relative h-full overflow-hidden rounded-xl bg-neutral-900">
-          <motion.div
-            initial={false}
-            animate={{ opacity: active ? 1 : 0 }}
-            transition={{ duration: 0.45, delay: active ? 0.15 : 0 }}
-            className="absolute inset-0 space-y-2 p-3"
-          >
-            <div className="flex items-center justify-between">
-              <div className="h-2 w-1/2 rounded bg-primary/70" />
-              <div className="h-5 w-12 rounded-md bg-primary/30" />
-            </div>
-            <div className="space-y-1.5 pt-1">
-              <div className="h-8 rounded-lg bg-neutral-800" />
-              <div className="h-8 rounded-lg bg-neutral-800" />
-              <div className="h-8 rounded-lg border border-primary/30 bg-primary/10" />
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
+    <div className="relative mx-auto flex h-44 w-full max-w-[280px] items-center justify-center">
+      <div className="relative h-40 w-full">
+        <motion.div
+          initial={false}
+          animate={{
+            x: active ? -26 : 0,
+            opacity: active ? 1 : 0.7,
+          }}
+          transition={{ type: "spring", stiffness: 120, damping: 20 }}
+          className="absolute top-3 left-1/2 z-10 w-[64%] -translate-x-1/2 rounded-xl border border-neutral-700 bg-neutral-950 p-3 shadow-xl"
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-neutral-200">2a</span>
+            <span className="rounded bg-neutral-800 px-1.5 py-0.5 text-[9px] text-neutral-400">
+              Original
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="h-2 w-full rounded bg-neutral-700" />
+            <div className="h-2 w-4/5 rounded bg-neutral-700" />
+            <div className="h-2 w-3/5 rounded bg-neutral-800" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={false}
+          animate={{
+            x: active ? 26 : 0,
+            y: active ? 14 : 0,
+            opacity: active ? 1 : 0,
+            scale: active ? 1 : 0.85,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 120,
+            damping: 18,
+            delay: active ? 0.12 : 0,
+          }}
+          className="absolute top-3 left-1/2 z-20 w-[64%] -translate-x-1/2 rounded-xl border border-primary/40 bg-neutral-950 p-3 shadow-xl"
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-neutral-200">2a′</span>
+            <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[9px] text-primary">
+              Tvilling
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="h-2 w-full rounded bg-neutral-700" />
+            <div className="h-2 w-[70%] rounded bg-primary/40" />
+            <div className="h-2 w-3/5 rounded bg-neutral-800" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={false}
+          animate={{
+            opacity: active ? 1 : 0,
+            scale: active ? 1 : 0.6,
+          }}
+          transition={{ duration: 0.35, delay: active ? 0.05 : 0 }}
+          className="absolute top-1/2 left-1/2 z-30 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-700 bg-neutral-900 text-primary shadow-md"
+        >
+          <Copy className="size-4" />
+        </motion.div>
+      </div>
     </div>
   )
 }
