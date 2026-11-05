@@ -1,5 +1,9 @@
 /**
- * Sign in with ChatGPT (OpenAI) — future provider stub.
+ * Sign in with ChatGPT (OpenAI) — later provider stub.
+ *
+ * Enable when OpenAI ships SIWC with token usage (user ChatGPT quota /
+ * usage accounting), not just identity. Until then AI stays on the app's
+ * OpenRouter key.
  *
  * Website identity flow (when OpenAI provisions your client):
  * https://developers.openai.com/siwc/website
@@ -22,7 +26,7 @@
  * issuer+clientId+sub onto authAccounts / users the same way TempCredentials
  * does today.
  *
- * Do not enable this until OpenAI grants website SIWC access for Lumo.
+ * Do not enable until SIWC + token usage is available and provisioned for Lumo.
  */
 
 export const OPENAI_AUTH = {

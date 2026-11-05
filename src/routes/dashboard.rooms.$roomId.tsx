@@ -308,8 +308,7 @@ function RoomPage() {
     )
   }
 
-  // TODO: Split mega room page / wire thinner child components once chat-input,
-  // room-settings-panel, and thread-chat are broken up; add a thin convex-test suite.
+  // TODO: Add a thin convex-test suite for critical authz + happy paths.
   return (
     <TooltipProvider>
       <SidebarProvider className="h-svh! min-h-0">

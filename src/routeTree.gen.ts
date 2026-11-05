@@ -12,14 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PdfRouteImport } from './routes/pdf'
-import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as PreviewIndexRouteImport } from './routes/preview.index'
-import { Route as PreviewSidebarRouteImport } from './routes/preview.sidebar'
-import { Route as RoomsRoomIdRouteImport } from './routes/rooms.$roomId'
 import { Route as ScanTokenRouteImport } from './routes/scan.$token'
 import { Route as DashboardRoomsRoomIdRouteImport } from './routes/dashboard.rooms.$roomId'
 
@@ -36,11 +32,6 @@ const DashboardRoute = DashboardRouteImport.update({
 const PdfRoute = PdfRouteImport.update({
   id: '/pdf',
   path: '/pdf',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviewRoute = PreviewRouteImport.update({
-  id: '/preview',
-  path: '/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -63,21 +54,6 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const PreviewIndexRoute = PreviewIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PreviewRoute,
-} as any)
-const PreviewSidebarRoute = PreviewSidebarRouteImport.update({
-  id: '/sidebar',
-  path: '/sidebar',
-  getParentRoute: () => PreviewRoute,
-} as any)
-const RoomsRoomIdRoute = RoomsRoomIdRouteImport.update({
-  id: '/rooms/$roomId',
-  path: '/rooms/$roomId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ScanTokenRoute = ScanTokenRouteImport.update({
   id: '/scan/$token',
   path: '/scan/$token',
@@ -93,15 +69,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/pdf': typeof PdfRoute
-  '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
-  '/preview/sidebar': typeof PreviewSidebarRoute
-  '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/preview/': typeof PreviewIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
 }
 export interface FileRoutesByTo {
@@ -110,11 +82,8 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
-  '/preview/sidebar': typeof PreviewSidebarRoute
-  '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/preview': typeof PreviewIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
 }
 export interface FileRoutesById {
@@ -122,15 +91,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/pdf': typeof PdfRoute
-  '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
-  '/preview/sidebar': typeof PreviewSidebarRoute
-  '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/preview/': typeof PreviewIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
 }
 export interface FileRouteTypes {
@@ -139,15 +104,11 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/pdf'
-    | '/preview'
     | '/profile'
     | '/signin'
     | '/signup'
-    | '/preview/sidebar'
-    | '/rooms/$roomId'
     | '/scan/$token'
     | '/dashboard/'
-    | '/preview/'
     | '/dashboard/rooms/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -156,26 +117,19 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signin'
     | '/signup'
-    | '/preview/sidebar'
-    | '/rooms/$roomId'
     | '/scan/$token'
     | '/dashboard'
-    | '/preview'
     | '/dashboard/rooms/$roomId'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/pdf'
-    | '/preview'
     | '/profile'
     | '/signin'
     | '/signup'
-    | '/preview/sidebar'
-    | '/rooms/$roomId'
     | '/scan/$token'
     | '/dashboard/'
-    | '/preview/'
     | '/dashboard/rooms/$roomId'
   fileRoutesById: FileRoutesById
 }
@@ -183,11 +137,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   PdfRoute: typeof PdfRoute
-  PreviewRoute: typeof PreviewRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
-  RoomsRoomIdRoute: typeof RoomsRoomIdRoute
   ScanTokenRoute: typeof ScanTokenRoute
 }
 
@@ -212,13 +164,6 @@ declare module '@tanstack/react-router' {
       path: '/pdf'
       fullPath: '/pdf'
       preLoaderRoute: typeof PdfRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/preview': {
-      id: '/preview'
-      path: '/preview'
-      fullPath: '/preview'
-      preLoaderRoute: typeof PreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -248,27 +193,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
-    }
-    '/preview/': {
-      id: '/preview/'
-      path: '/'
-      fullPath: '/preview/'
-      preLoaderRoute: typeof PreviewIndexRouteImport
-      parentRoute: typeof PreviewRoute
-    }
-    '/preview/sidebar': {
-      id: '/preview/sidebar'
-      path: '/sidebar'
-      fullPath: '/preview/sidebar'
-      preLoaderRoute: typeof PreviewSidebarRouteImport
-      parentRoute: typeof PreviewRoute
-    }
-    '/rooms/$roomId': {
-      id: '/rooms/$roomId'
-      path: '/rooms/$roomId'
-      fullPath: '/rooms/$roomId'
-      preLoaderRoute: typeof RoomsRoomIdRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/scan/$token': {
       id: '/scan/$token'
@@ -301,28 +225,13 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
-interface PreviewRouteChildren {
-  PreviewSidebarRoute: typeof PreviewSidebarRoute
-  PreviewIndexRoute: typeof PreviewIndexRoute
-}
-
-const PreviewRouteChildren: PreviewRouteChildren = {
-  PreviewSidebarRoute: PreviewSidebarRoute,
-  PreviewIndexRoute: PreviewIndexRoute,
-}
-
-const PreviewRouteWithChildren =
-  PreviewRoute._addFileChildren(PreviewRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
   PdfRoute: PdfRoute,
-  PreviewRoute: PreviewRouteWithChildren,
   ProfileRoute: ProfileRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
-  RoomsRoomIdRoute: RoomsRoomIdRoute,
   ScanTokenRoute: ScanTokenRoute,
 }
 export const routeTree = rootRouteImport
