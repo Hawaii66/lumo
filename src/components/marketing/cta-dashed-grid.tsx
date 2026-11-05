@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router"
+import { useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
+import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { Button } from "~/components/ui/button"
 import { cn } from "~/lib/utils"
 
@@ -48,6 +51,11 @@ function GridLineVertical({
 
 /** CTA with dashed edge lines — Aceternity “cta-with-dashed-grid-lines” motif. */
 export function CtaDashedGrid({ className }: { className?: string }) {
+  const viewer = useQuery(api.users.viewer)
+  const hej = useHejPhrase()
+  const displayName = viewer?.name?.trim() || viewer?.email || "there"
+  const signedIn = viewer != null
+
   return (
     <div
       className={cn(
@@ -67,21 +75,38 @@ export function CtaDashedGrid({ className }: { className?: string }) {
             <span className="text-primary">rätt</span>
           </h2>
           <div className="flex flex-wrap gap-3">
-            <Button
-              size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              render={<Link to="/signup" />}
-            >
-              Skapa konto
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-primary bg-transparent text-primary hover:bg-primary/10"
-              render={<Link to="/signin" />}
-            >
-              Logga in
-            </Button>
+            {signedIn ? (
+              <>
+                <span className="text-sm text-neutral-300 self-center">
+                  {hej} {displayName}
+                </span>
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  render={<Link to="/dashboard" />}
+                >
+                  Dashboard
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  render={<Link to="/signup" />}
+                >
+                  Skapa konto
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-primary bg-transparent text-primary hover:bg-primary/10"
+                  render={<Link to="/signin" />}
+                >
+                  Logga in
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
