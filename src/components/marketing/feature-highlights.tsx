@@ -1,6 +1,11 @@
+import { Link } from "@tanstack/react-router"
 import { motion, useInView } from "motion/react"
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { Button } from "~/components/ui/button"
+import { FlipWords } from "~/components/ui/flip-words"
 import { cn } from "~/lib/utils"
+
+const heroFlipWords = ["rätt", "smart", "enkelt", "roligt"]
 
 /** Top three: kursrum (+ instant setup), PDF → uppgifter, tvillinguppgifter. */
 const features = [
@@ -144,24 +149,32 @@ function FeatureCard({
 }: (typeof features)[number] & { index: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.45 })
+  const enterDelay = 0.25 + index * 0.25
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    if (!inView) return
+    const timeout = window.setTimeout(() => setActive(true), enterDelay * 1000)
+    return () => window.clearTimeout(timeout)
+  }, [inView, enterDelay])
 
   return (
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
+      transition={{ duration: 0.5, delay: enterDelay }}
       className={cn(
         "flex flex-col rounded-3xl border border-neutral-800 bg-neutral-950/80 p-6",
       )}
     >
       <div className="mb-6">
         {device === "laptop" ? (
-          <LaptopIllustration active={inView} />
+          <LaptopIllustration active={active} />
         ) : device === "phone" ? (
-          <PhoneIllustration active={inView} />
+          <PhoneIllustration active={active} />
         ) : (
-          <TabletIllustration active={inView} />
+          <TabletIllustration active={active} />
         )}
       </div>
       <h3 className="text-lg font-semibold tracking-tight text-white">
@@ -176,12 +189,45 @@ function FeatureCard({
 
 export function FeatureHighlights() {
   return (
-    <section className="bg-[oklch(0.14_0.01_250)] px-6 py-20 md:px-8 md:py-28">
-      <div className="mx-auto max-w-7xl">
+    <section className="relative overflow-hidden bg-[oklch(0.14_0.01_250)] bg-grid-white px-6 pt-6 pb-20 md:px-8 md:pt-8 md:pb-28">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[oklch(0.14_0.01_250)] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+      />
+      <header className="relative z-10 mx-auto mb-10 flex max-w-7xl items-center justify-between md:mb-14">
+        <span className="text-lg font-semibold tracking-tight text-primary">
+          Lumo
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-primary bg-transparent text-primary hover:bg-primary/10 hover:text-primary"
+            render={<Link to="/signin" />}
+          >
+            Logga in
+          </Button>
+          <Button
+            size="sm"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            render={<Link to="/signup" />}
+          >
+            Skapa konto
+          </Button>
+        </div>
+      </header>
+      <div className="relative z-10 mx-auto max-w-7xl">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-4xl">
-            AI-plugg gjort rätt
-          </h2>
+          <p className="mb-3 text-5xl font-semibold tracking-tight text-primary sm:text-6xl md:text-7xl">
+            Lumo
+          </p>
+          <h1 className="text-balance text-2xl font-medium tracking-tight text-white/90 sm:text-3xl md:text-4xl">
+            AI-plugg gjort{" "}
+            <FlipWords
+              words={heroFlipWords}
+              className="px-1 text-primary"
+            />
+          </h1>
           <p className="mt-3 text-pretty text-neutral-400 md:text-lg">
             Skapa rum för varje kurs där allt som hör till kursen samlas —
             AI-chattar, PDF:er, bilder, uppgifter, tentor.
