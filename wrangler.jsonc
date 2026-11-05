@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lumo",
+  "compatibility_date": "2026-11-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": {
+    "enabled": true
+  },
+  // Custom hostname on the Cloudflare zone for hawaiidev.sh.
+  // Requires the zone in the same Cloudflare account as this Worker.
+  "routes": [
+    {
+      "pattern": "lumo.hawaiidev.sh",
+      "custom_domain": true
+    }
+  ]
+}
