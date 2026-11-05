@@ -9,6 +9,7 @@ import {
   IconSearch,
   IconStarFilled,
 } from "@tabler/icons-react"
+import { Star } from "lucide-react"
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { CtaDashedGrid } from "~/components/marketing/cta-dashed-grid"
@@ -129,6 +130,102 @@ function ProblemSelectorSkeleton() {
   )
 }
 
+type StarFilterLevel = 1 | 2 | 3
+
+const STAR_LEVEL_OPTIONS: Array<{
+  level: StarFilterLevel
+  title: string
+}> = [
+  { level: 1, title: "Visa 1 stjärna" },
+  { level: 2, title: "Visa 2 stjärnor" },
+  { level: 3, title: "Visa 3 stjärnor" },
+]
+
+/** Interactive gold-star level filter, matching the room sidebar control. */
+function DifficultyStarsHeader() {
+  const [starLevels, setStarLevels] = useState<Array<StarFilterLevel>>([1, 2])
+  const showAllStars = starLevels.length === 0
+  const starLevelSet = new Set(starLevels)
+
+  function toggleAll() {
+    setStarLevels([])
+  }
+
+  function toggleLevel(level: StarFilterLevel) {
+    setStarLevels((current) => {
+      if (current.includes(level)) {
+        return current.filter((v) => v !== level)
+      }
+      return [...current, level].sort()
+    })
+  }
+
+  return (
+    <div className="flex h-full min-h-[5rem] w-full flex-1 items-center justify-center rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-amber-500/10 px-4 py-3">
+      <div
+        className="flex w-full max-w-sm items-stretch gap-0.5 rounded-lg bg-neutral-900/70 p-0.5"
+        role="group"
+        aria-label="Filtrera efter stjärnor"
+      >
+        <button
+          type="button"
+          aria-label="Visa alla uppgifter (0–3 stjärnor)"
+          aria-pressed={showAllStars}
+          onClick={toggleAll}
+          className={cn(
+            "h-9 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium leading-none text-neutral-400 transition-colors",
+            showAllStars && "bg-neutral-800 text-neutral-100 shadow-sm",
+          )}
+        >
+          Alla
+        </button>
+        <div className="flex min-w-0 flex-[3] items-stretch">
+          {STAR_LEVEL_OPTIONS.map((option) => {
+            const active = starLevelSet.has(option.level)
+            const joinsLeft =
+              active &&
+              starLevelSet.has((option.level - 1) as StarFilterLevel)
+            const joinsRight =
+              active &&
+              starLevelSet.has((option.level + 1) as StarFilterLevel)
+            return (
+              <button
+                key={option.level}
+                type="button"
+                title={option.title}
+                aria-label={option.title}
+                aria-pressed={active}
+                onClick={() => toggleLevel(option.level)}
+                className={cn(
+                  "flex h-9 min-w-0 flex-1 items-center justify-center gap-px border-0 px-1 transition-colors",
+                  active && "bg-neutral-800 text-neutral-100 shadow-sm",
+                  !joinsLeft && !joinsRight && "rounded-md",
+                  !joinsLeft && joinsRight && "rounded-l-md rounded-r-none",
+                  joinsLeft && !joinsRight && "rounded-l-none rounded-r-md",
+                  joinsLeft && joinsRight && "rounded-none",
+                )}
+              >
+                {Array.from({ length: option.level }, (_, i) => (
+                  <Star
+                    key={i}
+                    className={cn(
+                      "size-3.5",
+                      active
+                        ? "fill-amber-500 text-amber-500"
+                        : "fill-none text-neutral-500",
+                    )}
+                    aria-hidden
+                  />
+                ))}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 type BentoItem = {
   title: string
   description: string
@@ -192,7 +289,7 @@ const items: BentoItem[] = [
     title: "Svårighetsbedömning",
     description:
       "Poängsätt uppgifter efter svårighet så du vet i vilken ordning du ska plugga dem.",
-    header: <Skeleton className="from-secondary/15 via-accent to-muted" />,
+    header: <DifficultyStarsHeader />,
     className: "md:col-start-1 md:col-span-2 md:row-start-3",
     icon: <IconChartBar className="h-4 w-4 text-primary" />,
     flyIndex: 5,
