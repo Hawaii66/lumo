@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as LabRouteImport } from './routes/lab'
 import { Route as PdfRouteImport } from './routes/pdf'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SigninRouteImport } from './routes/signin'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as PreviewIndexRouteImport } from './routes/preview.index'
 import { Route as PreviewSidebarRouteImport } from './routes/preview.sidebar'
@@ -31,6 +34,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PdfRoute = PdfRouteImport.update({
   id: '/pdf',
   path: '/pdf',
@@ -44,6 +52,16 @@ const PreviewRoute = PreviewRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -80,9 +98,12 @@ const DashboardRoomsRoomIdRoute = DashboardRoomsRoomIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/lab': typeof LabRoute
   '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
@@ -92,8 +113,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/lab': typeof LabRoute
   '/pdf': typeof PdfRoute
   '/profile': typeof ProfileRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
@@ -105,9 +129,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/lab': typeof LabRoute
   '/pdf': typeof PdfRoute
   '/preview': typeof PreviewRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/preview/sidebar': typeof PreviewSidebarRoute
   '/rooms/$roomId': typeof RoomsRoomIdRoute
   '/scan/$token': typeof ScanTokenRoute
@@ -120,9 +147,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/lab'
     | '/pdf'
     | '/preview'
     | '/profile'
+    | '/signin'
+    | '/signup'
     | '/preview/sidebar'
     | '/rooms/$roomId'
     | '/scan/$token'
@@ -132,8 +162,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/lab'
     | '/pdf'
     | '/profile'
+    | '/signin'
+    | '/signup'
     | '/preview/sidebar'
     | '/rooms/$roomId'
     | '/scan/$token'
@@ -144,9 +177,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/lab'
     | '/pdf'
     | '/preview'
     | '/profile'
+    | '/signin'
+    | '/signup'
     | '/preview/sidebar'
     | '/rooms/$roomId'
     | '/scan/$token'
@@ -158,9 +194,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  LabRoute: typeof LabRoute
   PdfRoute: typeof PdfRoute
   PreviewRoute: typeof PreviewRouteWithChildren
   ProfileRoute: typeof ProfileRoute
+  SigninRoute: typeof SigninRoute
+  SignupRoute: typeof SignupRoute
   RoomsRoomIdRoute: typeof RoomsRoomIdRoute
   ScanTokenRoute: typeof ScanTokenRoute
 }
@@ -179,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pdf': {
@@ -200,6 +246,20 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -277,9 +337,12 @@ const PreviewRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  LabRoute: LabRoute,
   PdfRoute: PdfRoute,
   PreviewRoute: PreviewRouteWithChildren,
   ProfileRoute: ProfileRoute,
+  SigninRoute: SigninRoute,
+  SignupRoute: SignupRoute,
   RoomsRoomIdRoute: RoomsRoomIdRoute,
   ScanTokenRoute: ScanTokenRoute,
 }

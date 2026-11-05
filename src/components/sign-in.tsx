@@ -19,6 +19,8 @@ import {
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 
+export type AuthMode = "signIn" | "signUp"
+
 function SignedInCard() {
   const { signOut } = useAuthActions()
   const viewer = useQuery(api.users.viewer)
@@ -73,7 +75,10 @@ function SignedInCard() {
           </dl>
         )}
         <div className="flex flex-wrap gap-2">
-          <Button render={<Link to="/profile" />}>Profil</Button>
+          <Button render={<Link to="/dashboard" />}>Dashboard</Button>
+          <Button variant="outline" render={<Link to="/profile" />}>
+            Profil
+          </Button>
           <Button
             variant="outline"
             disabled={signingOut}
@@ -90,19 +95,23 @@ function SignedInCard() {
   )
 }
 
-function SignInForm() {
+function SignInForm({ mode }: { mode: AuthMode }) {
   const { signIn } = useAuthActions()
   const [email, setEmail] = useState("hawaiilive@outlook.com")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
+  const isSignUp = mode === "signUp"
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Temp-inloggning</CardTitle>
+        <CardTitle>{isSignUp ? "Skapa konto" : "Logga in"}</CardTitle>
         <CardDescription>
-          Tillfällig credentials-login tills Sign in with ChatGPT är på plats.
+          {isSignUp
+            ? "Skapa ditt Lumo-konto med e-post och lösenord."
+            : "Logga in med e-post och lösenord."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -150,7 +159,7 @@ function SignInForm() {
               id="password"
               name="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -160,15 +169,44 @@ function SignInForm() {
             <p className="text-sm text-destructive">{error}</p>
           ) : null}
           <Button type="submit" disabled={pending}>
-            {pending ? "Loggar in…" : "Logga in"}
+            {pending
+              ? isSignUp
+                ? "Skapar konto…"
+                : "Loggar in…"
+              : isSignUp
+                ? "Skapa konto"
+                : "Logga in"}
           </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            {isSignUp ? (
+              <>
+                Har du redan ett konto?{" "}
+                <Link
+                  to="/signin"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Logga in
+                </Link>
+              </>
+            ) : (
+              <>
+                Ny här?{" "}
+                <Link
+                  to="/signup"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Skapa konto
+                </Link>
+              </>
+            )}
+          </p>
         </form>
       </CardContent>
     </Card>
   )
 }
 
-export function SignInCard() {
+export function SignInCard({ mode = "signIn" }: { mode?: AuthMode }) {
   return (
     <>
       <AuthLoading>
@@ -183,7 +221,7 @@ export function SignInCard() {
         <SignedInCard />
       </Authenticated>
       <Unauthenticated>
-        <SignInForm />
+        <SignInForm mode={mode} />
       </Unauthenticated>
     </>
   )
