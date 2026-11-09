@@ -1,3 +1,4 @@
+import { useQuery } from "convex/react"
 import {
   ArrowLeft,
   ChevronDown,
@@ -12,6 +13,7 @@ import {
   Star,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { api } from "../../../convex/_generated/api"
 import {
   ProblemCompletionDisplay,
   type ProblemCompletionEntry,
@@ -45,6 +47,11 @@ import {
 } from "~/components/ui/sidebar"
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
+import {
+  DEFAULT_PROBLEM_LIST_MODE,
+  dottedProblemMajor,
+  type ProblemListMode,
+} from "~/lib/problem-list-mode"
 import { cn } from "~/lib/utils"
 
 export type RoomSidebarListSection = "chats" | "problems"
@@ -315,6 +322,101 @@ function ChatList({
   )
 }
 
+function compareProblemNumbers(a: string, b: string) {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+}
+
+function chapterCollapseKey(fileName: string, major: string) {
+  return `${fileName}::${major}`
+}
+
+type ProblemChapterBucket = {
+  major: string | null
+  label: string | null
+  problems: Array<RoomSidebarProblemItem>
+}
+
+/** Split a PDF's problems into chapter buckets by major number (tree mode). */
+function bucketProblemsByChapter(
+  problems: Array<RoomSidebarProblemItem>,
+): Array<ProblemChapterBucket> {
+  const buckets = new Map<string, ProblemChapterBucket>()
+  const order: string[] = []
+
+  for (const problem of problems) {
+    const major = dottedProblemMajor(problem.problemNumber)
+    const key = major ?? "__flat__"
+    let bucket = buckets.get(key)
+    if (!bucket) {
+      bucket = {
+        major,
+        label: major,
+        problems: [],
+      }
+      buckets.set(key, bucket)
+      order.push(key)
+    }
+    bucket.problems.push(problem)
+  }
+
+  return order
+    .map((key) => buckets.get(key)!)
+    .sort((a, b) => {
+      if (a.major === null && b.major === null) return 0
+      if (a.major === null) return 1
+      if (b.major === null) return -1
+      return compareProblemNumbers(a.major, b.major)
+    })
+}
+
+function ProblemRow({
+  problem,
+  selectedProblemId,
+  onSelectProblem,
+}: {
+  problem: RoomSidebarProblemItem
+  selectedProblemId: string | null
+  onSelectProblem: (id: string) => void
+}) {
+  const selected = problem.id === selectedProblemId
+  const shadows = problem.shadows ?? []
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={selected}
+        className="h-auto py-1.5"
+        onClick={() => onSelectProblem(problem.id)}
+      >
+        <span className="min-w-0 flex-1 truncate">{problem.problemNumber}</span>
+        <span className="inline-flex shrink-0 items-center gap-1.5">
+          <ProblemStarsDisplay entries={problem.starEntries} />
+          <ProblemCompletionDisplay entries={problem.completionEntries ?? []} />
+        </span>
+      </SidebarMenuButton>
+      {shadows.length > 0 ? (
+        <SidebarMenuSub className="mx-0 ml-3 mr-0">
+          {shadows.map((shadow) => {
+            const shadowSelected = shadow.id === selectedProblemId
+            return (
+              <SidebarMenuSubItem key={shadow.id} className="w-full">
+                <SidebarMenuSubButton
+                  render={<button type="button" />}
+                  isActive={shadowSelected}
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onSelectProblem(shadow.id)}
+                >
+                  {shadow.problemNumber}
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            )
+          })}
+        </SidebarMenuSub>
+      ) : null}
+    </SidebarMenuItem>
+  )
+}
+
 function ProblemList({
   groups,
   selectedProblemId,
@@ -328,6 +430,10 @@ function ProblemList({
   onShowFiles: () => void
   onOpenProblemPdfOrder?: () => void
 }) {
+  const viewer = useQuery(api.users.viewer)
+  const mode: ProblemListMode =
+    viewer?.problemListMode ?? DEFAULT_PROBLEM_LIST_MODE
+
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Array<string>>([])
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
@@ -340,9 +446,6 @@ function ProblemList({
   )
 
   const filteredGroups = useMemo(() => {
-    const compareProblemNumbers = (a: string, b: string) =>
-      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
-
     const sortGroup = (
       group: RoomSidebarProblemGroup,
     ): RoomSidebarProblemGroup => ({
@@ -407,17 +510,24 @@ function ProblemList({
     return source.map(sortGroup)
   }, [groups, normalizedQuery, starLevelSet])
 
-  // While searching, force-open groups that still have matches.
+  // While searching, force-open groups (and chapters) that still have matches.
   useEffect(() => {
     if (!normalizedQuery) return
     setCollapsed((prev) => {
       const next = { ...prev }
       for (const group of filteredGroups) {
         next[group.fileName] = false
+        if (mode === "tree") {
+          for (const bucket of bucketProblemsByChapter(group.problems)) {
+            if (bucket.major !== null) {
+              next[chapterCollapseKey(group.fileName, bucket.major)] = false
+            }
+          }
+        }
       }
       return next
     })
-  }, [filteredGroups, normalizedQuery])
+  }, [filteredGroups, mode, normalizedQuery])
 
   if (groups.length === 0) {
     return (
@@ -460,9 +570,9 @@ function ProblemList({
         multiple
         value={starLevels}
         onValueChange={(next) => {
-          if(next.includes("all")){
+          if (next.includes("all")) {
             setStarLevels([])
-            return;
+            return
           }
 
           setStarLevels(next)
@@ -533,6 +643,8 @@ function ProblemList({
       ) : (
         filteredGroups.map((group) => {
           const isCollapsed = collapsed[group.fileName] === true
+          const chapterBuckets =
+            mode === "tree" ? bucketProblemsByChapter(group.problems) : null
           return (
             <Collapsible
               key={group.fileId ?? group.fileName}
@@ -562,55 +674,85 @@ function ProblemList({
                 </Badge>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <SidebarMenu className="mt-0.5">
-                  {group.problems.map((problem) => {
-                    const selected = problem.id === selectedProblemId
-                    const shadows = problem.shadows ?? []
-                    return (
-                      <SidebarMenuItem key={problem.id}>
-                        <SidebarMenuButton
-                          isActive={selected}
-                          className="h-auto py-1.5"
-                          onClick={() => onSelectProblem(problem.id)}
+                {chapterBuckets ? (
+                  <div className="mt-0.5 flex flex-col gap-0.5">
+                    {chapterBuckets.map((bucket) => {
+                      if (bucket.major === null || bucket.label === null) {
+                        return (
+                          <SidebarMenu key={bucket.problems[0]?.id ?? "flat"}>
+                            {bucket.problems.map((problem) => (
+                              <ProblemRow
+                                key={problem.id}
+                                problem={problem}
+                                selectedProblemId={selectedProblemId}
+                                onSelectProblem={onSelectProblem}
+                              />
+                            ))}
+                          </SidebarMenu>
+                        )
+                      }
+
+                      const chapterKey = chapterCollapseKey(
+                        group.fileName,
+                        bucket.major,
+                      )
+                      const chapterCollapsed = collapsed[chapterKey] === true
+                      return (
+                        <Collapsible
+                          key={chapterKey}
+                          open={!chapterCollapsed}
+                          onOpenChange={(open) =>
+                            setCollapsed((prev) => ({
+                              ...prev,
+                              [chapterKey]: !open,
+                            }))
+                          }
                         >
-                          <span className="min-w-0 flex-1 truncate">
-                            {problem.problemNumber}
-                          </span>
-                          <span className="inline-flex shrink-0 items-center gap-1.5">
-                            <ProblemStarsDisplay entries={problem.starEntries} />
-                            <ProblemCompletionDisplay
-                              entries={problem.completionEntries ?? []}
+                          <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+                            <ChevronDown
+                              className={cn(
+                                "size-3 shrink-0 transition-transform",
+                                chapterCollapsed && "-rotate-90",
+                              )}
                             />
-                          </span>
-                        </SidebarMenuButton>
-                        {shadows.length > 0 ? (
-                          <SidebarMenuSub className="mx-0 ml-3 mr-0">
-                            {shadows.map((shadow) => {
-                              const shadowSelected =
-                                shadow.id === selectedProblemId
-                              return (
-                                <SidebarMenuSubItem
-                                  key={shadow.id}
-                                  className="w-full"
-                                >
-                                  <SidebarMenuSubButton
-                                    render={<button type="button" />}
-                                    isActive={shadowSelected}
-                                    size="sm"
-                                    className="w-full"
-                                    onClick={() => onSelectProblem(shadow.id)}
-                                  >
-                                    {shadow.problemNumber}
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              )
-                            })}
-                          </SidebarMenuSub>
-                        ) : null}
-                      </SidebarMenuItem>
-                    )
-                  })}
-                </SidebarMenu>
+                            <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
+                              {bucket.label}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
+                            >
+                              {bucket.problems.length}
+                            </Badge>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenu className="mt-0.5 ml-1 border-l border-sidebar-border pl-1">
+                              {bucket.problems.map((problem) => (
+                                <ProblemRow
+                                  key={problem.id}
+                                  problem={problem}
+                                  selectedProblemId={selectedProblemId}
+                                  onSelectProblem={onSelectProblem}
+                                />
+                              ))}
+                            </SidebarMenu>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <SidebarMenu className="mt-0.5">
+                    {group.problems.map((problem) => (
+                      <ProblemRow
+                        key={problem.id}
+                        problem={problem}
+                        selectedProblemId={selectedProblemId}
+                        onSelectProblem={onSelectProblem}
+                      />
+                    ))}
+                  </SidebarMenu>
+                )}
               </CollapsibleContent>
             </Collapsible>
           )
