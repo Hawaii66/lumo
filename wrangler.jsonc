@@ -14,5 +14,6 @@
       "pattern": "lumo.hawaiidev.sh",
       "custom_domain": true
     }
-  ]
+  ],
+  "previews": {}
 }
