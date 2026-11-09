@@ -32,6 +32,13 @@ export default defineSchema({
         v.literal("rose"),
       ),
     ),
+    /**
+     * Room sidebar problem list layout. Missing → treat as "list".
+     * "list" = PDF → problems; "tree" = PDF → major chapters → problems.
+     */
+    problemListMode: v.optional(
+      v.union(v.literal("list"), v.literal("tree")),
+    ),
   })
     .index("email", ["email"])
     .index("by_role", ["roleId"]),
