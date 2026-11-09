@@ -5,7 +5,7 @@ import {
   Combine,
   Loader2,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { MAX_FILE_NAME_LENGTH } from "../../../convex/lib/roomFiles"
@@ -40,10 +40,36 @@ type RoomPdf = {
 type MergePdfsDialogProps = {
   roomId: Id<"rooms">
   pdfs: RoomPdf[]
+  /** Controlled open state. When set with onOpenChange, DialogTrigger is still shown. */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** Preselect these PDFs (in order) when the dialog opens. */
+  initialOrderedIds?: Id<"files">[]
+  /** Suggested filename base (without .pdf) when opening with initialOrderedIds. */
+  initialNameBase?: string
+  /**
+   * Bumps when a new suggestion should re-seed selection (even if already open).
+   * Ignored when opening manually via the trigger with no seed.
+   */
+  seedKey?: number
+  /** Hide the built-in trigger button (use when opening only from suggestions). */
+  hideTrigger?: boolean
 }
 
-export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
-  const [open, setOpen] = useState(false)
+export function MergePdfsDialog({
+  roomId,
+  pdfs,
+  open: openProp,
+  onOpenChange,
+  initialOrderedIds,
+  initialNameBase,
+  seedKey = 0,
+  hideTrigger = false,
+}: MergePdfsDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const open = openProp ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
+
   const [orderedIds, setOrderedIds] = useState<Id<"files">[]>([])
   const [nameBase, setNameBase] = useState("sammanslagen")
   const [busy, setBusy] = useState<"attach" | "merge" | null>(null)
@@ -53,6 +79,23 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
   const saveFile = useMutation(api.files.save)
   const registerMerge = useMutation(api.pdfMerges.register)
   const attachToRoom = useAction(api.pdfMerges.attachToRoom)
+
+  // Seed selection when the dialog opens or a new suggestion seed arrives.
+  useEffect(() => {
+    if (!open) return
+    if (initialOrderedIds && initialOrderedIds.length > 0) {
+      const valid = new Set(pdfs.map((p) => p._id))
+      setOrderedIds(
+        initialOrderedIds
+          .filter((id) => valid.has(id))
+          .slice(0, MAX_MERGE_INPUTS),
+      )
+      setNameBase(
+        (initialNameBase?.trim() || "sammanslagen").replace(/\.pdf$/i, ""),
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed on open / seedKey only
+  }, [open, seedKey])
 
   const selectedPdfs = useMemo(() => {
     const byId = new Map(pdfs.map((p) => [p._id, p] as const))
@@ -197,17 +240,19 @@ export function MergePdfsDialog({ roomId, pdfs }: MergePdfsDialogProps) {
         }
       }}
     >
-      <DialogTrigger
-        render={
-          <Button
-            variant="outline"
-            disabled={pdfs.length < MIN_MERGE_INPUTS}
-          />
-        }
-      >
-        <Combine />
-        Slå ihop PDF:er
-      </DialogTrigger>
+      {hideTrigger ? null : (
+        <DialogTrigger
+          render={
+            <Button
+              variant="outline"
+              disabled={pdfs.length < MIN_MERGE_INPUTS}
+            />
+          }
+        >
+          <Combine />
+          Slå ihop PDF:er
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Slå ihop PDF:er</DialogTitle>
