@@ -149,7 +149,7 @@ export function ProblemStarsControl({
                 "size-3.5 transition-[fill,color,transform] duration-150",
                 filled
                   ? "fill-amber-500 text-amber-500 scale-110"
-                  : "fill-none text-muted-foreground/40",
+                  : "fill-none text-muted-foreground",
               )}
               aria-hidden
             />
