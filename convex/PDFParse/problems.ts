@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import {
   lumoParsedProblemValidator,
+  problemFlagValidator,
   type LumoParsedProblem,
 } from "../lib/lumoContent";
 import {
@@ -110,6 +111,7 @@ const problemRowValidator = v.object({
   problemNumber: v.string(),
   problem: v.string(),
   answer: v.string(),
+  flags: v.optional(v.array(problemFlagValidator)),
 });
 
 const shadowListItemValidator = v.object({
@@ -525,6 +527,7 @@ async function resolveRoomProblem(
       problemNumber: row.problemNumber,
       question: row.problem,
       answer: row.answer,
+      flags: row.flags ?? [],
     } satisfies LumoParsedProblem,
   };
 }
@@ -806,6 +809,9 @@ export const replaceForContentHash = internalMutation({
         problemNumber: problem.problemNumber,
         problem: problem.problem,
         answer: problem.answer,
+        ...(problem.flags !== undefined && problem.flags.length > 0
+          ? { flags: problem.flags }
+          : {}),
       });
     }
 

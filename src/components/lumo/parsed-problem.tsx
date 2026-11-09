@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from "lucide-react"
-import type { LumoParsedProblem } from "~/lib/lumo-content"
+import type { LumoParsedProblem, ProblemFlag } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import {
   isCompletedForLetter,
@@ -13,6 +13,19 @@ import {
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
 import { cn } from "~/lib/utils"
+
+function flagNotice(flag: ProblemFlag): string {
+  switch (flag.kind) {
+    case "needs_pdf":
+      return "Denna uppgift verkar kräva en figur, graf eller tabell. Öppna originalet för att se den."
+    case "missing_answer":
+      return "Inget facit hittades vid tolkningen."
+    default: {
+      const _exhaustive: never = flag
+      return _exhaustive
+    }
+  }
+}
 
 type ParsedProblemViewProps = {
   problem: LumoParsedProblem
@@ -53,6 +66,7 @@ export function ParsedProblemView({
     onStarsChange !== undefined && !hasSubproblems
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
+  const flags = problem.flags ?? []
 
   return (
     <article className={cn("space-y-4", className)}>
@@ -96,6 +110,19 @@ export function ParsedProblemView({
           </button>
         ) : null}
       </div>
+
+      {flags.length > 0 ? (
+        <ul className="space-y-2" aria-label="Tolkningsflaggor">
+          {flags.map((flag) => (
+            <li
+              key={flag.kind}
+              className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-950 dark:text-amber-100"
+            >
+              {flagNotice(flag)}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <section className="space-y-2">
         <MarkdownWithMath

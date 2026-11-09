@@ -26,6 +26,33 @@ export const chatReplySchema = z.object({
 export type ChatReply = z.infer<typeof chatReplySchema>;
 export type ChatQuickReplyChoice = z.infer<typeof chatQuickReplyChoiceSchema>;
 
+/** Per-kind flag payloads (empty for now; widen per variant later). */
+export const problemFlagSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("needs_pdf"),
+    data: z.object({}),
+  }),
+  z.object({
+    kind: z.literal("missing_answer"),
+    data: z.object({}),
+  }),
+]);
+
+export type ProblemFlag = z.infer<typeof problemFlagSchema>;
+
+export const problemFlagValidator = v.union(
+  v.object({
+    kind: v.literal("needs_pdf"),
+    data: v.object({}),
+  }),
+  v.object({
+    kind: v.literal("missing_answer"),
+    data: v.object({}),
+  }),
+);
+
+const PROBLEM_FLAG_KIND_ORDER = ["needs_pdf", "missing_answer"] as const;
+
 /** One textbook problem: markdown question + answer. */
 export const lumoParsedProblemSchema = z.object({
   problemNumber: z
@@ -40,14 +67,26 @@ export const lumoParsedProblemSchema = z.object({
     .describe(
       "Svaret i markdown med $ / $$; spegla ### (a)/(b); tom sträng om saknas",
     ),
+  flags: z
+    .array(problemFlagSchema)
+    .optional()
+    .describe(
+      "Valfria flaggor. needs_pdf om frågan kräver figur/graf/tabell/diagram/bild i PDF (även när det bara syns av frågans innehåll). missing_answer om facit saknas. data är alltid {}.",
+    ),
 });
 
-export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>;
+export type LumoParsedProblem = {
+  problemNumber: string;
+  question: string;
+  answer: string;
+  flags: Array<ProblemFlag>;
+};
 
 export const lumoParsedProblemValidator = v.object({
   problemNumber: v.string(),
   question: v.string(),
   answer: v.string(),
+  flags: v.array(problemFlagValidator),
 });
 
 /** Twin step 1: new question only (facit comes from a separate solve call). */
@@ -95,10 +134,49 @@ export function stripProblemNumberPrefix(text: string): string {
 
 const LOSNING_SAKNAS_RE = /^lösning saknas\.?$/i;
 
+/** Stem cues that usually mean a figure/graph/table lives only in the PDF. */
+const NEEDS_PDF_CUE_RE =
+  /\b(?:grafen|graf|figuren|figur|tabellen|tabell|diagrammet|diagram|bilden|bild)\b/i;
+
 /** True when answer is empty or the forbidden placeholder. */
 export function isMissingAnswer(answer: string): boolean {
   const trimmed = answer.trim();
   return trimmed.length === 0 || LOSNING_SAKNAS_RE.test(trimmed);
+}
+
+function dedupeProblemFlags(flags: Array<ProblemFlag>): Array<ProblemFlag> {
+  const byKind = new Map<ProblemFlag["kind"], ProblemFlag>();
+  for (const flag of flags) {
+    byKind.set(flag.kind, flag);
+  }
+  return PROBLEM_FLAG_KIND_ORDER.flatMap((kind) => {
+    const flag = byKind.get(kind);
+    return flag === undefined ? [] : [flag];
+  });
+}
+
+/**
+ * Merge model flags with deterministic post-checks.
+ * At most one flag per kind; model entries are kept when both fire.
+ */
+export function applyProblemFlags(
+  flags: Array<ProblemFlag> | undefined,
+  question: string,
+  answer: string,
+  rawQuestionText: string,
+): Array<ProblemFlag> {
+  const merged: Array<ProblemFlag> = [...(flags ?? [])];
+
+  if (isMissingAnswer(answer)) {
+    merged.push({ kind: "missing_answer", data: {} });
+  }
+
+  const cueText = `${rawQuestionText}\n${question}`;
+  if (NEEDS_PDF_CUE_RE.test(cueText)) {
+    merged.push({ kind: "needs_pdf", data: {} });
+  }
+
+  return dedupeProblemFlags(merged);
 }
 
 /**
@@ -112,6 +190,7 @@ export function normalizeLumoParsedProblem(
     problemNumber: string;
     question: string;
     answer: string;
+    flags?: Array<ProblemFlag>;
   },
   fallbackQuestionText: string,
   rawAnswerText = "",
@@ -124,13 +203,22 @@ export function normalizeLumoParsedProblem(
     answer = salvagedAnswer;
   }
 
+  const normalizedQuestion =
+    question.length > 0 ? question : fallbackQuestionText.trim();
+
   return {
     problemNumber: normalizeProblemNumber(
       raw.problemNumber,
       fallbackQuestionText,
     ),
-    question: question.length > 0 ? question : fallbackQuestionText.trim(),
+    question: normalizedQuestion,
     answer,
+    flags: applyProblemFlags(
+      raw.flags,
+      normalizedQuestion,
+      answer,
+      fallbackQuestionText,
+    ),
   };
 }
 

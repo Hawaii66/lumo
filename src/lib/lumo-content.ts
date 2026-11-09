@@ -1,13 +1,33 @@
 import { z } from "zod"
 
+/** Per-kind flag payloads (empty for now; widen per variant later). */
+export const problemFlagSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("needs_pdf"),
+    data: z.object({}),
+  }),
+  z.object({
+    kind: z.literal("missing_answer"),
+    data: z.object({}),
+  }),
+])
+
+export type ProblemFlag = z.infer<typeof problemFlagSchema>
+
 /** One textbook problem: markdown question + answer. */
 const lumoParsedProblemSchema = z.object({
   problemNumber: z.string().min(1),
   question: z.string(),
   answer: z.string(),
+  flags: z.array(problemFlagSchema).optional(),
 })
 
-export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>
+export type LumoParsedProblem = {
+  problemNumber: string
+  question: string
+  answer: string
+  flags?: Array<ProblemFlag>
+}
 
 function tryParsePasteJson(trimmed: string): unknown | undefined {
   try {

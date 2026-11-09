@@ -5,6 +5,7 @@ import {
   chargeSourceValidator,
   chatDeletionExpiryValidator,
   chatModeValidator,
+  problemFlagValidator,
 } from "./lib/lumoContent";
 
 export default defineSchema({
@@ -209,6 +210,11 @@ export default defineSchema({
     problem: v.string(),
     /** Answer/facit as markdown with $ / $$ (empty when missing). */
     answer: v.string(),
+    /**
+     * Parse-time notices (needs_pdf / missing_answer). Missing on older rows
+     * and on shadow twins → treat as [].
+     */
+    flags: v.optional(v.array(problemFlagValidator)),
   })
     .index("by_contentHash", ["contentHash"])
     .index("by_room_and_parent", ["roomId", "parentProblemId"])

@@ -532,7 +532,13 @@ function RoomPage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="gap-1.5"
+                      className={
+                        selectedProblem.problem.flags?.some(
+                          (flag) => flag.kind === "needs_pdf",
+                        )
+                          ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
+                          : "gap-1.5"
+                      }
                       disabled={selectedProblemFileUrl === null}
                       onClick={() => {
                         if (selectedProblemFileUrl === null) return
