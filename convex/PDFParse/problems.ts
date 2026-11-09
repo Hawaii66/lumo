@@ -23,7 +23,7 @@ import {
   query,
 } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
-import type { QueryCtx } from "../_generated/server";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
 
 /** Upper bound of problems expected from a single PDF. */
 const MAX_PROBLEMS_PER_PDF = 500;
@@ -81,6 +81,46 @@ async function isRoomMember(
   return membership !== null;
 }
 
+async function loadArchivedContentHashes(
+  ctx: QueryCtx | MutationCtx,
+  roomId: Id<"rooms">,
+): Promise<Set<string>> {
+  const rows = await ctx.db
+    .query("problemsArchivedByRoom")
+    .withIndex("by_room", (q) => q.eq("roomId", roomId))
+    .take(MAX_FILES_PER_ROOM);
+  return new Set(rows.map((row) => row.contentHash));
+}
+
+/** Resolve parent contentHash for shadow archive checks. */
+async function parentContentHashForShadow(
+  ctx: QueryCtx | MutationCtx,
+  row: Doc<"problems">,
+): Promise<string | undefined> {
+  if (!isShadowProblem(row) || row.parentProblemId === undefined) {
+    return undefined;
+  }
+  const parent = await ctx.db.get(row.parentProblemId);
+  return parent?.contentHash;
+}
+
+async function isVisibleInRoom(
+  ctx: QueryCtx | MutationCtx,
+  row: Doc<"problems">,
+  roomId: Id<"rooms">,
+  roomFiles: Array<Doc<"files">>,
+  archivedContentHashes: ReadonlySet<string>,
+): Promise<boolean> {
+  const parentHash = await parentContentHashForShadow(ctx, row);
+  return problemVisibleInRoom(
+    row,
+    roomId,
+    roomFiles,
+    archivedContentHashes,
+    parentHash,
+  );
+}
+
 function compareProblemNumbers(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
@@ -119,31 +159,40 @@ const shadowListItemValidator = v.object({
   problemNumber: v.string(),
 });
 
+const problemGroupItemValidator = v.object({
+  fileId: v.id("files"),
+  fileName: v.string(),
+  problems: v.array(
+    v.object({
+      id: v.id("problems"),
+      problemNumber: v.string(),
+      starEntries: v.array(starEntryValidator),
+      completionEntries: v.array(completionEntryValidator),
+      shadows: v.array(shadowListItemValidator),
+    }),
+  ),
+});
+
+const archivedProblemPdfValidator = v.object({
+  fileId: v.id("files"),
+  fileName: v.string(),
+});
+
 /**
  * All parsed problems in a room, grouped by source file.
  * Room-scoped shadows are nested under their parent.
  * Files with no cached problems are omitted.
+ * Archived PDFs are listed separately (name only, no problem payloads).
  */
 export const listGroupedByRoom = query({
   args: { roomId: v.id("rooms") },
-  returns: v.array(
-    v.object({
-      fileId: v.id("files"),
-      fileName: v.string(),
-      problems: v.array(
-        v.object({
-          id: v.id("problems"),
-          problemNumber: v.string(),
-          starEntries: v.array(starEntryValidator),
-          completionEntries: v.array(completionEntryValidator),
-          shadows: v.array(shadowListItemValidator),
-        }),
-      ),
-    }),
-  ),
+  returns: v.object({
+    groups: v.array(problemGroupItemValidator),
+    archived: v.array(archivedProblemPdfValidator),
+  }),
   handler: async (ctx, args) => {
     if (!(await isRoomMember(ctx, args.roomId))) {
-      return [];
+      return { groups: [], archived: [] };
     }
 
     const files = await ctx.db
@@ -151,6 +200,8 @@ export const listGroupedByRoom = query({
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .order("desc")
       .take(MAX_FILES_PER_ROOM);
+
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
 
     // One indexed read per unique PDF hash (not per file).
     const problemsByHash = new Map<string, Array<Doc<"problems">>>();
@@ -252,9 +303,16 @@ export const listGroupedByRoom = query({
         shadows: Array<{ id: Id<"problems">; problemNumber: string }>;
       }>;
     }> = [];
+    const archived: Array<{ fileId: Id<"files">; fileName: string }> = [];
+
     for (const file of files) {
       const parsed = problemsByHash.get(file.contentHash) ?? [];
       if (parsed.length === 0) {
+        continue;
+      }
+
+      if (archivedHashes.has(file.contentHash)) {
+        archived.push({ fileId: file._id, fileName: file.name });
         continue;
       }
 
@@ -282,7 +340,74 @@ export const listGroupedByRoom = query({
     }
 
     groups.sort(compareProblemGroups);
-    return groups.map(({ problemSortOrder: _order, ...group }) => group);
+    archived.sort((a, b) => compareFileNames(a.fileName, b.fileName));
+    return {
+      groups: groups.map(({ problemSortOrder: _order, ...group }) => group),
+      archived,
+    };
+  },
+});
+
+/**
+ * Archive a PDF's parsed problems in this room only (global cache unchanged).
+ */
+export const archiveProblemsFromRoom = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    fileId: v.id("files"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const file = await ctx.db.get("files", args.fileId);
+    if (file === null || file.roomId !== args.roomId) {
+      throw new Error("Filen hittades inte");
+    }
+
+    const existing = await ctx.db
+      .query("problemsArchivedByRoom")
+      .withIndex("by_room_and_contentHash", (q) =>
+        q.eq("roomId", args.roomId).eq("contentHash", file.contentHash),
+      )
+      .first();
+    if (existing === null) {
+      await ctx.db.insert("problemsArchivedByRoom", {
+        roomId: args.roomId,
+        contentHash: file.contentHash,
+      });
+    }
+    return null;
+  },
+});
+
+/**
+ * Restore an archived PDF's problems into this room's main list.
+ */
+export const unarchiveProblemsFromRoom = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    fileId: v.id("files"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const file = await ctx.db.get("files", args.fileId);
+    if (file === null || file.roomId !== args.roomId) {
+      throw new Error("Filen hittades inte");
+    }
+
+    const existing = await ctx.db
+      .query("problemsArchivedByRoom")
+      .withIndex("by_room_and_contentHash", (q) =>
+        q.eq("roomId", args.roomId).eq("contentHash", file.contentHash),
+      )
+      .first();
+    if (existing !== null) {
+      await ctx.db.delete("problemsArchivedByRoom", existing._id);
+    }
+    return null;
   },
 });
 
@@ -318,7 +443,16 @@ export const setStars = mutation({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
-    if (!problemVisibleInRoom(problem, args.roomId, files)) {
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+    if (
+      !(await isVisibleInRoom(
+        ctx,
+        problem,
+        args.roomId,
+        files,
+        archivedHashes,
+      ))
+    ) {
       throw new Error("Uppgiften tillhör inte det här rummet");
     }
 
@@ -407,7 +541,16 @@ export const setCompleted = mutation({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
-    if (!problemVisibleInRoom(problem, args.roomId, files)) {
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+    if (
+      !(await isVisibleInRoom(
+        ctx,
+        problem,
+        args.roomId,
+        files,
+        archivedHashes,
+      ))
+    ) {
       throw new Error("Uppgiften tillhör inte det här rummet");
     }
 
@@ -474,6 +617,7 @@ async function resolveRoomProblem(
   roomId: Id<"rooms">,
   row: Doc<"problems">,
   roomFiles: Array<Doc<"files">>,
+  archivedContentHashes: ReadonlySet<string>,
 ): Promise<{
   id: Id<"problems">;
   fileId: Id<"files"> | null;
@@ -484,7 +628,15 @@ async function resolveRoomProblem(
   parentProblemNumber: string | null;
   problem: LumoParsedProblem;
 } | null> {
-  if (!problemVisibleInRoom(row, roomId, roomFiles)) {
+  if (
+    !(await isVisibleInRoom(
+      ctx,
+      row,
+      roomId,
+      roomFiles,
+      archivedContentHashes,
+    ))
+  ) {
     return null;
   }
 
@@ -553,8 +705,15 @@ export const getForRoom = query({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
 
-    return await resolveRoomProblem(ctx, args.roomId, row, files);
+    return await resolveRoomProblem(
+      ctx,
+      args.roomId,
+      row,
+      files,
+      archivedHashes,
+    );
   },
 });
 
@@ -581,12 +740,19 @@ export const getManyForRoom = query({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
 
     const results = [];
     for (const problemId of ids) {
       const row = await ctx.db.get(problemId);
       if (row === null) continue;
-      const resolved = await resolveRoomProblem(ctx, args.roomId, row, files);
+      const resolved = await resolveRoomProblem(
+        ctx,
+        args.roomId,
+        row,
+        files,
+        archivedHashes,
+      );
       if (resolved !== null) {
         results.push(resolved);
       }
@@ -620,12 +786,23 @@ export const getPromptContexts = internalQuery({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
 
     const results = [];
     for (const problemId of ids) {
       const row = await ctx.db.get(problemId);
       if (row === null) continue;
-      if (!problemVisibleInRoom(row, args.roomId, files)) continue;
+      if (
+        !(await isVisibleInRoom(
+          ctx,
+          row,
+          args.roomId,
+          files,
+          archivedHashes,
+        ))
+      ) {
+        continue;
+      }
       results.push({
         problemNumber: row.problemNumber,
         questionText: row.problem,
@@ -681,8 +858,17 @@ export const getParentForShadow = internalQuery({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
 
-    if (!problemVisibleInRoom(parent, args.roomId, files)) {
+    if (
+      !(await isVisibleInRoom(
+        ctx,
+        parent,
+        args.roomId,
+        files,
+        archivedHashes,
+      ))
+    ) {
       return null;
     }
 
@@ -729,7 +915,16 @@ export const insertShadow = internalMutation({
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_FILES_PER_ROOM);
-    if (!problemVisibleInRoom(parent, args.roomId, files)) {
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+    if (
+      !(await isVisibleInRoom(
+        ctx,
+        parent,
+        args.roomId,
+        files,
+        archivedHashes,
+      ))
+    ) {
       throw new Error("Uppgiften tillhör inte det här rummet");
     }
 

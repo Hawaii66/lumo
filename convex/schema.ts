@@ -260,6 +260,17 @@ export default defineSchema({
       "subproblemLetter",
     ]),
   /**
+   * Room-scoped archive of a PDF's parsed problems (by contentHash).
+   * Global `problems` rows stay; the room's list moves the PDF to Archived
+   * until unarchived. Not copied into templates or clones.
+   */
+  problemsArchivedByRoom: defineTable({
+    roomId: v.id("rooms"),
+    contentHash: v.string(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_contentHash", ["roomId", "contentHash"]),
+  /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.
    */

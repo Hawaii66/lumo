@@ -164,7 +164,7 @@ function RoomPage() {
 
   const problemGroupItems = useMemo(
     () =>
-      (problemGroups ?? []).map((group) => ({
+      (problemGroups?.groups ?? []).map((group) => ({
         fileId: group.fileId,
         fileName: group.fileName,
         problems: group.problems.map((problem) => ({
@@ -180,6 +180,32 @@ function RoomPage() {
       })),
     [problemGroups],
   )
+
+  const archivedProblemPdfs = useMemo(
+    () =>
+      (problemGroups?.archived ?? []).map((item) => ({
+        fileId: item.fileId,
+        fileName: item.fileName,
+      })),
+    [problemGroups],
+  )
+
+  // Clear selection when the open problem was archived (or otherwise left the list).
+  useEffect(() => {
+    if (selectedProblemId === null || problemGroups === undefined) return
+    const stillVisible = problemGroupItems.some((group) =>
+      group.problems.some(
+        (problem) =>
+          problem.id === selectedProblemId ||
+          (problem.shadows ?? []).some(
+            (shadow) => shadow.id === selectedProblemId,
+          ),
+      ),
+    )
+    if (!stillVisible) {
+      setSelectedProblemId(null)
+    }
+  }, [problemGroupItems, problemGroups, selectedProblemId])
 
   const selectedProblemStarEntries = useMemo(() => {
     if (selectedProblemId === null) return []
@@ -366,6 +392,8 @@ function RoomPage() {
             setSettingsFocus(null)
           }}
           problemGroups={problemGroupItems}
+          archivedProblemPdfs={archivedProblemPdfs}
+          roomId={typedRoomId}
           selectedProblemId={
             section === "problems" ? selectedProblemId : null
           }
@@ -677,7 +705,7 @@ function RoomPage() {
               <ChatInput
                 ref={problemChatInputRef}
                 roomId={typedRoomId}
-                problemGroups={problemGroups}
+                problemGroups={problemGroups?.groups}
                 defaultProblemId={selectedProblem.id}
                 className="shrink-0"
                 pending={problemChatPending}
@@ -697,7 +725,7 @@ function RoomPage() {
           <DraftThreadChat
             key={draftChatKey}
             roomId={typedRoomId}
-            problemGroups={problemGroups}
+            problemGroups={problemGroups?.groups}
             composerFocusSignal={composerFocusSignal}
             onCreated={openThread}
           />
@@ -719,7 +747,7 @@ function RoomPage() {
             roomId={typedRoomId}
             threadId={selectedThread.threadId}
             title={selectedThread.title}
-            problemGroups={problemGroups}
+            problemGroups={problemGroups?.groups}
             mode={selectedThread.mode}
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}

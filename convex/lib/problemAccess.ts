@@ -5,18 +5,33 @@ export function isShadowProblem(row: Doc<"problems">): boolean {
 }
 
 /**
- * Visible in a room if: shadow owned by the room, or parsed with a matching
- * room file contentHash.
+ * Visible in a room if: shadow owned by the room (and parent PDF not archived),
+ * or parsed with a matching room file contentHash that is not archived.
  */
 export function problemVisibleInRoom(
   row: Doc<"problems">,
   roomId: Id<"rooms">,
   roomFiles: Array<Doc<"files">>,
+  archivedContentHashes: ReadonlySet<string> = new Set(),
+  /** Parent's contentHash when checking a shadow (archive follows parent PDF). */
+  parentContentHash?: string,
 ): boolean {
   if (isShadowProblem(row)) {
-    return row.roomId === roomId;
+    if (row.roomId !== roomId) {
+      return false;
+    }
+    if (
+      parentContentHash !== undefined &&
+      archivedContentHashes.has(parentContentHash)
+    ) {
+      return false;
+    }
+    return true;
   }
   if (row.contentHash === undefined) {
+    return false;
+  }
+  if (archivedContentHashes.has(row.contentHash)) {
     return false;
   }
   return roomFiles.some((f) => f.contentHash === row.contentHash);

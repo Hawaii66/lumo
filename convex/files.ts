@@ -255,7 +255,8 @@ export const remove = mutation({
     await ctx.db.delete("files", args.fileId);
     await deleteStorageIfUnreferenced(ctx, storageId, contentHash);
 
-    // Drop in-use info cell if this room has no other file with the same hash.
+    // Drop in-use info cell / archived problems if this room has no other file
+    // with the same hash.
     const remaining = await ctx.db
       .query("files")
       .withIndex("by_room", (q) => q.eq("roomId", roomId))
@@ -270,6 +271,15 @@ export const remove = mutation({
         .first();
       if (link !== null) {
         await ctx.db.delete("cellsInUseByRoom", link._id);
+      }
+      const archived = await ctx.db
+        .query("problemsArchivedByRoom")
+        .withIndex("by_room_and_contentHash", (q) =>
+          q.eq("roomId", roomId).eq("contentHash", contentHash),
+        )
+        .first();
+      if (archived !== null) {
+        await ctx.db.delete("problemsArchivedByRoom", archived._id);
       }
     }
     return null;
