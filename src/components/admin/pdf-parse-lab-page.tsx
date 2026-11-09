@@ -31,6 +31,7 @@ import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { Switch } from "~/components/ui/switch"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
+import { cn } from "~/lib/utils"
 import { uploadFileToStorage } from "~/lib/upload"
 
 type ParseKind = "problems" | "info"
@@ -47,6 +48,102 @@ type PreviewInfo = {
 }
 
 type PreviewPayload = PreviewProblems | PreviewInfo
+
+type AdminProblemItem = {
+  id: string
+  problem: LumoParsedProblem
+}
+
+function AdminProblemBrowser({
+  problems,
+  emptyLabel,
+}: {
+  problems: Array<AdminProblemItem>
+  emptyLabel: string
+}) {
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [showFacit, setShowFacit] = useState(true)
+
+  useEffect(() => {
+    if (problems.length === 0) {
+      setSelectedId(null)
+      return
+    }
+    if (
+      selectedId === null ||
+      !problems.some((problem) => problem.id === selectedId)
+    ) {
+      setSelectedId(problems[0]!.id)
+    }
+  }, [problems, selectedId])
+
+  const selected =
+    problems.find((problem) => problem.id === selectedId) ?? null
+
+  if (problems.length === 0) {
+    return <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+  }
+
+  return (
+    <div className="grid min-h-[28rem] gap-4 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]">
+      <div
+        className="flex max-h-[28rem] flex-col gap-0.5 overflow-y-auto rounded-md border border-border p-1"
+        aria-label="Uppgiftslista"
+      >
+        {problems.map((item) => {
+          const active = item.id === selectedId
+          const flagCount = item.problem.flags?.length ?? 0
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setSelectedId(item.id)}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+                active
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  : "hover:bg-muted",
+              )}
+            >
+              <span className="min-w-0 flex-1 truncate tabular-nums">
+                {item.problem.problemNumber}
+              </span>
+              {flagCount > 0 ? (
+                <span
+                  className={cn(
+                    "shrink-0 rounded px-1 py-px text-[10px] font-medium tabular-nums",
+                    active
+                      ? "bg-sidebar-primary-foreground/15"
+                      : "bg-amber-500/15 text-amber-950 dark:text-amber-100",
+                  )}
+                >
+                  {flagCount}
+                </span>
+              ) : null}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="flex min-h-0 min-w-0 flex-col">
+        {selected === null ? (
+          <p className="text-sm text-muted-foreground">
+            Välj en uppgift i listan.
+          </p>
+        ) : (
+          <div className="min-h-0 max-h-[28rem] flex-1 overflow-y-auto pr-1">
+            <ParsedProblemView
+              problem={selected.problem}
+              showAnswer={showFacit}
+              showFacitToggle
+              onShowAnswerChange={setShowFacit}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function useIsAdmin() {
   const viewer = useQuery(api.users.viewer)
@@ -593,16 +690,13 @@ function LabBody() {
                       {preview.text || "(tom)"}
                     </pre>
                   ) : (
-                    <ul className="max-h-96 space-y-4 overflow-y-auto">
-                      {preview.problems.map((p) => (
-                        <li
-                          key={p.problemNumber}
-                          className="rounded-md border border-border p-3"
-                        >
-                          <ParsedProblemView problem={p} />
-                        </li>
-                      ))}
-                    </ul>
+                    <AdminProblemBrowser
+                      problems={preview.problems.map((p) => ({
+                        id: p.problemNumber,
+                        problem: p,
+                      }))}
+                      emptyLabel="Inga uppgifter i förhandsgranskningen"
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -630,28 +724,19 @@ function LabBody() {
                         {detail.committedInfoText}
                       </pre>
                     )
-                  ) : detail.committedProblems.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Inga sparade uppgifter
-                    </p>
                   ) : (
-                    <ul className="max-h-96 space-y-4 overflow-y-auto">
-                      {detail.committedProblems.map((p) => (
-                        <li
-                          key={p._id}
-                          className="rounded-md border border-border p-3"
-                        >
-                          <ParsedProblemView
-                            problem={{
-                              problemNumber: p.problemNumber,
-                              question: p.problem,
-                              answer: p.answer,
-                              flags: p.flags,
-                            }}
-                          />
-                        </li>
-                      ))}
-                    </ul>
+                    <AdminProblemBrowser
+                      problems={detail.committedProblems.map((p) => ({
+                        id: p._id,
+                        problem: {
+                          problemNumber: p.problemNumber,
+                          question: p.problem,
+                          answer: p.answer,
+                          flags: p.flags,
+                        },
+                      }))}
+                      emptyLabel="Inga sparade uppgifter"
+                    />
                   )}
                 </CardContent>
               </Card>
