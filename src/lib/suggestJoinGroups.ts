@@ -122,15 +122,96 @@ const dateSuffixPattern: PatternExtractor = {
 
 const patterns: PatternExtractor[] = [dateSuffixPattern]
 
+/** Exam / questions first (0), unknown (1), solutions / answers last (2). */
+const JOIN_ORDER_EARLY = 0
+const JOIN_ORDER_NEUTRAL = 1
+const JOIN_ORDER_LATE = 2
+
+const EARLY_ROLE_TOKENS = new Set([
+  "t", // tenta
+  "tenta",
+  "tentamen",
+  "tentor",
+  "exam",
+  "examination",
+  "q", // questions
+  "question",
+  "questions",
+  "f", // frågor
+  "fraga",
+  "fragor",
+  "fråga",
+  "frågor",
+  "problem",
+  "problems",
+  "uppgift",
+  "uppgifter",
+])
+
+const LATE_ROLE_TOKENS = new Set([
+  "l", // lösning
+  "losning",
+  "losningar",
+  "lösning",
+  "lösningar",
+  "solution",
+  "solutions",
+  "sol",
+  "facit",
+  "a", // answers
+  "answer",
+  "answers",
+  "s", // svar
+  "svar",
+])
+
 function stripExtension(name: string): string {
   const lastDot = name.lastIndexOf(".")
   if (lastDot <= 0) return name
   return name.slice(0, lastDot)
 }
 
+function asciiFold(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
+}
+
+/** Prefix before the trailing date, e.g. `T` from `T230111` or `tenta` from `tenta_230111`. */
+function prefixBeforeTrailingDate(stem: string): string {
+  const match = TRAILING_DATE_RE.exec(stem)
+  if (!match || match.index === undefined) return stem
+  return stem.slice(0, match.index).replace(/[\s_-]+$/g, "")
+}
+
+function roleTokenFromPrefix(prefix: string): string {
+  const trimmed = prefix.trim()
+  if (trimmed.length === 0) return ""
+  // Prefer the last segment: `kurs_tenta` → `tenta`, `T` → `T`
+  const parts = trimmed.split(/[\s_-]+/).filter((p) => p.length > 0)
+  const last = parts[parts.length - 1] ?? trimmed
+  return asciiFold(last)
+}
+
+function joinOrderRank(fileName: string): number {
+  const stem = stripExtension(fileName)
+  const token = roleTokenFromPrefix(prefixBeforeTrailingDate(stem))
+  if (token.length === 0) return JOIN_ORDER_NEUTRAL
+  if (EARLY_ROLE_TOKENS.has(token)) return JOIN_ORDER_EARLY
+  if (LATE_ROLE_TOKENS.has(token)) return JOIN_ORDER_LATE
+  return JOIN_ORDER_NEUTRAL
+}
+
+function compareJoinOrder(a: JoinCandidateFile, b: JoinCandidateFile): number {
+  const rankDiff = joinOrderRank(a.name) - joinOrderRank(b.name)
+  if (rankDiff !== 0) return rankDiff
+  return a.name.localeCompare(b.name, "sv", {
+    numeric: true,
+    sensitivity: "base",
+  })
+}
+
 /**
  * Group files that share a common join pattern (currently: trailing date).
- * Members are sorted by filename; groups smaller than minInputs are dropped.
+ * Members are ordered exam/questions before solutions/answers when detectable.
  */
 export function detectJoinGroups(
   files: JoinCandidateFile[],
@@ -165,12 +246,7 @@ export function detectJoinGroups(
     for (const [normalized, bucket] of buckets) {
       if (bucket.members.length < minInputs) continue
 
-      const sorted = [...bucket.members].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, {
-          numeric: true,
-          sensitivity: "base",
-        }),
-      )
+      const sorted = [...bucket.members].sort(compareJoinOrder)
       const capped = sorted.slice(0, maxInputs)
 
       suggestions.push({
