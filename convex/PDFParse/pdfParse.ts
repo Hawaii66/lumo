@@ -100,6 +100,7 @@ async function saveParsedProblems(
       problemNumber: p.problemNumber,
       problem: p.question,
       answer: p.answer,
+      flags: p.flags,
     })),
   });
 }

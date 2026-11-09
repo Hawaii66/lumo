@@ -48,7 +48,7 @@ export const convertProblemChunk = internalAction({
           schema: lumoParsedProblemSchema,
           name: "LumoParsedProblem",
           description:
-            "Markdown-problem: problemNumber, question (md+$), answer (md+$); ### (a) / #### Fall N",
+            "Markdown-problem: problemNumber, question (md+$), answer (md+$), optional flags (needs_pdf when content needs a figure/graph/table in the PDF; missing_answer when facit missing; data always {}); ### (a) / #### Fall N",
         }),
         prompt: buildConvertPrompt({
           suggestedNumber,
