@@ -460,6 +460,7 @@ const roomProblemResultValidator = v.object({
   id: v.id("problems"),
   fileId: v.union(v.id("files"), v.null()),
   fileName: v.string(),
+  fileUrl: v.union(v.string(), v.null()),
   isShadow: v.boolean(),
   parentProblemId: v.union(v.id("problems"), v.null()),
   parentProblemNumber: v.union(v.string(), v.null()),
@@ -475,6 +476,7 @@ async function resolveRoomProblem(
   id: Id<"problems">;
   fileId: Id<"files"> | null;
   fileName: string;
+  fileUrl: string | null;
   isShadow: boolean;
   parentProblemId: Id<"problems"> | null;
   parentProblemNumber: string | null;
@@ -487,6 +489,7 @@ async function resolveRoomProblem(
   const shadow = isShadowProblem(row);
   let fileId: Id<"files"> | null = null;
   let fileName = "Tvilling";
+  let fileUrl: string | null = null;
   let parentProblemNumber: string | null = null;
 
   if (shadow && row.parentProblemId !== undefined) {
@@ -497,6 +500,7 @@ async function resolveRoomProblem(
       if (parentFile !== undefined) {
         fileId = parentFile._id;
         fileName = parentFile.name;
+        fileUrl = await ctx.storage.getUrl(parentFile.storageId);
       }
     }
   } else {
@@ -506,12 +510,14 @@ async function resolveRoomProblem(
     }
     fileId = file._id;
     fileName = file.name;
+    fileUrl = await ctx.storage.getUrl(file.storageId);
   }
 
   return {
     id: row._id,
     fileId,
     fileName,
+    fileUrl,
     isShadow: shadow,
     parentProblemId: row.parentProblemId ?? null,
     parentProblemNumber,

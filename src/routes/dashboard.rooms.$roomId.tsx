@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useAction, useMutation, useQuery } from "convex/react"
-import { ChevronDown, CopyPlus } from "lucide-react"
+import { ChevronDown, CopyPlus, FileText } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
@@ -13,6 +13,7 @@ import type { RoomSidebarSection } from "~/components/rooms/room-sidebar"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
 import { ChatInput } from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
+import { PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { ProblemHelpActions } from "~/components/rooms/problem-help-actions"
 import {
   PROBLEM_CHAT_DELETION_EXPIRY,
@@ -80,6 +81,10 @@ function RoomPage() {
   const [draftChatKey, setDraftChatKey] = useState(0)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
+  const [viewingPdf, setViewingPdf] = useState<{
+    name: string
+    url: string
+  } | null>(null)
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
@@ -118,6 +123,30 @@ function RoomPage() {
       ? { roomId: typedRoomId, problemId: selectedProblemId }
       : "skip",
   )
+
+  const roomFiles = useQuery(
+    api.files.listByRoom,
+    section === "problems" ? { roomId: typedRoomId } : "skip",
+  )
+
+  const selectedProblemFileUrl = useMemo(() => {
+    if (selectedProblem == null || selectedProblem.fileId === null) {
+      return null
+    }
+    const fromRoomFiles = roomFiles?.find(
+      (file) => file._id === selectedProblem.fileId,
+    )?.url
+    if (typeof fromRoomFiles === "string" && fromRoomFiles.length > 0) {
+      return fromRoomFiles
+    }
+    if (
+      typeof selectedProblem.fileUrl === "string" &&
+      selectedProblem.fileUrl.length > 0
+    ) {
+      return selectedProblem.fileUrl
+    }
+    return null
+  }, [roomFiles, selectedProblem])
 
   const chatItems = useMemo(
     () =>
@@ -497,57 +526,78 @@ function RoomPage() {
                     ? ` · ${selectedProblem.fileName}`
                     : null}
                 </p>
-                {!selectedProblem.isShadow ? (
-                  subproblemLetters.length === 0 ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  {selectedProblem.fileId !== null ? (
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       className="gap-1.5"
-                      disabled={creatingShadow}
-                      onClick={() => void handleCreateShadow(null)}
+                      disabled={selectedProblemFileUrl === null}
+                      onClick={() => {
+                        if (selectedProblemFileUrl === null) return
+                        setViewingPdf({
+                          name: selectedProblem.fileName,
+                          url: selectedProblemFileUrl,
+                        })
+                      }}
                     >
-                      <CopyPlus className="size-3.5" />
-                      {creatingShadow ? "Skapar…" : "Skapa tvilling"}
+                      <FileText className="size-3.5" />
+                      Visa original
                     </Button>
-                  ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="gap-1.5"
-                            disabled={creatingShadow}
-                          />
-                        }
+                  ) : null}
+                  {!selectedProblem.isShadow ? (
+                    subproblemLetters.length === 0 ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={creatingShadow}
+                        onClick={() => void handleCreateShadow(null)}
                       >
                         <CopyPlus className="size-3.5" />
                         {creatingShadow ? "Skapar…" : "Skapa tvilling"}
-                        <ChevronDown
-                          className="size-3.5 opacity-60"
-                          aria-hidden
-                        />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="min-w-48">
-                        <DropdownMenuItem
-                          onClick={() => void handleCreateShadow(null)}
+                      </Button>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5"
+                              disabled={creatingShadow}
+                            />
+                          }
                         >
-                          Hela uppgiften
-                        </DropdownMenuItem>
-                        {subproblemLetters.map((letter) => (
+                          <CopyPlus className="size-3.5" />
+                          {creatingShadow ? "Skapar…" : "Skapa tvilling"}
+                          <ChevronDown
+                            className="size-3.5 opacity-60"
+                            aria-hidden
+                          />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-48">
                           <DropdownMenuItem
-                            key={letter}
-                            onClick={() => void handleCreateShadow(letter)}
+                            onClick={() => void handleCreateShadow(null)}
                           >
-                            Deluppgift ({letter})
+                            Hela uppgiften
                           </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )
-                ) : null}
+                          {subproblemLetters.map((letter) => (
+                            <DropdownMenuItem
+                              key={letter}
+                              onClick={() => void handleCreateShadow(letter)}
+                            >
+                              Deluppgift ({letter})
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )
+                  ) : null}
+                </div>
               </div>
               {shadowError ? (
                 <p className="mt-2 text-sm text-destructive" role="alert">
@@ -678,6 +728,15 @@ function RoomPage() {
           </div>
         </SidebarInset>
       </SidebarProvider>
+
+      <PdfViewerSheet
+        open={viewingPdf !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewingPdf(null)
+        }}
+        fileName={viewingPdf?.name ?? null}
+        url={viewingPdf?.url ?? null}
+      />
     </TooltipProvider>
   )
 }
