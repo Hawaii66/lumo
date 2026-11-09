@@ -20,7 +20,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardLayout() {
   return (
-    <>
+    <DashboardThemeShell>
       <AuthLoading>
         <main className="mx-auto flex min-h-svh w-full max-w-5xl flex-col gap-8 p-6 sm:p-8">
           <Card>
@@ -60,10 +60,8 @@ function DashboardLayout() {
       </Unauthenticated>
 
       <Authenticated>
-        <DashboardThemeShell>
-          <Outlet />
-        </DashboardThemeShell>
+        <Outlet />
       </Authenticated>
-    </>
+    </DashboardThemeShell>
   )
 }

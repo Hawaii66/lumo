@@ -1,11 +1,15 @@
 import { useMutation, useQuery } from "convex/react"
+import { useSyncExternalStore } from "react"
 import { api } from "../../../convex/_generated/api"
 import {
   DASHBOARD_THEMES,
   DASHBOARD_THEME_LABELS,
-  DEFAULT_DASHBOARD_THEME,
   type DashboardTheme,
+  getServerDashboardTheme,
   isDashboardTheme,
+  resolveDashboardTheme,
+  subscribeDashboardTheme,
+  writeStoredDashboardTheme,
 } from "~/lib/dashboard-theme"
 import { cn } from "~/lib/utils"
 import {
@@ -23,7 +27,12 @@ type ThemeSelectorProps = {
 export function ThemeSelector({ className }: ThemeSelectorProps) {
   const viewer = useQuery(api.users.viewer)
   const updateTheme = useMutation(api.users.updateTheme)
-  const theme = viewer?.theme ?? DEFAULT_DASHBOARD_THEME
+  const cachedTheme = useSyncExternalStore(
+    subscribeDashboardTheme,
+    resolveDashboardTheme,
+    getServerDashboardTheme,
+  )
+  const theme = viewer?.theme ?? cachedTheme
   const disabled = viewer === undefined
 
   return (
@@ -39,6 +48,7 @@ export function ThemeSelector({ className }: ThemeSelectorProps) {
         disabled={disabled}
         onValueChange={(next) => {
           if (!isDashboardTheme(next)) return
+          writeStoredDashboardTheme(next)
           void updateTheme({ theme: next })
         }}
       >

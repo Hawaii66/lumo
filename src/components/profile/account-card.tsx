@@ -2,6 +2,7 @@ import { useAuthActions } from "@convex-dev/auth/react"
 import { useMutation, useQuery } from "convex/react"
 import { useEffect, useState } from "react"
 import { api } from "../../../convex/_generated/api"
+import { ThemeSelector } from "~/components/dashboard/theme-selector"
 import { authProvidersLabel } from "~/lib/auth-providers"
 import { Button } from "~/components/ui/button"
 import {
@@ -116,6 +117,8 @@ export function AccountCard() {
             ) : null}
           </div>
         </form>
+
+        <ThemeSelector />
 
         <dl className="grid gap-2 text-sm">
           <div className="flex justify-between gap-4">
