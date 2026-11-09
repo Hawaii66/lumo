@@ -1,0 +1,668 @@
+import { Link, useNavigate } from "@tanstack/react-router"
+import {
+  Authenticated,
+  AuthLoading,
+  Unauthenticated,
+  useMutation,
+  useQuery,
+} from "convex/react"
+import {
+  ArrowLeft,
+  FileText,
+  Loader2,
+  RefreshCw,
+  Trash2,
+  Upload,
+} from "lucide-react"
+import { useEffect, useState } from "react"
+import { api } from "../../../convex/_generated/api"
+import type { Id } from "../../../convex/_generated/dataModel"
+import { ParsedProblemView } from "~/components/lumo/parsed-problem"
+import { SignInCard } from "~/components/sign-in"
+import { Button } from "~/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card"
+import { Input } from "~/components/ui/input"
+import { Label } from "~/components/ui/label"
+import { Switch } from "~/components/ui/switch"
+import type { LumoParsedProblem } from "~/lib/lumo-content"
+import { uploadFileToStorage } from "~/lib/upload"
+
+type ParseKind = "problems" | "info"
+type FromStage = "mineru" | "ai" | "commit"
+
+type PreviewProblems = {
+  kind: "problems"
+  problems: Array<LumoParsedProblem>
+}
+
+type PreviewInfo = {
+  kind: "info"
+  text: string
+}
+
+type PreviewPayload = PreviewProblems | PreviewInfo
+
+function useIsAdmin() {
+  const viewer = useQuery(api.users.viewer)
+  if (viewer === undefined) return undefined
+  if (viewer === null) return false
+  return viewer.role.key === "admin"
+}
+
+function formatTime(at: number) {
+  return new Date(at).toLocaleTimeString("sv-SE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+}
+
+function formatStatus(status: string) {
+  if (status === "pending") return "Väntar"
+  if (status === "running") return "Pågår"
+  if (status === "done") return "Klar"
+  if (status === "failed") return "Misslyckades"
+  return status
+}
+
+function shortHash(hash: string) {
+  return hash.length <= 12 ? hash : `${hash.slice(0, 10)}…`
+}
+
+export function PdfParseLabPage() {
+  const isAdmin = useIsAdmin()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (isAdmin === false) {
+      void navigate({ to: "/profile", search: { tab: "admin" } })
+    }
+  }, [isAdmin, navigate])
+
+  if (isAdmin === undefined) {
+    return (
+      <main className="mx-auto max-w-5xl px-4 py-8">
+        <p className="text-sm text-muted-foreground">Kontrollerar behörighet…</p>
+      </main>
+    )
+  }
+
+  if (isAdmin === false) {
+    return null
+  }
+
+  return (
+    <main className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-6 flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          render={<Link to="/profile" search={{ tab: "admin" }} />}
+        >
+          <ArrowLeft />
+          Admin
+        </Button>
+      </div>
+      <h1 className="text-4xl font-semibold tracking-tight">PDF-tolkning</h1>
+      <p className="mt-2 max-w-2xl text-muted-foreground">
+        Ladda upp PDF:er, följ MinerU/AI-status och iterera utan att behöva
+        spara till databasen.
+      </p>
+
+      <AuthLoading>
+        <p className="mt-8 text-sm text-muted-foreground">Laddar…</p>
+      </AuthLoading>
+      <Unauthenticated>
+        <div className="mt-8">
+          <SignInCard />
+        </div>
+      </Unauthenticated>
+      <Authenticated>
+        <LabBody />
+      </Authenticated>
+    </main>
+  )
+}
+
+function LabBody() {
+  const runs = useQuery(api.PDFParse.adminParse.listRecentRuns)
+  const generateUploadUrl = useMutation(
+    api.PDFParse.adminParse.generateUploadUrl,
+  )
+  const createRun = useMutation(api.PDFParse.adminParse.createRun)
+  const restart = useMutation(api.PDFParse.adminParse.restart)
+  const invalidateMineru = useMutation(
+    api.PDFParse.adminParse.invalidateMineruCache,
+  )
+
+  const [selectedRunId, setSelectedRunId] = useState<Id<"pdfAdminRuns"> | null>(
+    null,
+  )
+  const [file, setFile] = useState<File | null>(null)
+  const [kind, setKind] = useState<ParseKind>("problems")
+  const [commitToDb, setCommitToDb] = useState(false)
+  const [invalidateOnStart, setInvalidateOnStart] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [restarting, setRestarting] = useState<FromStage | null>(null)
+  const [restartCommit, setRestartCommit] = useState(false)
+  const [restartInvalidate, setRestartInvalidate] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [invalidating, setInvalidating] = useState(false)
+
+  const detail = useQuery(
+    api.PDFParse.adminParse.getRunDetail,
+    selectedRunId !== null ? { runId: selectedRunId } : "skip",
+  )
+
+  const [preview, setPreview] = useState<PreviewPayload | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  useEffect(() => {
+    if (runs !== undefined && runs.length > 0 && selectedRunId === null) {
+      setSelectedRunId(runs[0]!._id)
+    }
+  }, [runs, selectedRunId])
+
+  useEffect(() => {
+    if (detail?.run) {
+      setRestartCommit(detail.run.commitToDb)
+    }
+  }, [detail?.run?._id, detail?.run?.commitToDb])
+
+  useEffect(() => {
+    const url = detail?.previewUrl ?? null
+    if (url === null) {
+      setPreview(null)
+      setPreviewLoading(false)
+      return
+    }
+    let cancelled = false
+    setPreviewLoading(true)
+    void fetch(url)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Kunde inte hämta förhandsgranskning")
+        return (await res.json()) as PreviewPayload
+      })
+      .then((data) => {
+        if (!cancelled) setPreview(data)
+      })
+      .catch(() => {
+        if (!cancelled) setPreview(null)
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [detail?.previewUrl])
+
+  async function handleStart() {
+    if (file === null) {
+      setError("Välj en PDF först")
+      return
+    }
+    setError(null)
+    setStarting(true)
+    try {
+      const storageId = await uploadFileToStorage(file, () =>
+        generateUploadUrl(),
+      )
+      const runId = await createRun({
+        storageId,
+        name: file.name,
+        kind,
+        commitToDb,
+        invalidateMineru: invalidateOnStart,
+      })
+      setSelectedRunId(runId)
+      setFile(null)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Kunde inte starta")
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  async function handleRestart(fromStage: FromStage) {
+    if (selectedRunId === null) return
+    setError(null)
+    setRestarting(fromStage)
+    try {
+      await restart({
+        runId: selectedRunId,
+        fromStage,
+        commitToDb: restartCommit,
+        invalidateMineru:
+          fromStage === "mineru" ? restartInvalidate : undefined,
+      })
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Kunde inte starta om")
+    } finally {
+      setRestarting(null)
+    }
+  }
+
+  async function handleInvalidateCache() {
+    if (detail === null || detail === undefined) return
+    setError(null)
+    setInvalidating(true)
+    try {
+      await invalidateMineru({ contentHash: detail.run.contentHash })
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Kunde inte rensa MinerU-cache",
+      )
+    } finally {
+      setInvalidating(false)
+    }
+  }
+
+  const runActive =
+    detail?.run !== undefined &&
+    (detail.run.status === "pending" || detail.run.status === "running")
+
+  return (
+    <div className="mt-8 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Ny körning</CardTitle>
+          <CardDescription>
+            Ladda upp en PDF och starta tolkning. Av som standard sparas inget
+            till databasen.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="admin-pdf">PDF</Label>
+            <Input
+              id="admin-pdf"
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={(e) => {
+                const next = e.target.files?.[0] ?? null
+                setFile(next)
+                setError(null)
+              }}
+            />
+            {file !== null ? (
+              <p className="text-xs text-muted-foreground">{file.name}</p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={kind === "problems" ? "default" : "outline"}
+              onClick={() => setKind("problems")}
+            >
+              Uppgifter
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={kind === "info" ? "default" : "outline"}
+              onClick={() => setKind("info")}
+            >
+              Information
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-md border border-border px-3 py-2">
+            <div>
+              <p className="text-sm font-medium">Spara till databasen</p>
+              <p className="text-xs text-muted-foreground">
+                Av = endast förhandsgranskning
+              </p>
+            </div>
+            <Switch
+              checked={commitToDb}
+              onCheckedChange={setCommitToDb}
+            />
+          </div>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 rounded border-border"
+              checked={invalidateOnStart}
+              onChange={(e) => setInvalidateOnStart(e.target.checked)}
+            />
+            Rensa MinerU-cache innan start
+          </label>
+
+          <Button
+            disabled={starting || file === null}
+            onClick={() => {
+              void handleStart()
+            }}
+          >
+            {starting ? (
+              <>
+                <Loader2 className="animate-spin" />
+                Startar…
+              </>
+            ) : (
+              <>
+                <Upload />
+                Starta tolkning
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Senaste körningar</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {runs === undefined ? (
+              <p className="text-sm text-muted-foreground">Hämtar…</p>
+            ) : runs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Inga körningar ännu</p>
+            ) : (
+              runs.map((run) => {
+                const selected = run._id === selectedRunId
+                return (
+                  <button
+                    key={run._id}
+                    type="button"
+                    onClick={() => setSelectedRunId(run._id)}
+                    className={`w-full rounded-md px-2 py-2 text-left text-sm transition-colors ${
+                      selected
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <p className="truncate font-medium">{run.name}</p>
+                    <p
+                      className={`text-xs ${selected ? "opacity-80" : "text-muted-foreground"}`}
+                    >
+                      {formatStatus(run.status)} · {run.kind} ·{" "}
+                      {run.commitToDb ? "commit" : "dry-run"}
+                    </p>
+                  </button>
+                )
+              })
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          {selectedRunId === null ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Detaljer</CardTitle>
+                <CardDescription>Välj en körning till vänster.</CardDescription>
+              </CardHeader>
+            </Card>
+          ) : detail === undefined ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Detaljer</CardTitle>
+                <CardDescription>Hämtar…</CardDescription>
+              </CardHeader>
+            </Card>
+          ) : detail === null ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Detaljer</CardTitle>
+                <CardDescription>Körningen hittades inte.</CardDescription>
+              </CardHeader>
+            </Card>
+          ) : (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="size-5" />
+                    <span className="truncate">{detail.run.name}</span>
+                  </CardTitle>
+                  <CardDescription>
+                    {shortHash(detail.run.contentHash)} · stage{" "}
+                    {detail.run.stage} · {formatStatus(detail.run.status)}
+                    {detail.run.problemCount !== null
+                      ? ` · ${detail.run.problemCount} uppgifter`
+                      : ""}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
+                    <span>
+                      MinerU-cache:{" "}
+                      <span className="font-medium">
+                        {detail.mineruCached ? "finns" : "saknas"}
+                      </span>
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={invalidating || !detail.mineruCached}
+                      onClick={() => {
+                        void handleInvalidateCache()
+                      }}
+                    >
+                      {invalidating ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <Trash2 />
+                      )}
+                      Rensa cache
+                    </Button>
+                  </div>
+
+                  <ul className="max-h-48 space-y-1.5 overflow-y-auto rounded-md border border-border bg-muted/30 p-2">
+                    {detail.run.statusUpdates.map((update, index) => (
+                      <li
+                        key={`${update.at}-${index}`}
+                        className="flex gap-2 text-xs"
+                      >
+                        <span className="shrink-0 tabular-nums text-muted-foreground">
+                          {formatTime(update.at)}
+                        </span>
+                        <span>{update.message}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {runActive ? (
+                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Loader2 className="size-3 animate-spin" />
+                      Uppdateras live…
+                    </p>
+                  ) : null}
+                  {detail.run.error !== null ? (
+                    <p className="text-sm text-destructive">{detail.run.error}</p>
+                  ) : null}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Starta om</CardTitle>
+                  <CardDescription>
+                    Kör om från valfri sparad etapp. Commit skriver senaste
+                    förhandsgranskning till databasen.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between gap-4 rounded-md border border-border px-3 py-2">
+                    <div>
+                      <p className="text-sm font-medium">Spara till databasen</p>
+                      <p className="text-xs text-muted-foreground">
+                        Gäller omstart från MinerU/AI
+                      </p>
+                    </div>
+                    <Switch
+                      checked={restartCommit}
+                      onCheckedChange={setRestartCommit}
+                      disabled={runActive}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="size-4 rounded border-border"
+                      checked={restartInvalidate}
+                      disabled={runActive}
+                      onChange={(e) => setRestartInvalidate(e.target.checked)}
+                    />
+                    Rensa MinerU-cache vid omstart från MinerU
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={runActive || restarting !== null}
+                      onClick={() => {
+                        void handleRestart("mineru")
+                      }}
+                    >
+                      {restarting === "mineru" ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <RefreshCw />
+                      )}
+                      Från MinerU
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        runActive ||
+                        restarting !== null ||
+                        !detail.mineruCached
+                      }
+                      onClick={() => {
+                        void handleRestart("ai")
+                      }}
+                    >
+                      {restarting === "ai" ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <RefreshCw />
+                      )}
+                      Från AI
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={
+                        runActive ||
+                        restarting !== null ||
+                        detail.run.previewStorageId === null
+                      }
+                      onClick={() => {
+                        void handleRestart("commit")
+                      }}
+                    >
+                      {restarting === "commit" ? (
+                        <Loader2 className="animate-spin" />
+                      ) : null}
+                      Committa förhandsgranskning
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Förhandsgranskning
+                  </CardTitle>
+                  <CardDescription>
+                    Senaste parse-resultat (dry-run eller före commit).
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {previewLoading ? (
+                    <p className="text-sm text-muted-foreground">Hämtar…</p>
+                  ) : preview === null ? (
+                    <p className="text-sm text-muted-foreground">
+                      Ingen förhandsgranskning ännu
+                    </p>
+                  ) : preview.kind === "info" ? (
+                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
+                      {preview.text || "(tom)"}
+                    </pre>
+                  ) : (
+                    <ul className="max-h-96 space-y-4 overflow-y-auto">
+                      {preview.problems.map((p) => (
+                        <li
+                          key={p.problemNumber}
+                          className="rounded-md border border-border p-3"
+                        >
+                          <ParsedProblemView problem={p} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">
+                    Sparat i databasen
+                  </CardTitle>
+                  <CardDescription>
+                    Globalt innehåll för samma content hash
+                    {detail.run.kind === "problems"
+                      ? ` · ${detail.committedProblemCount} uppgifter`
+                      : ""}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {detail.run.kind === "info" ? (
+                    detail.committedInfoText === null ? (
+                      <p className="text-sm text-muted-foreground">
+                        Ingen sparad information
+                      </p>
+                    ) : (
+                      <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
+                        {detail.committedInfoText}
+                      </pre>
+                    )
+                  ) : detail.committedProblems.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Inga sparade uppgifter
+                    </p>
+                  ) : (
+                    <ul className="max-h-96 space-y-4 overflow-y-auto">
+                      {detail.committedProblems.map((p) => (
+                        <li
+                          key={p._id}
+                          className="rounded-md border border-border p-3"
+                        >
+                          <ParsedProblemView
+                            problem={{
+                              problemNumber: p.problemNumber,
+                              question: p.problem,
+                              answer: p.answer,
+                              flags: p.flags,
+                            }}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+      </div>
+
+      {error !== null ? (
+        <p className="text-sm text-destructive">{error}</p>
+      ) : null}
+    </div>
+  )
+}

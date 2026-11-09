@@ -16,6 +16,7 @@ import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AdminPdfParseRouteImport } from './routes/admin.pdf-parse'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as ScanTokenRouteImport } from './routes/scan.$token'
 import { Route as DashboardRoomsRoomIdRouteImport } from './routes/dashboard.rooms.$roomId'
@@ -55,6 +56,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPdfParseRoute = AdminPdfParseRouteImport.update({
+  id: '/admin/pdf-parse',
+  path: '/admin/pdf-parse',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/admin/pdf-parse': typeof AdminPdfParseRoute
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/admin/pdf-parse': typeof AdminPdfParseRoute
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/admin/pdf-parse': typeof AdminPdfParseRoute
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signin'
     | '/signup'
+    | '/admin/pdf-parse'
     | '/scan/$token'
     | '/dashboard/'
     | '/dashboard/rooms/$roomId'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signin'
     | '/signup'
+    | '/admin/pdf-parse'
     | '/scan/$token'
     | '/dashboard'
     | '/dashboard/rooms/$roomId'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signin'
     | '/signup'
+    | '/admin/pdf-parse'
     | '/scan/$token'
     | '/dashboard/'
     | '/dashboard/rooms/$roomId'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  AdminPdfParseRoute: typeof AdminPdfParseRoute
   ScanTokenRoute: typeof ScanTokenRoute
 }
 
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/pdf-parse': {
+      id: '/admin/pdf-parse'
+      path: '/admin/pdf-parse'
+      fullPath: '/admin/pdf-parse'
+      preLoaderRoute: typeof AdminPdfParseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
@@ -253,6 +273,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  AdminPdfParseRoute: AdminPdfParseRoute,
   ScanTokenRoute: ScanTokenRoute,
 }
 export const routeTree = rootRouteImport

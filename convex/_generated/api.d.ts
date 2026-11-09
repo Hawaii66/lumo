@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as PDFParse_adminParse from "../PDFParse/adminParse.js";
+import type * as PDFParse_adminParseRunner from "../PDFParse/adminParseRunner.js";
 import type * as PDFParse_getOrFetchMiddleJson from "../PDFParse/getOrFetchMiddleJson.js";
 import type * as PDFParse_jobs from "../PDFParse/jobs.js";
 import type * as PDFParse_lumoInfoAgent from "../PDFParse/lumoInfoAgent.js";
@@ -70,6 +72,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "PDFParse/adminParse": typeof PDFParse_adminParse;
+  "PDFParse/adminParseRunner": typeof PDFParse_adminParseRunner;
   "PDFParse/getOrFetchMiddleJson": typeof PDFParse_getOrFetchMiddleJson;
   "PDFParse/jobs": typeof PDFParse_jobs;
   "PDFParse/lumoInfoAgent": typeof PDFParse_lumoInfoAgent;

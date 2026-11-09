@@ -16,6 +16,7 @@ import {
   splitIntoProblemChunks,
   type ProblemChunk,
 } from "./middleJson";
+import { middleJsonSchema } from "./mineruSchema";
 
 /** Max concurrent per-problem agent calls. */
 const AGENT_CONCURRENCY = 5;
@@ -62,7 +63,7 @@ async function loadFile(
   return file;
 }
 
-type StatusReporter = (
+export type StatusReporter = (
   message: string,
   options?: { replaceLast?: boolean },
 ) => Promise<void>;
@@ -151,7 +152,11 @@ async function convertChunksToProblems(
   return results;
 }
 
-async function parsePdfBytesToProblems(
+/**
+ * Shared MinerU → chunk → AI pipeline for problems.
+ * Does not read/write the problems table.
+ */
+export async function parsePdfBytesToProblems(
   ctx: ActionCtx,
   userId: Id<"users">,
   pdfBytes: ArrayBuffer,
@@ -174,7 +179,11 @@ async function parsePdfBytesToProblems(
   return await convertChunksToProblems(ctx, userId, chunks, onStatus);
 }
 
-async function parsePdfBytesToInfo(
+/**
+ * Shared MinerU → flatten → AI pipeline for document info.
+ * Does not read/write the pdfInfo table.
+ */
+export async function parsePdfBytesToInfo(
   ctx: ActionCtx,
   userId: Id<"users">,
   pdfBytes: ArrayBuffer,
@@ -197,6 +206,84 @@ async function parsePdfBytesToInfo(
     return "";
   }
 
+  await onStatus?.("Tolkar information med AI…");
+  const result: { text: string } = await ctx.runAction(
+    internal.PDFParse.lumoInfoAgent.convertDocumentInfo,
+    {
+      userId,
+      documentText,
+    },
+  );
+  return result.text;
+}
+
+/**
+ * AI-only path: reuse existing MinerU cache (must already exist).
+ * Throws if middle_json is not cached.
+ */
+export async function parseCachedMiddleJsonToProblems(
+  ctx: ActionCtx,
+  userId: Id<"users">,
+  contentHash: string,
+  onStatus?: StatusReporter,
+): Promise<LumoParsedProblem[]> {
+  const cached: {
+    _id: Id<"mineruCache">;
+    middleJsonStorageId: Id<"_storage">;
+  } | null = await ctx.runQuery(
+    internal.PDFParse.mineruCache.getByContentHash,
+    { contentHash },
+  );
+  if (cached === null) {
+    throw new Error("Ingen MinerU-cache för denna PDF — kör från MinerU först");
+  }
+  const cachedBlob = await ctx.storage.get(cached.middleJsonStorageId);
+  if (cachedBlob === null) {
+    throw new Error("MinerU-cachen saknar data");
+  }
+  const parsed = middleJsonSchema.safeParse(
+    JSON.parse(await cachedBlob.text()),
+  );
+  if (!parsed.success) {
+    throw new Error("MinerU-cachen är korrupt");
+  }
+  await onStatus?.("Delar upp uppgifter…");
+  const { problemLines, answerLines } = flattenMiddleJson(parsed.data);
+  const chunks = splitIntoProblemChunks(problemLines, answerLines);
+  return await convertChunksToProblems(ctx, userId, chunks, onStatus);
+}
+
+export async function parseCachedMiddleJsonToInfo(
+  ctx: ActionCtx,
+  userId: Id<"users">,
+  contentHash: string,
+  onStatus?: StatusReporter,
+): Promise<string> {
+  const cached: {
+    _id: Id<"mineruCache">;
+    middleJsonStorageId: Id<"_storage">;
+  } | null = await ctx.runQuery(
+    internal.PDFParse.mineruCache.getByContentHash,
+    { contentHash },
+  );
+  if (cached === null) {
+    throw new Error("Ingen MinerU-cache för denna PDF — kör från MinerU först");
+  }
+  const cachedBlob = await ctx.storage.get(cached.middleJsonStorageId);
+  if (cachedBlob === null) {
+    throw new Error("MinerU-cachen saknar data");
+  }
+  const parsed = middleJsonSchema.safeParse(
+    JSON.parse(await cachedBlob.text()),
+  );
+  if (!parsed.success) {
+    throw new Error("MinerU-cachen är korrupt");
+  }
+  await onStatus?.("Sammanställer dokumenttext…");
+  const documentText = flattenFullDocument(parsed.data);
+  if (documentText.trim().length === 0) {
+    return "";
+  }
   await onStatus?.("Tolkar information med AI…");
   const result: { text: string } = await ctx.runAction(
     internal.PDFParse.lumoInfoAgent.convertDocumentInfo,

@@ -320,6 +320,52 @@ export default defineSchema({
     .index("by_file_and_kind", ["fileId", "kind"])
     .index("by_room", ["roomId"]),
   /**
+   * Admin-only roomless PDF parse sandbox for prompt/iteration testing.
+   * Preview JSON lives in storage; commitToDb controls writing problems/pdfInfo.
+   */
+  pdfAdminRuns: defineTable({
+    name: v.string(),
+    storageId: v.id("_storage"),
+    contentHash: v.string(),
+    createdBy: v.id("users"),
+    kind: v.union(v.literal("problems"), v.literal("info")),
+    commitToDb: v.boolean(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("done"),
+      v.literal("failed"),
+    ),
+    /** Current / last attempted pipeline stage. */
+    stage: v.union(
+      v.literal("queued"),
+      v.literal("mineru"),
+      v.literal("ai"),
+      v.literal("commit"),
+      v.literal("done"),
+    ),
+    /** Where the scheduled runner should begin. */
+    fromStage: v.union(
+      v.literal("mineru"),
+      v.literal("ai"),
+      v.literal("commit"),
+    ),
+    /** Clear MinerU cache before mineru stage. */
+    invalidateMineru: v.boolean(),
+    statusUpdates: v.array(
+      v.object({
+        message: v.string(),
+        at: v.number(),
+      }),
+    ),
+    error: v.optional(v.string()),
+    problemCount: v.optional(v.number()),
+    /** Last parse preview JSON in storage. */
+    previewStorageId: v.optional(v.id("_storage")),
+  })
+    .index("by_createdBy", ["createdBy"])
+    .index("by_contentHash", ["contentHash"]),
+  /**
    * Global registry of concatenated PDFs, keyed by ordered input content hashes.
    * `inputKey` is `inputHashes.join("|")` (order-sensitive).
    */

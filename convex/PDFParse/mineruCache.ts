@@ -113,3 +113,24 @@ export const releaseInFlight = internalMutation({
     return null;
   },
 });
+
+/** Delete MinerU cache row + storage blob for a content hash. */
+export const deleteByContentHash = internalMutation({
+  args: { contentHash: v.string() },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("mineruCache")
+      .withIndex("by_contentHash", (q) =>
+        q.eq("contentHash", args.contentHash),
+      )
+      .first();
+    if (existing === null) {
+      return false;
+    }
+    const storageId = existing.middleJsonStorageId;
+    await ctx.db.delete(existing._id);
+    await ctx.storage.delete(storageId);
+    return true;
+  },
+});
