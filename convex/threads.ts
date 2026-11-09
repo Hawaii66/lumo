@@ -22,7 +22,10 @@ import {
   type ChatMode,
 } from "./lib/lumoContent";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
-import { problemVisibleInRoom } from "./lib/problemAccess";
+import {
+  isShadowProblem,
+  problemVisibleInRoom,
+} from "./lib/problemAccess";
 import { internalMutation, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
@@ -785,12 +788,32 @@ export const sendMessage = mutation({
         .query("files")
         .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
         .take(MAX_FILES_PER_ROOM);
+      const archivedRows = await ctx.db
+        .query("problemsArchivedByRoom")
+        .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+        .take(MAX_FILES_PER_ROOM);
+      const archivedHashes = new Set(
+        archivedRows.map((row) => row.contentHash),
+      );
       for (const problemId of problemIds) {
         const problem = await ctx.db.get(problemId);
         if (problem === null) {
           throw new Error("Uppgiften hittades inte");
         }
-        if (!problemVisibleInRoom(problem, args.roomId, roomFiles)) {
+        let parentContentHash: string | undefined;
+        if (isShadowProblem(problem) && problem.parentProblemId !== undefined) {
+          const parent = await ctx.db.get(problem.parentProblemId);
+          parentContentHash = parent?.contentHash;
+        }
+        if (
+          !problemVisibleInRoom(
+            problem,
+            args.roomId,
+            roomFiles,
+            archivedHashes,
+            parentContentHash,
+          )
+        ) {
           throw new Error("Uppgiften tillhör inte det här rummet");
         }
         // Prefer the form already written in the prompt (`@3` or `@3-slug`).

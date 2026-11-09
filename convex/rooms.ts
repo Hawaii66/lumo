@@ -469,6 +469,7 @@ export const deleteCascade = internalMutation({
       v.literal("completions"),
       v.literal("files"),
       v.literal("cells"),
+      v.literal("archivedProblems"),
       v.literal("jobs"),
       v.literal("scans"),
       v.literal("members"),
@@ -616,6 +617,28 @@ export const deleteCascade = internalMutation({
         await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
           roomId,
           phase: "cells",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "archivedProblems",
+      });
+      return null;
+    }
+
+    if (phase === "archivedProblems") {
+      const archived = await ctx.db
+        .query("problemsArchivedByRoom")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const row of archived) {
+        await ctx.db.delete("problemsArchivedByRoom", row._id);
+      }
+      if (archived.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "archivedProblems",
         });
         return null;
       }

@@ -13,7 +13,8 @@ import {
 } from "~/components/ui/card"
 
 export function ProblemPdfOrderCard({ roomId }: { roomId: Id<"rooms"> }) {
-  const groups = useQuery(api.PDFParse.problems.listGroupedByRoom, { roomId })
+  const listed = useQuery(api.PDFParse.problems.listGroupedByRoom, { roomId })
+  const groups = listed?.groups
   const setProblemSortOrder = useMutation(api.files.setProblemSortOrder)
 
   const [orderedIds, setOrderedIds] = useState<Id<"files">[] | null>(null)
