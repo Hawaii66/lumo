@@ -18,6 +18,23 @@ const PROBLEM_DOTTED_RE = /^\s*(\d+\.\d+)\b/;
  */
 const PROBLEM_MAJOR_RE = /^\s*(\d+)\s*[.)](?:\s|\(|$)/;
 
+/**
+ * PGA-style answer labels with parenthesized letter: "2(a)", "2 (a)", "1.2(a)".
+ * Answer-side only — not used for question stems.
+ */
+const ANSWER_PGA_PAREN_RE = /^\s*(\d+(?:\.\d+)?)\s*\(([a-z])\)/i;
+/**
+ * PGA glued letter: "2a", "2a)", "2a.", "1.2a".
+ * No space between number and letter so "1.2 foo" is not treated as letter f.
+ */
+const ANSWER_PGA_GLUED_RE =
+  /^\s*(\d+(?:\.\d+)?)([a-z])(?:\s*[.)])?(?=\s|$)/i;
+/**
+ * PGA spaced letter only when punctuation follows: "2 a)", "2 a.", "1.2 a)".
+ */
+const ANSWER_PGA_SPACED_RE =
+  /^\s*(\d+(?:\.\d+)?)\s+([a-z])\s*[.)](?=\s|$)/i;
+
 const SECTION_PROBLEM_RE = /^\s*problem\s*$/i;
 const SECTION_ANSWER_RE = /^\s*svar\s*$/i;
 
@@ -88,6 +105,61 @@ export function matchProblemStart(line: string): string | null {
   }
 
   return null;
+}
+
+export type AnswerStartMatch = {
+  problemNumber: string;
+  subproblemLetter: string | null;
+};
+
+/**
+ * Detect an answer-section problem start, including PGA labels like "2a" / "2(a)".
+ * Tries PGA forms before ordinary matchProblemStart so "1.2(a)" keeps letter a.
+ */
+export function matchAnswerStart(line: string): AnswerStartMatch | null {
+  const parenMatch = ANSWER_PGA_PAREN_RE.exec(line);
+  if (parenMatch !== null) {
+    return {
+      problemNumber: parenMatch[1]!,
+      subproblemLetter: parenMatch[2]!.toLowerCase(),
+    };
+  }
+
+  const gluedMatch = ANSWER_PGA_GLUED_RE.exec(line);
+  if (gluedMatch !== null) {
+    return {
+      problemNumber: gluedMatch[1]!,
+      subproblemLetter: gluedMatch[2]!.toLowerCase(),
+    };
+  }
+
+  const spacedMatch = ANSWER_PGA_SPACED_RE.exec(line);
+  if (spacedMatch !== null) {
+    return {
+      problemNumber: spacedMatch[1]!,
+      subproblemLetter: spacedMatch[2]!.toLowerCase(),
+    };
+  }
+
+  const problemNumber = matchProblemStart(line);
+  if (problemNumber !== null) {
+    return { problemNumber, subproblemLetter: null };
+  }
+
+  return null;
+}
+
+/** Rewrite "2a) …" / "2(a) …" to "(a) …" so the convert prompt sees subproblem markers. */
+function rewritePgaAnswerLine(line: string, letter: string): string {
+  const prefix =
+    ANSWER_PGA_PAREN_RE.exec(line) ??
+    ANSWER_PGA_GLUED_RE.exec(line) ??
+    ANSWER_PGA_SPACED_RE.exec(line);
+  const rest =
+    prefix !== null
+      ? line.slice(prefix[0].length).trimStart()
+      : line.trimStart();
+  return rest.length > 0 ? `(${letter}) ${rest}` : `(${letter})`;
 }
 
 /**
@@ -208,6 +280,52 @@ function splitByProblemNumber(lines: string[]): Map<string, string> {
   return map;
 }
 
+/**
+ * Split answer lines by base problem number.
+ * PGA labels (2a/2b/2c) group under "2" and are rewritten to (a)/(b)/(c) leads.
+ */
+function splitAnswersByProblemNumber(lines: string[]): Map<string, string> {
+  const map = new Map<string, string>();
+  let currentNumber: string | null = null;
+  let currentParts: string[] = [];
+
+  const flush = () => {
+    if (currentNumber === null) {
+      return;
+    }
+    const text = currentParts.join("\n").trim();
+    if (text.length === 0) {
+      return;
+    }
+    const existing = map.get(currentNumber);
+    map.set(
+      currentNumber,
+      existing === undefined ? text : `${existing}\n${text}`,
+    );
+  };
+
+  for (const line of lines) {
+    const match = matchAnswerStart(line);
+    if (match !== null) {
+      flush();
+      currentNumber = match.problemNumber;
+      currentParts = [
+        match.subproblemLetter !== null
+          ? rewritePgaAnswerLine(line, match.subproblemLetter)
+          : line,
+      ];
+      continue;
+    }
+    // Preamble before the first answer number is ignored.
+    if (currentNumber !== null) {
+      currentParts.push(line);
+    }
+  }
+  flush();
+
+  return map;
+}
+
 function compareProblemNumbers(a: string, b: string): number {
   const [aMajor, aMinor = 0] = a.split(".").map(Number);
   const [bMajor, bMinor = 0] = b.split(".").map(Number);
@@ -306,7 +424,7 @@ export function splitIntoProblemChunks(
   answerLines: string[],
 ): ProblemChunk[] {
   const problems = splitByProblemNumber(problemLines);
-  const answers = splitByProblemNumber(answerLines);
+  const answers = splitAnswersByProblemNumber(answerLines);
 
   const numbers = [...problems.keys()].sort(compareProblemNumbers);
 
