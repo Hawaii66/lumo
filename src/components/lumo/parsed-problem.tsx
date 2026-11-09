@@ -21,7 +21,7 @@ function flagNotice(flag: ProblemFlag): string {
     case "missing_answer":
       return "Inget facit hittades vid tolkningen."
     default: {
-      const _exhaustive: never = flag
+      const _exhaustive: never = flag.kind
       return _exhaustive
     }
   }

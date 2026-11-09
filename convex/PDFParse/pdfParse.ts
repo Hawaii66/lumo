@@ -30,12 +30,21 @@ async function mapPool<T, R>(
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let nextIndex = 0;
+  let firstError: unknown;
 
   async function worker(): Promise<void> {
     while (nextIndex < items.length) {
+      if (firstError !== undefined) {
+        return;
+      }
       const index = nextIndex;
       nextIndex += 1;
-      results[index] = await fn(items[index]!, index);
+      try {
+        results[index] = await fn(items[index]!, index);
+      } catch (err: unknown) {
+        firstError = err;
+        return;
+      }
     }
   }
 
@@ -43,7 +52,11 @@ async function mapPool<T, R>(
     { length: Math.min(concurrency, items.length) },
     () => worker(),
   );
+  // Await every worker so in-flight actions are not left dangling on failure.
   await Promise.all(workers);
+  if (firstError !== undefined) {
+    throw firstError;
+  }
   return results;
 }
 
@@ -129,27 +142,29 @@ async function convertChunksToProblems(
 
   reportProgress(0, false);
 
-  const results = await mapPool(
-    chunks,
-    AGENT_CONCURRENCY,
-    async (chunk): Promise<LumoParsedProblem> => {
-      const problem = await ctx.runAction(
-        internal.PDFParse.lumoProblemAgent.convertProblemChunk,
-        {
-          userId,
-          problemNumber: chunk.problemNumber,
-          problemText: chunk.problemText,
-          answerText: chunk.answerText,
-        },
-      );
-      completed += 1;
-      reportProgress(completed, true);
-      return problem;
-    },
-  );
-
-  await statusChain;
-  return results;
+  try {
+    const results = await mapPool(
+      chunks,
+      AGENT_CONCURRENCY,
+      async (chunk): Promise<LumoParsedProblem> => {
+        const problem = await ctx.runAction(
+          internal.PDFParse.lumoProblemAgent.convertProblemChunk,
+          {
+            userId,
+            problemNumber: chunk.problemNumber,
+            problemText: chunk.problemText,
+            answerText: chunk.answerText,
+          },
+        );
+        completed += 1;
+        reportProgress(completed, true);
+        return problem;
+      },
+    );
+    return results;
+  } finally {
+    await statusChain;
+  }
 }
 
 /**

@@ -19,10 +19,10 @@ OUTPUT-FORMAT
 
 problemNumber: basnummer UTAN "P" och UTAN bokstav ("1.1", inte "P 1.1" eller "1.1a").
 question / answer: strängar med markdown + $ / $$ (inte JSON-parts).
-flags: valfri array. Varje post är { "kind": "…", "data": {} }.
+flags: ALLTID en array (använd [] om inget). Varje post är { "kind": "…", "data": {} }.
   • "needs_pdf" — eleven måste öppna PDF:en för figur/graf/tabell/diagram/bild.
   • "missing_answer" — rått svar saknas (tom källa / "(inget svar i källan)").
-  • data är ALLTID {}. Max en post per kind. Utelämna flags eller [] om inget gäller.`,
+  • data är ALLTID {}. Max en post per kind.`,
   MD_CONTENT_CONVENTIONS,
   `════════════════════════════════════════
 SVAR — TAPPA ALDRIG FACIT
