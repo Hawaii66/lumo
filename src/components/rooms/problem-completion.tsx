@@ -104,14 +104,14 @@ export function ProblemCompletionControl({
         "active:scale-90",
         completed
           ? "border-emerald-600/50 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25"
-          : "border-border text-muted-foreground/50 hover:bg-muted/60 hover:text-muted-foreground",
+          : "border-border text-muted-foreground hover:bg-muted/60",
         className,
       )}
     >
       <Check
         className={cn(
           "size-3.5 transition-[opacity,transform] duration-150",
-          completed ? "stroke-[3] opacity-100 scale-100" : "opacity-40 scale-90",
+          completed ? "stroke-[3] opacity-100 scale-100" : "scale-90",
         )}
         aria-hidden
       />
