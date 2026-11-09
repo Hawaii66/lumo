@@ -174,6 +174,7 @@ export const getRunDetail = query({
     v.object({
       run: runSummaryValidator,
       mineruCached: v.boolean(),
+      pdfUrl: v.union(v.string(), v.null()),
       previewUrl: v.union(v.string(), v.null()),
       committedProblems: v.array(
         v.object({
@@ -228,6 +229,7 @@ export const getRunDetail = query({
       )
       .first();
 
+    const pdfUrl = await ctx.storage.getUrl(run.storageId);
     const previewUrl =
       run.previewStorageId !== undefined
         ? await ctx.storage.getUrl(run.previewStorageId)
@@ -236,6 +238,7 @@ export const getRunDetail = query({
     return {
       run: toRunSummary(run),
       mineruCached: mineru !== null,
+      pdfUrl,
       previewUrl,
       committedProblems,
       committedProblemCount: committedProblems.length,

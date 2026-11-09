@@ -18,6 +18,7 @@ import { useEffect, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
+import { PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { SignInCard } from "~/components/sign-in"
 import { Button } from "~/components/ui/button"
 import {
@@ -57,9 +58,15 @@ type AdminProblemItem = {
 function AdminProblemBrowser({
   problems,
   emptyLabel,
+  pdfFileName,
+  pdfUrl,
+  onViewPdf,
 }: {
   problems: Array<AdminProblemItem>
   emptyLabel: string
+  pdfFileName: string
+  pdfUrl: string | null
+  onViewPdf: () => void
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showFacit, setShowFacit] = useState(true)
@@ -79,6 +86,8 @@ function AdminProblemBrowser({
 
   const selected =
     problems.find((problem) => problem.id === selectedId) ?? null
+  const needsPdf =
+    selected?.problem.flags?.some((flag) => flag.kind === "needs_pdf") === true
 
   if (problems.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyLabel}</p>
@@ -125,7 +134,27 @@ function AdminProblemBrowser({
         })}
       </div>
 
-      <div className="flex min-h-0 min-w-0 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-col gap-3">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+          <p className="truncate text-sm text-muted-foreground" title={pdfFileName}>
+            {pdfFileName}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={
+              needsPdf
+                ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
+                : "gap-1.5"
+            }
+            disabled={pdfUrl === null}
+            onClick={onViewPdf}
+          >
+            <FileText className="size-3.5" />
+            Visa original
+          </Button>
+        </div>
         {selected === null ? (
           <p className="text-sm text-muted-foreground">
             Välj en uppgift i listan.
@@ -246,6 +275,10 @@ function LabBody() {
   const [commitToDb, setCommitToDb] = useState(false)
   const [invalidateOnStart, setInvalidateOnStart] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [viewingPdf, setViewingPdf] = useState<{
+    name: string
+    url: string
+  } | null>(null)
   const [restarting, setRestarting] = useState<FromStage | null>(null)
   const [restartCommit, setRestartCommit] = useState(false)
   const [restartInvalidate, setRestartInvalidate] = useState(false)
@@ -543,6 +576,22 @@ function LabBody() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="gap-1.5"
+                      disabled={detail.pdfUrl === null}
+                      onClick={() => {
+                        if (detail.pdfUrl === null) return
+                        setViewingPdf({
+                          name: detail.run.name,
+                          url: detail.pdfUrl,
+                        })
+                      }}
+                    >
+                      <FileText className="size-3.5" />
+                      Visa PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
                       disabled={invalidating || !detail.mineruCached}
                       onClick={() => {
                         void handleInvalidateCache()
@@ -696,6 +745,15 @@ function LabBody() {
                         problem: p,
                       }))}
                       emptyLabel="Inga uppgifter i förhandsgranskningen"
+                      pdfFileName={detail.run.name}
+                      pdfUrl={detail.pdfUrl}
+                      onViewPdf={() => {
+                        if (detail.pdfUrl === null) return
+                        setViewingPdf({
+                          name: detail.run.name,
+                          url: detail.pdfUrl,
+                        })
+                      }}
                     />
                   )}
                 </CardContent>
@@ -736,6 +794,15 @@ function LabBody() {
                         },
                       }))}
                       emptyLabel="Inga sparade uppgifter"
+                      pdfFileName={detail.run.name}
+                      pdfUrl={detail.pdfUrl}
+                      onViewPdf={() => {
+                        if (detail.pdfUrl === null) return
+                        setViewingPdf({
+                          name: detail.run.name,
+                          url: detail.pdfUrl,
+                        })
+                      }}
                     />
                   )}
                 </CardContent>
@@ -748,6 +815,15 @@ function LabBody() {
       {error !== null ? (
         <p className="text-sm text-destructive">{error}</p>
       ) : null}
+
+      <PdfViewerSheet
+        open={viewingPdf !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewingPdf(null)
+        }}
+        fileName={viewingPdf?.name ?? null}
+        url={viewingPdf?.url ?? null}
+      />
     </div>
   )
 }
