@@ -1,14 +1,11 @@
 import { useMutation, useQuery } from "convex/react"
-import { useSyncExternalStore } from "react"
+import { useRouteContext } from "@tanstack/react-router"
 import { api } from "../../../convex/_generated/api"
 import {
   DASHBOARD_THEMES,
   DASHBOARD_THEME_LABELS,
   type DashboardTheme,
-  getServerDashboardTheme,
   isDashboardTheme,
-  resolveDashboardTheme,
-  subscribeDashboardTheme,
   writeStoredDashboardTheme,
 } from "~/lib/dashboard-theme"
 import { cn } from "~/lib/utils"
@@ -25,14 +22,10 @@ type ThemeSelectorProps = {
 }
 
 export function ThemeSelector({ className }: ThemeSelectorProps) {
+  const { dashboardTheme: cookieTheme } = useRouteContext({ from: "__root__" })
   const viewer = useQuery(api.users.viewer)
   const updateTheme = useMutation(api.users.updateTheme)
-  const cachedTheme = useSyncExternalStore(
-    subscribeDashboardTheme,
-    resolveDashboardTheme,
-    getServerDashboardTheme,
-  )
-  const theme = viewer?.theme ?? cachedTheme
+  const theme = viewer?.theme ?? cookieTheme
   const disabled = viewer === undefined
 
   return (

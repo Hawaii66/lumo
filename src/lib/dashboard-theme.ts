@@ -18,9 +18,10 @@ export const DASHBOARD_THEME_LABELS: Record<DashboardTheme, string> = {
 
 export const DEFAULT_DASHBOARD_THEME: DashboardTheme = "light"
 
-export const DASHBOARD_THEME_STORAGE_KEY = "lumo-dashboard-theme"
+/** Sent on every request so SSR can paint the correct theme. */
+export const DASHBOARD_THEME_COOKIE_NAME = "lumo-dashboard-theme"
 
-const dashboardThemeListeners = new Set<() => void>()
+const DASHBOARD_THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 export function isDashboardTheme(value: unknown): value is DashboardTheme {
   return (
@@ -29,41 +30,33 @@ export function isDashboardTheme(value: unknown): value is DashboardTheme {
   )
 }
 
-/** Same-device paint cache; Convex remains source of truth. */
+export function parseDashboardThemeCookie(
+  value: string | undefined,
+): DashboardTheme | null {
+  return isDashboardTheme(value) ? value : null
+}
+
+/** Client-side cookie read. Prefer SSR loader data for first paint. */
 export function readStoredDashboardTheme(): DashboardTheme | null {
-  if (typeof window === "undefined") return null
+  if (typeof document === "undefined") return null
   try {
-    const raw = window.localStorage.getItem(DASHBOARD_THEME_STORAGE_KEY)
-    return isDashboardTheme(raw) ? raw : null
+    const match = document.cookie.match(
+      new RegExp(`(?:^|;\\s*)${DASHBOARD_THEME_COOKIE_NAME}=([^;]*)`),
+    )
+    const raw = match?.[1] ? decodeURIComponent(match[1]) : undefined
+    return parseDashboardThemeCookie(raw)
   } catch {
     return null
   }
 }
 
 export function writeStoredDashboardTheme(theme: DashboardTheme): void {
-  if (typeof window === "undefined") return
+  if (typeof document === "undefined") return
   try {
-    window.localStorage.setItem(DASHBOARD_THEME_STORAGE_KEY, theme)
+    document.cookie = `${DASHBOARD_THEME_COOKIE_NAME}=${encodeURIComponent(theme)}; path=/; max-age=${DASHBOARD_THEME_COOKIE_MAX_AGE}; SameSite=Lax`
   } catch {
     // ignore quota / private mode
   }
-  dashboardThemeListeners.forEach((listener) => listener())
-}
-
-export function resolveDashboardTheme(): DashboardTheme {
-  return readStoredDashboardTheme() ?? DEFAULT_DASHBOARD_THEME
-}
-
-/** Lets React re-commit after hydration when SSR default ≠ localStorage. */
-export function subscribeDashboardTheme(onStoreChange: () => void): () => void {
-  dashboardThemeListeners.add(onStoreChange)
-  return () => {
-    dashboardThemeListeners.delete(onStoreChange)
-  }
-}
-
-export function getServerDashboardTheme(): DashboardTheme {
-  return DEFAULT_DASHBOARD_THEME
 }
 
 /** Themes that need the `.dark` class for `dark:` Tailwind utilities. */
