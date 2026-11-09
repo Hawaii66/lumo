@@ -4,13 +4,18 @@ import {
   Scripts,
   createRootRouteWithContext,
 } from "@tanstack/react-router"
-import * as React from "react"
 import type { QueryClient } from "@tanstack/react-query"
+import type { ReactNode } from "react"
+import { getDashboardThemeServerFn } from "~/lib/get-dashboard-theme"
 import appCss from "~/styles/app.css?url"
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
 }>()({
+  beforeLoad: async () => {
+    const dashboardTheme = await getDashboardThemeServerFn()
+    return { dashboardTheme }
+  },
   head: () => ({
     meta: [
       {
@@ -59,7 +64,7 @@ function RootComponent() {
   )
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="sv">
       <head>
