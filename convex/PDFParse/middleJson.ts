@@ -102,6 +102,13 @@ const ANSWER_PGA_SPACED_RE = LEAD_PGA_SPACED_RE;
 const INLINE_SVAR_RE = /\bSvar\s*[:.]/i;
 
 /**
+ * Short "Svar:" that only points at the worked solution above.
+ * In that case the explanation *is* the answer — do not discard it.
+ */
+const BACKREF_FACIT_RE =
+  /^(?:se\s+ovan(?:stående)?|see\s+above)\.?$/i;
+
+/**
  * Line-oriented cues that usually open a worked solution (not the stem).
  * Only applied when the same chunk also contains an inline "Svar:".
  */
@@ -539,8 +546,26 @@ function cutSolutionFromStem(beforeSvar: string): string {
 }
 
 /**
+ * Prefer the short final facit after "Svar:", unless that facit only says
+ * "se ovan" — then keep the whole answer (explanation + Svar line).
+ */
+function peelFinalSvar(facit: string): string {
+  const answerSvar = INLINE_SVAR_RE.exec(facit);
+  if (answerSvar === null || answerSvar.index === undefined) {
+    return facit.trim();
+  }
+  const after = facit.slice(answerSvar.index + answerSvar[0].length).trim();
+  const before = facit.slice(0, answerSvar.index).trim();
+  if (before.length > 0 && BACKREF_FACIT_RE.test(after)) {
+    return facit.trim();
+  }
+  return after;
+}
+
+/**
  * When a chunk mixes stem + worked solution + "Svar:", peel them apart.
- * Solution narrative is discarded; only stem and final facit remain.
+ * Solution narrative is discarded; only stem and final facit remain —
+ * except "Svar: se ovan", where the narrative is kept.
  */
 export function separateStemAndFacit(
   problemText: string,
@@ -561,10 +586,7 @@ export function separateStemAndFacit(
     }
   }
 
-  const answerSvar = INLINE_SVAR_RE.exec(facit);
-  if (answerSvar !== null && answerSvar.index !== undefined) {
-    facit = facit.slice(answerSvar.index + answerSvar[0].length).trim();
-  }
+  facit = peelFinalSvar(facit);
 
   return { problemText: stem.trim(), answerText: facit.trim() };
 }

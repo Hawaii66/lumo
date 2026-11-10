@@ -430,4 +430,42 @@ describe("detectProblemChunks", () => {
     expect(p315!.problemText).toContain("Third after fourteen")
     expect(p315!.answerText).toContain("Positivt")
   })
+
+  it("keeps worked solution when Svar is only se ovan", () => {
+    const middleJson: MiddleJson = {
+      pages: [
+        {
+          page_idx: 0,
+          blocks: [
+            { type: "text", content: "6. Bevisa påståendet." },
+            { type: "text", content: "7. Bestäm extremvärdena." },
+          ],
+        },
+        {
+          page_idx: 1,
+          blocks: [
+            {
+              type: "text",
+              content:
+                "6. Vi antar att villkoret gäller. Då följer att påståendet är sant genom induktion.\nSvar: se ovan.",
+            },
+            {
+              type: "text",
+              content:
+                "7. Derivatan nollställs i x = 1. Andra derivatan är negativ, så max.\nSvar: se ovan",
+            },
+          ],
+        },
+      ],
+    }
+
+    const chunks = detectProblemChunks(middleJson)
+    const six = chunks.find((c) => c.problemNumber === "6")
+    expect(six!.answerText).toContain("induktion")
+    expect(six!.answerText.toLowerCase()).toContain("se ovan")
+
+    const seven = chunks.find((c) => c.problemNumber === "7")
+    expect(seven!.answerText).toContain("Derivatan")
+    expect(seven!.answerText.toLowerCase()).toContain("se ovan")
+  })
 })
