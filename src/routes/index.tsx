@@ -39,12 +39,6 @@ function Home() {
                 >
                   lumo@hawaiidev.sh
                 </a>
-                <a
-                  href="tel:+46812345678"
-                  className="block hover:text-neutral-900 dark:hover:text-neutral-200"
-                >
-                  08-123 45 678
-                </a>
                 <Link
                   to="/privacy-policy"
                   className="block hover:text-neutral-900 dark:hover:text-neutral-200"
