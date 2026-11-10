@@ -6,6 +6,7 @@ import {
   type ActionCtx,
 } from "../_generated/server";
 import {
+  flagsForDisplay,
   lumoParsedProblemWithImagesValidator,
   type LumoParsedProblem,
   type LumoParsedProblemWithImages,
@@ -237,6 +238,9 @@ function attachChunkImages(
     const answerImages = storageIdsForImages(chunk?.answerImages ?? [], byPath);
     return {
       ...problem,
+      // needs_pdf is set from text cues before images attach; drop it once
+      // the figure can be shown inline.
+      flags: flagsForDisplay(problem.flags, questionImages.length),
       ...(questionImages.length > 0 ? { questionImages } : {}),
       ...(answerImages.length > 0 ? { answerImages } : {}),
     };
