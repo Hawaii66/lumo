@@ -304,17 +304,19 @@ function SplitChunkBrowser({
         <div className="flex min-h-0 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={pdfUrl === null}
-                >
-                  <FileText className="size-3.5" />
-                  PDF
-                  <ChevronDown className="size-3.5 opacity-60" />
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={pdfUrl === null}
+                  />
+                }
+              >
+                <FileText className="size-3.5" />
+                PDF
+                <ChevronDown className="size-3.5 opacity-60" aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem
