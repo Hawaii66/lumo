@@ -176,6 +176,7 @@ export const getRunDetail = query({
       mineruCached: v.boolean(),
       pdfUrl: v.union(v.string(), v.null()),
       previewUrl: v.union(v.string(), v.null()),
+      mineruJsonUrl: v.union(v.string(), v.null()),
       committedProblems: v.array(
         v.object({
           _id: v.id("problems"),
@@ -238,12 +239,17 @@ export const getRunDetail = query({
       run.previewStorageId !== undefined
         ? await ctx.storage.getUrl(run.previewStorageId)
         : null;
+    const mineruJsonUrl =
+      mineru !== null
+        ? await ctx.storage.getUrl(mineru.middleJsonStorageId)
+        : null;
 
     return {
       run: toRunSummary(run),
       mineruCached: mineru !== null,
       pdfUrl,
       previewUrl,
+      mineruJsonUrl,
       committedProblems,
       committedProblemCount: committedProblems.length,
       committedInfoText: info?.text ?? null,

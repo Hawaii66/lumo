@@ -38,6 +38,7 @@ import {
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { Switch } from "~/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import type { LumoParsedProblem } from "~/lib/lumo-content"
 import { cn } from "~/lib/utils"
 import { uploadFileToStorage } from "~/lib/upload"
@@ -337,6 +338,8 @@ function LabBody() {
 
   const [preview, setPreview] = useState<PreviewPayload | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+  const [mineruJson, setMineruJson] = useState<string | null>(null)
+  const [mineruJsonLoading, setMineruJsonLoading] = useState(false)
 
   useEffect(() => {
     if (runs !== undefined && runs.length > 0 && selectedRunId === null) {
@@ -377,6 +380,34 @@ function LabBody() {
       cancelled = true
     }
   }, [detail?.previewUrl])
+
+  useEffect(() => {
+    const url = detail?.mineruJsonUrl ?? null
+    if (url === null) {
+      setMineruJson(null)
+      setMineruJsonLoading(false)
+      return
+    }
+    let cancelled = false
+    setMineruJsonLoading(true)
+    void fetch(url)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Kunde inte hämta MinerU JSON")
+        return await res.json()
+      })
+      .then((data) => {
+        if (!cancelled) setMineruJson(JSON.stringify(data, null, 2))
+      })
+      .catch(() => {
+        if (!cancelled) setMineruJson(null)
+      })
+      .finally(() => {
+        if (!cancelled) setMineruJsonLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [detail?.mineruJsonUrl])
 
   async function handleStart() {
     if (file === null) {
@@ -769,39 +800,67 @@ function LabBody() {
                     Förhandsgranskning
                   </CardTitle>
                   <CardDescription>
-                    Senaste parse-resultat (dry-run eller före commit).
+                    Senaste parse-resultat (dry-run eller före commit) och rå
+                    MinerU middle_json.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {previewLoading ? (
-                    <p className="text-sm text-muted-foreground">Hämtar…</p>
-                  ) : preview === null ? (
-                    <p className="text-sm text-muted-foreground">
-                      Ingen förhandsgranskning ännu
-                    </p>
-                  ) : preview.kind === "info" ? (
-                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
-                      {preview.text || "(tom)"}
-                    </pre>
-                  ) : (
-                    <AdminProblemBrowser
-                      problems={preview.problems.map((p) => ({
-                        id: p.problemNumber,
-                        problem: p,
-                      }))}
-                      emptyLabel="Inga uppgifter i förhandsgranskningen"
-                      pdfFileName={detail.run.name}
-                      pdfUrl={detail.pdfUrl}
-                      onViewPdf={(pageNumber) => {
-                        if (detail.pdfUrl === null) return
-                        setViewingPdf({
-                          name: detail.run.name,
-                          url: detail.pdfUrl,
-                          ...(pageNumber !== undefined ? { pageNumber } : {}),
-                        })
-                      }}
-                    />
-                  )}
+                  <Tabs defaultValue="preview">
+                    <TabsList className="mb-3" aria-label="Förhandsgranskning">
+                      <TabsTrigger value="preview">Parse</TabsTrigger>
+                      <TabsTrigger value="mineru">MinerU JSON</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="preview">
+                      {previewLoading ? (
+                        <p className="text-sm text-muted-foreground">
+                          Hämtar…
+                        </p>
+                      ) : preview === null ? (
+                        <p className="text-sm text-muted-foreground">
+                          Ingen förhandsgranskning ännu
+                        </p>
+                      ) : preview.kind === "info" ? (
+                        <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
+                          {preview.text || "(tom)"}
+                        </pre>
+                      ) : (
+                        <AdminProblemBrowser
+                          problems={preview.problems.map((p) => ({
+                            id: p.problemNumber,
+                            problem: p,
+                          }))}
+                          emptyLabel="Inga uppgifter i förhandsgranskningen"
+                          pdfFileName={detail.run.name}
+                          pdfUrl={detail.pdfUrl}
+                          onViewPdf={(pageNumber) => {
+                            if (detail.pdfUrl === null) return
+                            setViewingPdf({
+                              name: detail.run.name,
+                              url: detail.pdfUrl,
+                              ...(pageNumber !== undefined
+                                ? { pageNumber }
+                                : {}),
+                            })
+                          }}
+                        />
+                      )}
+                    </TabsContent>
+                    <TabsContent value="mineru">
+                      {mineruJsonLoading ? (
+                        <p className="text-sm text-muted-foreground">
+                          Hämtar…
+                        </p>
+                      ) : mineruJson === null ? (
+                        <p className="text-sm text-muted-foreground">
+                          Ingen MinerU-cache ännu
+                        </p>
+                      ) : (
+                        <pre className="max-h-[32rem] overflow-auto whitespace-pre rounded-md border border-border bg-muted/30 p-3 font-mono text-xs">
+                          {mineruJson}
+                        </pre>
+                      )}
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
 
