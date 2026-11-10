@@ -24,6 +24,10 @@ export type LumoParsedProblem = {
   question: string
   answer: string
   flags?: Array<ProblemFlag>
+  /** First 0-based PDF page of the question stem (from MinerU parse). */
+  sourceQuestionPageIdx?: number
+  /** First 0-based PDF page of the answer/facit (from MinerU parse). */
+  sourceAnswerPageIdx?: number
 }
 
 function tryParsePasteJson(trimmed: string): unknown | undefined {

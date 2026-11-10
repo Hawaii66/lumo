@@ -8,6 +8,7 @@ import {
 } from "convex/react"
 import {
   ArrowLeft,
+  ChevronDown,
   FileText,
   Loader2,
   RefreshCw,
@@ -28,6 +29,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import { Switch } from "~/components/ui/switch"
@@ -66,7 +73,8 @@ function AdminProblemBrowser({
   emptyLabel: string
   pdfFileName: string
   pdfUrl: string | null
-  onViewPdf: () => void
+  /** Optional 1-based pageNumber jumps into the PDF. */
+  onViewPdf: (pageNumber?: number) => void
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showFacit, setShowFacit] = useState(true)
@@ -88,6 +96,8 @@ function AdminProblemBrowser({
     problems.find((problem) => problem.id === selectedId) ?? null
   const needsPdf =
     selected?.problem.flags?.some((flag) => flag.kind === "needs_pdf") === true
+  const questionPageIdx = selected?.problem.sourceQuestionPageIdx
+  const answerPageIdx = selected?.problem.sourceAnswerPageIdx
 
   if (problems.length === 0) {
     return <p className="text-sm text-muted-foreground">{emptyLabel}</p>
@@ -139,21 +149,53 @@ function AdminProblemBrowser({
           <p className="truncate text-sm text-muted-foreground" title={pdfFileName}>
             {pdfFileName}
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={
-              needsPdf
-                ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
-                : "gap-1.5"
-            }
-            disabled={pdfUrl === null}
-            onClick={onViewPdf}
-          >
-            <FileText className="size-3.5" />
-            Visa original
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={
+                    needsPdf
+                      ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
+                      : "gap-1.5"
+                  }
+                  disabled={pdfUrl === null}
+                />
+              }
+            >
+              <FileText className="size-3.5" />
+              Visa original
+              <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuItem
+                disabled={pdfUrl === null}
+                onClick={() => onViewPdf()}
+              >
+                Öppna
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={pdfUrl === null || questionPageIdx == null}
+                onClick={() => {
+                  if (questionPageIdx == null) return
+                  onViewPdf(questionPageIdx + 1)
+                }}
+              >
+                Öppna fråga
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={pdfUrl === null || answerPageIdx == null}
+                onClick={() => {
+                  if (answerPageIdx == null) return
+                  onViewPdf(answerPageIdx + 1)
+                }}
+              >
+                Öppna svar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {selected === null ? (
           <p className="text-sm text-muted-foreground">
@@ -278,6 +320,8 @@ function LabBody() {
   const [viewingPdf, setViewingPdf] = useState<{
     name: string
     url: string
+    /** 1-based EmbedPDF page; omit to open at the start. */
+    pageNumber?: number
   } | null>(null)
   const [restarting, setRestarting] = useState<FromStage | null>(null)
   const [restartCommit, setRestartCommit] = useState(false)
@@ -747,11 +791,12 @@ function LabBody() {
                       emptyLabel="Inga uppgifter i förhandsgranskningen"
                       pdfFileName={detail.run.name}
                       pdfUrl={detail.pdfUrl}
-                      onViewPdf={() => {
+                      onViewPdf={(pageNumber) => {
                         if (detail.pdfUrl === null) return
                         setViewingPdf({
                           name: detail.run.name,
                           url: detail.pdfUrl,
+                          ...(pageNumber !== undefined ? { pageNumber } : {}),
                         })
                       }}
                     />
@@ -791,16 +836,28 @@ function LabBody() {
                           question: p.problem,
                           answer: p.answer,
                           flags: p.flags,
+                          ...(p.sourceQuestionPageIdx != null
+                            ? {
+                                sourceQuestionPageIdx:
+                                  p.sourceQuestionPageIdx,
+                              }
+                            : {}),
+                          ...(p.sourceAnswerPageIdx != null
+                            ? {
+                                sourceAnswerPageIdx: p.sourceAnswerPageIdx,
+                              }
+                            : {}),
                         },
                       }))}
                       emptyLabel="Inga sparade uppgifter"
                       pdfFileName={detail.run.name}
                       pdfUrl={detail.pdfUrl}
-                      onViewPdf={() => {
+                      onViewPdf={(pageNumber) => {
                         if (detail.pdfUrl === null) return
                         setViewingPdf({
                           name: detail.run.name,
                           url: detail.pdfUrl,
+                          ...(pageNumber !== undefined ? { pageNumber } : {}),
                         })
                       }}
                     />
@@ -823,6 +880,7 @@ function LabBody() {
         }}
         fileName={viewingPdf?.name ?? null}
         url={viewingPdf?.url ?? null}
+        pageNumber={viewingPdf?.pageNumber ?? null}
       />
     </div>
   )

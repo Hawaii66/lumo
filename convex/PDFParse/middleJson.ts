@@ -1,9 +1,24 @@
 import type { MiddleBlock, MiddleContentPart, MiddleJson } from "./mineruSchema";
 
+/** One flattened middle_json text line with its 0-based PDF page. */
+export type MiddleJsonLine = {
+  text: string;
+  pageIdx: number;
+};
+
 export type ProblemChunk = {
   problemNumber: string;
   problemText: string;
   answerText: string;
+  /** First page (0-based) where this problem's stem appears. */
+  sourceQuestionPageIdx?: number;
+  /** First page (0-based) where this problem's answer appears. */
+  sourceAnswerPageIdx?: number;
+};
+
+type SplitProblem = {
+  text: string;
+  sourcePageIdx: number;
 };
 
 /** Classic booklet: "P 1.2" / "P1.2" near the start of a line. */
@@ -190,17 +205,20 @@ export function flattenFullDocument(middleJson: MiddleJson): string {
  * Flatten middle_json pages into ordered plain-text lines, tagged by section.
  * When the PDF has no "problem"/"svar" headers (typical tentor), falls back to
  * the full document as problem lines so exam-style numbering can still split.
+ * Each line keeps its 0-based page index (MinerU page_idx, else array index).
  */
 export function flattenMiddleJson(middleJson: MiddleJson): {
-  problemLines: string[];
-  answerLines: string[];
+  problemLines: MiddleJsonLine[];
+  answerLines: MiddleJsonLine[];
 } {
-  const problemLines: string[] = [];
-  const answerLines: string[] = [];
-  const allLines: string[] = [];
+  const problemLines: MiddleJsonLine[] = [];
+  const answerLines: MiddleJsonLine[] = [];
+  const allLines: MiddleJsonLine[] = [];
   let section: "problem" | "answer" | "unknown" = "unknown";
 
-  for (const page of middleJson.pages) {
+  for (let pageIndex = 0; pageIndex < middleJson.pages.length; pageIndex++) {
+    const page = middleJson.pages[pageIndex]!;
+    const pageIdx = page.page_idx ?? pageIndex;
     for (const block of page.blocks) {
       const text = blockToText(block).replace(/\s+/g, " ").trim();
       if (text.length === 0) {
@@ -216,7 +234,7 @@ export function flattenMiddleJson(middleJson: MiddleJson): {
         }
         // Skip section headers; other titles still go into the exam fallback.
         if (section === "unknown") {
-          allLines.push(text);
+          allLines.push({ text, pageIdx });
         }
         continue;
       }
@@ -225,12 +243,13 @@ export function flattenMiddleJson(middleJson: MiddleJson): {
         continue;
       }
 
-      allLines.push(text);
+      const line = { text, pageIdx };
+      allLines.push(line);
 
       if (section === "problem") {
-        problemLines.push(text);
+        problemLines.push(line);
       } else if (section === "answer") {
-        answerLines.push(text);
+        answerLines.push(line);
       }
     }
   }
@@ -242,13 +261,14 @@ export function flattenMiddleJson(middleJson: MiddleJson): {
   return { problemLines, answerLines };
 }
 
-function splitByProblemNumber(lines: string[]): Map<string, string> {
-  const map = new Map<string, string>();
+function splitByProblemNumber(lines: MiddleJsonLine[]): Map<string, SplitProblem> {
+  const map = new Map<string, SplitProblem>();
   let currentNumber: string | null = null;
   let currentParts: string[] = [];
+  let currentPageIdx: number | null = null;
 
   const flush = () => {
-    if (currentNumber === null) {
+    if (currentNumber === null || currentPageIdx === null) {
       return;
     }
     const text = currentParts.join("\n").trim();
@@ -258,21 +278,27 @@ function splitByProblemNumber(lines: string[]): Map<string, string> {
     const existing = map.get(currentNumber);
     map.set(
       currentNumber,
-      existing === undefined ? text : `${existing}\n${text}`,
+      existing === undefined
+        ? { text, sourcePageIdx: currentPageIdx }
+        : {
+            text: `${existing.text}\n${text}`,
+            sourcePageIdx: existing.sourcePageIdx,
+          },
     );
   };
 
   for (const line of lines) {
-    const number = matchProblemStart(line);
+    const number = matchProblemStart(line.text);
     if (number !== null) {
       flush();
       currentNumber = number;
-      currentParts = [line];
+      currentParts = [line.text];
+      currentPageIdx = line.pageIdx;
       continue;
     }
     // Preamble before the first problem number is ignored.
     if (currentNumber !== null) {
-      currentParts.push(line);
+      currentParts.push(line.text);
     }
   }
   flush();
@@ -283,14 +309,18 @@ function splitByProblemNumber(lines: string[]): Map<string, string> {
 /**
  * Split answer lines by base problem number.
  * PGA labels (2a/2b/2c) group under "2" and are rewritten to (a)/(b)/(c) leads.
+ * Keeps the first page index for each problem number.
  */
-function splitAnswersByProblemNumber(lines: string[]): Map<string, string> {
-  const map = new Map<string, string>();
+function splitAnswersByProblemNumber(
+  lines: MiddleJsonLine[],
+): Map<string, SplitProblem> {
+  const map = new Map<string, SplitProblem>();
   let currentNumber: string | null = null;
   let currentParts: string[] = [];
+  let currentPageIdx: number | null = null;
 
   const flush = () => {
-    if (currentNumber === null) {
+    if (currentNumber === null || currentPageIdx === null) {
       return;
     }
     const text = currentParts.join("\n").trim();
@@ -300,25 +330,31 @@ function splitAnswersByProblemNumber(lines: string[]): Map<string, string> {
     const existing = map.get(currentNumber);
     map.set(
       currentNumber,
-      existing === undefined ? text : `${existing}\n${text}`,
+      existing === undefined
+        ? { text, sourcePageIdx: currentPageIdx }
+        : {
+            text: `${existing.text}\n${text}`,
+            sourcePageIdx: existing.sourcePageIdx,
+          },
     );
   };
 
   for (const line of lines) {
-    const match = matchAnswerStart(line);
+    const match = matchAnswerStart(line.text);
     if (match !== null) {
       flush();
       currentNumber = match.problemNumber;
       currentParts = [
         match.subproblemLetter !== null
-          ? rewritePgaAnswerLine(line, match.subproblemLetter)
-          : line,
+          ? rewritePgaAnswerLine(line.text, match.subproblemLetter)
+          : line.text,
       ];
+      currentPageIdx = line.pageIdx;
       continue;
     }
     // Preamble before the first answer number is ignored.
     if (currentNumber !== null) {
-      currentParts.push(line);
+      currentParts.push(line.text);
     }
   }
   flush();
@@ -420,8 +456,8 @@ export function separateStemAndFacit(
  * Worked-solution narrative mixed into a chunk is stripped via separateStemAndFacit.
  */
 export function splitIntoProblemChunks(
-  problemLines: string[],
-  answerLines: string[],
+  problemLines: MiddleJsonLine[],
+  answerLines: MiddleJsonLine[],
 ): ProblemChunk[] {
   const problems = splitByProblemNumber(problemLines);
   const answers = splitAnswersByProblemNumber(answerLines);
@@ -429,14 +465,22 @@ export function splitIntoProblemChunks(
   const numbers = [...problems.keys()].sort(compareProblemNumbers);
 
   return numbers.map((problemNumber) => {
+    const problem = problems.get(problemNumber);
+    const answer = answers.get(problemNumber);
     const separated = separateStemAndFacit(
-      problems.get(problemNumber) ?? "",
-      answers.get(problemNumber) ?? "",
+      problem?.text ?? "",
+      answer?.text ?? "",
     );
     return {
       problemNumber,
       problemText: separated.problemText,
       answerText: separated.answerText,
+      ...(problem !== undefined
+        ? { sourceQuestionPageIdx: problem.sourcePageIdx }
+        : {}),
+      ...(answer !== undefined
+        ? { sourceAnswerPageIdx: answer.sourcePageIdx }
+        : {}),
     };
   });
 }

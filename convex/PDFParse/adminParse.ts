@@ -183,6 +183,8 @@ export const getRunDetail = query({
           problem: v.string(),
           answer: v.string(),
           flags: v.array(problemFlagValidator),
+          sourceQuestionPageIdx: v.union(v.number(), v.null()),
+          sourceAnswerPageIdx: v.union(v.number(), v.null()),
         }),
       ),
       committedProblemCount: v.number(),
@@ -220,6 +222,8 @@ export const getRunDetail = query({
         problem: row.problem,
         answer: row.answer,
         flags: row.flags ?? [],
+        sourceQuestionPageIdx: row.sourceQuestionPageIdx ?? null,
+        sourceAnswerPageIdx: row.sourceAnswerPageIdx ?? null,
       }));
 
     const info = await ctx.db

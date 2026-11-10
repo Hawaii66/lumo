@@ -215,6 +215,10 @@ export default defineSchema({
      * and on shadow twins → treat as [].
      */
     flags: v.optional(v.array(problemFlagValidator)),
+    /** First 0-based PDF page of the question stem (from MinerU). */
+    sourceQuestionPageIdx: v.optional(v.number()),
+    /** First 0-based PDF page of the answer/facit (from MinerU). */
+    sourceAnswerPageIdx: v.optional(v.number()),
   })
     .index("by_contentHash", ["contentHash"])
     .index("by_room_and_parent", ["roomId", "parentProblemId"])

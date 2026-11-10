@@ -66,6 +66,12 @@ async function commitPreview(
         problem: p.question,
         answer: p.answer,
         flags: p.flags,
+        ...(p.sourceQuestionPageIdx !== undefined
+          ? { sourceQuestionPageIdx: p.sourceQuestionPageIdx }
+          : {}),
+        ...(p.sourceAnswerPageIdx !== undefined
+          ? { sourceAnswerPageIdx: p.sourceAnswerPageIdx }
+          : {}),
       })),
     });
     return payload.problems.length;

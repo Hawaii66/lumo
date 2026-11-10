@@ -84,6 +84,8 @@ function RoomPage() {
   const [viewingPdf, setViewingPdf] = useState<{
     name: string
     url: string
+    /** 1-based EmbedPDF page; omit to open at the start. */
+    pageNumber?: number
   } | null>(null)
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
@@ -556,29 +558,90 @@ function RoomPage() {
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
                   {selectedProblem.fileId !== null ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className={
-                        selectedProblem.problem.flags?.some(
-                          (flag) => flag.kind === "needs_pdf",
-                        )
-                          ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
-                          : "gap-1.5"
-                      }
-                      disabled={selectedProblemFileUrl === null}
-                      onClick={() => {
-                        if (selectedProblemFileUrl === null) return
-                        setViewingPdf({
-                          name: selectedProblem.fileName,
-                          url: selectedProblemFileUrl,
-                        })
-                      }}
-                    >
-                      <FileText className="size-3.5" />
-                      Visa original
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className={
+                              selectedProblem.problem.flags?.some(
+                                (flag) => flag.kind === "needs_pdf",
+                              )
+                                ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
+                                : "gap-1.5"
+                            }
+                            disabled={selectedProblemFileUrl === null}
+                          />
+                        }
+                      >
+                        <FileText className="size-3.5" />
+                        Visa original
+                        <ChevronDown
+                          className="size-3.5 opacity-60"
+                          aria-hidden
+                        />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-48">
+                        <DropdownMenuItem
+                          disabled={selectedProblemFileUrl === null}
+                          onClick={() => {
+                            if (selectedProblemFileUrl === null) return
+                            setViewingPdf({
+                              name: selectedProblem.fileName,
+                              url: selectedProblemFileUrl,
+                            })
+                          }}
+                        >
+                          Öppna
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={
+                            selectedProblemFileUrl === null ||
+                            selectedProblem.sourceQuestionPageIdx == null
+                          }
+                          onClick={() => {
+                            if (
+                              selectedProblemFileUrl === null ||
+                              selectedProblem.sourceQuestionPageIdx == null
+                            ) {
+                              return
+                            }
+                            setViewingPdf({
+                              name: selectedProblem.fileName,
+                              url: selectedProblemFileUrl,
+                              pageNumber:
+                                selectedProblem.sourceQuestionPageIdx + 1,
+                            })
+                          }}
+                        >
+                          Öppna fråga
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={
+                            selectedProblemFileUrl === null ||
+                            selectedProblem.sourceAnswerPageIdx == null
+                          }
+                          onClick={() => {
+                            if (
+                              selectedProblemFileUrl === null ||
+                              selectedProblem.sourceAnswerPageIdx == null
+                            ) {
+                              return
+                            }
+                            setViewingPdf({
+                              name: selectedProblem.fileName,
+                              url: selectedProblemFileUrl,
+                              pageNumber:
+                                selectedProblem.sourceAnswerPageIdx + 1,
+                            })
+                          }}
+                        >
+                          Öppna svar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   ) : null}
                   {!selectedProblem.isShadow ? (
                     subproblemLetters.length === 0 ? (
@@ -770,6 +833,7 @@ function RoomPage() {
         }}
         fileName={viewingPdf?.name ?? null}
         url={viewingPdf?.url ?? null}
+        pageNumber={viewingPdf?.pageNumber ?? null}
       />
     </TooltipProvider>
   )

@@ -115,6 +115,12 @@ async function saveParsedProblems(
       problem: p.question,
       answer: p.answer,
       flags: p.flags,
+      ...(p.sourceQuestionPageIdx !== undefined
+        ? { sourceQuestionPageIdx: p.sourceQuestionPageIdx }
+        : {}),
+      ...(p.sourceAnswerPageIdx !== undefined
+        ? { sourceAnswerPageIdx: p.sourceAnswerPageIdx }
+        : {}),
     })),
   });
 }
@@ -158,7 +164,15 @@ async function convertChunksToProblems(
         );
         completed += 1;
         reportProgress(completed, true);
-        return problem;
+        return {
+          ...problem,
+          ...(chunk.sourceQuestionPageIdx !== undefined
+            ? { sourceQuestionPageIdx: chunk.sourceQuestionPageIdx }
+            : {}),
+          ...(chunk.sourceAnswerPageIdx !== undefined
+            ? { sourceAnswerPageIdx: chunk.sourceAnswerPageIdx }
+            : {}),
+        };
       },
     );
     return results;
