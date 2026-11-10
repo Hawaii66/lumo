@@ -5,7 +5,7 @@ import {
   Unauthenticated,
   useQuery,
 } from "convex/react"
-import { CreditCard, Gauge, Shield, User } from "lucide-react"
+import { CreditCard, FileSearch, Gauge, Shield, User } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import { DashboardThemeShell } from "~/components/dashboard/dashboard-theme-shell"
@@ -16,8 +16,10 @@ import { CreditsCard } from "~/components/profile/credits-card"
 import { DailySpendCard } from "~/components/profile/daily-spend"
 import { ProblemListModeCard } from "~/components/profile/problem-list-mode-card"
 import { RolesAdminCard } from "~/components/profile/roles-admin-card"
+import { Button } from "~/components/ui/button"
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -227,6 +229,25 @@ function ProfilePage() {
 
             {isAdmin === true ? (
               <TabsContent value="admin" className="mt-6 space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileSearch className="size-5" />
+                      PDF-tolkning
+                    </CardTitle>
+                    <CardDescription>
+                      Ladda upp PDF:er, följ MinerU/AI-status och testa
+                      tolkning utan att spara till databasen.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      render={<Link to="/admin/pdf-parse" />}
+                    >
+                      Öppna labb
+                    </Button>
+                  </CardContent>
+                </Card>
                 <RolesAdminCard />
                 <CreditConfigAdminCard />
                 <CreditDealsAdminCard />

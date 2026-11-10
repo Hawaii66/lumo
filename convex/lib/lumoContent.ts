@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { z } from "zod";
+import type { Id } from "../_generated/dataModel";
 
 /** Chat assistant envelope: markdown body + optional quick-reply sidecar. */
 export const chatQuickReplyChoiceSchema = z.object({
@@ -26,17 +27,19 @@ export const chatReplySchema = z.object({
 export type ChatReply = z.infer<typeof chatReplySchema>;
 export type ChatQuickReplyChoice = z.infer<typeof chatQuickReplyChoiceSchema>;
 
-/** Per-kind flag payloads (empty for now; widen per variant later). */
-export const problemFlagSchema = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("needs_pdf"),
-    data: z.object({}),
-  }),
-  z.object({
-    kind: z.literal("missing_answer"),
-    data: z.object({}),
-  }),
-]);
+/**
+ * Flat flag object (not discriminatedUnion) so Azure structured output
+ * accepts the JSON Schema — Azure rejects `oneOf` on array items.
+ * data is always {}; widen later if a kind needs payload fields.
+ */
+export const problemFlagSchema = z.object({
+  kind: z
+    .enum(["needs_pdf", "missing_answer"])
+    .describe(
+      "needs_pdf om frågan kräver figur/graf/tabell i PDF; missing_answer om facit saknas",
+    ),
+  data: z.object({}).describe("Alltid tomt objekt {}"),
+});
 
 export type ProblemFlag = z.infer<typeof problemFlagSchema>;
 
@@ -67,11 +70,11 @@ export const lumoParsedProblemSchema = z.object({
     .describe(
       "Svaret i markdown med $ / $$; spegla ### (a)/(b); tom sträng om saknas",
     ),
+  // Required (use []) — Azure structured output demands every properties key in required.
   flags: z
     .array(problemFlagSchema)
-    .optional()
     .describe(
-      "Valfria flaggor. needs_pdf om frågan kräver figur/graf/tabell/diagram/bild i PDF (även när det bara syns av frågans innehåll). missing_answer om facit saknas. data är alltid {}.",
+      "Alltid en array (tom [] om inget). needs_pdf om frågan kräver figur/graf/tabell/diagram/bild i PDF; missing_answer om facit saknas. data är alltid {}.",
     ),
 });
 
@@ -80,6 +83,10 @@ export type LumoParsedProblem = {
   question: string;
   answer: string;
   flags: Array<ProblemFlag>;
+  /** First 0-based PDF page of the question stem (from MinerU parse). */
+  sourceQuestionPageIdx?: number;
+  /** First 0-based PDF page of the answer/facit (from MinerU parse). */
+  sourceAnswerPageIdx?: number;
 };
 
 export const lumoParsedProblemValidator = v.object({
@@ -87,7 +94,53 @@ export const lumoParsedProblemValidator = v.object({
   question: v.string(),
   answer: v.string(),
   flags: v.array(problemFlagValidator),
+  sourceQuestionPageIdx: v.optional(v.number()),
+  sourceAnswerPageIdx: v.optional(v.number()),
 });
+
+/** Stored MinerU crop on a problem row. */
+export const problemImageStorageValidator = v.object({
+  storageId: v.id("_storage"),
+  /** `""` / missing = shared stem; `a`–`z` = deluppgift. */
+  subproblemLetter: v.optional(v.string()),
+});
+
+/** Resolved image URL for clients / admin preview. */
+export const problemImageUrlValidator = v.object({
+  url: v.string(),
+  subproblemLetter: v.optional(v.string()),
+});
+
+/**
+ * Parsed problem plus optional MinerU image storage refs (not part of LLM output).
+ */
+export type LumoParsedProblemWithImages = LumoParsedProblem & {
+  questionImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+  answerImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+};
+
+export const lumoParsedProblemWithImagesValidator =
+  lumoParsedProblemValidator.extend({
+    questionImages: v.optional(v.array(problemImageStorageValidator)),
+    answerImages: v.optional(v.array(problemImageStorageValidator)),
+  });
+
+/** Drop needs_pdf when question images are already attached. */
+export function flagsForDisplay(
+  flags: Array<ProblemFlag>,
+  questionImageCount: number,
+): Array<ProblemFlag> {
+  if (questionImageCount <= 0) {
+    return flags;
+  }
+  return flags.filter((flag) => flag.kind !== "needs_pdf");
+}
 
 /** Twin step 1: new question only (facit comes from a separate solve call). */
 export const lumoTwinVariantSchema = z.object({
@@ -190,7 +243,7 @@ export function normalizeLumoParsedProblem(
     problemNumber: string;
     question: string;
     answer: string;
-    flags?: Array<ProblemFlag>;
+    flags: Array<ProblemFlag>;
   },
   fallbackQuestionText: string,
   rawAnswerText = "",

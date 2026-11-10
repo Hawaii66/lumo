@@ -1,9 +1,13 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import {
+  flagsForDisplay,
   lumoParsedProblemValidator,
   problemFlagValidator,
+  problemImageStorageValidator,
+  problemImageUrlValidator,
   type LumoParsedProblem,
+  type ProblemFlag,
 } from "../lib/lumoContent";
 import {
   fileForParsedProblem,
@@ -152,6 +156,15 @@ const problemRowValidator = v.object({
   problem: v.string(),
   answer: v.string(),
   flags: v.optional(v.array(problemFlagValidator)),
+  sourceQuestionPageIdx: v.optional(v.number()),
+  sourceAnswerPageIdx: v.optional(v.number()),
+  questionImages: v.optional(v.array(problemImageStorageValidator)),
+  answerImages: v.optional(v.array(problemImageStorageValidator)),
+});
+
+const problemWithUrlsValidator = lumoParsedProblemValidator.extend({
+  questionImages: v.optional(v.array(problemImageUrlValidator)),
+  answerImages: v.optional(v.array(problemImageUrlValidator)),
 });
 
 const shadowListItemValidator = v.object({
@@ -609,8 +622,33 @@ const roomProblemResultValidator = v.object({
   isShadow: v.boolean(),
   parentProblemId: v.union(v.id("problems"), v.null()),
   parentProblemNumber: v.union(v.string(), v.null()),
-  problem: lumoParsedProblemValidator,
+  sourceQuestionPageIdx: v.union(v.number(), v.null()),
+  sourceAnswerPageIdx: v.union(v.number(), v.null()),
+  problem: problemWithUrlsValidator,
 });
+
+async function resolveImageUrls(
+  ctx: QueryCtx,
+  images:
+    | Array<{ storageId: Id<"_storage">; subproblemLetter?: string }>
+    | undefined,
+): Promise<Array<{ url: string; subproblemLetter?: string }>> {
+  if (images === undefined || images.length === 0) {
+    return [];
+  }
+  const urls: Array<{ url: string; subproblemLetter?: string }> = [];
+  for (const image of images) {
+    const url = await ctx.storage.getUrl(image.storageId);
+    if (url !== null) {
+      const letter = (image.subproblemLetter ?? "").trim().toLowerCase();
+      urls.push({
+        url,
+        ...(letter.length > 0 ? { subproblemLetter: letter } : {}),
+      });
+    }
+  }
+  return urls;
+}
 
 async function resolveRoomProblem(
   ctx: QueryCtx,
@@ -626,7 +664,12 @@ async function resolveRoomProblem(
   isShadow: boolean;
   parentProblemId: Id<"problems"> | null;
   parentProblemNumber: string | null;
-  problem: LumoParsedProblem;
+  sourceQuestionPageIdx: number | null;
+  sourceAnswerPageIdx: number | null;
+  problem: LumoParsedProblem & {
+    questionImages?: Array<{ url: string; subproblemLetter?: string }>;
+    answerImages?: Array<{ url: string; subproblemLetter?: string }>;
+  };
 } | null> {
   if (
     !(await isVisibleInRoom(
@@ -667,6 +710,13 @@ async function resolveRoomProblem(
     fileUrl = await ctx.storage.getUrl(file.storageId);
   }
 
+  const questionImages = await resolveImageUrls(ctx, row.questionImages);
+  const answerImages = await resolveImageUrls(ctx, row.answerImages);
+  const flags = flagsForDisplay(
+    (row.flags ?? []) as Array<ProblemFlag>,
+    questionImages.length,
+  );
+
   return {
     id: row._id,
     fileId,
@@ -675,12 +725,18 @@ async function resolveRoomProblem(
     isShadow: shadow,
     parentProblemId: row.parentProblemId ?? null,
     parentProblemNumber,
+    sourceQuestionPageIdx: shadow
+      ? null
+      : (row.sourceQuestionPageIdx ?? null),
+    sourceAnswerPageIdx: shadow ? null : (row.sourceAnswerPageIdx ?? null),
     problem: {
       problemNumber: row.problemNumber,
       question: row.problem,
       answer: row.answer,
-      flags: row.flags ?? [],
-    } satisfies LumoParsedProblem,
+      flags,
+      ...(questionImages.length > 0 ? { questionImages } : {}),
+      ...(answerImages.length > 0 ? { answerImages } : {}),
+    },
   };
 }
 
@@ -1006,6 +1062,20 @@ export const replaceForContentHash = internalMutation({
         answer: problem.answer,
         ...(problem.flags !== undefined && problem.flags.length > 0
           ? { flags: problem.flags }
+          : {}),
+        ...(problem.sourceQuestionPageIdx !== undefined
+          ? { sourceQuestionPageIdx: problem.sourceQuestionPageIdx }
+          : {}),
+        ...(problem.sourceAnswerPageIdx !== undefined
+          ? { sourceAnswerPageIdx: problem.sourceAnswerPageIdx }
+          : {}),
+        ...(problem.questionImages !== undefined &&
+        problem.questionImages.length > 0
+          ? { questionImages: problem.questionImages }
+          : {}),
+        ...(problem.answerImages !== undefined &&
+        problem.answerImages.length > 0
+          ? { answerImages: problem.answerImages }
           : {}),
       });
     }

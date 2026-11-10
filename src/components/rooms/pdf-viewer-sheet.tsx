@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { PDFViewer } from "@embedpdf/react-pdf-viewer"
+import { useEffect, useRef, useState } from "react"
+import { PDFViewer, type PluginRegistry } from "@embedpdf/react-pdf-viewer"
 import {
   Sheet,
   SheetContent,
@@ -13,6 +13,8 @@ type PdfViewerSheetProps = {
   onOpenChange: (open: boolean) => void
   fileName: string | null
   url: string | null
+  /** 1-based page to jump to on load; omit/null opens at the start. */
+  pageNumber?: number | null
 }
 
 export function PdfViewerSheet({
@@ -20,12 +22,46 @@ export function PdfViewerSheet({
   onOpenChange,
   fileName,
   url,
+  pageNumber = null,
 }: PdfViewerSheetProps) {
   const [mounted, setMounted] = useState(false)
+  const unsubscribeRef = useRef<(() => void) | undefined>(undefined)
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    return () => {
+      unsubscribeRef.current?.()
+      unsubscribeRef.current = undefined
+    }
+  }, [url, pageNumber])
+
+  const handleReady = (registry: PluginRegistry) => {
+    unsubscribeRef.current?.()
+    unsubscribeRef.current = undefined
+
+    if (pageNumber == null || pageNumber < 1) {
+      return
+    }
+
+    const scrollPlugin = registry.getPlugin("scroll")
+    const scroll = scrollPlugin?.provides?.()
+    if (scroll == null) {
+      return
+    }
+
+    unsubscribeRef.current = scroll.onLayoutReady(
+      (event: { isInitial: boolean }) => {
+        if (!event.isInitial) return
+        scroll.scrollToPage({
+          pageNumber,
+          behavior: "instant",
+        })
+      },
+    )
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -51,7 +87,8 @@ export function PdfViewerSheet({
             </div>
           ) : (
             <PDFViewer
-              key={url}
+              key={`${url}:${pageNumber ?? "start"}`}
+              onReady={handleReady}
               config={{
                 src: url,
                 theme: { preference: "light" },

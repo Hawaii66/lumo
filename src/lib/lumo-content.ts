@@ -1,16 +1,13 @@
 import { z } from "zod"
 
-/** Per-kind flag payloads (empty for now; widen per variant later). */
-export const problemFlagSchema = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("needs_pdf"),
-    data: z.object({}),
-  }),
-  z.object({
-    kind: z.literal("missing_answer"),
-    data: z.object({}),
-  }),
-])
+/**
+ * Flat flag object (not discriminatedUnion) so Azure structured output
+ * accepts the JSON Schema — Azure rejects `oneOf` on array items.
+ */
+export const problemFlagSchema = z.object({
+  kind: z.enum(["needs_pdf", "missing_answer"]),
+  data: z.object({}),
+})
 
 export type ProblemFlag = z.infer<typeof problemFlagSchema>
 
@@ -19,14 +16,26 @@ const lumoParsedProblemSchema = z.object({
   problemNumber: z.string().min(1),
   question: z.string(),
   answer: z.string(),
-  flags: z.array(problemFlagSchema).optional(),
+  flags: z.array(problemFlagSchema).default([]),
 })
+
+export type ProblemImage = {
+  url: string
+  /** `""` / missing = shared stem; `a`–`z` = deluppgift. */
+  subproblemLetter?: string
+}
 
 export type LumoParsedProblem = {
   problemNumber: string
   question: string
   answer: string
   flags?: Array<ProblemFlag>
+  /** First 0-based PDF page of the question stem (from MinerU parse). */
+  sourceQuestionPageIdx?: number
+  /** First 0-based PDF page of the answer/facit (from MinerU parse). */
+  sourceAnswerPageIdx?: number
+  questionImages?: Array<ProblemImage>
+  answerImages?: Array<ProblemImage>
 }
 
 function tryParsePasteJson(trimmed: string): unknown | undefined {
