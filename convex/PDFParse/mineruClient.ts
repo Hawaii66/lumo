@@ -14,6 +14,14 @@ const POLL_MAX_ATTEMPTS = 80;
 
 const MIDDLE_JSON_ENTRY = "middle_json.json";
 
+const IMAGE_EXT_RE = /\.(?:jpe?g|png|gif|webp|bmp)$/i;
+
+export type MineruZipResult = {
+  middleJson: MiddleJson;
+  /** Relative paths as referenced in middle_json (`images/…`) → bytes. */
+  images: Map<string, Uint8Array>;
+};
+
 async function sleep(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -39,20 +47,79 @@ function resolveMinerUUrl(pathOrUrl: string): string {
   return `${MINERU_BASE_URL}/${pathOrUrl}`;
 }
 
-/** Extract one named entry from a MinerU result ZIP. */
-function readZipEntry(zipBytes: ArrayBuffer, entryName: string): Uint8Array {
+/** Normalize ZIP / middle_json image paths to `images/…` without a leading slash. */
+export function normalizeMineruImagePath(path: string): string {
+  const cleaned = path.replace(/\\/g, "/").replace(/^\/+/, "");
+  const idx = cleaned.indexOf("images/");
+  if (idx >= 0) {
+    return cleaned.slice(idx);
+  }
+  return cleaned.startsWith("images/") ? cleaned : `images/${cleaned}`;
+}
+
+function mimeFromImagePath(path: string): string {
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".bmp")) return "image/bmp";
+  return "image/jpeg";
+}
+
+export function blobFromMineruImage(
+  path: string,
+  bytes: Uint8Array,
+): Blob {
+  // Copy into a plain ArrayBuffer — Blob rejects SharedArrayBuffer views.
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return new Blob([copy], { type: mimeFromImagePath(path) });
+}
+
+/** Unpack middle_json + image files from a MinerU result ZIP. */
+function parseMineruZip(zipBytes: ArrayBuffer): MineruZipResult {
   const files = unzipSync(new Uint8Array(zipBytes));
-  const exact = files[entryName];
-  if (exact !== undefined) {
-    return exact;
+
+  let middleEntry: Uint8Array | undefined;
+  const images = new Map<string, Uint8Array>();
+
+  for (const [name, data] of Object.entries(files)) {
+    const normalized = name.replace(/\\/g, "/");
+    if (
+      normalized === MIDDLE_JSON_ENTRY ||
+      normalized.endsWith(`/${MIDDLE_JSON_ENTRY}`)
+    ) {
+      middleEntry = data;
+      continue;
+    }
+
+    const imagesIdx = normalized.indexOf("images/");
+    if (imagesIdx < 0) {
+      continue;
+    }
+    const path = normalized.slice(imagesIdx);
+    if (path.endsWith("/") || !IMAGE_EXT_RE.test(path)) {
+      continue;
+    }
+    images.set(normalizeMineruImagePath(path), data);
   }
-  const nested = Object.entries(files).find(
-    ([name]) => name === entryName || name.endsWith(`/${entryName}`),
+
+  if (middleEntry === undefined) {
+    throw new Error(`MinerU-ZIP saknar ${MIDDLE_JSON_ENTRY}`);
+  }
+
+  const parsed = middleJsonSchema.safeParse(
+    JSON.parse(new TextDecoder().decode(middleEntry)),
   );
-  if (nested !== undefined) {
-    return nested[1];
+  if (!parsed.success) {
+    throw new Error(
+      `Ogiltig MinerU middle_json: ${parsed.error.issues
+        .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+        .join("; ")}`,
+    );
   }
-  throw new Error(`MinerU-ZIP saknar ${entryName}`);
+
+  return { middleJson: parsed.data, images };
 }
 
 async function createTask(
@@ -136,36 +203,24 @@ async function pollTask(taskId: string): Promise<MineruTaskDetail> {
   throw new Error("MinerU-jobb timeout");
 }
 
-async function downloadMiddleJson(resultUrl: string): Promise<MiddleJson> {
+async function downloadMineruZip(resultUrl: string): Promise<MineruZipResult> {
   const res = await fetch(resolveMinerUUrl(resultUrl));
   if (!res.ok) {
     throw new Error(
       `MinerU result-download misslyckades: ${res.status} ${await res.text()}`,
     );
   }
-
-  const entry = readZipEntry(await res.arrayBuffer(), MIDDLE_JSON_ENTRY);
-  const parsed = middleJsonSchema.safeParse(
-    JSON.parse(new TextDecoder().decode(entry)),
-  );
-  if (!parsed.success) {
-    throw new Error(
-      `Ogiltig MinerU middle_json: ${parsed.error.issues
-        .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
-        .join("; ")}`,
-    );
-  }
-  return parsed.data;
+  return parseMineruZip(await res.arrayBuffer());
 }
 
 /**
  * Upload a PDF to MinerU Tasks API (4.1+), wait for completion, and return
- * validated middle_json from the default result ZIP.
+ * validated middle_json plus cropped images from the default result ZIP.
  */
-export async function fetchMineruMiddleJson(
+export async function fetchMineruZipResult(
   pdf: Blob,
   filename = "document.pdf",
-): Promise<MiddleJson> {
+): Promise<MineruZipResult> {
   const { taskId, uploadUrl, uploadHeaders } = await createTask(
     filename,
     pdf.size,
@@ -183,5 +238,14 @@ export async function fetchMineruMiddleJson(
     throw new Error(`MinerU-filfel: ${JSON.stringify(file.error)}`);
   }
 
-  return await downloadMiddleJson(file.result_url);
+  return await downloadMineruZip(file.result_url);
+}
+
+/** @deprecated Prefer fetchMineruZipResult — kept for call-site clarity. */
+export async function fetchMineruMiddleJson(
+  pdf: Blob,
+  filename = "document.pdf",
+): Promise<MiddleJson> {
+  const result = await fetchMineruZipResult(pdf, filename);
+  return result.middleJson;
 }

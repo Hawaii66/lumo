@@ -8,7 +8,7 @@ import {
   Trash2,
   Upload,
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import {
   fileExtension,
@@ -39,6 +39,10 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
+import {
+  detectJoinGroups,
+  type JoinGroupSuggestion,
+} from "~/lib/suggestJoinGroups"
 import { uploadFileToStorage } from "~/lib/upload"
 
 type FilesPanelProps = {
@@ -327,6 +331,51 @@ function MergeSuggestionsBanner({ roomId }: { roomId: Id<"rooms"> }) {
   )
 }
 
+function JoinPatternSuggestionsBanner({
+  suggestions,
+  onSuggest,
+}: {
+  suggestions: JoinGroupSuggestion[]
+  onSuggest: (suggestion: JoinGroupSuggestion) => void
+}) {
+  if (suggestions.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-border bg-muted/30 p-3">
+      <p className="text-sm font-medium">Möjliga sammanslagningar</p>
+      <p className="text-sm text-muted-foreground">
+        Dessa PDF:er ser ut att höra ihop utifrån filnamnen. Du kan öppna
+        sammanslagningen med dem förvalda.
+      </p>
+      <ul className="flex flex-col gap-2">
+        {suggestions.map((suggestion) => (
+          <li
+            key={suggestion.key}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-sm">{suggestion.fileNames.join(" → ")}</p>
+              <p className="text-xs text-muted-foreground">
+                {suggestion.label} · {suggestion.reason}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                onSuggest(suggestion)
+              }}
+            >
+              Slå ihop
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function ExtractSuggestionsBanner({ roomId }: { roomId: Id<"rooms"> }) {
   const suggestions = useQuery(api.pdfExtracts.listSuggestionsForRoom, {
     roomId,
@@ -415,6 +464,12 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
   )
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [mergeOpen, setMergeOpen] = useState(false)
+  const [mergeSeedKey, setMergeSeedKey] = useState(0)
+  const [mergeSeed, setMergeSeed] = useState<{
+    orderedIds: Id<"files">[]
+    nameBase: string
+  } | null>(null)
 
   async function confirmDelete() {
     if (pendingDelete === null) return
@@ -433,11 +488,38 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
     }
   }
 
+  const pdfFiles = useMemo(
+    () => (files === undefined ? [] : files.filter((file) => isPdfFile(file.name))),
+    [files],
+  )
+
+  const joinSuggestions = useMemo(
+    () =>
+      detectJoinGroups(
+        pdfFiles.map((file) => ({ id: file._id, name: file.name })),
+      ),
+    [pdfFiles],
+  )
+
+  function handleMergeOpenChange(next: boolean) {
+    setMergeOpen(next)
+    if (!next) {
+      setMergeSeed(null)
+    }
+  }
+
+  function openMergeFromSuggestion(suggestion: JoinGroupSuggestion) {
+    setMergeSeed({
+      orderedIds: suggestion.fileIds as Id<"files">[],
+      nameBase: suggestion.nameBase,
+    })
+    setMergeSeedKey((key) => key + 1)
+    setMergeOpen(true)
+  }
+
   if (files === undefined) {
     return <p className="text-sm text-muted-foreground">Hämtar filer…</p>
   }
-
-  const pdfFiles = files.filter((file) => isPdfFile(file.name))
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
@@ -454,7 +536,15 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
           <UploadButton roomId={roomId} />
           <PhoneUploadDialog roomId={roomId} />
           <ExtractPdfPagesDialog roomId={roomId} pdfs={pdfFiles} />
-          <MergePdfsDialog roomId={roomId} pdfs={pdfFiles} />
+          <MergePdfsDialog
+            roomId={roomId}
+            pdfs={pdfFiles}
+            open={mergeOpen}
+            onOpenChange={handleMergeOpenChange}
+            initialOrderedIds={mergeSeed?.orderedIds}
+            initialNameBase={mergeSeed?.nameBase}
+            seedKey={mergeSeedKey}
+          />
         </div>
       </div>
 
@@ -584,6 +674,11 @@ export function FilesGrid({ roomId }: FilesPanelProps) {
           })}
         </ul>
       ) : null}
+
+      <JoinPatternSuggestionsBanner
+        suggestions={joinSuggestions}
+        onSuggest={openMergeFromSuggestion}
+      />
 
       <Dialog
         open={pendingDelete !== null}

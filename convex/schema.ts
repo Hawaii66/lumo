@@ -5,6 +5,7 @@ import {
   chargeSourceValidator,
   chatDeletionExpiryValidator,
   chatModeValidator,
+  problemFlagValidator,
 } from "./lib/lumoContent";
 
 export default defineSchema({
@@ -31,6 +32,13 @@ export default defineSchema({
         v.literal("ocean"),
         v.literal("rose"),
       ),
+    ),
+    /**
+     * Room sidebar problem list layout. Missing → treat as "list".
+     * "list" = PDF → problems; "tree" = PDF → major chapters → problems.
+     */
+    problemListMode: v.optional(
+      v.union(v.literal("list"), v.literal("tree")),
     ),
   })
     .index("email", ["email"])
@@ -179,6 +187,18 @@ export default defineSchema({
   mineruCache: defineTable({
     contentHash: v.string(),
     middleJsonStorageId: v.id("_storage"),
+    /**
+     * Cropped figure/table/chart assets from the MinerU ZIP (`images/…`).
+     * Missing on older cache rows → treat as [].
+     */
+    imageAssets: v.optional(
+      v.array(
+        v.object({
+          path: v.string(),
+          storageId: v.id("_storage"),
+        }),
+      ),
+    ),
   }).index("by_contentHash", ["contentHash"]),
   /**
    * Single-flight lock so concurrent parse jobs for the same PDF
@@ -202,6 +222,41 @@ export default defineSchema({
     problem: v.string(),
     /** Answer/facit as markdown with $ / $$ (empty when missing). */
     answer: v.string(),
+    /**
+     * Parse-time notices (needs_pdf / missing_answer). Missing on older rows
+     * and on shadow twins → treat as [].
+     */
+    flags: v.optional(v.array(problemFlagValidator)),
+    /** First 0-based PDF page of the question stem (from MinerU). */
+    sourceQuestionPageIdx: v.optional(v.number()),
+    /** First 0-based PDF page of the answer/facit (from MinerU). */
+    sourceAnswerPageIdx: v.optional(v.number()),
+    /**
+     * MinerU-cropped figures attached to the question.
+     * `subproblemLetter` is `""`/missing for shared stem, otherwise `a`–`z`.
+     * Missing on older rows / shadows → treat as [].
+     */
+    questionImages: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          subproblemLetter: v.optional(v.string()),
+        }),
+      ),
+    ),
+    /**
+     * MinerU-cropped figures attached to the facit/answer.
+     * `subproblemLetter` is `""`/missing for shared stem, otherwise `a`–`z`.
+     * Missing on older rows / shadows → treat as [].
+     */
+    answerImages: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          subproblemLetter: v.optional(v.string()),
+        }),
+      ),
+    ),
   })
     .index("by_contentHash", ["contentHash"])
     .index("by_room_and_parent", ["roomId", "parentProblemId"])
@@ -246,6 +301,17 @@ export default defineSchema({
       "problemNumber",
       "subproblemLetter",
     ]),
+  /**
+   * Room-scoped archive of a PDF's parsed problems (by contentHash).
+   * Global `problems` rows stay; the room's list moves the PDF to Archived
+   * until unarchived. Not copied into templates or clones.
+   */
+  problemsArchivedByRoom: defineTable({
+    roomId: v.id("rooms"),
+    contentHash: v.string(),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_contentHash", ["roomId", "contentHash"]),
   /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.
@@ -295,6 +361,52 @@ export default defineSchema({
     .index("by_contentHash", ["contentHash"])
     .index("by_file_and_kind", ["fileId", "kind"])
     .index("by_room", ["roomId"]),
+  /**
+   * Admin-only roomless PDF parse sandbox for prompt/iteration testing.
+   * Preview JSON lives in storage; commitToDb controls writing problems/pdfInfo.
+   */
+  pdfAdminRuns: defineTable({
+    name: v.string(),
+    storageId: v.id("_storage"),
+    contentHash: v.string(),
+    createdBy: v.id("users"),
+    kind: v.union(v.literal("problems"), v.literal("info")),
+    commitToDb: v.boolean(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("running"),
+      v.literal("done"),
+      v.literal("failed"),
+    ),
+    /** Current / last attempted pipeline stage. */
+    stage: v.union(
+      v.literal("queued"),
+      v.literal("mineru"),
+      v.literal("ai"),
+      v.literal("commit"),
+      v.literal("done"),
+    ),
+    /** Where the scheduled runner should begin. */
+    fromStage: v.union(
+      v.literal("mineru"),
+      v.literal("ai"),
+      v.literal("commit"),
+    ),
+    /** Clear MinerU cache before mineru stage. */
+    invalidateMineru: v.boolean(),
+    statusUpdates: v.array(
+      v.object({
+        message: v.string(),
+        at: v.number(),
+      }),
+    ),
+    error: v.optional(v.string()),
+    problemCount: v.optional(v.number()),
+    /** Last parse preview JSON in storage. */
+    previewStorageId: v.optional(v.id("_storage")),
+  })
+    .index("by_createdBy", ["createdBy"])
+    .index("by_contentHash", ["contentHash"]),
   /**
    * Global registry of concatenated PDFs, keyed by ordered input content hashes.
    * `inputKey` is `inputHashes.join("|")` (order-sensitive).

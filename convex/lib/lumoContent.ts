@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { z } from "zod";
+import type { Id } from "../_generated/dataModel";
 
 /** Chat assistant envelope: markdown body + optional quick-reply sidecar. */
 export const chatQuickReplyChoiceSchema = z.object({
@@ -26,6 +27,35 @@ export const chatReplySchema = z.object({
 export type ChatReply = z.infer<typeof chatReplySchema>;
 export type ChatQuickReplyChoice = z.infer<typeof chatQuickReplyChoiceSchema>;
 
+/**
+ * Flat flag object (not discriminatedUnion) so Azure structured output
+ * accepts the JSON Schema — Azure rejects `oneOf` on array items.
+ * data is always {}; widen later if a kind needs payload fields.
+ */
+export const problemFlagSchema = z.object({
+  kind: z
+    .enum(["needs_pdf", "missing_answer"])
+    .describe(
+      "needs_pdf om frågan kräver figur/graf/tabell i PDF; missing_answer om facit saknas",
+    ),
+  data: z.object({}).describe("Alltid tomt objekt {}"),
+});
+
+export type ProblemFlag = z.infer<typeof problemFlagSchema>;
+
+export const problemFlagValidator = v.union(
+  v.object({
+    kind: v.literal("needs_pdf"),
+    data: v.object({}),
+  }),
+  v.object({
+    kind: v.literal("missing_answer"),
+    data: v.object({}),
+  }),
+);
+
+const PROBLEM_FLAG_KIND_ORDER = ["needs_pdf", "missing_answer"] as const;
+
 /** One textbook problem: markdown question + answer. */
 export const lumoParsedProblemSchema = z.object({
   problemNumber: z
@@ -40,15 +70,77 @@ export const lumoParsedProblemSchema = z.object({
     .describe(
       "Svaret i markdown med $ / $$; spegla ### (a)/(b); tom sträng om saknas",
     ),
+  // Required (use []) — Azure structured output demands every properties key in required.
+  flags: z
+    .array(problemFlagSchema)
+    .describe(
+      "Alltid en array (tom [] om inget). needs_pdf om frågan kräver figur/graf/tabell/diagram/bild i PDF; missing_answer om facit saknas. data är alltid {}.",
+    ),
 });
 
-export type LumoParsedProblem = z.infer<typeof lumoParsedProblemSchema>;
+export type LumoParsedProblem = {
+  problemNumber: string;
+  question: string;
+  answer: string;
+  flags: Array<ProblemFlag>;
+  /** First 0-based PDF page of the question stem (from MinerU parse). */
+  sourceQuestionPageIdx?: number;
+  /** First 0-based PDF page of the answer/facit (from MinerU parse). */
+  sourceAnswerPageIdx?: number;
+};
 
 export const lumoParsedProblemValidator = v.object({
   problemNumber: v.string(),
   question: v.string(),
   answer: v.string(),
+  flags: v.array(problemFlagValidator),
+  sourceQuestionPageIdx: v.optional(v.number()),
+  sourceAnswerPageIdx: v.optional(v.number()),
 });
+
+/** Stored MinerU crop on a problem row. */
+export const problemImageStorageValidator = v.object({
+  storageId: v.id("_storage"),
+  /** `""` / missing = shared stem; `a`–`z` = deluppgift. */
+  subproblemLetter: v.optional(v.string()),
+});
+
+/** Resolved image URL for clients / admin preview. */
+export const problemImageUrlValidator = v.object({
+  url: v.string(),
+  subproblemLetter: v.optional(v.string()),
+});
+
+/**
+ * Parsed problem plus optional MinerU image storage refs (not part of LLM output).
+ */
+export type LumoParsedProblemWithImages = LumoParsedProblem & {
+  questionImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+  answerImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+};
+
+export const lumoParsedProblemWithImagesValidator =
+  lumoParsedProblemValidator.extend({
+    questionImages: v.optional(v.array(problemImageStorageValidator)),
+    answerImages: v.optional(v.array(problemImageStorageValidator)),
+  });
+
+/** Drop needs_pdf when question images are already attached. */
+export function flagsForDisplay(
+  flags: Array<ProblemFlag>,
+  questionImageCount: number,
+): Array<ProblemFlag> {
+  if (questionImageCount <= 0) {
+    return flags;
+  }
+  return flags.filter((flag) => flag.kind !== "needs_pdf");
+}
 
 /** Twin step 1: new question only (facit comes from a separate solve call). */
 export const lumoTwinVariantSchema = z.object({
@@ -95,10 +187,49 @@ export function stripProblemNumberPrefix(text: string): string {
 
 const LOSNING_SAKNAS_RE = /^lösning saknas\.?$/i;
 
+/** Stem cues that usually mean a figure/graph/table lives only in the PDF. */
+const NEEDS_PDF_CUE_RE =
+  /\b(?:grafen|graf|figuren|figur|tabellen|tabell|diagrammet|diagram|bilden|bild)\b/i;
+
 /** True when answer is empty or the forbidden placeholder. */
 export function isMissingAnswer(answer: string): boolean {
   const trimmed = answer.trim();
   return trimmed.length === 0 || LOSNING_SAKNAS_RE.test(trimmed);
+}
+
+function dedupeProblemFlags(flags: Array<ProblemFlag>): Array<ProblemFlag> {
+  const byKind = new Map<ProblemFlag["kind"], ProblemFlag>();
+  for (const flag of flags) {
+    byKind.set(flag.kind, flag);
+  }
+  return PROBLEM_FLAG_KIND_ORDER.flatMap((kind) => {
+    const flag = byKind.get(kind);
+    return flag === undefined ? [] : [flag];
+  });
+}
+
+/**
+ * Merge model flags with deterministic post-checks.
+ * At most one flag per kind; model entries are kept when both fire.
+ */
+export function applyProblemFlags(
+  flags: Array<ProblemFlag> | undefined,
+  question: string,
+  answer: string,
+  rawQuestionText: string,
+): Array<ProblemFlag> {
+  const merged: Array<ProblemFlag> = [...(flags ?? [])];
+
+  if (isMissingAnswer(answer)) {
+    merged.push({ kind: "missing_answer", data: {} });
+  }
+
+  const cueText = `${rawQuestionText}\n${question}`;
+  if (NEEDS_PDF_CUE_RE.test(cueText)) {
+    merged.push({ kind: "needs_pdf", data: {} });
+  }
+
+  return dedupeProblemFlags(merged);
 }
 
 /**
@@ -112,6 +243,7 @@ export function normalizeLumoParsedProblem(
     problemNumber: string;
     question: string;
     answer: string;
+    flags: Array<ProblemFlag>;
   },
   fallbackQuestionText: string,
   rawAnswerText = "",
@@ -124,13 +256,22 @@ export function normalizeLumoParsedProblem(
     answer = salvagedAnswer;
   }
 
+  const normalizedQuestion =
+    question.length > 0 ? question : fallbackQuestionText.trim();
+
   return {
     problemNumber: normalizeProblemNumber(
       raw.problemNumber,
       fallbackQuestionText,
     ),
-    question: question.length > 0 ? question : fallbackQuestionText.trim(),
+    question: normalizedQuestion,
     answer,
+    flags: applyProblemFlags(
+      raw.flags,
+      normalizedQuestion,
+      answer,
+      fallbackQuestionText,
+    ),
   };
 }
 

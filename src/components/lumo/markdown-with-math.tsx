@@ -31,6 +31,16 @@ type MarkdownWithMathProps = {
     isCompleted: (letter: string) => boolean
     onChange: (letter: string, completed: boolean) => void
   }
+  /**
+   * Images keyed by deluppgift letter (`""` = shared stem before first
+   * subproblem). Rendered after each section's content.
+   */
+  imagesByLetter?: Record<string, Array<{ url: string }>>
+  /** Optional renderer for a section's images (defaults to simple img list). */
+  renderImages?: (
+    images: Array<{ url: string }>,
+    letter: string,
+  ) => ReactNode
 }
 
 function InlineMd({ text }: { text: string }) {
@@ -245,6 +255,32 @@ function parseBlocks(markdown: string): Array<Block> {
   return blocks
 }
 
+function DefaultSectionImages({
+  images,
+  letter,
+}: {
+  images: Array<{ url: string }>
+  letter: string
+}) {
+  if (images.length === 0) return null
+  const label =
+    letter.length > 0 ? `Figur till (${letter})` : "Figur till ingressen"
+  return (
+    <ul className="grid gap-2 sm:grid-cols-2" aria-label={label}>
+      {images.map((image, index) => (
+        <li key={`${image.url}-${index}`}>
+          <img
+            src={image.url}
+            alt={`${label} ${index + 1}`}
+            className="max-h-64 w-full rounded-lg border border-border bg-muted/30 object-contain"
+            loading="lazy"
+          />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function MarkdownWithMath({
   markdown,
   scopeKey,
@@ -252,6 +288,8 @@ export function MarkdownWithMath({
   className,
   subproblemStars,
   subproblemCompletion,
+  imagesByLetter,
+  renderImages,
 }: MarkdownWithMathProps) {
   if (markdown.trim().length === 0) {
     return (
@@ -262,99 +300,133 @@ export function MarkdownWithMath({
   }
 
   const blocks = parseBlocks(markdown)
+  const nodes: Array<ReactNode> = []
+  let currentLetter = ""
+  const flushedLetters = new Set<string>()
+
+  const flushImages = (letter: string, key: string) => {
+    if (flushedLetters.has(letter)) return
+    flushedLetters.add(letter)
+    const images = imagesByLetter?.[letter] ?? []
+    if (images.length === 0) return
+    nodes.push(
+      <div key={key}>
+        {renderImages ? (
+          renderImages(images, letter)
+        ) : (
+          <DefaultSectionImages images={images} letter={letter} />
+        )}
+      </div>,
+    )
+  }
+
+  blocks.forEach((block, index) => {
+    if (block.type === "subproblem") {
+      flushImages(currentLetter, `imgs-${currentLetter || "stem"}-${index}`)
+      currentLetter = block.label.toLowerCase()
+      const letter = currentLetter
+      nodes.push(
+        <div
+          key={index}
+          id={
+            scopeKey
+              ? subproblemAnchorId(scopeKey, block.chapterIndex)
+              : undefined
+          }
+          data-lumo-subproblem={block.label}
+          className="scroll-mt-3 flex items-center gap-1.5"
+        >
+          <p className="text-sm font-semibold text-muted-foreground">
+            ({block.label})
+          </p>
+          {subproblemStars ? (
+            <ProblemStarsControl
+              letter={letter}
+              hideLetter
+              stars={subproblemStars.getStars(letter)}
+              onChange={(stars) => subproblemStars.onChange(letter, stars)}
+            />
+          ) : null}
+          {subproblemCompletion ? (
+            <ProblemCompletionControl
+              letter={letter}
+              completed={subproblemCompletion.isCompleted(letter)}
+              onChange={(completed) =>
+                subproblemCompletion.onChange(letter, completed)
+              }
+            />
+          ) : null}
+        </div>,
+      )
+      return
+    }
+
+    if (block.type === "blank") {
+      nodes.push(<div key={index} className="h-1" aria-hidden />)
+      return
+    }
+    if (block.type === "fall") {
+      nodes.push(
+        <p
+          key={index}
+          className="border-l-2 border-muted-foreground/30 pl-3 text-sm font-medium text-muted-foreground"
+        >
+          Fall {block.n}
+          {block.condition.length > 0 ? (
+            <>
+              {": "}
+              {renderRichInline(block.condition, onCiteMath)}
+            </>
+          ) : null}
+        </p>,
+      )
+      return
+    }
+    if (block.type === "heading") {
+      const Tag = (
+        block.level <= 2 ? "h3" : block.level === 3 ? "h4" : "h5"
+      ) as "h3" | "h4" | "h5"
+      nodes.push(
+        <Tag key={index} className="text-sm font-semibold text-foreground">
+          {renderRichInline(block.text, onCiteMath)}
+        </Tag>,
+      )
+      return
+    }
+    if (block.type === "list") {
+      const ListTag = block.ordered ? "ol" : "ul"
+      nodes.push(
+        <ListTag
+          key={index}
+          className={cn(
+            "flex flex-col gap-1 pl-5",
+            block.ordered ? "list-decimal" : "list-disc",
+          )}
+        >
+          {block.items.map((item, j) => (
+            <li key={j}>{renderRichInline(item, onCiteMath)}</li>
+          ))}
+        </ListTag>,
+      )
+      return
+    }
+    nodes.push(
+      <p key={index} className="whitespace-pre-wrap">
+        {renderRichInline(block.text, onCiteMath)}
+      </p>,
+    )
+  })
+
+  flushImages(currentLetter, `imgs-${currentLetter || "stem"}-end`)
+  for (const letter of Object.keys(imagesByLetter ?? {})) {
+    flushImages(letter, `imgs-orphan-${letter || "stem"}`)
+  }
 
   return (
     <div
       className={cn("flex flex-col gap-2 text-base leading-relaxed", className)}
     >
-      {blocks.map((block, index) => {
-        if (block.type === "blank") {
-          return <div key={index} className="h-1" aria-hidden />
-        }
-        if (block.type === "subproblem") {
-          const letter = block.label.toLowerCase()
-          return (
-            <div
-              key={index}
-              id={
-                scopeKey
-                  ? subproblemAnchorId(scopeKey, block.chapterIndex)
-                  : undefined
-              }
-              data-lumo-subproblem={block.label}
-              className="scroll-mt-3 flex items-center gap-1.5"
-            >
-              <p className="text-sm font-semibold text-muted-foreground">
-                ({block.label})
-              </p>
-              {subproblemStars ? (
-                <ProblemStarsControl
-                  letter={letter}
-                  hideLetter
-                  stars={subproblemStars.getStars(letter)}
-                  onChange={(stars) => subproblemStars.onChange(letter, stars)}
-                />
-              ) : null}
-              {subproblemCompletion ? (
-                <ProblemCompletionControl
-                  letter={letter}
-                  completed={subproblemCompletion.isCompleted(letter)}
-                  onChange={(completed) =>
-                    subproblemCompletion.onChange(letter, completed)
-                  }
-                />
-              ) : null}
-            </div>
-          )
-        }
-        if (block.type === "fall") {
-          return (
-            <p
-              key={index}
-              className="border-l-2 border-muted-foreground/30 pl-3 text-sm font-medium text-muted-foreground"
-            >
-              Fall {block.n}
-              {block.condition.length > 0 ? (
-                <>
-                  {": "}
-                  {renderRichInline(block.condition, onCiteMath)}
-                </>
-              ) : null}
-            </p>
-          )
-        }
-        if (block.type === "heading") {
-          const Tag = (
-            block.level <= 2 ? "h3" : block.level === 3 ? "h4" : "h5"
-          ) as "h3" | "h4" | "h5"
-          return (
-            <Tag key={index} className="text-sm font-semibold text-foreground">
-              {renderRichInline(block.text, onCiteMath)}
-            </Tag>
-          )
-        }
-        if (block.type === "list") {
-          const ListTag = block.ordered ? "ol" : "ul"
-          return (
-            <ListTag
-              key={index}
-              className={cn(
-                "flex flex-col gap-1 pl-5",
-                block.ordered ? "list-decimal" : "list-disc",
-              )}
-            >
-              {block.items.map((item, j) => (
-                <li key={j}>{renderRichInline(item, onCiteMath)}</li>
-              ))}
-            </ListTag>
-          )
-        }
-        return (
-          <p key={index} className="whitespace-pre-wrap">
-            {renderRichInline(block.text, onCiteMath)}
-          </p>
-        )
-      })}
+      {nodes}
     </div>
   )
 }

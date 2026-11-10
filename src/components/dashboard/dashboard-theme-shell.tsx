@@ -1,9 +1,11 @@
 import { useQuery } from "convex/react"
-import type { ReactNode } from "react"
+import { useRouteContext } from "@tanstack/react-router"
+import { type ReactNode, useEffect } from "react"
 import { api } from "../../../convex/_generated/api"
 import {
-  DEFAULT_DASHBOARD_THEME,
   isDarkTheme,
+  isDashboardTheme,
+  writeStoredDashboardTheme,
 } from "~/lib/dashboard-theme"
 import { cn } from "~/lib/utils"
 
@@ -12,8 +14,15 @@ type DashboardThemeShellProps = {
 }
 
 export function DashboardThemeShell({ children }: DashboardThemeShellProps) {
+  const { dashboardTheme: cookieTheme } = useRouteContext({ from: "__root__" })
   const viewer = useQuery(api.users.viewer)
-  const theme = viewer?.theme ?? DEFAULT_DASHBOARD_THEME
+  const theme = viewer?.theme ?? cookieTheme
+
+  useEffect(() => {
+    if (viewer?.theme !== undefined && isDashboardTheme(viewer.theme)) {
+      writeStoredDashboardTheme(viewer.theme)
+    }
+  }, [viewer?.theme])
 
   return (
     <div

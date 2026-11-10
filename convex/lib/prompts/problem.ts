@@ -13,11 +13,16 @@ OUTPUT-FORMAT
 {
   "problemNumber": "1.1",
   "question": "markdown…",
-  "answer": "markdown…"
+  "answer": "markdown…",
+  "flags": []
 }
 
 problemNumber: basnummer UTAN "P" och UTAN bokstav ("1.1", inte "P 1.1" eller "1.1a").
-question / answer: strängar med markdown + $ / $$ (inte JSON-parts).`,
+question / answer: strängar med markdown + $ / $$ (inte JSON-parts).
+flags: ALLTID en array (använd [] om inget). Varje post är { "kind": "…", "data": {} }.
+  • "needs_pdf" — eleven måste öppna PDF:en för figur/graf/tabell/diagram/bild.
+  • "missing_answer" — rått svar saknas (tom källa / "(inget svar i källan)").
+  • data är ALLTID {}. Max en post per kind.`,
   MD_CONTENT_CONVENTIONS,
   `════════════════════════════════════════
 SVAR — TAPPA ALDRIG FACIT
@@ -36,6 +41,19 @@ Då gäller:
   • answer   = ENDAST slutfacit efter "Svar:".
   • LÖSNINGSSTEG får ALDRIG in i question eller answer.
 Markörer som inleder lösningsväg: "Lösning:", "För att …", "Vi har …", "Eftersom …".
+
+════════════════════════════════════════
+FLAGGOR — INFERERA FRÅN INNEHÅLL
+════════════════════════════════════════
+Bedöm frågestammen (rå + konverterad). Sätt needs_pdf när eleven INTE kan lösa
+uppgiften utan en visuell bilaga som OCR inte ger som text, t.ex.:
+  • Referens till figur/graf/tabell/diagram/bild ("se figuren", "enligt grafen",
+    "värdena i tabellen", "ritningen", koordinatsystem som saknas i texten).
+  • Frågan förutsätter avläsning från kurva, stapel/linjediagram, geometrisk skiss,
+    frikroppsdiagram eller liknande — även om ordet "figur" inte står utskrivet.
+  • Data som uppenbart saknas i texten och normalt sitter i en bild/tabell.
+Sätt INTE needs_pdf för rent text-/formelproblem där allt behövs finns i löptexten.
+Sätt missing_answer när rått svar är tomt / "(inget svar i källan)".
 
 ════════════════════════════════════════
 OCR-STÄDNING + SVENSKA TECKEN
@@ -70,6 +88,7 @@ Ex 1 — (a)/(b):
     ### (b)
 
     $4x^{2}-7x+6$
+  flags: []
 
 Ex 2 — fall under (b):
   answer:
@@ -82,11 +101,17 @@ Ex 2 — fall under (b):
     #### Fall 2
 
     $x=0$ om …
+  flags: []
 
 Ex 3 — namngivna resultat i prosa:
   ### (a)
 
-  Mgn = $420$, summa = $\\\\frac{2}{15}$`,
+  Mgn = $420$, summa = $\\\\frac{2}{15}$
+  flags: []
+
+Ex 4 — fråga som kräver graf i PDF:
+  question: Avläs $f(2)$ ur grafen och bestäm lutningen mellan $x=1$ och $x=3$.
+  flags: [{ "kind": "needs_pdf", "data": {} }]`,
 );
 
 export function buildConvertPrompt(args: {
@@ -113,6 +138,7 @@ ${answerBlock}`,
 □ Rått svar har innehåll → konverterat, aldrig ersatt med "Lösning saknas"
 □ question = BARA frågestam — ingen lösningsväg
 □ answer = BARA slutfacit
-□ Matte bara i $ / $$`,
+□ Matte bara i $ / $$
+□ flags: needs_pdf om innehållet kräver figur/graf/tabell i PDF; missing_answer om rått svar saknas; data alltid {}`,
   );
 }

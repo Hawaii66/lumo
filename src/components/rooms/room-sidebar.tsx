@@ -1,4 +1,7 @@
+import { useMutation, useQuery } from "convex/react"
 import {
+  Archive,
+  ArchiveRestore,
   ArrowLeft,
   ChevronDown,
   Clock,
@@ -12,6 +15,8 @@ import {
   Star,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { api } from "../../../convex/_generated/api"
+import type { Id } from "../../../convex/_generated/dataModel"
 import {
   ProblemCompletionDisplay,
   type ProblemCompletionEntry,
@@ -27,6 +32,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog"
 import { ScrollArea } from "~/components/ui/scroll-area"
 import {
   Sidebar,
@@ -45,6 +59,11 @@ import {
 } from "~/components/ui/sidebar"
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
+import {
+  DEFAULT_PROBLEM_LIST_MODE,
+  dottedProblemMajor,
+  type ProblemListMode,
+} from "~/lib/problem-list-mode"
 import { cn } from "~/lib/utils"
 
 export type RoomSidebarListSection = "chats" | "problems"
@@ -78,6 +97,11 @@ export type RoomSidebarProblemGroup = {
   problems: Array<RoomSidebarProblemItem>
 }
 
+export type RoomSidebarArchivedPdf = {
+  fileId: string
+  fileName: string
+}
+
 export type RoomSidebarProps = {
   roomName: string
   roomDescription: string
@@ -90,6 +114,8 @@ export type RoomSidebarProps = {
   selectedChatId: string | null
   onSelectChat: (id: string) => void
   problemGroups: RoomSidebarProblemGroup[]
+  archivedProblemPdfs?: Array<RoomSidebarArchivedPdf>
+  roomId?: Id<"rooms">
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
   /** Opens settings focused on problem-PDF order. */
@@ -118,6 +144,8 @@ export function RoomSidebar({
   selectedChatId,
   onSelectChat,
   problemGroups,
+  archivedProblemPdfs = [],
+  roomId,
   selectedProblemId,
   onSelectProblem,
   onOpenProblemPdfOrder,
@@ -214,7 +242,9 @@ export function RoomSidebar({
                 />
               ) : (
                 <ProblemList
+                  roomId={roomId}
                   groups={problemGroups}
+                  archived={archivedProblemPdfs}
                   selectedProblemId={
                     section === "problems" ? selectedProblemId : null
                   }
@@ -315,22 +345,145 @@ function ChatList({
   )
 }
 
+function compareProblemNumbers(a: string, b: string) {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+}
+
+function chapterCollapseKey(fileName: string, major: string) {
+  return `${fileName}::${major}`
+}
+
+type ProblemChapterBucket = {
+  major: string | null
+  label: string | null
+  problems: Array<RoomSidebarProblemItem>
+}
+
+/** Split a PDF's problems into chapter buckets by major number (tree mode). */
+function bucketProblemsByChapter(
+  problems: Array<RoomSidebarProblemItem>,
+): Array<ProblemChapterBucket> {
+  const buckets = new Map<string, ProblemChapterBucket>()
+  const order: string[] = []
+
+  for (const problem of problems) {
+    const major = dottedProblemMajor(problem.problemNumber)
+    const key = major ?? "__flat__"
+    let bucket = buckets.get(key)
+    if (!bucket) {
+      bucket = {
+        major,
+        label: major,
+        problems: [],
+      }
+      buckets.set(key, bucket)
+      order.push(key)
+    }
+    bucket.problems.push(problem)
+  }
+
+  return order
+    .map((key) => buckets.get(key)!)
+    .sort((a, b) => {
+      if (a.major === null && b.major === null) return 0
+      if (a.major === null) return 1
+      if (b.major === null) return -1
+      return compareProblemNumbers(a.major, b.major)
+    })
+}
+
+function ProblemRow({
+  problem,
+  selectedProblemId,
+  onSelectProblem,
+}: {
+  problem: RoomSidebarProblemItem
+  selectedProblemId: string | null
+  onSelectProblem: (id: string) => void
+}) {
+  const selected = problem.id === selectedProblemId
+  const shadows = problem.shadows ?? []
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={selected}
+        className="h-auto py-1.5"
+        onClick={() => onSelectProblem(problem.id)}
+      >
+        <span className="min-w-0 flex-1 truncate">{problem.problemNumber}</span>
+        <span className="inline-flex shrink-0 items-center gap-1.5">
+          <ProblemStarsDisplay entries={problem.starEntries} />
+          <ProblemCompletionDisplay entries={problem.completionEntries ?? []} />
+        </span>
+      </SidebarMenuButton>
+      {shadows.length > 0 ? (
+        <SidebarMenuSub className="mx-0 ml-3 mr-0">
+          {shadows.map((shadow) => {
+            const shadowSelected = shadow.id === selectedProblemId
+            return (
+              <SidebarMenuSubItem key={shadow.id} className="w-full">
+                <SidebarMenuSubButton
+                  render={<button type="button" />}
+                  isActive={shadowSelected}
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onSelectProblem(shadow.id)}
+                >
+                  {shadow.problemNumber}
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            )
+          })}
+        </SidebarMenuSub>
+      ) : null}
+    </SidebarMenuItem>
+  )
+}
+
 function ProblemList({
+  roomId,
   groups,
+  archived,
   selectedProblemId,
   onSelectProblem,
   onShowFiles,
   onOpenProblemPdfOrder,
 }: {
+  roomId?: Id<"rooms">
   groups: RoomSidebarProblemGroup[]
+  archived: Array<RoomSidebarArchivedPdf>
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
   onShowFiles: () => void
   onOpenProblemPdfOrder?: () => void
 }) {
+  const viewer = useQuery(api.users.viewer)
+  const archiveProblems = useMutation(
+    api.PDFParse.problems.archiveProblemsFromRoom,
+  )
+  const unarchiveProblems = useMutation(
+    api.PDFParse.problems.unarchiveProblemsFromRoom,
+  )
+  const mode: ProblemListMode =
+    viewer?.problemListMode ?? DEFAULT_PROBLEM_LIST_MODE
+
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Array<string>>([])
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [archivedOpen, setArchivedOpen] = useState(false)
+  const [archivePickerOpen, setArchivePickerOpen] = useState(false)
+  const [pendingArchive, setPendingArchive] = useState<{
+    fileId: string
+    fileName: string
+  } | null>(null)
+  const [archiving, setArchiving] = useState(false)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
+  const [unarchivingId, setUnarchivingId] = useState<string | null>(null)
+
+  const archivableGroups = useMemo(
+    () => groups.filter((group) => group.fileId !== undefined),
+    [groups],
+  )
 
   const normalizedQuery = query.trim().toLowerCase()
   const showAllStars = starLevels.length === 0
@@ -340,9 +493,6 @@ function ProblemList({
   )
 
   const filteredGroups = useMemo(() => {
-    const compareProblemNumbers = (a: string, b: string) =>
-      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
-
     const sortGroup = (
       group: RoomSidebarProblemGroup,
     ): RoomSidebarProblemGroup => ({
@@ -407,19 +557,26 @@ function ProblemList({
     return source.map(sortGroup)
   }, [groups, normalizedQuery, starLevelSet])
 
-  // While searching, force-open groups that still have matches.
+  // While searching, force-open groups (and chapters) that still have matches.
   useEffect(() => {
     if (!normalizedQuery) return
     setCollapsed((prev) => {
       const next = { ...prev }
       for (const group of filteredGroups) {
         next[group.fileName] = false
+        if (mode === "tree") {
+          for (const bucket of bucketProblemsByChapter(group.problems)) {
+            if (bucket.major !== null) {
+              next[chapterCollapseKey(group.fileName, bucket.major)] = false
+            }
+          }
+        }
       }
       return next
     })
-  }, [filteredGroups, normalizedQuery])
+  }, [filteredGroups, mode, normalizedQuery])
 
-  if (groups.length === 0) {
+  if (groups.length === 0 && archived.length === 0) {
     return (
       <p className="px-2.5 py-2 text-sm text-muted-foreground">
         Inga uppgifter ännu. Tolka en PDF under{" "}
@@ -436,6 +593,40 @@ function ProblemList({
     )
   }
 
+  async function confirmArchive() {
+    if (pendingArchive === null || roomId === undefined) return
+    setArchiving(true)
+    setArchiveError(null)
+    try {
+      await archiveProblems({
+        roomId,
+        fileId: pendingArchive.fileId as Id<"files">,
+      })
+      setPendingArchive(null)
+      setArchivePickerOpen(false)
+      setArchivedOpen(true)
+    } catch (error) {
+      setArchiveError(
+        error instanceof Error ? error.message : "Kunde inte arkivera",
+      )
+    } finally {
+      setArchiving(false)
+    }
+  }
+
+  async function handleUnarchive(fileId: string) {
+    if (roomId === undefined) return
+    setUnarchivingId(fileId)
+    try {
+      await unarchiveProblems({
+        roomId,
+        fileId: fileId as Id<"files">,
+      })
+    } finally {
+      setUnarchivingId(null)
+    }
+  }
+
   const emptyMessage =
     normalizedQuery.length > 0
       ? `Inga träffar för “${query.trim()}”.`
@@ -445,6 +636,8 @@ function ProblemList({
 
   return (
     <div className="flex flex-col gap-2" aria-label="Uppgifter">
+      {groups.length > 0 ? (
+        <>
       <div className="relative px-0.5">
         <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <SidebarInput
@@ -460,9 +653,9 @@ function ProblemList({
         multiple
         value={starLevels}
         onValueChange={(next) => {
-          if(next.includes("all")){
+          if (next.includes("all")) {
             setStarLevels([])
-            return;
+            return
           }
 
           setStarLevels(next)
@@ -533,6 +726,8 @@ function ProblemList({
       ) : (
         filteredGroups.map((group) => {
           const isCollapsed = collapsed[group.fileName] === true
+          const chapterBuckets =
+            mode === "tree" ? bucketProblemsByChapter(group.problems) : null
           return (
             <Collapsible
               key={group.fileId ?? group.fileName}
@@ -562,60 +757,169 @@ function ProblemList({
                 </Badge>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <SidebarMenu className="mt-0.5">
-                  {group.problems.map((problem) => {
-                    const selected = problem.id === selectedProblemId
-                    const shadows = problem.shadows ?? []
-                    return (
-                      <SidebarMenuItem key={problem.id}>
-                        <SidebarMenuButton
-                          isActive={selected}
-                          className="h-auto py-1.5"
-                          onClick={() => onSelectProblem(problem.id)}
+                {chapterBuckets ? (
+                  <div className="mt-0.5 flex flex-col gap-0.5">
+                    {chapterBuckets.map((bucket) => {
+                      if (bucket.major === null || bucket.label === null) {
+                        return (
+                          <SidebarMenu key={bucket.problems[0]?.id ?? "flat"}>
+                            {bucket.problems.map((problem) => (
+                              <ProblemRow
+                                key={problem.id}
+                                problem={problem}
+                                selectedProblemId={selectedProblemId}
+                                onSelectProblem={onSelectProblem}
+                              />
+                            ))}
+                          </SidebarMenu>
+                        )
+                      }
+
+                      const chapterKey = chapterCollapseKey(
+                        group.fileName,
+                        bucket.major,
+                      )
+                      const chapterCollapsed = collapsed[chapterKey] === true
+                      return (
+                        <Collapsible
+                          key={chapterKey}
+                          open={!chapterCollapsed}
+                          onOpenChange={(open) =>
+                            setCollapsed((prev) => ({
+                              ...prev,
+                              [chapterKey]: !open,
+                            }))
+                          }
                         >
-                          <span className="min-w-0 flex-1 truncate">
-                            {problem.problemNumber}
-                          </span>
-                          <span className="inline-flex shrink-0 items-center gap-1.5">
-                            <ProblemStarsDisplay entries={problem.starEntries} />
-                            <ProblemCompletionDisplay
-                              entries={problem.completionEntries ?? []}
+                          <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+                            <ChevronDown
+                              className={cn(
+                                "size-3 shrink-0 transition-transform",
+                                chapterCollapsed && "-rotate-90",
+                              )}
                             />
-                          </span>
-                        </SidebarMenuButton>
-                        {shadows.length > 0 ? (
-                          <SidebarMenuSub className="mx-0 ml-3 mr-0">
-                            {shadows.map((shadow) => {
-                              const shadowSelected =
-                                shadow.id === selectedProblemId
-                              return (
-                                <SidebarMenuSubItem
-                                  key={shadow.id}
-                                  className="w-full"
-                                >
-                                  <SidebarMenuSubButton
-                                    render={<button type="button" />}
-                                    isActive={shadowSelected}
-                                    size="sm"
-                                    className="w-full"
-                                    onClick={() => onSelectProblem(shadow.id)}
-                                  >
-                                    {shadow.problemNumber}
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              )
-                            })}
-                          </SidebarMenuSub>
-                        ) : null}
-                      </SidebarMenuItem>
-                    )
-                  })}
-                </SidebarMenu>
+                            <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
+                              {bucket.label}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
+                            >
+                              {bucket.problems.length}
+                            </Badge>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenu className="mt-0.5 ml-1 border-l border-sidebar-border pl-1">
+                              {bucket.problems.map((problem) => (
+                                <ProblemRow
+                                  key={problem.id}
+                                  problem={problem}
+                                  selectedProblemId={selectedProblemId}
+                                  onSelectProblem={onSelectProblem}
+                                />
+                              ))}
+                            </SidebarMenu>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <SidebarMenu className="mt-0.5">
+                    {group.problems.map((problem) => (
+                      <ProblemRow
+                        key={problem.id}
+                        problem={problem}
+                        selectedProblemId={selectedProblemId}
+                        onSelectProblem={onSelectProblem}
+                      />
+                    ))}
+                  </SidebarMenu>
+                )}
               </CollapsibleContent>
             </Collapsible>
           )
         })
       )}
+        </>
+      ) : null}
+
+      {archived.length > 0 ||
+      (roomId !== undefined && archivableGroups.length > 0) ? (
+        <Collapsible open={archivedOpen} onOpenChange={setArchivedOpen}>
+          <CollapsibleTrigger className="mt-1 flex w-full items-center gap-1 rounded-md px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <ChevronDown
+              className={cn(
+                "size-3.5 shrink-0 transition-transform",
+                !archivedOpen && "-rotate-90",
+              )}
+            />
+            <span className="min-w-0 flex-1 truncate normal-case">
+              Arkiverade
+            </span>
+            {archived.length > 0 ? (
+              <Badge
+                variant="secondary"
+                className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
+              >
+                {archived.length}
+              </Badge>
+            ) : null}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {archived.length > 0 ? (
+              <ul className="mt-0.5 flex flex-col gap-0.5">
+                {archived.map((item) => (
+                  <li
+                    key={item.fileId}
+                    className="flex items-center gap-0.5 rounded-md px-2 py-1 text-sm"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground">
+                      {item.fileName}
+                    </span>
+                    {roomId !== undefined ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="size-7 shrink-0 text-muted-foreground hover:text-sidebar-foreground"
+                        aria-label={`Visa uppgifter från ${item.fileName} igen`}
+                        title="Visa igen"
+                        disabled={unarchivingId === item.fileId}
+                        onClick={() => {
+                          void handleUnarchive(item.fileId)
+                        }}
+                      >
+                        <ArchiveRestore className="size-3.5" />
+                      </Button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-2 py-1 text-xs text-muted-foreground">
+                Inga arkiverade PDF:er.
+              </p>
+            )}
+            {roomId !== undefined && archivableGroups.length > 0 ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setArchiveError(null)
+                  setPendingArchive(null)
+                  setArchivePickerOpen(true)
+                }}
+                className="mt-0.5 h-auto w-full justify-start gap-1.5 px-2 py-1.5 text-xs font-medium text-muted-foreground"
+              >
+                <Archive className="size-3.5" />
+                Arkivera PDF…
+              </Button>
+            ) : null}
+          </CollapsibleContent>
+        </Collapsible>
+      ) : null}
 
       {groups.length > 0 && onOpenProblemPdfOrder ? (
         <Button
@@ -628,6 +932,85 @@ function ProblemList({
           Ordna PDF:er
         </Button>
       ) : null}
+
+      <Dialog
+        open={archivePickerOpen}
+        onOpenChange={(open) => {
+          if (archiving) return
+          setArchivePickerOpen(open)
+          if (!open) {
+            setPendingArchive(null)
+            setArchiveError(null)
+          }
+        }}
+      >
+        <DialogContent showCloseButton={!archiving}>
+          <DialogHeader>
+            <DialogTitle>
+              {pendingArchive ? "Arkivera uppgifter?" : "Arkivera PDF"}
+            </DialogTitle>
+            <DialogDescription>
+              {pendingArchive
+                ? `Uppgifterna från “${pendingArchive.fileName}” flyttas till Arkiverade i det här rummet. PDF:en och den delade tolkningen sparas.`
+                : "Välj en PDF vars uppgifter ska döljas från listan i det här rummet."}
+            </DialogDescription>
+          </DialogHeader>
+          {archiveError ? (
+            <p className="text-sm text-destructive">{archiveError}</p>
+          ) : null}
+          {pendingArchive === null ? (
+            <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto">
+              {archivableGroups.map((group) => (
+                <li key={group.fileId}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto w-full justify-start px-2 py-2 text-left text-sm font-normal"
+                    onClick={() => {
+                      setArchiveError(null)
+                      setPendingArchive({
+                        fileId: group.fileId!,
+                        fileName: group.fileName,
+                      })
+                    }}
+                  >
+                    <span className="truncate">{group.fileName}</span>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <DialogFooter>
+            {pendingArchive !== null ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={archiving}
+                  onClick={() => {
+                    setPendingArchive(null)
+                    setArchiveError(null)
+                  }}
+                >
+                  Tillbaka
+                </Button>
+                <Button
+                  disabled={archiving}
+                  onClick={() => {
+                    void confirmArchive()
+                  }}
+                >
+                  {archiving ? "Arkiverar…" : "Arkivera"}
+                </Button>
+              </>
+            ) : (
+              <DialogClose render={<Button variant="outline" />}>
+                Avbryt
+              </DialogClose>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
