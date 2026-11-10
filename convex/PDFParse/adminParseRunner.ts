@@ -2,7 +2,10 @@ import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import { internalAction, type ActionCtx } from "../_generated/server";
-import type { LumoParsedProblem } from "../lib/lumoContent";
+import {
+  flagsForDisplay,
+  type LumoParsedProblemWithImages,
+} from "../lib/lumoContent";
 import {
   parseCachedMiddleJsonToInfo,
   parseCachedMiddleJsonToProblems,
@@ -10,9 +13,66 @@ import {
   parsePdfBytesToProblems,
 } from "./pdfParse";
 
+type PreviewImage = { storageId: Id<"_storage">; url: string };
+
+type PreviewProblem = Omit<
+  LumoParsedProblemWithImages,
+  "questionImages" | "answerImages"
+> & {
+  questionImages?: Array<PreviewImage>;
+  answerImages?: Array<PreviewImage>;
+};
+
 type PreviewPayload =
-  | { kind: "problems"; problems: LumoParsedProblem[] }
+  | { kind: "problems"; problems: PreviewProblem[] }
   | { kind: "info"; text: string };
+
+async function resolvePreviewImages(
+  ctx: ActionCtx,
+  images: Array<{ storageId: string }> | undefined,
+): Promise<Array<PreviewImage>> {
+  if (images === undefined || images.length === 0) {
+    return [];
+  }
+  const out: Array<PreviewImage> = [];
+  for (const image of images) {
+    const storageId = image.storageId as Id<"_storage">;
+    const url = await ctx.storage.getUrl(storageId);
+    if (url !== null) {
+      out.push({ storageId, url });
+    }
+  }
+  return out;
+}
+
+async function toPreviewProblems(
+  ctx: ActionCtx,
+  problems: LumoParsedProblemWithImages[],
+): Promise<PreviewProblem[]> {
+  const out: PreviewProblem[] = [];
+  for (const problem of problems) {
+    const questionImages = await resolvePreviewImages(
+      ctx,
+      problem.questionImages,
+    );
+    const answerImages = await resolvePreviewImages(ctx, problem.answerImages);
+    out.push({
+      problemNumber: problem.problemNumber,
+      question: problem.question,
+      answer: problem.answer,
+      flags: flagsForDisplay(problem.flags, questionImages.length),
+      ...(problem.sourceQuestionPageIdx !== undefined
+        ? { sourceQuestionPageIdx: problem.sourceQuestionPageIdx }
+        : {}),
+      ...(problem.sourceAnswerPageIdx !== undefined
+        ? { sourceAnswerPageIdx: problem.sourceAnswerPageIdx }
+        : {}),
+      ...(questionImages.length > 0 ? { questionImages } : {}),
+      ...(answerImages.length > 0 ? { answerImages } : {}),
+    });
+  }
+  return out;
+}
 
 async function storePreview(
   ctx: ActionCtx,
@@ -72,6 +132,12 @@ async function commitPreview(
         ...(p.sourceAnswerPageIdx !== undefined
           ? { sourceAnswerPageIdx: p.sourceAnswerPageIdx }
           : {}),
+        questionImages: p.questionImages?.map((img) => ({
+          storageId: img.storageId,
+        })),
+        answerImages: p.answerImages?.map((img) => ({
+          storageId: img.storageId,
+        })),
       })),
     });
     return payload.problems.length;
@@ -203,7 +269,10 @@ export const runAdminParse = internalAction({
                   });
                 },
               );
-        payload = { kind: "problems", problems };
+        payload = {
+          kind: "problems",
+          problems: await toPreviewProblems(ctx, problems),
+        };
       } else {
         await report(
           run.fromStage === "ai"

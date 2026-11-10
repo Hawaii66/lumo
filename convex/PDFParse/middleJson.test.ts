@@ -57,8 +57,8 @@ describe("splitIntoProblemChunks page indices", () => {
       ],
     }
 
-    const { problemLines, answerLines } = flattenMiddleJson(middleJson)
-    const chunks = splitIntoProblemChunks(problemLines, answerLines)
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
 
     expect(chunks).toHaveLength(2)
 
@@ -90,8 +90,8 @@ describe("splitIntoProblemChunks page indices", () => {
       ],
     }
 
-    const { problemLines, answerLines } = flattenMiddleJson(middleJson)
-    const chunks = splitIntoProblemChunks(problemLines, answerLines)
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
 
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.problemNumber).toBe("3")
@@ -117,8 +117,8 @@ describe("splitIntoProblemChunks page indices", () => {
       ],
     }
 
-    const { problemLines, answerLines } = flattenMiddleJson(middleJson)
-    const chunks = splitIntoProblemChunks(problemLines, answerLines)
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
 
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.sourceQuestionPageIdx).toBe(0)

@@ -1,23 +1,25 @@
+import { normalizeMineruImagePath } from "./mineruClient";
 import type { MiddleBlock, MiddleContentPart, MiddleJson } from "./mineruSchema";
 
-/** One flattened middle_json text line with its 0-based PDF page. */
-export type MiddleJsonLine = {
-  text: string;
-  pageIdx: number;
-};
+export type FlattenToken =
+  | { kind: "text"; text: string; pageIdx: number }
+  | { kind: "image"; path: string; pageIdx: number };
 
 export type ProblemChunk = {
   problemNumber: string;
   problemText: string;
   answerText: string;
+  questionImagePaths: string[];
+  answerImagePaths: string[];
   /** First page (0-based) where this problem's stem appears. */
   sourceQuestionPageIdx?: number;
   /** First page (0-based) where this problem's answer appears. */
   sourceAnswerPageIdx?: number;
 };
 
-type SplitProblem = {
+type ChunkParts = {
   text: string;
+  imagePaths: string[];
   sourcePageIdx: number;
 };
 
@@ -91,6 +93,63 @@ function blockToText(block: MiddleBlock): string {
     return block.content.map(partToText).join("");
   }
   return "";
+}
+
+/** Collect image_path / img_path values anywhere under a middle_json block. */
+function collectImagePaths(value: unknown, out: string[]): void {
+  if (value === null || value === undefined) {
+    return;
+  }
+  if (typeof value === "string") {
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectImagePaths(item, out);
+    }
+    return;
+  }
+  if (typeof value !== "object") {
+    return;
+  }
+
+  const obj = value as Record<string, unknown>;
+  const rawPath = obj.image_path ?? obj.img_path;
+  if (typeof rawPath === "string" && rawPath.trim().length > 0) {
+    out.push(normalizeMineruImagePath(rawPath.trim()));
+  }
+  for (const child of Object.values(obj)) {
+    collectImagePaths(child, out);
+  }
+}
+
+function uniquePaths(paths: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const path of paths) {
+    if (seen.has(path)) {
+      continue;
+    }
+    seen.add(path);
+    result.push(path);
+  }
+  return result;
+}
+
+function blockToTokens(block: MiddleBlock, pageIdx: number): FlattenToken[] {
+  const text = blockToText(block).replace(/\s+/g, " ").trim();
+  const found: string[] = [];
+  collectImagePaths(block, found);
+  const paths = uniquePaths(found);
+
+  const tokens: FlattenToken[] = [];
+  if (text.length > 0) {
+    tokens.push({ kind: "text", text, pageIdx });
+  }
+  for (const path of paths) {
+    tokens.push({ kind: "image", path, pageIdx });
+  }
+  return tokens;
 }
 
 /**
@@ -202,39 +261,39 @@ export function flattenFullDocument(middleJson: MiddleJson): string {
 }
 
 /**
- * Flatten middle_json pages into ordered plain-text lines, tagged by section.
+ * Flatten middle_json pages into ordered text/image tokens, tagged by section.
  * When the PDF has no "problem"/"svar" headers (typical tentor), falls back to
- * the full document as problem lines so exam-style numbering can still split.
- * Each line keeps its 0-based page index (MinerU page_idx, else array index).
+ * the full document as problem tokens so exam-style numbering can still split.
+ * Each token keeps its 0-based page index (MinerU page_idx, else array index).
  */
 export function flattenMiddleJson(middleJson: MiddleJson): {
-  problemLines: MiddleJsonLine[];
-  answerLines: MiddleJsonLine[];
+  problemTokens: FlattenToken[];
+  answerTokens: FlattenToken[];
 } {
-  const problemLines: MiddleJsonLine[] = [];
-  const answerLines: MiddleJsonLine[] = [];
-  const allLines: MiddleJsonLine[] = [];
+  const problemTokens: FlattenToken[] = [];
+  const answerTokens: FlattenToken[] = [];
+  const allTokens: FlattenToken[] = [];
   let section: "problem" | "answer" | "unknown" = "unknown";
 
   for (let pageIndex = 0; pageIndex < middleJson.pages.length; pageIndex++) {
     const page = middleJson.pages[pageIndex]!;
     const pageIdx = page.page_idx ?? pageIndex;
     for (const block of page.blocks) {
-      const text = blockToText(block).replace(/\s+/g, " ").trim();
-      if (text.length === 0) {
-        continue;
-      }
-
       const type = block.type;
+      const tokens = blockToTokens(block, pageIdx);
+      const textToken = tokens.find((token) => token.kind === "text");
+
       if (type === "paragraph_title" || type === "header") {
-        if (SECTION_PROBLEM_RE.test(text)) {
-          section = "problem";
-        } else if (SECTION_ANSWER_RE.test(text)) {
-          section = "answer";
+        if (textToken !== undefined) {
+          if (SECTION_PROBLEM_RE.test(textToken.text)) {
+            section = "problem";
+          } else if (SECTION_ANSWER_RE.test(textToken.text)) {
+            section = "answer";
+          }
         }
         // Skip section headers; other titles still go into the exam fallback.
         if (section === "unknown") {
-          allLines.push({ text, pageIdx });
+          allTokens.push(...tokens);
         }
         continue;
       }
@@ -243,121 +302,172 @@ export function flattenMiddleJson(middleJson: MiddleJson): {
         continue;
       }
 
-      const line = { text, pageIdx };
-      allLines.push(line);
+      if (tokens.length === 0) {
+        continue;
+      }
+
+      allTokens.push(...tokens);
 
       if (section === "problem") {
-        problemLines.push(line);
+        problemTokens.push(...tokens);
       } else if (section === "answer") {
-        answerLines.push(line);
+        answerTokens.push(...tokens);
       }
     }
   }
 
-  if (problemLines.length === 0 && answerLines.length === 0) {
-    return { problemLines: allLines, answerLines: [] };
+  if (problemTokens.length === 0 && answerTokens.length === 0) {
+    return { problemTokens: allTokens, answerTokens: [] };
   }
 
-  return { problemLines, answerLines };
+  return { problemTokens, answerTokens };
 }
 
-function splitByProblemNumber(lines: MiddleJsonLine[]): Map<string, SplitProblem> {
-  const map = new Map<string, SplitProblem>();
+function appendImage(paths: string[], path: string): void {
+  if (!paths.includes(path)) {
+    paths.push(path);
+  }
+}
+
+function flushChunkParts(
+  map: Map<string, ChunkParts>,
+  currentNumber: string | null,
+  textParts: string[],
+  imagePaths: string[],
+  sourcePageIdx: number | null,
+): void {
+  if (currentNumber === null || sourcePageIdx === null) {
+    return;
+  }
+  const text = textParts.join("\n").trim();
+  if (text.length === 0 && imagePaths.length === 0) {
+    return;
+  }
+  const existing = map.get(currentNumber);
+  if (existing === undefined) {
+    map.set(currentNumber, {
+      text,
+      imagePaths: [...imagePaths],
+      sourcePageIdx,
+    });
+    return;
+  }
+  const mergedText =
+    existing.text.length === 0
+      ? text
+      : text.length === 0
+        ? existing.text
+        : `${existing.text}\n${text}`;
+  const mergedImages = [...existing.imagePaths];
+  for (const path of imagePaths) {
+    appendImage(mergedImages, path);
+  }
+  map.set(currentNumber, {
+    text: mergedText,
+    imagePaths: mergedImages,
+    sourcePageIdx: existing.sourcePageIdx,
+  });
+}
+
+function splitByProblemNumber(tokens: FlattenToken[]): Map<string, ChunkParts> {
+  const map = new Map<string, ChunkParts>();
   let currentNumber: string | null = null;
   let currentParts: string[] = [];
+  let currentImages: string[] = [];
   let currentPageIdx: number | null = null;
 
-  const flush = () => {
-    if (currentNumber === null || currentPageIdx === null) {
-      return;
+  for (const token of tokens) {
+    if (token.kind === "image") {
+      if (currentNumber !== null) {
+        appendImage(currentImages, token.path);
+      }
+      continue;
     }
-    const text = currentParts.join("\n").trim();
-    if (text.length === 0) {
-      return;
-    }
-    const existing = map.get(currentNumber);
-    map.set(
-      currentNumber,
-      existing === undefined
-        ? { text, sourcePageIdx: currentPageIdx }
-        : {
-            text: `${existing.text}\n${text}`,
-            sourcePageIdx: existing.sourcePageIdx,
-          },
-    );
-  };
 
-  for (const line of lines) {
-    const number = matchProblemStart(line.text);
+    const number = matchProblemStart(token.text);
     if (number !== null) {
-      flush();
+      flushChunkParts(
+        map,
+        currentNumber,
+        currentParts,
+        currentImages,
+        currentPageIdx,
+      );
       currentNumber = number;
-      currentParts = [line.text];
-      currentPageIdx = line.pageIdx;
+      currentParts = [token.text];
+      currentImages = [];
+      currentPageIdx = token.pageIdx;
       continue;
     }
     // Preamble before the first problem number is ignored.
     if (currentNumber !== null) {
-      currentParts.push(line.text);
+      currentParts.push(token.text);
     }
   }
-  flush();
+  flushChunkParts(
+    map,
+    currentNumber,
+    currentParts,
+    currentImages,
+    currentPageIdx,
+  );
 
   return map;
 }
 
 /**
- * Split answer lines by base problem number.
+ * Split answer tokens by base problem number.
  * PGA labels (2a/2b/2c) group under "2" and are rewritten to (a)/(b)/(c) leads.
  * Keeps the first page index for each problem number.
  */
 function splitAnswersByProblemNumber(
-  lines: MiddleJsonLine[],
-): Map<string, SplitProblem> {
-  const map = new Map<string, SplitProblem>();
+  tokens: FlattenToken[],
+): Map<string, ChunkParts> {
+  const map = new Map<string, ChunkParts>();
   let currentNumber: string | null = null;
   let currentParts: string[] = [];
+  let currentImages: string[] = [];
   let currentPageIdx: number | null = null;
 
-  const flush = () => {
-    if (currentNumber === null || currentPageIdx === null) {
-      return;
+  for (const token of tokens) {
+    if (token.kind === "image") {
+      if (currentNumber !== null) {
+        appendImage(currentImages, token.path);
+      }
+      continue;
     }
-    const text = currentParts.join("\n").trim();
-    if (text.length === 0) {
-      return;
-    }
-    const existing = map.get(currentNumber);
-    map.set(
-      currentNumber,
-      existing === undefined
-        ? { text, sourcePageIdx: currentPageIdx }
-        : {
-            text: `${existing.text}\n${text}`,
-            sourcePageIdx: existing.sourcePageIdx,
-          },
-    );
-  };
 
-  for (const line of lines) {
-    const match = matchAnswerStart(line.text);
+    const match = matchAnswerStart(token.text);
     if (match !== null) {
-      flush();
+      flushChunkParts(
+        map,
+        currentNumber,
+        currentParts,
+        currentImages,
+        currentPageIdx,
+      );
       currentNumber = match.problemNumber;
       currentParts = [
         match.subproblemLetter !== null
-          ? rewritePgaAnswerLine(line.text, match.subproblemLetter)
-          : line.text,
+          ? rewritePgaAnswerLine(token.text, match.subproblemLetter)
+          : token.text,
       ];
-      currentPageIdx = line.pageIdx;
+      currentImages = [];
+      currentPageIdx = token.pageIdx;
       continue;
     }
     // Preamble before the first answer number is ignored.
     if (currentNumber !== null) {
-      currentParts.push(line.text);
+      currentParts.push(token.text);
     }
   }
-  flush();
+  flushChunkParts(
+    map,
+    currentNumber,
+    currentParts,
+    currentImages,
+    currentPageIdx,
+  );
 
   return map;
 }
@@ -450,36 +560,39 @@ export function separateStemAndFacit(
 }
 
 /**
- * Split flattened problem/answer text into one chunk per problem number.
+ * Split flattened problem/answer tokens into one chunk per problem number.
  * Problems without answers still appear (answerText empty).
  * Answers without a matching problem are omitted.
  * Worked-solution narrative mixed into a chunk is stripped via separateStemAndFacit.
+ * Image paths and first source page indices stay with each reading-order window.
  */
 export function splitIntoProblemChunks(
-  problemLines: MiddleJsonLine[],
-  answerLines: MiddleJsonLine[],
+  problemTokens: FlattenToken[],
+  answerTokens: FlattenToken[],
 ): ProblemChunk[] {
-  const problems = splitByProblemNumber(problemLines);
-  const answers = splitAnswersByProblemNumber(answerLines);
+  const problems = splitByProblemNumber(problemTokens);
+  const answers = splitAnswersByProblemNumber(answerTokens);
 
   const numbers = [...problems.keys()].sort(compareProblemNumbers);
 
   return numbers.map((problemNumber) => {
-    const problem = problems.get(problemNumber);
-    const answer = answers.get(problemNumber);
+    const problemParts = problems.get(problemNumber);
+    const answerParts = answers.get(problemNumber);
     const separated = separateStemAndFacit(
-      problem?.text ?? "",
-      answer?.text ?? "",
+      problemParts?.text ?? "",
+      answerParts?.text ?? "",
     );
     return {
       problemNumber,
       problemText: separated.problemText,
       answerText: separated.answerText,
-      ...(problem !== undefined
-        ? { sourceQuestionPageIdx: problem.sourcePageIdx }
+      questionImagePaths: problemParts?.imagePaths ?? [],
+      answerImagePaths: answerParts?.imagePaths ?? [],
+      ...(problemParts !== undefined
+        ? { sourceQuestionPageIdx: problemParts.sourcePageIdx }
         : {}),
-      ...(answer !== undefined
-        ? { sourceAnswerPageIdx: answer.sourcePageIdx }
+      ...(answerParts !== undefined
+        ? { sourceAnswerPageIdx: answerParts.sourcePageIdx }
         : {}),
     };
   });

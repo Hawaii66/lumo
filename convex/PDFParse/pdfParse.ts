@@ -6,22 +6,27 @@ import {
   type ActionCtx,
 } from "../_generated/server";
 import {
-  lumoParsedProblemValidator,
+  lumoParsedProblemWithImagesValidator,
   type LumoParsedProblem,
+  type LumoParsedProblemWithImages,
 } from "../lib/lumoContent";
-import { getOrFetchMiddleJson } from "./getOrFetchMiddleJson";
+import {
+  getOrFetchMiddleJson,
+  type MineruImageAsset,
+} from "./getOrFetchMiddleJson";
 import {
   flattenFullDocument,
   flattenMiddleJson,
   splitIntoProblemChunks,
   type ProblemChunk,
 } from "./middleJson";
+import { normalizeMineruImagePath } from "./mineruClient";
 import { middleJsonSchema } from "./mineruSchema";
 
 /** Max concurrent per-problem agent calls. */
 const AGENT_CONCURRENCY = 5;
 
-const lumoProblemListValidator = v.array(lumoParsedProblemValidator);
+const lumoProblemListValidator = v.array(lumoParsedProblemWithImagesValidator);
 
 async function mapPool<T, R>(
   items: T[],
@@ -103,10 +108,61 @@ function formatAgentProgress(completed: number, total: number): string {
   return `Tolkar uppgifter med AI… ${completed}/${total} (${percent}%)`;
 }
 
+function storageIdsForPaths(
+  paths: string[],
+  imageByPath: Map<string, Id<"_storage">>,
+): Array<{ storageId: Id<"_storage"> }> {
+  const out: Array<{ storageId: Id<"_storage"> }> = [];
+  const seen = new Set<string>();
+  for (const path of paths) {
+    const storageId = imageByPath.get(normalizeMineruImagePath(path));
+    if (storageId === undefined || seen.has(storageId)) {
+      continue;
+    }
+    seen.add(storageId);
+    out.push({ storageId });
+  }
+  return out;
+}
+
+function imageAssetMap(
+  imageAssets: Array<MineruImageAsset>,
+): Map<string, Id<"_storage">> {
+  const map = new Map<string, Id<"_storage">>();
+  for (const asset of imageAssets) {
+    map.set(normalizeMineruImagePath(asset.path), asset.storageId);
+  }
+  return map;
+}
+
+function attachChunkImages(
+  problems: LumoParsedProblem[],
+  chunks: ProblemChunk[],
+  imageAssets: Array<MineruImageAsset>,
+): LumoParsedProblemWithImages[] {
+  const byPath = imageAssetMap(imageAssets);
+  return problems.map((problem, index) => {
+    const chunk = chunks[index];
+    const questionImages = storageIdsForPaths(
+      chunk?.questionImagePaths ?? [],
+      byPath,
+    );
+    const answerImages = storageIdsForPaths(
+      chunk?.answerImagePaths ?? [],
+      byPath,
+    );
+    return {
+      ...problem,
+      ...(questionImages.length > 0 ? { questionImages } : {}),
+      ...(answerImages.length > 0 ? { answerImages } : {}),
+    };
+  });
+}
+
 async function saveParsedProblems(
   ctx: ActionCtx,
   contentHash: string,
-  problems: LumoParsedProblem[],
+  problems: LumoParsedProblemWithImages[],
 ): Promise<void> {
   await ctx.runMutation(internal.PDFParse.problems.replaceForContentHash, {
     contentHash,
@@ -115,6 +171,8 @@ async function saveParsedProblems(
       problem: p.question,
       answer: p.answer,
       flags: p.flags,
+      questionImages: p.questionImages,
+      answerImages: p.answerImages,
       ...(p.sourceQuestionPageIdx !== undefined
         ? { sourceQuestionPageIdx: p.sourceQuestionPageIdx }
         : {}),
@@ -129,8 +187,9 @@ async function convertChunksToProblems(
   ctx: ActionCtx,
   userId: Id<"users">,
   chunks: ProblemChunk[],
+  imageAssets: Array<MineruImageAsset>,
   onStatus?: StatusReporter,
-): Promise<LumoParsedProblem[]> {
+): Promise<LumoParsedProblemWithImages[]> {
   if (chunks.length === 0) {
     return [];
   }
@@ -175,7 +234,7 @@ async function convertChunksToProblems(
         };
       },
     );
-    return results;
+    return attachChunkImages(results, chunks, imageAssets);
   } finally {
     await statusChain;
   }
@@ -192,8 +251,8 @@ export async function parsePdfBytesToProblems(
   contentHash: string,
   blobType: string,
   onStatus?: StatusReporter,
-): Promise<LumoParsedProblem[]> {
-  const middleJson = await getOrFetchMiddleJson(
+): Promise<LumoParsedProblemWithImages[]> {
+  const { middleJson, imageAssets } = await getOrFetchMiddleJson(
     ctx,
     pdfBytes,
     contentHash,
@@ -203,9 +262,15 @@ export async function parsePdfBytesToProblems(
     },
   );
   await onStatus?.("Delar upp uppgifter…");
-  const { problemLines, answerLines } = flattenMiddleJson(middleJson);
-  const chunks = splitIntoProblemChunks(problemLines, answerLines);
-  return await convertChunksToProblems(ctx, userId, chunks, onStatus);
+  const { problemTokens, answerTokens } = flattenMiddleJson(middleJson);
+  const chunks = splitIntoProblemChunks(problemTokens, answerTokens);
+  return await convertChunksToProblems(
+    ctx,
+    userId,
+    chunks,
+    imageAssets,
+    onStatus,
+  );
 }
 
 /**
@@ -220,7 +285,7 @@ export async function parsePdfBytesToInfo(
   blobType: string,
   onStatus?: StatusReporter,
 ): Promise<string> {
-  const middleJson = await getOrFetchMiddleJson(
+  const { middleJson } = await getOrFetchMiddleJson(
     ctx,
     pdfBytes,
     contentHash,
@@ -255,10 +320,11 @@ export async function parseCachedMiddleJsonToProblems(
   userId: Id<"users">,
   contentHash: string,
   onStatus?: StatusReporter,
-): Promise<LumoParsedProblem[]> {
+): Promise<LumoParsedProblemWithImages[]> {
   const cached: {
     _id: Id<"mineruCache">;
     middleJsonStorageId: Id<"_storage">;
+    imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
   } | null = await ctx.runQuery(
     internal.PDFParse.mineruCache.getByContentHash,
     { contentHash },
@@ -277,9 +343,15 @@ export async function parseCachedMiddleJsonToProblems(
     throw new Error("MinerU-cachen är korrupt");
   }
   await onStatus?.("Delar upp uppgifter…");
-  const { problemLines, answerLines } = flattenMiddleJson(parsed.data);
-  const chunks = splitIntoProblemChunks(problemLines, answerLines);
-  return await convertChunksToProblems(ctx, userId, chunks, onStatus);
+  const { problemTokens, answerTokens } = flattenMiddleJson(parsed.data);
+  const chunks = splitIntoProblemChunks(problemTokens, answerTokens);
+  return await convertChunksToProblems(
+    ctx,
+    userId,
+    chunks,
+    cached.imageAssets,
+    onStatus,
+  );
 }
 
 export async function parseCachedMiddleJsonToInfo(
@@ -291,6 +363,7 @@ export async function parseCachedMiddleJsonToInfo(
   const cached: {
     _id: Id<"mineruCache">;
     middleJsonStorageId: Id<"_storage">;
+    imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
   } | null = await ctx.runQuery(
     internal.PDFParse.mineruCache.getByContentHash,
     { contentHash },
@@ -478,7 +551,7 @@ export const problemParserTester = internalAction({
     userId: v.id("users"),
   },
   returns: lumoProblemListValidator,
-  handler: async (ctx, args): Promise<LumoParsedProblem[]> => {
+  handler: async (ctx, args): Promise<LumoParsedProblemWithImages[]> => {
     const file = await loadFile(ctx, args.fileId);
     const blob = await ctx.storage.get(file.storageId);
     if (blob === null) {

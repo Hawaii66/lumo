@@ -19,6 +19,10 @@ const lumoParsedProblemSchema = z.object({
   flags: z.array(problemFlagSchema).default([]),
 })
 
+export type ProblemImage = {
+  url: string
+}
+
 export type LumoParsedProblem = {
   problemNumber: string
   question: string
@@ -28,6 +32,8 @@ export type LumoParsedProblem = {
   sourceQuestionPageIdx?: number
   /** First 0-based PDF page of the answer/facit (from MinerU parse). */
   sourceAnswerPageIdx?: number
+  questionImages?: Array<ProblemImage>
+  answerImages?: Array<ProblemImage>
 }
 
 function tryParsePasteJson(trimmed: string): unknown | undefined {

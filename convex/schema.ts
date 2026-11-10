@@ -187,6 +187,18 @@ export default defineSchema({
   mineruCache: defineTable({
     contentHash: v.string(),
     middleJsonStorageId: v.id("_storage"),
+    /**
+     * Cropped figure/table/chart assets from the MinerU ZIP (`images/…`).
+     * Missing on older cache rows → treat as [].
+     */
+    imageAssets: v.optional(
+      v.array(
+        v.object({
+          path: v.string(),
+          storageId: v.id("_storage"),
+        }),
+      ),
+    ),
   }).index("by_contentHash", ["contentHash"]),
   /**
    * Single-flight lock so concurrent parse jobs for the same PDF
@@ -219,6 +231,20 @@ export default defineSchema({
     sourceQuestionPageIdx: v.optional(v.number()),
     /** First 0-based PDF page of the answer/facit (from MinerU). */
     sourceAnswerPageIdx: v.optional(v.number()),
+    /**
+     * MinerU-cropped figures attached to the question stem.
+     * Missing on older rows / shadows → treat as [].
+     */
+    questionImages: v.optional(
+      v.array(v.object({ storageId: v.id("_storage") })),
+    ),
+    /**
+     * MinerU-cropped figures attached to the facit/answer.
+     * Missing on older rows / shadows → treat as [].
+     */
+    answerImages: v.optional(
+      v.array(v.object({ storageId: v.id("_storage") })),
+    ),
   })
     .index("by_contentHash", ["contentHash"])
     .index("by_room_and_parent", ["roomId", "parentProblemId"])
