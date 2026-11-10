@@ -46,6 +46,8 @@ function DashboardIndexPage() {
         </div>
       </div>
 
+      <RoomsPanel />
+
       <Suspense
         fallback={
           <Card>
@@ -58,8 +60,6 @@ function DashboardIndexPage() {
       >
         <CreditsBalanceSummary buyCreditsHref />
       </Suspense>
-
-      <RoomsPanel />
     </main>
   )
 }
