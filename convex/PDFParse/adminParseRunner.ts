@@ -13,7 +13,11 @@ import {
   parsePdfBytesToProblems,
 } from "./pdfParse";
 
-type PreviewImage = { storageId: Id<"_storage">; url: string };
+type PreviewImage = {
+  storageId: Id<"_storage">;
+  url: string;
+  subproblemLetter?: string;
+};
 
 type PreviewProblem = Omit<
   LumoParsedProblemWithImages,
@@ -29,7 +33,7 @@ type PreviewPayload =
 
 async function resolvePreviewImages(
   ctx: ActionCtx,
-  images: Array<{ storageId: string }> | undefined,
+  images: Array<{ storageId: string; subproblemLetter?: string }> | undefined,
 ): Promise<Array<PreviewImage>> {
   if (images === undefined || images.length === 0) {
     return [];
@@ -39,7 +43,12 @@ async function resolvePreviewImages(
     const storageId = image.storageId as Id<"_storage">;
     const url = await ctx.storage.getUrl(storageId);
     if (url !== null) {
-      out.push({ storageId, url });
+      const letter = (image.subproblemLetter ?? "").trim().toLowerCase();
+      out.push({
+        storageId,
+        url,
+        ...(letter.length > 0 ? { subproblemLetter: letter } : {}),
+      });
     }
   }
   return out;
@@ -134,9 +143,17 @@ async function commitPreview(
           : {}),
         questionImages: p.questionImages?.map((img) => ({
           storageId: img.storageId,
+          ...(img.subproblemLetter !== undefined &&
+          img.subproblemLetter.length > 0
+            ? { subproblemLetter: img.subproblemLetter }
+            : {}),
         })),
         answerImages: p.answerImages?.map((img) => ({
           storageId: img.storageId,
+          ...(img.subproblemLetter !== undefined &&
+          img.subproblemLetter.length > 0
+            ? { subproblemLetter: img.subproblemLetter }
+            : {}),
         })),
       })),
     });

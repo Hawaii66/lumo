@@ -101,19 +101,28 @@ export const lumoParsedProblemValidator = v.object({
 /** Stored MinerU crop on a problem row. */
 export const problemImageStorageValidator = v.object({
   storageId: v.id("_storage"),
+  /** `""` / missing = shared stem; `a`–`z` = deluppgift. */
+  subproblemLetter: v.optional(v.string()),
 });
 
 /** Resolved image URL for clients / admin preview. */
 export const problemImageUrlValidator = v.object({
   url: v.string(),
+  subproblemLetter: v.optional(v.string()),
 });
 
 /**
  * Parsed problem plus optional MinerU image storage refs (not part of LLM output).
  */
 export type LumoParsedProblemWithImages = LumoParsedProblem & {
-  questionImages?: Array<{ storageId: Id<"_storage"> }>;
-  answerImages?: Array<{ storageId: Id<"_storage"> }>;
+  questionImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+  answerImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
 };
 
 export const lumoParsedProblemWithImagesValidator =

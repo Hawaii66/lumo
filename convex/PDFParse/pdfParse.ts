@@ -108,19 +108,28 @@ function formatAgentProgress(completed: number, total: number): string {
   return `Tolkar uppgifter med AI… ${completed}/${total} (${percent}%)`;
 }
 
-function storageIdsForPaths(
-  paths: string[],
+function storageIdsForImages(
+  images: Array<{ path: string; subproblemLetter: string }>,
   imageByPath: Map<string, Id<"_storage">>,
-): Array<{ storageId: Id<"_storage"> }> {
-  const out: Array<{ storageId: Id<"_storage"> }> = [];
+): Array<{ storageId: Id<"_storage">; subproblemLetter?: string }> {
+  const out: Array<{ storageId: Id<"_storage">; subproblemLetter?: string }> =
+    [];
   const seen = new Set<string>();
-  for (const path of paths) {
-    const storageId = imageByPath.get(normalizeMineruImagePath(path));
-    if (storageId === undefined || seen.has(storageId)) {
+  for (const image of images) {
+    const storageId = imageByPath.get(normalizeMineruImagePath(image.path));
+    if (storageId === undefined) {
       continue;
     }
-    seen.add(storageId);
-    out.push({ storageId });
+    const letter = image.subproblemLetter.trim().toLowerCase();
+    const key = `${storageId}:${letter}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    out.push({
+      storageId,
+      ...(letter.length > 0 ? { subproblemLetter: letter } : {}),
+    });
   }
   return out;
 }
@@ -143,14 +152,11 @@ function attachChunkImages(
   const byPath = imageAssetMap(imageAssets);
   return problems.map((problem, index) => {
     const chunk = chunks[index];
-    const questionImages = storageIdsForPaths(
-      chunk?.questionImagePaths ?? [],
+    const questionImages = storageIdsForImages(
+      chunk?.questionImages ?? [],
       byPath,
     );
-    const answerImages = storageIdsForPaths(
-      chunk?.answerImagePaths ?? [],
-      byPath,
-    );
+    const answerImages = storageIdsForImages(chunk?.answerImages ?? [], byPath);
     return {
       ...problem,
       ...(questionImages.length > 0 ? { questionImages } : {}),

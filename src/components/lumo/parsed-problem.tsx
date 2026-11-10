@@ -1,6 +1,6 @@
 import { Eye, EyeOff } from "lucide-react"
-import { useState } from "react"
-import type { LumoParsedProblem, ProblemFlag } from "~/lib/lumo-content"
+import { useMemo, useState } from "react"
+import type { LumoParsedProblem, ProblemFlag, ProblemImage } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import { ImageViewerSheet } from "~/components/rooms/image-viewer-sheet"
 import {
@@ -29,6 +29,17 @@ function flagNotice(flag: ProblemFlag): string {
   }
 }
 
+function groupImagesByLetter(
+  images: Array<ProblemImage>,
+): Record<string, Array<{ url: string }>> {
+  const grouped: Record<string, Array<{ url: string }>> = {}
+  for (const image of images) {
+    const letter = (image.subproblemLetter ?? "").trim().toLowerCase()
+    ;(grouped[letter] ??= []).push({ url: image.url })
+  }
+  return grouped
+}
+
 function ProblemImageGallery({
   images,
   label,
@@ -44,10 +55,7 @@ function ProblemImageGallery({
 
   return (
     <>
-      <ul
-        className="grid gap-2 sm:grid-cols-2"
-        aria-label={label}
-      >
+      <ul className="grid gap-2 sm:grid-cols-2" aria-label={label}>
         {images.map((image, index) => (
           <li key={`${image.url}-${index}`}>
             <button
@@ -118,6 +126,14 @@ export function ParsedProblemView({
     onCompletedChange !== undefined && !hasSubproblems
   const questionImages = problem.questionImages ?? []
   const answerImages = problem.answerImages ?? []
+  const questionImagesByLetter = useMemo(
+    () => groupImagesByLetter(questionImages),
+    [questionImages],
+  )
+  const answerImagesByLetter = useMemo(
+    () => groupImagesByLetter(answerImages),
+    [answerImages],
+  )
   const flags = (problem.flags ?? []).filter(
     (flag) =>
       !(flag.kind === "needs_pdf" && questionImages.length > 0),
@@ -183,6 +199,17 @@ export function ParsedProblemView({
         <MarkdownWithMath
           markdown={problem.question}
           scopeKey={`q-${problem.problemNumber}`}
+          imagesByLetter={questionImagesByLetter}
+          renderImages={(images, letter) => (
+            <ProblemImageGallery
+              images={images}
+              label={
+                letter.length > 0
+                  ? `Figur till (${letter})`
+                  : "Figur till ingressen"
+              }
+            />
+          )}
           subproblemStars={
             onStarsChange && hasSubproblems
               ? {
@@ -201,10 +228,6 @@ export function ParsedProblemView({
               : undefined
           }
         />
-        <ProblemImageGallery
-          images={questionImages}
-          label="Figur till frågan"
-        />
       </section>
 
       {showAnswer ? (
@@ -218,12 +241,19 @@ export function ParsedProblemView({
             <MarkdownWithMath
               markdown={problem.answer}
               scopeKey={`a-${problem.problemNumber}`}
+              imagesByLetter={answerImagesByLetter}
+              renderImages={(images, letter) => (
+                <ProblemImageGallery
+                  images={images}
+                  label={
+                    letter.length > 0
+                      ? `Figur till svar (${letter})`
+                      : "Figur till svaret"
+                  }
+                />
+              )}
             />
           )}
-          <ProblemImageGallery
-            images={answerImages}
-            label="Figur till svaret"
-          />
         </section>
       ) : null}
     </article>

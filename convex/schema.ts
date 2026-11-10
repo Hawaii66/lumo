@@ -232,18 +232,30 @@ export default defineSchema({
     /** First 0-based PDF page of the answer/facit (from MinerU). */
     sourceAnswerPageIdx: v.optional(v.number()),
     /**
-     * MinerU-cropped figures attached to the question stem.
+     * MinerU-cropped figures attached to the question.
+     * `subproblemLetter` is `""`/missing for shared stem, otherwise `a`–`z`.
      * Missing on older rows / shadows → treat as [].
      */
     questionImages: v.optional(
-      v.array(v.object({ storageId: v.id("_storage") })),
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          subproblemLetter: v.optional(v.string()),
+        }),
+      ),
     ),
     /**
      * MinerU-cropped figures attached to the facit/answer.
+     * `subproblemLetter` is `""`/missing for shared stem, otherwise `a`–`z`.
      * Missing on older rows / shadows → treat as [].
      */
     answerImages: v.optional(
-      v.array(v.object({ storageId: v.id("_storage") })),
+      v.array(
+        v.object({
+          storageId: v.id("_storage"),
+          subproblemLetter: v.optional(v.string()),
+        }),
+      ),
     ),
   })
     .index("by_contentHash", ["contentHash"])

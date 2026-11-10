@@ -5,12 +5,18 @@ export type FlattenToken =
   | { kind: "text"; text: string; pageIdx: number }
   | { kind: "image"; path: string; pageIdx: number };
 
+/** Image path + optional deluppgift letter (`""` = shared stem). */
+export type ChunkImageRef = {
+  path: string;
+  subproblemLetter: string;
+};
+
 export type ProblemChunk = {
   problemNumber: string;
   problemText: string;
   answerText: string;
-  questionImagePaths: string[];
-  answerImagePaths: string[];
+  questionImages: ChunkImageRef[];
+  answerImages: ChunkImageRef[];
   /** First page (0-based) where this problem's stem appears. */
   sourceQuestionPageIdx?: number;
   /** First page (0-based) where this problem's answer appears. */
@@ -19,9 +25,30 @@ export type ProblemChunk = {
 
 type ChunkParts = {
   text: string;
-  imagePaths: string[];
+  images: ChunkImageRef[];
   sourcePageIdx: number;
 };
+
+/**
+ * Detect a deluppgift letter at the start of an OCR/markdown line.
+ * Matches `(a)`, `### (a)`, `a)`, `a.`.
+ */
+export function matchSubproblemLetter(line: string): string | null {
+  const trimmed = line.trim();
+  const heading = trimmed.match(/^#{2,4}\s*\(([a-z])\)\s*$/i);
+  if (heading !== null) {
+    return heading[1]!.toLowerCase();
+  }
+  const paren = trimmed.match(/^\(([a-z])\)(?:\s|$)/i);
+  if (paren !== null) {
+    return paren[1]!.toLowerCase();
+  }
+  const glued = trimmed.match(/^([a-z])\s*[.)](?:\s|$)/i);
+  if (glued !== null) {
+    return glued[1]!.toLowerCase();
+  }
+  return null;
+}
 
 /** Classic booklet: "P 1.2" / "P1.2" near the start of a line. */
 const PROBLEM_P_RE = /\bP\s*(\d+\.\d+)\b/i;
@@ -323,31 +350,41 @@ export function flattenMiddleJson(middleJson: MiddleJson): {
   return { problemTokens, answerTokens };
 }
 
-function appendImage(paths: string[], path: string): void {
-  if (!paths.includes(path)) {
-    paths.push(path);
+function appendImage(
+  images: ChunkImageRef[],
+  path: string,
+  subproblemLetter: string,
+): void {
+  if (
+    images.some(
+      (image) =>
+        image.path === path && image.subproblemLetter === subproblemLetter,
+    )
+  ) {
+    return;
   }
+  images.push({ path, subproblemLetter });
 }
 
 function flushChunkParts(
   map: Map<string, ChunkParts>,
   currentNumber: string | null,
   textParts: string[],
-  imagePaths: string[],
+  images: ChunkImageRef[],
   sourcePageIdx: number | null,
 ): void {
   if (currentNumber === null || sourcePageIdx === null) {
     return;
   }
   const text = textParts.join("\n").trim();
-  if (text.length === 0 && imagePaths.length === 0) {
+  if (text.length === 0 && images.length === 0) {
     return;
   }
   const existing = map.get(currentNumber);
   if (existing === undefined) {
     map.set(currentNumber, {
       text,
-      imagePaths: [...imagePaths],
+      images: [...images],
       sourcePageIdx,
     });
     return;
@@ -358,13 +395,13 @@ function flushChunkParts(
       : text.length === 0
         ? existing.text
         : `${existing.text}\n${text}`;
-  const mergedImages = [...existing.imagePaths];
-  for (const path of imagePaths) {
-    appendImage(mergedImages, path);
+  const mergedImages = [...existing.images];
+  for (const image of images) {
+    appendImage(mergedImages, image.path, image.subproblemLetter);
   }
   map.set(currentNumber, {
     text: mergedText,
-    imagePaths: mergedImages,
+    images: mergedImages,
     sourcePageIdx: existing.sourcePageIdx,
   });
 }
@@ -373,13 +410,14 @@ function splitByProblemNumber(tokens: FlattenToken[]): Map<string, ChunkParts> {
   const map = new Map<string, ChunkParts>();
   let currentNumber: string | null = null;
   let currentParts: string[] = [];
-  let currentImages: string[] = [];
+  let currentImages: ChunkImageRef[] = [];
   let currentPageIdx: number | null = null;
+  let currentSubLetter = "";
 
   for (const token of tokens) {
     if (token.kind === "image") {
       if (currentNumber !== null) {
-        appendImage(currentImages, token.path);
+        appendImage(currentImages, token.path, currentSubLetter);
       }
       continue;
     }
@@ -397,10 +435,15 @@ function splitByProblemNumber(tokens: FlattenToken[]): Map<string, ChunkParts> {
       currentParts = [token.text];
       currentImages = [];
       currentPageIdx = token.pageIdx;
+      currentSubLetter = matchSubproblemLetter(token.text) ?? "";
       continue;
     }
     // Preamble before the first problem number is ignored.
     if (currentNumber !== null) {
+      const letter = matchSubproblemLetter(token.text);
+      if (letter !== null) {
+        currentSubLetter = letter;
+      }
       currentParts.push(token.text);
     }
   }
@@ -426,13 +469,14 @@ function splitAnswersByProblemNumber(
   const map = new Map<string, ChunkParts>();
   let currentNumber: string | null = null;
   let currentParts: string[] = [];
-  let currentImages: string[] = [];
+  let currentImages: ChunkImageRef[] = [];
   let currentPageIdx: number | null = null;
+  let currentSubLetter = "";
 
   for (const token of tokens) {
     if (token.kind === "image") {
       if (currentNumber !== null) {
-        appendImage(currentImages, token.path);
+        appendImage(currentImages, token.path, currentSubLetter);
       }
       continue;
     }
@@ -447,17 +491,25 @@ function splitAnswersByProblemNumber(
         currentPageIdx,
       );
       currentNumber = match.problemNumber;
-      currentParts = [
+      currentSubLetter = match.subproblemLetter ?? "";
+      const line =
         match.subproblemLetter !== null
           ? rewritePgaAnswerLine(token.text, match.subproblemLetter)
-          : token.text,
-      ];
+          : token.text;
+      currentParts = [line];
       currentImages = [];
       currentPageIdx = token.pageIdx;
+      if (currentSubLetter.length === 0) {
+        currentSubLetter = matchSubproblemLetter(line) ?? "";
+      }
       continue;
     }
     // Preamble before the first answer number is ignored.
     if (currentNumber !== null) {
+      const letter = matchSubproblemLetter(token.text);
+      if (letter !== null) {
+        currentSubLetter = letter;
+      }
       currentParts.push(token.text);
     }
   }
@@ -586,8 +638,8 @@ export function splitIntoProblemChunks(
       problemNumber,
       problemText: separated.problemText,
       answerText: separated.answerText,
-      questionImagePaths: problemParts?.imagePaths ?? [],
-      answerImagePaths: answerParts?.imagePaths ?? [],
+      questionImages: problemParts?.images ?? [],
+      answerImages: answerParts?.images ?? [],
       ...(problemParts !== undefined
         ? { sourceQuestionPageIdx: problemParts.sourcePageIdx }
         : {}),

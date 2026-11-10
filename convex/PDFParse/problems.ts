@@ -629,16 +629,22 @@ const roomProblemResultValidator = v.object({
 
 async function resolveImageUrls(
   ctx: QueryCtx,
-  images: Array<{ storageId: Id<"_storage"> }> | undefined,
-): Promise<Array<{ url: string }>> {
+  images:
+    | Array<{ storageId: Id<"_storage">; subproblemLetter?: string }>
+    | undefined,
+): Promise<Array<{ url: string; subproblemLetter?: string }>> {
   if (images === undefined || images.length === 0) {
     return [];
   }
-  const urls: Array<{ url: string }> = [];
+  const urls: Array<{ url: string; subproblemLetter?: string }> = [];
   for (const image of images) {
     const url = await ctx.storage.getUrl(image.storageId);
     if (url !== null) {
-      urls.push({ url });
+      const letter = (image.subproblemLetter ?? "").trim().toLowerCase();
+      urls.push({
+        url,
+        ...(letter.length > 0 ? { subproblemLetter: letter } : {}),
+      });
     }
   }
   return urls;
@@ -661,8 +667,8 @@ async function resolveRoomProblem(
   sourceQuestionPageIdx: number | null;
   sourceAnswerPageIdx: number | null;
   problem: LumoParsedProblem & {
-    questionImages?: Array<{ url: string }>;
-    answerImages?: Array<{ url: string }>;
+    questionImages?: Array<{ url: string; subproblemLetter?: string }>;
+    answerImages?: Array<{ url: string; subproblemLetter?: string }>;
   };
 } | null> {
   if (

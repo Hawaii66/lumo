@@ -21,6 +21,8 @@ const lumoParsedProblemSchema = z.object({
 
 export type ProblemImage = {
   url: string
+  /** `""` / missing = shared stem; `a`–`z` = deluppgift. */
+  subproblemLetter?: string
 }
 
 export type LumoParsedProblem = {

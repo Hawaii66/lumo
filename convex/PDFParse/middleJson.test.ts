@@ -99,6 +99,47 @@ describe("splitIntoProblemChunks page indices", () => {
     expect(chunks[0]!.sourceAnswerPageIdx).toBeUndefined()
   })
 
+  it("tags images with the current deluppgift letter", () => {
+    const middleJson: MiddleJson = {
+      pages: [
+        {
+          page_idx: 0,
+          blocks: [
+            { type: "paragraph_title", content: "Problem" },
+            { type: "text", content: "1.2 Intro stem." },
+            {
+              type: "image",
+              image_path: "images/stem.jpg",
+              content: "",
+            } as never,
+            { type: "text", content: "(a) First part." },
+            {
+              type: "image",
+              image_path: "images/a.jpg",
+              content: "",
+            } as never,
+            { type: "text", content: "(b) Second part." },
+            {
+              type: "image",
+              image_path: "images/b.jpg",
+              content: "",
+            } as never,
+          ],
+        },
+      ],
+    }
+
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
+
+    expect(chunks).toHaveLength(1)
+    expect(chunks[0]!.questionImages).toEqual([
+      { path: "images/stem.jpg", subproblemLetter: "" },
+      { path: "images/a.jpg", subproblemLetter: "a" },
+      { path: "images/b.jpg", subproblemLetter: "b" },
+    ])
+  })
+
   it("falls back to page array index when page_idx is absent", () => {
     const middleJson: MiddleJson = {
       pages: [
