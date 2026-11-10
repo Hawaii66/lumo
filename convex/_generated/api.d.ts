@@ -31,7 +31,6 @@ import type * as authProviders_temp from "../authProviders/temp.js";
 import type * as billing from "../billing.js";
 import type * as creditDeals from "../creditDeals.js";
 import type * as credits from "../credits.js";
-import type * as crons from "../crons.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
@@ -95,7 +94,6 @@ declare const fullApi: ApiFromModules<{
   billing: typeof billing;
   creditDeals: typeof creditDeals;
   credits: typeof credits;
-  crons: typeof crons;
   files: typeof files;
   health: typeof health;
   http: typeof http;
