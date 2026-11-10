@@ -152,6 +152,8 @@ const problemRowValidator = v.object({
   problem: v.string(),
   answer: v.string(),
   flags: v.optional(v.array(problemFlagValidator)),
+  sourceQuestionPageIdx: v.optional(v.number()),
+  sourceAnswerPageIdx: v.optional(v.number()),
 });
 
 const shadowListItemValidator = v.object({
@@ -609,6 +611,8 @@ const roomProblemResultValidator = v.object({
   isShadow: v.boolean(),
   parentProblemId: v.union(v.id("problems"), v.null()),
   parentProblemNumber: v.union(v.string(), v.null()),
+  sourceQuestionPageIdx: v.union(v.number(), v.null()),
+  sourceAnswerPageIdx: v.union(v.number(), v.null()),
   problem: lumoParsedProblemValidator,
 });
 
@@ -626,6 +630,8 @@ async function resolveRoomProblem(
   isShadow: boolean;
   parentProblemId: Id<"problems"> | null;
   parentProblemNumber: string | null;
+  sourceQuestionPageIdx: number | null;
+  sourceAnswerPageIdx: number | null;
   problem: LumoParsedProblem;
 } | null> {
   if (
@@ -675,6 +681,10 @@ async function resolveRoomProblem(
     isShadow: shadow,
     parentProblemId: row.parentProblemId ?? null,
     parentProblemNumber,
+    sourceQuestionPageIdx: shadow
+      ? null
+      : (row.sourceQuestionPageIdx ?? null),
+    sourceAnswerPageIdx: shadow ? null : (row.sourceAnswerPageIdx ?? null),
     problem: {
       problemNumber: row.problemNumber,
       question: row.problem,
@@ -1006,6 +1016,12 @@ export const replaceForContentHash = internalMutation({
         answer: problem.answer,
         ...(problem.flags !== undefined && problem.flags.length > 0
           ? { flags: problem.flags }
+          : {}),
+        ...(problem.sourceQuestionPageIdx !== undefined
+          ? { sourceQuestionPageIdx: problem.sourceQuestionPageIdx }
+          : {}),
+        ...(problem.sourceAnswerPageIdx !== undefined
+          ? { sourceAnswerPageIdx: problem.sourceAnswerPageIdx }
           : {}),
       });
     }
