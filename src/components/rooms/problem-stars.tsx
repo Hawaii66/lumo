@@ -22,7 +22,15 @@ type ProblemStarsDisplayProps = {
   className?: string
 }
 
-/** Read-only stars for the sidebar list. Letter-scoped → `a` ★★. */
+function starCountLabel(stars: number) {
+  return `${stars} stjärn${stars === 1 ? "a" : "or"}`
+}
+
+/**
+ * Read-only stars for the sidebar list.
+ * Letter ratings collapse to distinct levels: one cluster when every
+ * deluppgift shares a level, one cluster per level when they differ.
+ */
 export function ProblemStarsDisplay({
   entries,
   className,
@@ -34,25 +42,29 @@ export function ProblemStarsDisplay({
     .sort((a, b) => a.letter.localeCompare(b.letter))
 
   if (letterEntries.length > 0) {
-    const label = letterEntries
-      .map((entry) => `${entry.letter}: ${entry.stars}`)
-      .join(", ")
+    const lettersByLevel = new Map<1 | 2 | 3, Array<string>>()
+    for (const entry of letterEntries) {
+      const letters = lettersByLevel.get(entry.stars) ?? []
+      letters.push(entry.letter)
+      lettersByLevel.set(entry.stars, letters)
+    }
+    const levels = [...lettersByLevel.keys()].sort((a, b) => a - b)
+    const label = levels
+      .map((stars) => {
+        const letters = lettersByLevel.get(stars)!.join(", ")
+        return `${letters}: ${starCountLabel(stars)}`
+      })
+      .join("; ")
     return (
       <span
-        className={cn("inline-flex shrink-0 items-center gap-1.5", className)}
+        className={cn("inline-flex shrink-0 items-center gap-1", className)}
         title={label}
         aria-label={label}
       >
-        {letterEntries.map((entry) => (
-          <span
-            key={entry.letter}
-            className="inline-flex items-center gap-0.5"
-          >
-            <span className="text-[10px] font-medium text-muted-foreground">
-              {entry.letter}:
-            </span>
-            <span className="inline-flex items-center gap-px">
-              {Array.from({ length: entry.stars }, (_, i) => (
+        {levels.flatMap((stars, index) => {
+          const cluster = (
+            <span key={stars} className="inline-flex items-center gap-px">
+              {Array.from({ length: stars }, (_, i) => (
                 <Star
                   key={i}
                   className="size-2.5 fill-amber-500 text-amber-500"
@@ -60,8 +72,19 @@ export function ProblemStarsDisplay({
                 />
               ))}
             </span>
-          </span>
-        ))}
+          )
+          if (index === 0) return [cluster]
+          return [
+            <span
+              key={`sep-${stars}`}
+              className="text-[10px] leading-none text-muted-foreground"
+              aria-hidden
+            >
+              |
+            </span>,
+            cluster,
+          ]
+        })}
       </span>
     )
   }
@@ -72,8 +95,8 @@ export function ProblemStarsDisplay({
   return (
     <span
       className={cn("inline-flex shrink-0 items-center gap-px", className)}
-      title={`${whole.stars} stjärn${whole.stars === 1 ? "a" : "or"}`}
-      aria-label={`${whole.stars} stjärn${whole.stars === 1 ? "a" : "or"}`}
+      title={starCountLabel(whole.stars)}
+      aria-label={starCountLabel(whole.stars)}
     >
       {Array.from({ length: whole.stars }, (_, i) => (
         <Star

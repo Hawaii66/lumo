@@ -17,8 +17,7 @@ import {
 } from "./getOrFetchMiddleJson";
 import {
   flattenFullDocument,
-  flattenMiddleJson,
-  splitIntoProblemChunks,
+  detectProblemChunks,
   type ProblemChunk,
 } from "./middleJson";
 import {
@@ -350,8 +349,7 @@ export async function parsePdfBytesToProblems(
     },
   );
   await onStatus?.("Delar upp uppgifter…");
-  const { problemTokens, answerTokens } = flattenMiddleJson(middleJson);
-  const chunks = splitIntoProblemChunks(problemTokens, answerTokens);
+  const chunks = detectProblemChunks(middleJson);
 
   let bytes = imageBytes;
   const needed = referencedImagePaths(chunks);
@@ -463,8 +461,7 @@ export async function parseCachedMiddleJsonToProblems(
     throw new Error("MinerU-cachen är korrupt");
   }
   await onStatus?.("Delar upp uppgifter…");
-  const { problemTokens, answerTokens } = flattenMiddleJson(parsed.data);
-  const chunks = splitIntoProblemChunks(problemTokens, answerTokens);
+  const chunks = detectProblemChunks(parsed.data);
   return await convertChunksToProblems(
     ctx,
     userId,
