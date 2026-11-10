@@ -20,7 +20,11 @@ import {
   splitIntoProblemChunks,
   type ProblemChunk,
 } from "./middleJson";
-import { normalizeMineruImagePath } from "./mineruClient";
+import {
+  blobFromMineruImage,
+  fetchMineruZipResult,
+  normalizeMineruImagePath,
+} from "./mineruClient";
 import { middleJsonSchema } from "./mineruSchema";
 
 /** Max concurrent per-problem agent calls. */
@@ -144,6 +148,80 @@ function imageAssetMap(
   return map;
 }
 
+function referencedImagePaths(chunks: ProblemChunk[]): string[] {
+  const paths: string[] = [];
+  const seen = new Set<string>();
+  for (const chunk of chunks) {
+    for (const image of [
+      ...chunk.questionImages,
+      ...chunk.answerImages,
+    ]) {
+      const path = normalizeMineruImagePath(image.path);
+      if (seen.has(path)) {
+        continue;
+      }
+      seen.add(path);
+      paths.push(path);
+    }
+  }
+  return paths;
+}
+
+/**
+ * Upload only figure paths attached to problem chunks. Updates mineruCache
+ * imageAssets to that set (drops unused equation / other crops).
+ */
+async function uploadReferencedImages(
+  ctx: ActionCtx,
+  contentHash: string,
+  chunks: ProblemChunk[],
+  imageBytes: Map<string, Uint8Array>,
+  existingAssets: Array<MineruImageAsset>,
+  onStatus?: StatusReporter,
+): Promise<Array<MineruImageAsset>> {
+  const needed = referencedImagePaths(chunks);
+  if (needed.length === 0) {
+    await ctx.runMutation(internal.PDFParse.mineruCache.setImageAssets, {
+      contentHash,
+      imageAssets: [],
+    });
+    return [];
+  }
+
+  const existingByPath = imageAssetMap(existingAssets);
+  const uploaded: Array<MineruImageAsset> = [];
+  let storedNew = 0;
+
+  for (const path of needed) {
+    const existingId = existingByPath.get(path);
+    if (existingId !== undefined) {
+      uploaded.push({ path, storageId: existingId });
+      continue;
+    }
+    const bytes = imageBytes.get(path);
+    if (bytes === undefined) {
+      continue;
+    }
+    const storageId = await ctx.storage.store(
+      blobFromMineruImage(path, bytes),
+    );
+    uploaded.push({ path, storageId });
+    storedNew += 1;
+  }
+
+  if (storedNew > 0) {
+    await onStatus?.(
+      `Sparar ${uploaded.length} problemfigur${uploaded.length === 1 ? "" : "er"}…`,
+    );
+  }
+
+  await ctx.runMutation(internal.PDFParse.mineruCache.setImageAssets, {
+    contentHash,
+    imageAssets: uploaded,
+  });
+  return uploaded;
+}
+
 function attachChunkImages(
   problems: LumoParsedProblem[],
   chunks: ProblemChunk[],
@@ -258,7 +336,7 @@ export async function parsePdfBytesToProblems(
   blobType: string,
   onStatus?: StatusReporter,
 ): Promise<LumoParsedProblemWithImages[]> {
-  const { middleJson, imageAssets } = await getOrFetchMiddleJson(
+  const { middleJson, imageBytes, imageAssets } = await getOrFetchMiddleJson(
     ctx,
     pdfBytes,
     contentHash,
@@ -270,11 +348,43 @@ export async function parsePdfBytesToProblems(
   await onStatus?.("Delar upp uppgifter…");
   const { problemTokens, answerTokens } = flattenMiddleJson(middleJson);
   const chunks = splitIntoProblemChunks(problemTokens, answerTokens);
+
+  let bytes = imageBytes;
+  const needed = referencedImagePaths(chunks);
+  const haveBytes = needed.every((path) => bytes.has(path));
+  const haveCached = needed.every((path) =>
+    imageAssets.some(
+      (asset) => normalizeMineruImagePath(asset.path) === path,
+    ),
+  );
+  if (needed.length > 0 && !haveBytes && !haveCached) {
+    // Cache hit without ZIP bytes (e.g. info job won MinerU) — re-fetch ZIP
+    // in-memory only; still upload just the referenced figure paths.
+    await onStatus?.("Hämtar MinerU-figurer…");
+    const pdfForUpload = new Blob([new Uint8Array(pdfBytes)], {
+      type: blobType || "application/pdf",
+    });
+    const zip = await fetchMineruZipResult(pdfForUpload);
+    bytes = new Map();
+    for (const [path, data] of zip.images.entries()) {
+      bytes.set(normalizeMineruImagePath(path), data);
+    }
+  }
+
+  const uploadedAssets = await uploadReferencedImages(
+    ctx,
+    contentHash,
+    chunks,
+    bytes,
+    imageAssets,
+    onStatus,
+  );
+
   return await convertChunksToProblems(
     ctx,
     userId,
     chunks,
-    imageAssets,
+    uploadedAssets,
     onStatus,
   );
 }

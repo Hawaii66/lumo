@@ -122,6 +122,16 @@ function blockToText(block: MiddleBlock): string {
   return "";
 }
 
+/** Top-level MinerU blocks that are real figures (not equation screenshots). */
+const VISUAL_FIGURE_BLOCK_TYPES = new Set([
+  "image",
+  "table",
+  "chart",
+  "image_body",
+  "table_body",
+  "chart_body",
+]);
+
 /** Collect image_path / img_path values anywhere under a middle_json block. */
 function collectImagePaths(value: unknown, out: string[]): void {
   if (value === null || value === undefined) {
@@ -143,7 +153,11 @@ function collectImagePaths(value: unknown, out: string[]): void {
   const obj = value as Record<string, unknown>;
   const rawPath = obj.image_path ?? obj.img_path;
   if (typeof rawPath === "string" && rawPath.trim().length > 0) {
-    out.push(normalizeMineruImagePath(rawPath.trim()));
+    const path = normalizeMineruImagePath(rawPath.trim());
+    // Skip MinerU equation crops even if nested under a visual container.
+    if (!/_equation(?:_|\.|$)/i.test(path) && !/\/equation\./i.test(path)) {
+      out.push(path);
+    }
   }
   for (const child of Object.values(obj)) {
     collectImagePaths(child, out);
@@ -163,18 +177,28 @@ function uniquePaths(paths: string[]): string[] {
   return result;
 }
 
+function isVisualFigureBlock(block: MiddleBlock): boolean {
+  const type = (block.type ?? "").toLowerCase();
+  if (type.includes("equation")) {
+    return false;
+  }
+  return VISUAL_FIGURE_BLOCK_TYPES.has(type);
+}
+
 function blockToTokens(block: MiddleBlock, pageIdx: number): FlattenToken[] {
   const text = blockToText(block).replace(/\s+/g, " ").trim();
-  const found: string[] = [];
-  collectImagePaths(block, found);
-  const paths = uniquePaths(found);
-
   const tokens: FlattenToken[] = [];
   if (text.length > 0) {
     tokens.push({ kind: "text", text, pageIdx });
   }
-  for (const path of paths) {
-    tokens.push({ kind: "image", path, pageIdx });
+
+  // Only figure/table/chart blocks become problem images — not equation crops.
+  if (isVisualFigureBlock(block)) {
+    const found: string[] = [];
+    collectImagePaths(block, found);
+    for (const path of uniquePaths(found)) {
+      tokens.push({ kind: "image", path, pageIdx });
+    }
   }
   return tokens;
 }

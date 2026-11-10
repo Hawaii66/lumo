@@ -2,7 +2,6 @@ import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import type { ActionCtx } from "../_generated/server";
 import {
-  blobFromMineruImage,
   fetchMineruZipResult,
   normalizeMineruImagePath,
 } from "./mineruClient";
@@ -21,6 +20,16 @@ export type MineruImageAsset = {
 
 export type MineruCachedParse = {
   middleJson: MiddleJson;
+  /**
+   * Raw ZIP image bytes from a fresh MinerU fetch (this action only).
+   * Empty on cache hit — callers that need figures should re-fetch the ZIP
+   * or use `imageAssets` already uploaded for referenced problem images.
+   */
+  imageBytes: Map<string, Uint8Array>;
+  /**
+   * Previously uploaded figure assets referenced by problems (cache only).
+   * Never includes unused equation crops.
+   */
   imageAssets: Array<MineruImageAsset>;
 };
 
@@ -53,6 +62,7 @@ async function loadCachedParse(
     if (parsed.success) {
       return {
         middleJson: parsed.data,
+        imageBytes: new Map(),
         imageAssets: cached.imageAssets.map((asset) => ({
           path: normalizeMineruImagePath(asset.path),
           storageId: asset.storageId,
@@ -118,31 +128,29 @@ async function fetchAndCacheParse(
     });
     const zip = await fetchMineruZipResult(pdfForUpload);
 
-    await onStatus?.(
-      zip.images.size > 0
-        ? `Sparar MinerU-bilder (${zip.images.size})…`
-        : "Sparar MinerU-tolkning…",
-    );
-
-    const imageAssets: Array<MineruImageAsset> = [];
-    for (const [path, bytes] of zip.images.entries()) {
-      const storageId = await ctx.storage.store(
-        blobFromMineruImage(path, bytes),
-      );
-      imageAssets.push({ path, storageId });
-    }
-
+    await onStatus?.("Sparar MinerU-tolkning…");
     const middleJsonStorageId = await ctx.storage.store(
       new Blob([JSON.stringify(zip.middleJson)], {
         type: "application/json",
       }),
     );
+    // Only middle_json is cached here. Figure bytes stay in-memory; problem
+    // parse uploads solely the paths attached to question/answer images.
     await ctx.runMutation(internal.PDFParse.mineruCache.save, {
       contentHash,
       middleJsonStorageId,
-      imageAssets,
+      imageAssets: [],
     });
-    return { middleJson: zip.middleJson, imageAssets };
+
+    const imageBytes = new Map<string, Uint8Array>();
+    for (const [path, bytes] of zip.images.entries()) {
+      imageBytes.set(normalizeMineruImagePath(path), bytes);
+    }
+    return {
+      middleJson: zip.middleJson,
+      imageBytes,
+      imageAssets: [],
+    };
   } finally {
     await ctx.runMutation(internal.PDFParse.mineruCache.releaseInFlight, {
       contentHash,
@@ -151,9 +159,11 @@ async function fetchAndCacheParse(
 }
 
 /**
- * Reuse cached MinerU middle_json (+ image assets) when present; otherwise
- * single-flight Tasks API call so concurrent problems/info jobs for the same
- * PDF do not double-call MinerU.
+ * Reuse cached MinerU middle_json when present; otherwise single-flight
+ * Tasks API call so concurrent problems/info jobs for the same PDF
+ * do not double-call MinerU.
+ *
+ * Does not upload ZIP images to Convex — only middle_json is cached.
  */
 export async function getOrFetchMiddleJson(
   ctx: ActionCtx,

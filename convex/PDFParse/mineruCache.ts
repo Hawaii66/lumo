@@ -86,6 +86,43 @@ export const save = internalMutation({
 });
 
 /**
+ * Replace cached figure assets with only paths referenced by problems.
+ * Deletes previous image blobs that are no longer referenced.
+ */
+export const setImageAssets = internalMutation({
+  args: {
+    contentHash: v.string(),
+    imageAssets: v.array(imageAssetValidator),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("mineruCache")
+      .withIndex("by_contentHash", (q) =>
+        q.eq("contentHash", args.contentHash),
+      )
+      .first();
+    if (existing === null) {
+      return null;
+    }
+
+    const previousImages = existing.imageAssets ?? [];
+    const nextImageIds = new Set(
+      args.imageAssets.map((img) => img.storageId),
+    );
+    await ctx.db.patch(existing._id, {
+      imageAssets: args.imageAssets,
+    });
+    for (const img of previousImages) {
+      if (!nextImageIds.has(img.storageId)) {
+        await ctx.storage.delete(img.storageId);
+      }
+    }
+    return null;
+  },
+});
+
+/**
  * Claim the MinerU single-flight lock for a content hash.
  * Returns `{ won: true }` if this caller should fetch MinerU.
  * Stale locks (older than ttlMs) are taken over.
