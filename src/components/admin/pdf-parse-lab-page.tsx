@@ -95,7 +95,8 @@ function AdminProblemBrowser({
   const selected =
     problems.find((problem) => problem.id === selectedId) ?? null
   const needsPdf =
-    selected?.problem.flags?.some((flag) => flag.kind === "needs_pdf") === true
+    selected?.problem.flags?.some((flag) => flag.kind === "needs_pdf") ===
+      true && (selected.problem.questionImages?.length ?? 0) === 0
   const questionPageIdx = selected?.problem.sourceQuestionPageIdx
   const answerPageIdx = selected?.problem.sourceAnswerPageIdx
 

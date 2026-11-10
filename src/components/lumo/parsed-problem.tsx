@@ -1,6 +1,8 @@
 import { Eye, EyeOff } from "lucide-react"
-import type { LumoParsedProblem, ProblemFlag } from "~/lib/lumo-content"
+import { useMemo, useState } from "react"
+import type { LumoParsedProblem, ProblemFlag, ProblemImage } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
+import { ImageViewerSheet } from "~/components/rooms/image-viewer-sheet"
 import {
   isCompletedForLetter,
   ProblemCompletionControl,
@@ -25,6 +27,62 @@ function flagNotice(flag: ProblemFlag): string {
       return _exhaustive
     }
   }
+}
+
+function groupImagesByLetter(
+  images: Array<ProblemImage>,
+): Record<string, Array<{ url: string }>> {
+  const grouped: Record<string, Array<{ url: string }>> = {}
+  for (const image of images) {
+    const letter = (image.subproblemLetter ?? "").trim().toLowerCase()
+    ;(grouped[letter] ??= []).push({ url: image.url })
+  }
+  return grouped
+}
+
+function ProblemImageGallery({
+  images,
+  label,
+}: {
+  images: Array<{ url: string }>
+  label: string
+}) {
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null)
+
+  if (images.length === 0) {
+    return null
+  }
+
+  return (
+    <>
+      <ul className="grid gap-2 sm:grid-cols-2" aria-label={label}>
+        {images.map((image, index) => (
+          <li key={`${image.url}-${index}`}>
+            <button
+              type="button"
+              onClick={() => setViewerUrl(image.url)}
+              className="block w-full overflow-hidden rounded-lg border border-border bg-muted/30 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <img
+                src={image.url}
+                alt={`${label} ${index + 1}`}
+                className="max-h-64 w-full object-contain"
+                loading="lazy"
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <ImageViewerSheet
+        open={viewerUrl !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewerUrl(null)
+        }}
+        fileName={label}
+        url={viewerUrl}
+      />
+    </>
+  )
 }
 
 type ParsedProblemViewProps = {
@@ -66,7 +124,20 @@ export function ParsedProblemView({
     onStarsChange !== undefined && !hasSubproblems
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
-  const flags = problem.flags ?? []
+  const questionImages = problem.questionImages ?? []
+  const answerImages = problem.answerImages ?? []
+  const questionImagesByLetter = useMemo(
+    () => groupImagesByLetter(questionImages),
+    [questionImages],
+  )
+  const answerImagesByLetter = useMemo(
+    () => groupImagesByLetter(answerImages),
+    [answerImages],
+  )
+  const flags = (problem.flags ?? []).filter(
+    (flag) =>
+      !(flag.kind === "needs_pdf" && questionImages.length > 0),
+  )
 
   return (
     <article className={cn("space-y-4", className)}>
@@ -124,10 +195,21 @@ export function ParsedProblemView({
         </ul>
       ) : null}
 
-      <section className="space-y-2">
+      <section className="space-y-3">
         <MarkdownWithMath
           markdown={problem.question}
           scopeKey={`q-${problem.problemNumber}`}
+          imagesByLetter={questionImagesByLetter}
+          renderImages={(images, letter) => (
+            <ProblemImageGallery
+              images={images}
+              label={
+                letter.length > 0
+                  ? `Figur till (${letter})`
+                  : "Figur till ingressen"
+              }
+            />
+          )}
           subproblemStars={
             onStarsChange && hasSubproblems
               ? {
@@ -149,7 +231,7 @@ export function ParsedProblemView({
       </section>
 
       {showAnswer ? (
-        <section className="space-y-2 border-t border-border/60 pt-4">
+        <section className="space-y-3 border-t border-border/60 pt-4">
           <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Svar
           </h3>
@@ -159,6 +241,17 @@ export function ParsedProblemView({
             <MarkdownWithMath
               markdown={problem.answer}
               scopeKey={`a-${problem.problemNumber}`}
+              imagesByLetter={answerImagesByLetter}
+              renderImages={(images, letter) => (
+                <ProblemImageGallery
+                  images={images}
+                  label={
+                    letter.length > 0
+                      ? `Figur till svar (${letter})`
+                      : "Figur till svaret"
+                  }
+                />
+              )}
             />
           )}
         </section>

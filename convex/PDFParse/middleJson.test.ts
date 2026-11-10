@@ -57,8 +57,8 @@ describe("splitIntoProblemChunks page indices", () => {
       ],
     }
 
-    const { problemLines, answerLines } = flattenMiddleJson(middleJson)
-    const chunks = splitIntoProblemChunks(problemLines, answerLines)
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
 
     expect(chunks).toHaveLength(2)
 
@@ -90,13 +90,86 @@ describe("splitIntoProblemChunks page indices", () => {
       ],
     }
 
-    const { problemLines, answerLines } = flattenMiddleJson(middleJson)
-    const chunks = splitIntoProblemChunks(problemLines, answerLines)
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
 
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.problemNumber).toBe("3")
     expect(chunks[0]!.sourceQuestionPageIdx).toBe(0)
     expect(chunks[0]!.sourceAnswerPageIdx).toBeUndefined()
+  })
+
+  it("ignores equation crops and only keeps figure/table/chart images", () => {
+    const middleJson: MiddleJson = {
+      pages: [
+        {
+          page_idx: 0,
+          blocks: [
+            { type: "paragraph_title", content: "Problem" },
+            { type: "text", content: "1.2 Stem with math." },
+            {
+              type: "equation",
+              image_path: "images/page_0_equation_0.jpg",
+              content: "x^2",
+            } as never,
+            {
+              type: "image",
+              image_path: "images/page_0_image_1.jpg",
+              content: "",
+            } as never,
+          ],
+        },
+      ],
+    }
+
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
+
+    expect(chunks).toHaveLength(1)
+    expect(chunks[0]!.questionImages).toEqual([
+      { path: "images/page_0_image_1.jpg", subproblemLetter: "" },
+    ])
+  })
+
+  it("tags images with the current deluppgift letter", () => {
+    const middleJson: MiddleJson = {
+      pages: [
+        {
+          page_idx: 0,
+          blocks: [
+            { type: "paragraph_title", content: "Problem" },
+            { type: "text", content: "1.2 Intro stem." },
+            {
+              type: "image",
+              image_path: "images/stem.jpg",
+              content: "",
+            } as never,
+            { type: "text", content: "(a) First part." },
+            {
+              type: "image",
+              image_path: "images/a.jpg",
+              content: "",
+            } as never,
+            { type: "text", content: "(b) Second part." },
+            {
+              type: "image",
+              image_path: "images/b.jpg",
+              content: "",
+            } as never,
+          ],
+        },
+      ],
+    }
+
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
+
+    expect(chunks).toHaveLength(1)
+    expect(chunks[0]!.questionImages).toEqual([
+      { path: "images/stem.jpg", subproblemLetter: "" },
+      { path: "images/a.jpg", subproblemLetter: "a" },
+      { path: "images/b.jpg", subproblemLetter: "b" },
+    ])
   })
 
   it("falls back to page array index when page_idx is absent", () => {
@@ -117,8 +190,8 @@ describe("splitIntoProblemChunks page indices", () => {
       ],
     }
 
-    const { problemLines, answerLines } = flattenMiddleJson(middleJson)
-    const chunks = splitIntoProblemChunks(problemLines, answerLines)
+    const { problemTokens, answerTokens } = flattenMiddleJson(middleJson)
+    const chunks = splitIntoProblemChunks(problemTokens, answerTokens)
 
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.sourceQuestionPageIdx).toBe(0)

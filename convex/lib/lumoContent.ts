@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { z } from "zod";
+import type { Id } from "../_generated/dataModel";
 
 /** Chat assistant envelope: markdown body + optional quick-reply sidecar. */
 export const chatQuickReplyChoiceSchema = z.object({
@@ -96,6 +97,50 @@ export const lumoParsedProblemValidator = v.object({
   sourceQuestionPageIdx: v.optional(v.number()),
   sourceAnswerPageIdx: v.optional(v.number()),
 });
+
+/** Stored MinerU crop on a problem row. */
+export const problemImageStorageValidator = v.object({
+  storageId: v.id("_storage"),
+  /** `""` / missing = shared stem; `a`–`z` = deluppgift. */
+  subproblemLetter: v.optional(v.string()),
+});
+
+/** Resolved image URL for clients / admin preview. */
+export const problemImageUrlValidator = v.object({
+  url: v.string(),
+  subproblemLetter: v.optional(v.string()),
+});
+
+/**
+ * Parsed problem plus optional MinerU image storage refs (not part of LLM output).
+ */
+export type LumoParsedProblemWithImages = LumoParsedProblem & {
+  questionImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+  answerImages?: Array<{
+    storageId: Id<"_storage">;
+    subproblemLetter?: string;
+  }>;
+};
+
+export const lumoParsedProblemWithImagesValidator =
+  lumoParsedProblemValidator.extend({
+    questionImages: v.optional(v.array(problemImageStorageValidator)),
+    answerImages: v.optional(v.array(problemImageStorageValidator)),
+  });
+
+/** Drop needs_pdf when question images are already attached. */
+export function flagsForDisplay(
+  flags: Array<ProblemFlag>,
+  questionImageCount: number,
+): Array<ProblemFlag> {
+  if (questionImageCount <= 0) {
+    return flags;
+  }
+  return flags.filter((flag) => flag.kind !== "needs_pdf");
+}
 
 /** Twin step 1: new question only (facit comes from a separate solve call). */
 export const lumoTwinVariantSchema = z.object({
