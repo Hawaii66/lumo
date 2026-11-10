@@ -19,7 +19,7 @@ const lumoParsedProblemSchema = z.object({
   problemNumber: z.string().min(1),
   question: z.string(),
   answer: z.string(),
-  flags: z.array(problemFlagSchema).optional(),
+  flags: z.array(problemFlagSchema).default([]),
 })
 
 export type LumoParsedProblem = {

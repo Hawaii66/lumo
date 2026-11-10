@@ -24,6 +24,7 @@ describe("parseLumoParsedProblems", () => {
           problemNumber: "1.1",
           question: "Q",
           answer: "A",
+          flags: [],
         },
       ],
       error: null,
@@ -61,7 +62,9 @@ describe("parseLumoParsedProblems", () => {
         '{"problemNumber":"3","question":"q","answer":"a"},',
       ),
     ).toEqual({
-      problems: [{ problemNumber: "3", question: "q", answer: "a" }],
+      problems: [
+        { problemNumber: "3", question: "q", answer: "a", flags: [] },
+      ],
       error: null,
     })
   })
@@ -73,7 +76,9 @@ describe("parseLumoParsedProblems", () => {
       answer: "a"
     }`
     expect(parseLumoParsedProblems(pasted)).toEqual({
-      problems: [{ problemNumber: "3", question: "q", answer: "a" }],
+      problems: [
+        { problemNumber: "3", question: "q", answer: "a", flags: [] },
+      ],
       error: null,
     })
   })
