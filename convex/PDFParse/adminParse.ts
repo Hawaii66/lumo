@@ -1,7 +1,9 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import type { Doc, Id } from "../_generated/dataModel";
 import {
+  action,
   internalMutation,
   internalQuery,
   mutation,
@@ -12,6 +14,8 @@ import {
 import { problemFlagValidator } from "../lib/lumoContent";
 import { isShadowProblem } from "../lib/problemAccess";
 import { requireAdmin } from "../lib/roles";
+import { detectProblemChunks } from "./middleJson";
+import { middleJsonSchema } from "./mineruSchema";
 
 const MAX_STATUS_UPDATES = 40;
 const MAX_RECENT_RUNS = 40;
@@ -328,6 +332,93 @@ export const invalidateMineruCache = mutation({
     await ctx.db.delete(existing._id);
     await ctx.storage.delete(storageId);
     return true;
+  },
+});
+
+const splitChunkValidator = v.object({
+  problemNumber: v.string(),
+  problemText: v.string(),
+  answerText: v.string(),
+  sourceQuestionPageIdx: v.optional(v.number()),
+  sourceAnswerPageIdx: v.optional(v.number()),
+  questionImageCount: v.number(),
+  answerImageCount: v.number(),
+});
+
+/**
+ * Live problem-split preview from MinerU cache only (no AI).
+ * Returns null when cache is missing.
+ */
+export const previewProblemSplit = action({
+  args: { contentHash: v.string() },
+  returns: v.union(
+    v.null(),
+    v.object({
+      chunkCount: v.number(),
+      chunks: v.array(splitChunkValidator),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+    const adminId: Id<"users"> | null = await ctx.runQuery(
+      internal.PDFParse.adminParse.getAdminUserIdInternal,
+      {},
+    );
+    if (adminId === null || adminId !== userId) {
+      throw new Error("Endast admin");
+    }
+
+    const cached: {
+      _id: Id<"mineruCache">;
+      middleJsonStorageId: Id<"_storage">;
+      imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
+    } | null = await ctx.runQuery(
+      internal.PDFParse.mineruCache.getByContentHash,
+      { contentHash: args.contentHash },
+    );
+    if (cached === null) {
+      return null;
+    }
+
+    const blob = await ctx.storage.get(cached.middleJsonStorageId);
+    if (blob === null) {
+      throw new Error("MinerU-cachen saknar data");
+    }
+    const parsed = middleJsonSchema.safeParse(
+      JSON.parse(await blob.text()),
+    );
+    if (!parsed.success) {
+      throw new Error("MinerU-cachen är korrupt");
+    }
+
+    const chunks = detectProblemChunks(parsed.data);
+    return {
+      chunkCount: chunks.length,
+      chunks: chunks.map((chunk) => ({
+        problemNumber: chunk.problemNumber,
+        problemText: chunk.problemText,
+        answerText: chunk.answerText,
+        ...(chunk.sourceQuestionPageIdx !== undefined
+          ? { sourceQuestionPageIdx: chunk.sourceQuestionPageIdx }
+          : {}),
+        ...(chunk.sourceAnswerPageIdx !== undefined
+          ? { sourceAnswerPageIdx: chunk.sourceAnswerPageIdx }
+          : {}),
+        questionImageCount: chunk.questionImages.length,
+        answerImageCount: chunk.answerImages.length,
+      })),
+    };
+  },
+});
+
+export const getAdminUserIdInternal = internalQuery({
+  args: {},
+  returns: v.union(v.id("users"), v.null()),
+  handler: async (ctx) => {
+    return await softRequireAdmin(ctx);
   },
 });
 

@@ -29,6 +29,22 @@ type ChunkParts = {
   sourcePageIdx: number;
 };
 
+type LabelMatch = {
+  problemNumber: string;
+  subproblemLetter: string | null;
+  /** True when the label itself was a PGA form (1a / 2(a)). */
+  fromPga: boolean;
+};
+
+type NumberedWindow = {
+  base: string;
+  letter: string;
+  mode: "question" | "answer";
+  texts: string[];
+  images: ChunkImageRef[];
+  pageIdx: number;
+};
+
 /**
  * Detect a deluppgift letter at the start of an OCR/markdown line.
  * Matches `(a)`, `### (a)`, `a)`, `a.`.
@@ -50,37 +66,37 @@ export function matchSubproblemLetter(line: string): string | null {
   return null;
 }
 
-/** Classic booklet: "P 1.2" / "P1.2" near the start of a line. */
-const PROBLEM_P_RE = /\bP\s*(\d+\.\d+)\b/i;
-/** "Uppgift 3" / "Uppg. 3". */
-const PROBLEM_UPPGIFT_RE = /^\s*(?:Uppgift|Uppg\.?)\s+(\d+)\b/i;
-/** Booklet without P: "1.2 " at line start. */
-const PROBLEM_DOTTED_RE = /^\s*(\d+\.\d+)\b/;
 /**
- * Exam-style major number: "1. (a)", "2.", "3) text".
- * Requires "." or ")" after the digits so dates/ranges don't match.
+ * Label detection is intentionally narrow. A problem start is ONLY allowed when
+ * a `type: "text"` block's `content[0]` is itself `type: "text"` and that string
+ * begins with one of:
+ *   1) `P` + number  → `P 3.1`, `P3.10`
+ *   2) a number      → `1.`, `1.2`, `2)`, `1a)`, `2(a)`
+ * Never scan mid-block / mid-string prose.
  */
-const PROBLEM_MAJOR_RE = /^\s*(\d+)\s*[.)](?:\s|\(|$)/;
 
+/** Case 1: "P 1.2" / "P1.2" at the very start. */
+const LEAD_P_NUMBER_RE = /^P\s*(\d+\.\d+)\b/i;
+/** Case 2a: dotted "1.2" at the very start. */
+const LEAD_DOTTED_RE = /^(\d+\.\d+)\b/;
 /**
- * PGA-style answer labels with parenthesized letter: "2(a)", "2 (a)", "1.2(a)".
- * Answer-side only — not used for question stems.
+ * Case 2b: major "1." / "2)" / "5. (a)".
+ * Requires "." or ")" after the digits so "3 Gränsvärde" does not match.
  */
-const ANSWER_PGA_PAREN_RE = /^\s*(\d+(?:\.\d+)?)\s*\(([a-z])\)/i;
+const LEAD_MAJOR_RE = /^(\d+)\s*[.)](?:\s|\(|$)/;
+/** Case 2c: PGA "2(a)" / "2 (a)" / "1.2(a)". */
+const LEAD_PGA_PAREN_RE = /^(\d+(?:\.\d+)?)\s*\(([a-z])\)/i;
 /**
- * PGA glued letter: "2a", "2a)", "2a.", "1.2a".
- * No space between number and letter so "1.2 foo" is not treated as letter f.
+ * Case 2d: PGA "2a)" / "1.2a)" — ")" required (not ".") so "2p." is ignored.
  */
-const ANSWER_PGA_GLUED_RE =
-  /^\s*(\d+(?:\.\d+)?)([a-z])(?:\s*[.)])?(?=\s|$)/i;
-/**
- * PGA spaced letter only when punctuation follows: "2 a)", "2 a.", "1.2 a)".
- */
-const ANSWER_PGA_SPACED_RE =
-  /^\s*(\d+(?:\.\d+)?)\s+([a-z])\s*[.)](?=\s|$)/i;
+const LEAD_PGA_GLUED_RE = /^(\d+(?:\.\d+)?)([a-z])\s*\)(?=\s|$)/i;
+/** Case 2e: PGA "2 a)" / "1.2 a)". */
+const LEAD_PGA_SPACED_RE = /^(\d+(?:\.\d+)?)\s+([a-z])\s*[.)](?=\s|$)/i;
 
-const SECTION_PROBLEM_RE = /^\s*problem\s*$/i;
-const SECTION_ANSWER_RE = /^\s*svar\s*$/i;
+/** @deprecated alias kept for rewrite helpers below */
+const ANSWER_PGA_PAREN_RE = LEAD_PGA_PAREN_RE;
+const ANSWER_PGA_GLUED_RE = LEAD_PGA_GLUED_RE;
+const ANSWER_PGA_SPACED_RE = LEAD_PGA_SPACED_RE;
 
 /** Final facit marker inside a worked solution ("Svar: …"). */
 const INLINE_SVAR_RE = /\bSvar\s*[:.]/i;
@@ -95,6 +111,10 @@ const SOLUTION_START_RE =
 /** Softer fallback when OCR flattened the solution opener mid-line. */
 const LOOSE_SOLUTION_START_RE =
   /\b(?:Lösning\s*[:.]|För att\b|Vi har\b|Eftersom\b|Notera att\b|Dessutom måste\b)/i;
+
+/** Strip a leading problem number so "(a)" after "P 3.1" / "1." can be read. */
+const LEADING_NUMBER_STRIP_RE =
+  /^\s*(?:P\s*)?(?:\d+\.\d+|\d+)\s*[.)]?\s*/i;
 
 function partToText(part: string | MiddleContentPart | undefined): string {
   if (part === undefined) {
@@ -185,50 +205,62 @@ function isVisualFigureBlock(block: MiddleBlock): boolean {
   return VISUAL_FIGURE_BLOCK_TYPES.has(type);
 }
 
-function blockToTokens(block: MiddleBlock, pageIdx: number): FlattenToken[] {
-  const text = blockToText(block).replace(/\s+/g, " ").trim();
-  const tokens: FlattenToken[] = [];
-  if (text.length > 0) {
-    tokens.push({ kind: "text", text, pageIdx });
+/**
+ * Lead string for label detection — the ONLY place numbers are read from:
+ * `block.type === "text"` and `content[0].type === "text"` (or bare string content).
+ * Never reads content[1+], equations, titles, or mid-string prose.
+ */
+export function getTextBlockLead(block: MiddleBlock): string | null {
+  if ((block.type ?? "").toLowerCase() !== "text") {
+    return null;
   }
-
-  // Only figure/table/chart blocks become problem images — not equation crops.
-  if (isVisualFigureBlock(block)) {
-    const found: string[] = [];
-    collectImagePaths(block, found);
-    for (const path of uniquePaths(found)) {
-      tokens.push({ kind: "image", path, pageIdx });
-    }
+  const content = block.content;
+  // Bare string is treated as a single text part (tests / simple fixtures).
+  if (typeof content === "string") {
+    const trimmed = content.trimStart();
+    return trimmed.length > 0 ? trimmed : null;
   }
-  return tokens;
+  if (!Array.isArray(content) || content.length === 0) {
+    return null;
+  }
+  const first: unknown = content[0];
+  if (typeof first === "string") {
+    const trimmed = first.trimStart();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof first !== "object" || first === null) {
+    return null;
+  }
+  const part = first as MiddleContentPart;
+  // Hard rule: content[0] must be a text part.
+  if ((part.type ?? "").toLowerCase() !== "text") {
+    return null;
+  }
+  if (typeof part.content !== "string") {
+    return null;
+  }
+  const trimmed = part.content.trimStart();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 /**
- * Detect a problem number at the start of a flattened line.
- * Prefers P x.y / dotted x.y; otherwise exam-style major "N." / "Uppgift N".
- * Preamble and (a)/(b) continuation lines return null.
+ * Detect a problem number at the start of a lead string.
+ * Only `P + number` or a bare number form — nothing else.
  */
 export function matchProblemStart(line: string): string | null {
-  const pMatch = line.match(PROBLEM_P_RE);
-  if (pMatch !== null && pMatch.index !== undefined && pMatch.index < 8) {
+  const trimmed = line.trimStart();
+  const pMatch = LEAD_P_NUMBER_RE.exec(trimmed);
+  if (pMatch !== null) {
     return pMatch[1]!;
   }
-
-  const uppgiftMatch = line.match(PROBLEM_UPPGIFT_RE);
-  if (uppgiftMatch !== null) {
-    return uppgiftMatch[1]!;
-  }
-
-  const dottedMatch = line.match(PROBLEM_DOTTED_RE);
+  const dottedMatch = LEAD_DOTTED_RE.exec(trimmed);
   if (dottedMatch !== null) {
     return dottedMatch[1]!;
   }
-
-  const majorMatch = line.match(PROBLEM_MAJOR_RE);
+  const majorMatch = LEAD_MAJOR_RE.exec(trimmed);
   if (majorMatch !== null) {
     return majorMatch[1]!;
   }
-
   return null;
 }
 
@@ -238,40 +270,98 @@ export type AnswerStartMatch = {
 };
 
 /**
- * Detect an answer-section problem start, including PGA labels like "2a" / "2(a)".
- * Tries PGA forms before ordinary matchProblemStart so "1.2(a)" keeps letter a.
+ * Detect a numbered label start, including PGA forms like "2a)" / "2(a)".
  */
 export function matchAnswerStart(line: string): AnswerStartMatch | null {
-  const parenMatch = ANSWER_PGA_PAREN_RE.exec(line);
+  const match = matchLabelStart(line);
+  if (match === null) {
+    return null;
+  }
+  return {
+    problemNumber: match.problemNumber,
+    subproblemLetter: match.subproblemLetter,
+  };
+}
+
+/**
+ * Match a problem label at the start of a lead string.
+ * Lead must begin with `P` or a digit — the only two allowed cases.
+ */
+export function matchLabelStart(line: string): LabelMatch | null {
+  const trimmed = line.trimStart();
+  // Gate: only "P …" or "123…" — never "Uppgift", "Del", "Med …2p.", etc.
+  if (!/^[P\d]/i.test(trimmed)) {
+    return null;
+  }
+
+  const parenMatch = LEAD_PGA_PAREN_RE.exec(trimmed);
   if (parenMatch !== null) {
-    return {
+    return rejectCrossRefComma(trimmed, parenMatch[0].length, {
       problemNumber: parenMatch[1]!,
       subproblemLetter: parenMatch[2]!.toLowerCase(),
-    };
+      fromPga: true,
+    });
   }
 
-  const gluedMatch = ANSWER_PGA_GLUED_RE.exec(line);
+  const gluedMatch = LEAD_PGA_GLUED_RE.exec(trimmed);
   if (gluedMatch !== null) {
-    return {
+    return rejectCrossRefComma(trimmed, gluedMatch[0].length, {
       problemNumber: gluedMatch[1]!,
       subproblemLetter: gluedMatch[2]!.toLowerCase(),
-    };
+      fromPga: true,
+    });
   }
 
-  const spacedMatch = ANSWER_PGA_SPACED_RE.exec(line);
+  const spacedMatch = LEAD_PGA_SPACED_RE.exec(trimmed);
   if (spacedMatch !== null) {
-    return {
+    return rejectCrossRefComma(trimmed, spacedMatch[0].length, {
       problemNumber: spacedMatch[1]!,
       subproblemLetter: spacedMatch[2]!.toLowerCase(),
-    };
+      fromPga: true,
+    });
   }
 
-  const problemNumber = matchProblemStart(line);
-  if (problemNumber !== null) {
-    return { problemNumber, subproblemLetter: null };
+  const pMatch = LEAD_P_NUMBER_RE.exec(trimmed);
+  if (pMatch !== null) {
+    return rejectCrossRefComma(trimmed, pMatch[0].length, {
+      problemNumber: pMatch[1]!,
+      subproblemLetter: null,
+      fromPga: false,
+    });
+  }
+
+  const dottedMatch = LEAD_DOTTED_RE.exec(trimmed);
+  if (dottedMatch !== null) {
+    return rejectCrossRefComma(trimmed, dottedMatch[0].length, {
+      problemNumber: dottedMatch[1]!,
+      subproblemLetter: null,
+      fromPga: false,
+    });
+  }
+
+  const majorMatch = LEAD_MAJOR_RE.exec(trimmed);
+  if (majorMatch !== null) {
+    return rejectCrossRefComma(trimmed, majorMatch[0].length, {
+      problemNumber: majorMatch[1]!,
+      subproblemLetter: null,
+      fromPga: false,
+    });
   }
 
   return null;
+}
+
+/** Reject wrapped cross-refs like "P 3.3, kontinuerlig". */
+function rejectCrossRefComma(
+  line: string,
+  prefixLen: number,
+  match: LabelMatch,
+): LabelMatch | null {
+  const rest = line.slice(prefixLen).trimStart();
+  if (rest.startsWith(",")) {
+    return null;
+  }
+  return match;
 }
 
 /** Rewrite "2a) …" / "2(a) …" to "(a) …" so the convert prompt sees subproblem markers. */
@@ -285,6 +375,14 @@ function rewritePgaAnswerLine(line: string, letter: string): string {
       ? line.slice(prefix[0].length).trimStart()
       : line.trimStart();
   return rest.length > 0 ? `(${letter}) ${rest}` : `(${letter})`;
+}
+
+function letterAfterLeadingNumber(line: string): string | null {
+  const stripped = line.replace(LEADING_NUMBER_STRIP_RE, "");
+  if (stripped === line.trimStart()) {
+    return null;
+  }
+  return matchSubproblemLetter(stripped);
 }
 
 /**
@@ -312,66 +410,40 @@ export function flattenFullDocument(middleJson: MiddleJson): string {
 }
 
 /**
- * Flatten middle_json pages into ordered text/image tokens, tagged by section.
- * When the PDF has no "problem"/"svar" headers (typical tentor), falls back to
- * the full document as problem tokens so exam-style numbering can still split.
- * Each token keeps its 0-based page index (MinerU page_idx, else array index).
+ * Flatten middle_json into one reading-order token stream (no label logic).
+ * `answerTokens` is always empty; kept for call-site compatibility.
  */
 export function flattenMiddleJson(middleJson: MiddleJson): {
   problemTokens: FlattenToken[];
   answerTokens: FlattenToken[];
 } {
-  const problemTokens: FlattenToken[] = [];
-  const answerTokens: FlattenToken[] = [];
-  const allTokens: FlattenToken[] = [];
-  let section: "problem" | "answer" | "unknown" = "unknown";
+  const tokens: FlattenToken[] = [];
 
   for (let pageIndex = 0; pageIndex < middleJson.pages.length; pageIndex++) {
     const page = middleJson.pages[pageIndex]!;
     const pageIdx = page.page_idx ?? pageIndex;
     for (const block of page.blocks) {
-      const type = block.type;
-      const tokens = blockToTokens(block, pageIdx);
-      const textToken = tokens.find((token) => token.kind === "text");
-
-      if (type === "paragraph_title" || type === "header") {
-        if (textToken !== undefined) {
-          if (SECTION_PROBLEM_RE.test(textToken.text)) {
-            section = "problem";
-          } else if (SECTION_ANSWER_RE.test(textToken.text)) {
-            section = "answer";
-          }
-        }
-        // Skip section headers; other titles still go into the exam fallback.
-        if (section === "unknown") {
-          allTokens.push(...tokens);
-        }
-        continue;
-      }
-
+      const type = (block.type ?? "").toLowerCase();
       if (type === "page_number" || type === "footer") {
         continue;
       }
 
-      if (tokens.length === 0) {
-        continue;
+      const text = blockToText(block).replace(/\s+/g, " ").trim();
+      if (text.length > 0) {
+        tokens.push({ kind: "text", text, pageIdx });
       }
 
-      allTokens.push(...tokens);
-
-      if (section === "problem") {
-        problemTokens.push(...tokens);
-      } else if (section === "answer") {
-        answerTokens.push(...tokens);
+      if (isVisualFigureBlock(block)) {
+        const found: string[] = [];
+        collectImagePaths(block, found);
+        for (const path of uniquePaths(found)) {
+          tokens.push({ kind: "image", path, pageIdx });
+        }
       }
     }
   }
 
-  if (problemTokens.length === 0 && answerTokens.length === 0) {
-    return { problemTokens: allTokens, answerTokens: [] };
-  }
-
-  return { problemTokens, answerTokens };
+  return { problemTokens: tokens, answerTokens: [] };
 }
 
 function appendImage(
@@ -390,28 +462,14 @@ function appendImage(
   images.push({ path, subproblemLetter });
 }
 
-function flushChunkParts(
-  map: Map<string, ChunkParts>,
-  currentNumber: string | null,
-  textParts: string[],
+function mergeChunkParts(
+  existing: ChunkParts | undefined,
+  text: string,
   images: ChunkImageRef[],
-  sourcePageIdx: number | null,
-): void {
-  if (currentNumber === null || sourcePageIdx === null) {
-    return;
-  }
-  const text = textParts.join("\n").trim();
-  if (text.length === 0 && images.length === 0) {
-    return;
-  }
-  const existing = map.get(currentNumber);
+  sourcePageIdx: number,
+): ChunkParts {
   if (existing === undefined) {
-    map.set(currentNumber, {
-      text,
-      images: [...images],
-      sourcePageIdx,
-    });
-    return;
+    return { text, images: [...images], sourcePageIdx };
   }
   const mergedText =
     existing.text.length === 0
@@ -423,129 +481,11 @@ function flushChunkParts(
   for (const image of images) {
     appendImage(mergedImages, image.path, image.subproblemLetter);
   }
-  map.set(currentNumber, {
+  return {
     text: mergedText,
     images: mergedImages,
     sourcePageIdx: existing.sourcePageIdx,
-  });
-}
-
-function splitByProblemNumber(tokens: FlattenToken[]): Map<string, ChunkParts> {
-  const map = new Map<string, ChunkParts>();
-  let currentNumber: string | null = null;
-  let currentParts: string[] = [];
-  let currentImages: ChunkImageRef[] = [];
-  let currentPageIdx: number | null = null;
-  let currentSubLetter = "";
-
-  for (const token of tokens) {
-    if (token.kind === "image") {
-      if (currentNumber !== null) {
-        appendImage(currentImages, token.path, currentSubLetter);
-      }
-      continue;
-    }
-
-    const number = matchProblemStart(token.text);
-    if (number !== null) {
-      flushChunkParts(
-        map,
-        currentNumber,
-        currentParts,
-        currentImages,
-        currentPageIdx,
-      );
-      currentNumber = number;
-      currentParts = [token.text];
-      currentImages = [];
-      currentPageIdx = token.pageIdx;
-      currentSubLetter = matchSubproblemLetter(token.text) ?? "";
-      continue;
-    }
-    // Preamble before the first problem number is ignored.
-    if (currentNumber !== null) {
-      const letter = matchSubproblemLetter(token.text);
-      if (letter !== null) {
-        currentSubLetter = letter;
-      }
-      currentParts.push(token.text);
-    }
-  }
-  flushChunkParts(
-    map,
-    currentNumber,
-    currentParts,
-    currentImages,
-    currentPageIdx,
-  );
-
-  return map;
-}
-
-/**
- * Split answer tokens by base problem number.
- * PGA labels (2a/2b/2c) group under "2" and are rewritten to (a)/(b)/(c) leads.
- * Keeps the first page index for each problem number.
- */
-function splitAnswersByProblemNumber(
-  tokens: FlattenToken[],
-): Map<string, ChunkParts> {
-  const map = new Map<string, ChunkParts>();
-  let currentNumber: string | null = null;
-  let currentParts: string[] = [];
-  let currentImages: ChunkImageRef[] = [];
-  let currentPageIdx: number | null = null;
-  let currentSubLetter = "";
-
-  for (const token of tokens) {
-    if (token.kind === "image") {
-      if (currentNumber !== null) {
-        appendImage(currentImages, token.path, currentSubLetter);
-      }
-      continue;
-    }
-
-    const match = matchAnswerStart(token.text);
-    if (match !== null) {
-      flushChunkParts(
-        map,
-        currentNumber,
-        currentParts,
-        currentImages,
-        currentPageIdx,
-      );
-      currentNumber = match.problemNumber;
-      currentSubLetter = match.subproblemLetter ?? "";
-      const line =
-        match.subproblemLetter !== null
-          ? rewritePgaAnswerLine(token.text, match.subproblemLetter)
-          : token.text;
-      currentParts = [line];
-      currentImages = [];
-      currentPageIdx = token.pageIdx;
-      if (currentSubLetter.length === 0) {
-        currentSubLetter = matchSubproblemLetter(line) ?? "";
-      }
-      continue;
-    }
-    // Preamble before the first answer number is ignored.
-    if (currentNumber !== null) {
-      const letter = matchSubproblemLetter(token.text);
-      if (letter !== null) {
-        currentSubLetter = letter;
-      }
-      currentParts.push(token.text);
-    }
-  }
-  flushChunkParts(
-    map,
-    currentNumber,
-    currentParts,
-    currentImages,
-    currentPageIdx,
-  );
-
-  return map;
+  };
 }
 
 function compareProblemNumbers(a: string, b: string): number {
@@ -573,7 +513,6 @@ function cutSolutionFromStem(beforeSvar: string): string {
   const bodyOffset = prefixMatch?.[0]?.length ?? 0;
   const body = beforeSvar.slice(bodyOffset);
 
-  // Facit-only chunk: "7. För att …" / "Lösning: …" with no stem.
   if (SOLUTION_AT_START_RE.test(body)) {
     return "";
   }
@@ -587,7 +526,6 @@ function cutSolutionFromStem(beforeSvar: string): string {
     return beforeSvar.slice(0, anchored.index).trim();
   }
 
-  // OCR sometimes joins the stem and "För att …" on one line.
   const loose = LOOSE_SOLUTION_START_RE.exec(beforeSvar);
   if (
     loose !== null &&
@@ -597,16 +535,12 @@ function cutSolutionFromStem(beforeSvar: string): string {
     return beforeSvar.slice(0, loose.index).trim();
   }
 
-  // No clear opener: keep text before "Svar:" and let the convert prompt
-  // strip residual solution prose if the stem is still mixed.
   return beforeSvar.trim();
 }
 
 /**
  * When a chunk mixes stem + worked solution + "Svar:", peel them apart.
  * Solution narrative is discarded; only stem and final facit remain.
- *
- * Also peels "Svar:" out of answer-section blobs that are full solutions.
  */
 export function separateStemAndFacit(
   problemText: string,
@@ -635,24 +569,31 @@ export function separateStemAndFacit(
   return { problemText: stem.trim(), answerText: facit.trim() };
 }
 
-/**
- * Split flattened problem/answer tokens into one chunk per problem number.
- * Problems without answers still appear (answerText empty).
- * Answers without a matching problem are omitted.
- * Worked-solution narrative mixed into a chunk is stripped via separateStemAndFacit.
- * Image paths and first source page indices stay with each reading-order window.
- */
-export function splitIntoProblemChunks(
-  problemTokens: FlattenToken[],
-  answerTokens: FlattenToken[],
-): ProblemChunk[] {
-  const problems = splitByProblemNumber(problemTokens);
-  const answers = splitAnswersByProblemNumber(answerTokens);
+function windowsToChunks(windows: NumberedWindow[]): ProblemChunk[] {
+  const questions = new Map<string, ChunkParts>();
+  const answers = new Map<string, ChunkParts>();
 
-  const numbers = [...problems.keys()].sort(compareProblemNumbers);
+  for (const window of windows) {
+    const text = window.texts.join("\n").trim();
+    if (text.length === 0 && window.images.length === 0) {
+      continue;
+    }
+    const target = window.mode === "question" ? questions : answers;
+    target.set(
+      window.base,
+      mergeChunkParts(
+        target.get(window.base),
+        text,
+        window.images,
+        window.pageIdx,
+      ),
+    );
+  }
+
+  const numbers = [...questions.keys()].sort(compareProblemNumbers);
 
   return numbers.map((problemNumber) => {
-    const problemParts = problems.get(problemNumber);
+    const problemParts = questions.get(problemNumber);
     const answerParts = answers.get(problemNumber);
     const separated = separateStemAndFacit(
       problemParts?.text ?? "",
@@ -672,4 +613,219 @@ export function splitIntoProblemChunks(
         : {}),
     };
   });
+}
+
+function openWindow(
+  match: LabelMatch,
+  fullText: string,
+  pageIdx: number,
+  mode: "question" | "answer",
+): NumberedWindow {
+  let letter =
+    match.subproblemLetter ?? letterAfterLeadingNumber(fullText) ?? "";
+  let line = fullText;
+  if (match.fromPga && match.subproblemLetter !== null) {
+    line = rewritePgaAnswerLine(fullText, match.subproblemLetter);
+    letter = match.subproblemLetter;
+  } else if (letter.length === 0) {
+    letter = matchSubproblemLetter(fullText) ?? "";
+  }
+  return {
+    base: match.problemNumber,
+    letter,
+    mode,
+    texts: [line],
+    images: [],
+    pageIdx,
+  };
+}
+
+type StreamItem =
+  | {
+      kind: "label";
+      match: LabelMatch;
+      fullText: string;
+      pageIdx: number;
+    }
+  | { kind: "text"; text: string; pageIdx: number }
+  | { kind: "image"; path: string; pageIdx: number };
+
+/**
+ * Pass 1 — walk MinerU blocks and emit a flat stream.
+ * Labels come ONLY from `type: "text"` leads (`content[0]`).
+ */
+function collectStreamItems(middleJson: MiddleJson): StreamItem[] {
+  const items: StreamItem[] = [];
+
+  for (let pageIndex = 0; pageIndex < middleJson.pages.length; pageIndex++) {
+    const page = middleJson.pages[pageIndex]!;
+    const pageIdx = page.page_idx ?? pageIndex;
+
+    for (const block of page.blocks) {
+      const type = (block.type ?? "").toLowerCase();
+      if (type === "page_number" || type === "footer") {
+        continue;
+      }
+
+      if (isVisualFigureBlock(block)) {
+        const found: string[] = [];
+        collectImagePaths(block, found);
+        for (const path of uniquePaths(found)) {
+          items.push({ kind: "image", path, pageIdx });
+        }
+        continue;
+      }
+
+      const fullText = blockToText(block).replace(/\s+/g, " ").trim();
+
+      if (type === "text") {
+        const lead = getTextBlockLead(block);
+        const match = lead !== null ? matchLabelStart(lead) : null;
+        if (match !== null) {
+          items.push({
+            kind: "label",
+            match,
+            fullText: fullText.length > 0 ? fullText : lead!,
+            pageIdx,
+          });
+          continue;
+        }
+      }
+
+      if (fullText.length > 0) {
+        items.push({ kind: "text", text: fullText, pageIdx });
+      }
+    }
+  }
+
+  return items;
+}
+
+/**
+ * Index of the first label that returns to the document's first problem
+ * number (facit/answers). Cross-refs to other numbers do not count.
+ * Returns `items.length` when there is no answer pass.
+ */
+export function findAnswerRestartIndex(items: StreamItem[]): number {
+  const labelIndexes: number[] = [];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i]!.kind === "label") {
+      labelIndexes.push(i);
+    }
+  }
+  if (labelIndexes.length === 0) {
+    return items.length;
+  }
+
+  const firstBase = (items[labelIndexes[0]!] as Extract<
+    StreamItem,
+    { kind: "label" }
+  >).match.problemNumber;
+
+  for (let k = 1; k < labelIndexes.length; k++) {
+    const idx = labelIndexes[k]!;
+    const item = items[idx] as Extract<StreamItem, { kind: "label" }>;
+    if (item.match.problemNumber === firstBase) {
+      return idx;
+    }
+  }
+
+  return items.length;
+}
+
+/**
+ * Pass 2 — for each label, grab everything until the next label.
+ * Items before the first label are ignored. Mode is question until the
+ * answer-restart index, then answer.
+ */
+function windowsFromStream(items: StreamItem[]): NumberedWindow[] {
+  const labelIndexes: number[] = [];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i]!.kind === "label") {
+      labelIndexes.push(i);
+    }
+  }
+  if (labelIndexes.length === 0) {
+    return [];
+  }
+
+  const restartAt = findAnswerRestartIndex(items);
+  const windows: NumberedWindow[] = [];
+
+  for (let k = 0; k < labelIndexes.length; k++) {
+    const start = labelIndexes[k]!;
+    const end =
+      k + 1 < labelIndexes.length ? labelIndexes[k + 1]! : items.length;
+    const labelItem = items[start] as Extract<StreamItem, { kind: "label" }>;
+    const mode: "question" | "answer" =
+      start >= restartAt ? "answer" : "question";
+
+    const window = openWindow(
+      labelItem.match,
+      labelItem.fullText,
+      labelItem.pageIdx,
+      mode,
+    );
+
+    for (let i = start + 1; i < end; i++) {
+      const item = items[i]!;
+      if (item.kind === "image") {
+        appendImage(window.images, item.path, window.letter);
+        continue;
+      }
+      if (item.kind === "text") {
+        const letter = matchSubproblemLetter(item.text);
+        if (letter !== null) {
+          window.letter = letter;
+        }
+        window.texts.push(item.text);
+      }
+      // Nested labels cannot appear between start and end by construction.
+    }
+
+    windows.push(window);
+  }
+
+  return windows;
+}
+
+/**
+ * Two-pass problem detector:
+ * 1) Collect every problem-start lead (`type: "text"` / `content[0]`).
+ * 2) For each start, take all following content until the next start;
+ *    Q vs A splits when numbering returns to the first problem number.
+ */
+export function detectProblemChunks(middleJson: MiddleJson): ProblemChunk[] {
+  const items = collectStreamItems(middleJson);
+  const windows = windowsFromStream(items);
+  return windowsToChunks(windows);
+}
+
+/**
+ * Legacy token-based splitter. Prefer `detectProblemChunks(middleJson)`.
+ * Same two-pass idea: labels at token starts, restart on return to first base.
+ */
+export function splitIntoProblemChunks(
+  problemTokens: FlattenToken[],
+  answerTokens: FlattenToken[] = [],
+): ProblemChunk[] {
+  const items: StreamItem[] = [];
+  for (const token of [...problemTokens, ...answerTokens]) {
+    if (token.kind === "image") {
+      items.push({ kind: "image", path: token.path, pageIdx: token.pageIdx });
+      continue;
+    }
+    const match = matchLabelStart(token.text);
+    if (match !== null) {
+      items.push({
+        kind: "label",
+        match,
+        fullText: token.text,
+        pageIdx: token.pageIdx,
+      });
+      continue;
+    }
+    items.push({ kind: "text", text: token.text, pageIdx: token.pageIdx });
+  }
+  return windowsToChunks(windowsFromStream(items));
 }

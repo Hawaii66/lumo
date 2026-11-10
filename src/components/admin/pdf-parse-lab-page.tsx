@@ -3,6 +3,7 @@ import {
   Authenticated,
   AuthLoading,
   Unauthenticated,
+  useAction,
   useMutation,
   useQuery,
 } from "convex/react"
@@ -57,6 +58,21 @@ type PreviewInfo = {
 }
 
 type PreviewPayload = PreviewProblems | PreviewInfo
+
+type SplitChunk = {
+  problemNumber: string
+  problemText: string
+  answerText: string
+  sourceQuestionPageIdx?: number
+  sourceAnswerPageIdx?: number
+  questionImageCount: number
+  answerImageCount: number
+}
+
+type SplitPreview = {
+  chunkCount: number
+  chunks: Array<SplitChunk>
+}
 
 type AdminProblemItem = {
   id: string
@@ -218,6 +234,148 @@ function AdminProblemBrowser({
   )
 }
 
+function SplitChunkBrowser({
+  chunks,
+  selectedNumber,
+  onSelect,
+  pdfFileName,
+  pdfUrl,
+  onViewPdf,
+}: {
+  chunks: Array<SplitChunk>
+  selectedNumber: string | null
+  onSelect: (problemNumber: string) => void
+  pdfFileName: string
+  pdfUrl: string | null
+  onViewPdf: (pageNumber?: number) => void
+}) {
+  const selected =
+    chunks.find((chunk) => chunk.problemNumber === selectedNumber) ??
+    chunks[0] ??
+    null
+  const questionPageIdx = selected?.sourceQuestionPageIdx
+  const answerPageIdx = selected?.sourceAnswerPageIdx
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Live split från MinerU-cache · {chunks.length} uppgifter · ingen AI
+        {pdfFileName.length > 0 ? ` · ${pdfFileName}` : ""}
+      </p>
+      <div className="grid min-h-[28rem] gap-4 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]">
+        <div
+          className="flex max-h-[28rem] flex-col gap-0.5 overflow-y-auto rounded-md border border-border p-1"
+          aria-label="Split-lista"
+        >
+          {chunks.map((chunk) => {
+            const active = chunk.problemNumber === selected?.problemNumber
+            return (
+              <button
+                key={chunk.problemNumber}
+                type="button"
+                className={cn(
+                  "rounded-sm px-2 py-1.5 text-left text-sm transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted",
+                )}
+                onClick={() => {
+                  onSelect(chunk.problemNumber)
+                }}
+              >
+                <span className="font-medium">{chunk.problemNumber}</span>
+                {(chunk.questionImageCount > 0 ||
+                  chunk.answerImageCount > 0) && (
+                  <span
+                    className={cn(
+                      "ml-1 text-xs",
+                      active
+                        ? "text-primary-foreground/80"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    · {chunk.questionImageCount + chunk.answerImageCount} img
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+        <div className="flex min-h-0 flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={pdfUrl === null}
+                >
+                  <FileText className="size-3.5" />
+                  PDF
+                  <ChevronDown className="size-3.5 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem
+                  disabled={pdfUrl === null}
+                  onClick={() => {
+                    onViewPdf()
+                  }}
+                >
+                  Öppna PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={pdfUrl === null || questionPageIdx == null}
+                  onClick={() => {
+                    if (questionPageIdx == null) return
+                    onViewPdf(questionPageIdx + 1)
+                  }}
+                >
+                  Öppna fråga
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={pdfUrl === null || answerPageIdx == null}
+                  onClick={() => {
+                    if (answerPageIdx == null) return
+                    onViewPdf(answerPageIdx + 1)
+                  }}
+                >
+                  Öppna svar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {selected === null ? (
+            <p className="text-sm text-muted-foreground">
+              Välj en uppgift i listan.
+            </p>
+          ) : (
+            <div className="min-h-0 max-h-[28rem] flex-1 space-y-3 overflow-y-auto pr-1">
+              <div>
+                <p className="mb-1 text-xs font-medium text-muted-foreground">
+                  Fråga
+                </p>
+                <pre className="whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
+                  {selected.problemText || "(tom)"}
+                </pre>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium text-muted-foreground">
+                  Svar
+                </p>
+                <pre className="whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
+                  {selected.answerText || "(tom)"}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function useIsAdmin() {
   const viewer = useQuery(api.users.viewer)
   if (viewer === undefined) return undefined
@@ -310,6 +468,9 @@ function LabBody() {
   const invalidateMineru = useMutation(
     api.PDFParse.adminParse.invalidateMineruCache,
   )
+  const previewProblemSplit = useAction(
+    api.PDFParse.adminParse.previewProblemSplit,
+  )
 
   const [selectedRunId, setSelectedRunId] = useState<Id<"pdfAdminRuns"> | null>(
     null,
@@ -340,6 +501,12 @@ function LabBody() {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [mineruJson, setMineruJson] = useState<string | null>(null)
   const [mineruJsonLoading, setMineruJsonLoading] = useState(false)
+  const [splitPreview, setSplitPreview] = useState<SplitPreview | null>(null)
+  const [splitLoading, setSplitLoading] = useState(false)
+  const [splitError, setSplitError] = useState<string | null>(null)
+  const [selectedSplitNumber, setSelectedSplitNumber] = useState<string | null>(
+    null,
+  )
 
   useEffect(() => {
     if (runs !== undefined && runs.length > 0 && selectedRunId === null) {
@@ -408,6 +575,40 @@ function LabBody() {
       cancelled = true
     }
   }, [detail?.mineruJsonUrl])
+
+  useEffect(() => {
+    const contentHash = detail?.run.contentHash
+    const cached = detail?.mineruCached === true
+    if (contentHash === undefined || !cached) {
+      setSplitPreview(null)
+      setSplitLoading(false)
+      setSplitError(null)
+      setSelectedSplitNumber(null)
+      return
+    }
+    let cancelled = false
+    setSplitLoading(true)
+    setSplitError(null)
+    void previewProblemSplit({ contentHash })
+      .then((data) => {
+        if (cancelled) return
+        setSplitPreview(data)
+        setSelectedSplitNumber(data?.chunks[0]?.problemNumber ?? null)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setSplitPreview(null)
+        setSplitError(
+          err instanceof Error ? err.message : "Kunde inte köra split",
+        )
+      })
+      .finally(() => {
+        if (!cancelled) setSplitLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [detail?.run.contentHash, detail?.mineruCached, previewProblemSplit])
 
   async function handleStart() {
     if (file === null) {
@@ -800,14 +1001,15 @@ function LabBody() {
                     Förhandsgranskning
                   </CardTitle>
                   <CardDescription>
-                    Senaste parse-resultat (dry-run eller före commit) och rå
-                    MinerU middle_json.
+                    Senaste parse-resultat (dry-run eller före commit), live
+                    problem-split från MinerU-cache (utan AI), och rå middle_json.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="preview">
                     <TabsList className="mb-3" aria-label="Förhandsgranskning">
                       <TabsTrigger value="preview">Parse</TabsTrigger>
+                      <TabsTrigger value="split">Split</TabsTrigger>
                       <TabsTrigger value="mineru">MinerU JSON</TabsTrigger>
                     </TabsList>
                     <TabsContent value="preview">
@@ -830,6 +1032,43 @@ function LabBody() {
                             problem: p,
                           }))}
                           emptyLabel="Inga uppgifter i förhandsgranskningen"
+                          pdfFileName={detail.run.name}
+                          pdfUrl={detail.pdfUrl}
+                          onViewPdf={(pageNumber) => {
+                            if (detail.pdfUrl === null) return
+                            setViewingPdf({
+                              name: detail.run.name,
+                              url: detail.pdfUrl,
+                              ...(pageNumber !== undefined
+                                ? { pageNumber }
+                                : {}),
+                            })
+                          }}
+                        />
+                      )}
+                    </TabsContent>
+                    <TabsContent value="split">
+                      {!detail.mineruCached ? (
+                        <p className="text-sm text-muted-foreground">
+                          Ingen MinerU-cache — split kräver middle_json
+                        </p>
+                      ) : splitLoading ? (
+                        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="size-3.5 animate-spin" />
+                          Kör split live…
+                        </p>
+                      ) : splitError !== null ? (
+                        <p className="text-sm text-destructive">{splitError}</p>
+                      ) : splitPreview === null ||
+                        splitPreview.chunks.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          Inga uppgifter hittades i split
+                        </p>
+                      ) : (
+                        <SplitChunkBrowser
+                          chunks={splitPreview.chunks}
+                          selectedNumber={selectedSplitNumber}
+                          onSelect={setSelectedSplitNumber}
                           pdfFileName={detail.run.name}
                           pdfUrl={detail.pdfUrl}
                           onViewPdf={(pageNumber) => {
