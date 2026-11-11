@@ -3,6 +3,7 @@ import { useQuery } from "convex/react"
 import { api } from "../../../convex/_generated/api"
 import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { Button } from "~/components/ui/button"
+import { captureSignupClicked } from "~/lib/posthog"
 import { cn } from "~/lib/utils"
 
 function GridLineHorizontal({
@@ -94,6 +95,7 @@ export function CtaDashedGrid({ className }: { className?: string }) {
                   size="lg"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                   render={<Link to="/signup" />}
+                  onClick={captureSignupClicked}
                 >
                   Skapa konto
                 </Button>

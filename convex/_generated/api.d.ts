@@ -40,6 +40,7 @@ import type * as lib_credits from "../lib/credits.js";
 import type * as lib_lumoContent from "../lib/lumoContent.js";
 import type * as lib_pdfExtract from "../lib/pdfExtract.js";
 import type * as lib_pdfMerge from "../lib/pdfMerge.js";
+import type * as lib_posthogOtel from "../lib/posthogOtel.js";
 import type * as lib_problemAccess from "../lib/problemAccess.js";
 import type * as lib_prompts_chat from "../lib/prompts/chat.js";
 import type * as lib_prompts_fragments from "../lib/prompts/fragments.js";
@@ -57,6 +58,7 @@ import type * as lib_subproblemSlice from "../lib/subproblemSlice.js";
 import type * as pdfExtracts from "../pdfExtracts.js";
 import type * as pdfMerges from "../pdfMerges.js";
 import type * as pdfTools from "../pdfTools.js";
+import type * as posthog from "../posthog.js";
 import type * as roles from "../roles.js";
 import type * as roomOccasions from "../roomOccasions.js";
 import type * as roomTemplates from "../roomTemplates.js";
@@ -105,6 +107,7 @@ declare const fullApi: ApiFromModules<{
   "lib/lumoContent": typeof lib_lumoContent;
   "lib/pdfExtract": typeof lib_pdfExtract;
   "lib/pdfMerge": typeof lib_pdfMerge;
+  "lib/posthogOtel": typeof lib_posthogOtel;
   "lib/problemAccess": typeof lib_problemAccess;
   "lib/prompts/chat": typeof lib_prompts_chat;
   "lib/prompts/fragments": typeof lib_prompts_fragments;
@@ -122,6 +125,7 @@ declare const fullApi: ApiFromModules<{
   pdfExtracts: typeof pdfExtracts;
   pdfMerges: typeof pdfMerges;
   pdfTools: typeof pdfTools;
+  posthog: typeof posthog;
   roles: typeof roles;
   roomOccasions: typeof roomOccasions;
   roomTemplates: typeof roomTemplates;
@@ -161,4 +165,5 @@ export declare const internal: FilterApi<
 export declare const components: {
   agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
   stripe: import("@convex-dev/stripe/_generated/component.js").ComponentApi<"stripe">;
+  posthog: import("@posthog/convex/_generated/component.js").ComponentApi<"posthog">;
 };

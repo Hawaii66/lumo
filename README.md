@@ -107,3 +107,17 @@ npm run build
 ```
 
 Convex-env: bl.a. `OPENROUTER_API_KEY` (`npx convex env set …`). Stripe-nycklar behövs för credit checkout.
+
+### PostHog
+
+Produktanalytics (frontend + Convex) + AI Observability + Definitions-dashboards.
+
+| Var | Värde |
+| --- | --- |
+| `.env.local` | `VITE_POSTHOG_PROJECT_TOKEN`, `VITE_POSTHOG_HOST` (t.ex. `https://eu.i.posthog.com`) |
+| Convex | `POSTHOG_PROJECT_TOKEN` (**required**) + `POSTHOG_HOST` via `npx convex env set …` |
+| Definitions CLI (`.env.local`) | `POSTHOG_PERSONAL_API_KEY` (`phx_…`), `POSTHOG_PROJECT_ID`; optional `POSTHOG_DEFINITIONS_HOST=https://eu.posthog.com` |
+
+`posthog:apply` / `posthog:dry` laddar `.env.local` via `scripts/posthog-definitions.mjs`. Om `POSTHOG_HOST` är ingestion-URL (`*.i.posthog.com`) skrivs den om till app-host automatiskt.
+
+`npm run deploy` kör `posthog:apply` efter Convex/build (innan Wrangler) — sätt Definitions-env till **lumo-prod** i den miljön. Lokalt synkar du **lumo-dev** med `npm run posthog:apply` / `posthog:dry`.

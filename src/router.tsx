@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query'
 import { routerWithQueryClient } from '@tanstack/react-router-with-query'
 import { ConvexQueryClient } from '@convex-dev/react-query'
 import { ConvexAuthProvider } from '@convex-dev/auth/react'
+import { PostHogProvider } from '~/components/posthog-provider'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
@@ -36,7 +37,7 @@ export function getRouter() {
       defaultNotFoundComponent: () => <p>not found</p>,
       Wrap: ({ children }) => (
         <ConvexAuthProvider client={convexQueryClient.convexClient}>
-          {children}
+          <PostHogProvider>{children}</PostHogProvider>
         </ConvexAuthProvider>
       ),
     }),

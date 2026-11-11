@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
+import { captureSignupClicked } from "~/lib/posthog"
 
 export type AuthMode = "signIn" | "signUp"
 
@@ -171,6 +172,7 @@ function SignInForm({ mode }: { mode: AuthMode }) {
                     <Link
                       to="/signup"
                       className="font-medium text-primary underline-offset-4 hover:underline"
+                      onClick={captureSignupClicked}
                     >
                       Skapa konto
                     </Link>
@@ -201,6 +203,7 @@ function SignInForm({ mode }: { mode: AuthMode }) {
                   <Link
                     to="/signup"
                     className="font-medium text-primary underline-offset-4 hover:underline"
+                    onClick={captureSignupClicked}
                   >
                     Skapa konto
                   </Link>

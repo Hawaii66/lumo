@@ -9,6 +9,7 @@ import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { HomeAppearanceToggle } from "~/components/marketing/home-appearance-toggle"
 import { Button } from "~/components/ui/button"
 import { FlipWords } from "~/components/ui/flip-words"
+import { captureSignupClicked } from "~/lib/posthog"
 import { cn } from "~/lib/utils"
 
 const heroFlipWords = ["rätt", "smart", "enkelt", "roligt"]
@@ -370,6 +371,7 @@ export function FeatureHighlights() {
                 size="sm"
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 render={<Link to="/signup" />}
+                onClick={captureSignupClicked}
               >
                 Skapa konto
               </Button>

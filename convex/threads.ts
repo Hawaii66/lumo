@@ -30,6 +30,7 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { posthog } from "./posthog";
 
 const MAX_TITLE_LENGTH = 80;
 const MAX_THREADS_PER_ROOM = 100;
@@ -246,6 +247,12 @@ export const create = mutation({
     if (archiveJobId !== undefined) {
       await ctx.db.patch(roomThreadId, { archiveJobId });
     }
+
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "thread_created",
+      properties: { threadId, roomId: args.roomId, mode },
+    });
 
     return {
       roomThreadId,
@@ -859,6 +866,18 @@ export const sendMessage = mutation({
       roomId: args.roomId,
       problemIds: problemIds.length > 0 ? problemIds : undefined,
       subproblemLetter,
+    });
+
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "message_sent",
+      properties: {
+        threadId: args.threadId,
+        roomId: args.roomId,
+        chatMode: mode,
+        hasImages: images.length > 0,
+        problemCount: problemIds.length,
+      },
     });
 
     return { messageId };

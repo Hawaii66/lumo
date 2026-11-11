@@ -10,6 +10,7 @@ import {
   type ChargeSource,
   type ChatMode,
 } from "./lib/lumoContent";
+import { posthog } from "./posthog";
 
 const usageBucketValidator = v.object({
   totalTokens: v.number(),
@@ -129,7 +130,7 @@ export const insertUsage = internalMutation({
   },
   returns: v.id("llmUsage"),
   handler: async (ctx, args) => {
-    return await ctx.db.insert("llmUsage", {
+    const usageId = await ctx.db.insert("llmUsage", {
       userId: args.userId,
       chargeSource: args.chargeSource,
       chatMode: args.chatMode,
@@ -142,6 +143,23 @@ export const insertUsage = internalMutation({
       costUsd: args.costUsd,
       threadId: args.threadId,
     });
+    await posthog.capture(ctx, {
+      distinctId: args.userId,
+      event: "ai_usage",
+      properties: {
+        chargeSource: args.chargeSource,
+        model: args.model,
+        provider: args.provider,
+        inputTokens: args.inputTokens,
+        outputTokens: args.outputTokens,
+        totalTokens: args.totalTokens,
+        ...(args.costUsd !== undefined ? { costUsd: args.costUsd } : {}),
+        ...(args.chatMode !== undefined ? { chatMode: args.chatMode } : {}),
+        ...(args.agentName !== undefined ? { agentName: args.agentName } : {}),
+        ...(args.threadId !== undefined ? { threadId: args.threadId } : {}),
+      },
+    });
+    return usageId;
   },
 });
 
