@@ -3,6 +3,7 @@ import {
   useUIMessages,
 } from "@convex-dev/agent/react"
 import { useMutation } from "convex/react"
+import { ArrowLeft } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -24,6 +25,7 @@ import {
   UserMessageContent,
 } from "~/components/rooms/thread-chat-messages"
 import { ThreadTitleEditor } from "~/components/rooms/thread-title-editor"
+import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import {
   DEFAULT_CHAT_DELETION_EXPIRY,
@@ -51,6 +53,8 @@ type ThreadChatProps = {
   deleteAt?: number | null
   mentionedProblemNumbers?: string[]
   onArchived?: () => void
+  /** Return to the referenced problem in the problem list. */
+  onBackToProblem?: (problemId: Id<"problems">) => void
   /** Increment to focus the composer (e.g. after starting a new chat). */
   composerFocusSignal?: number
 }
@@ -76,6 +80,7 @@ export function ThreadChat({
   deleteAt = null,
   mentionedProblemNumbers = [],
   onArchived,
+  onBackToProblem,
   composerFocusSignal,
 }: ThreadChatProps) {
   const { results, status } = useUIMessages(
@@ -148,6 +153,29 @@ export function ThreadChat({
     () => mentionsByUserMessageKey(messages, problemOptions, seedMentions),
     [messages, problemOptions, seedMentions],
   )
+
+  const backToProblem = useMemo(() => {
+    if (!onBackToProblem) return null
+    for (const mention of seedMentions) {
+      if (mention.status === "resolved") {
+        return {
+          problemId: mention.problemId as Id<"problems">,
+          problemNumber: mention.problemNumber,
+        }
+      }
+    }
+    for (const mentions of mentionsByMessageKey.values()) {
+      for (const mention of mentions) {
+        if (mention.status === "resolved") {
+          return {
+            problemId: mention.problemId as Id<"problems">,
+            problemNumber: mention.problemNumber,
+          }
+        }
+      }
+    }
+    return null
+  }, [mentionsByMessageKey, onBackToProblem, seedMentions])
 
   const lastUserMessageKey = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -332,6 +360,20 @@ export function ThreadChat({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {backToProblem ? (
+        <div className="mb-3 shrink-0">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 px-2"
+            onClick={() => onBackToProblem?.(backToProblem.problemId)}
+          >
+            <ArrowLeft />
+            Tillbaka till uppgift {backToProblem.problemNumber}
+          </Button>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <ThreadTitleEditor
