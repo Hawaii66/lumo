@@ -68,30 +68,37 @@ export function matchSubproblemLetter(line: string): string | null {
 
 /**
  * Label detection is intentionally narrow. A problem start is ONLY allowed when
- * a `type: "text"` block's `content[0]` is itself `type: "text"` and that string
- * begins with one of:
+ * a block lead (`content[0]` text) begins with one of:
  *   1) `P` + number  → `P 3.1`, `P3.10`
- *   2) a number      → `1.`, `1.2`, `2)`, `1a)`, `2(a)`
+ *   2) a number      → `1.`, `1.2`, `1.2.3.`, `2)`, `1a)`, `2(a)`
+ * Allowed block types: `text`, and `paragraph_title`/`header` only when the
+ * lead looks like a problem marker (3+ dotted parts, or trailing `.`/`)`).
  * Never scan mid-block / mid-string prose.
  */
 
-/** Case 1: "P 1.2" / "P1.2" at the very start. */
-const LEAD_P_NUMBER_RE = /^P\s*(\d+\.\d+)\b/i;
-/** Case 2a: dotted "1.2" at the very start. */
-const LEAD_DOTTED_RE = /^(\d+\.\d+)\b/;
+/** Case 1: "P 1.2" / "P1.2" / "P 1.2.3" at the very start. */
+const LEAD_P_NUMBER_RE = /^P\s*(\d+(?:\.\d+)+)\b/i;
+/**
+ * Case 2a: dotted "1.2" / "1.2.3" / "3.14" at the very start.
+ * Greedy so "1.2.3." becomes "1.2.3", not "1.2".
+ */
+const LEAD_DOTTED_RE = /^(\d+(?:\.\d+)+)\b/;
 /**
  * Case 2b: major "1." / "2)" / "5. (a)".
  * Requires "." or ")" after the digits so "3 Gränsvärde" does not match.
  */
 const LEAD_MAJOR_RE = /^(\d+)\s*[.)](?:\s|\(|$)/;
-/** Case 2c: PGA "2(a)" / "2 (a)" / "1.2(a)". */
-const LEAD_PGA_PAREN_RE = /^(\d+(?:\.\d+)?)\s*\(([a-z])\)/i;
+/** Case 2c: PGA "2(a)" / "2 (a)" / "1.2(a)" / "1.2.3(a)". */
+const LEAD_PGA_PAREN_RE = /^(\d+(?:\.\d+)*)\s*\(([a-z])\)/i;
 /**
  * Case 2d: PGA "2a)" / "1.2a)" — ")" required (not ".") so "2p." is ignored.
  */
-const LEAD_PGA_GLUED_RE = /^(\d+(?:\.\d+)?)([a-z])\s*\)(?=\s|$)/i;
+const LEAD_PGA_GLUED_RE = /^(\d+(?:\.\d+)*)([a-z])\s*\)(?=\s|$)/i;
 /** Case 2e: PGA "2 a)" / "1.2 a)". */
-const LEAD_PGA_SPACED_RE = /^(\d+(?:\.\d+)?)\s+([a-z])\s*[.)](?=\s|$)/i;
+const LEAD_PGA_SPACED_RE = /^(\d+(?:\.\d+)*)\s+([a-z])\s*[.)](?=\s|$)/i;
+
+/** Block types whose lead may open a problem window. */
+const LABEL_BLOCK_TYPES = new Set(["text", "paragraph_title", "header"]);
 
 /** @deprecated alias kept for rewrite helpers below */
 const ANSWER_PGA_PAREN_RE = LEAD_PGA_PAREN_RE;
@@ -121,7 +128,7 @@ const LOOSE_SOLUTION_START_RE =
 
 /** Strip a leading problem number so "(a)" after "P 3.1" / "1." can be read. */
 const LEADING_NUMBER_STRIP_RE =
-  /^\s*(?:P\s*)?(?:\d+\.\d+|\d+)\s*[.)]?\s*/i;
+  /^\s*(?:P\s*)?\d+(?:\.\d+)*\s*[.)]?\s*/i;
 
 function partToText(part: string | MiddleContentPart | undefined): string {
   if (part === undefined) {
@@ -214,11 +221,12 @@ function isVisualFigureBlock(block: MiddleBlock): boolean {
 
 /**
  * Lead string for label detection — the ONLY place numbers are read from:
- * `block.type === "text"` and `content[0].type === "text"` (or bare string content).
- * Never reads content[1+], equations, titles, or mid-string prose.
+ * `content[0].type === "text"` (or bare string content) on allowed block types.
+ * Never reads content[1+], equations, or mid-string prose.
  */
 export function getTextBlockLead(block: MiddleBlock): string | null {
-  if ((block.type ?? "").toLowerCase() !== "text") {
+  const type = (block.type ?? "").toLowerCase();
+  if (!LABEL_BLOCK_TYPES.has(type)) {
     return null;
   }
   const content = block.content;
@@ -249,6 +257,25 @@ export function getTextBlockLead(block: MiddleBlock): string | null {
   const trimmed = part.content.trimStart();
   return trimmed.length > 0 ? trimmed : null;
 }
+
+/**
+ * Title/header blocks often carry chapter/section names:
+ *   "1. Linjära ekvationsystem", "1.2 Successiv elimination"
+ * Only accept true problem markers here — 3+ dotted parts (`1.2.1`) or `P x.y`.
+ * Do NOT accept major `1.` / two-part `1.2.` — those are chapters/sections.
+ */
+function titleLeadLooksLikeProblem(_lead: string, match: LabelMatch): boolean {
+  if (/^P\s*\d/i.test(_lead)) {
+    return true;
+  }
+  return match.problemNumber.split(".").length >= 3;
+}
+
+/**
+ * Explicit facit/answer-section headings (not inline "Svar:" inside a solution).
+ */
+const ANSWER_SECTION_HEADING_RE =
+  /^(?:Svar(?:\s+till\b|\s*$|\s+\d)|Lösningsskisser\b|Facit\b|Answers?\b)/i;
 
 /**
  * Detect a problem number at the start of a lead string.
@@ -496,16 +523,20 @@ function mergeChunkParts(
 }
 
 function compareProblemNumbers(a: string, b: string): number {
-  const [aMajor, aMinor = 0] = a.split(".").map(Number);
-  const [bMajor, bMinor = 0] = b.split(".").map(Number);
-  if (aMajor !== bMajor) {
-    return (aMajor ?? 0) - (bMajor ?? 0);
+  const aParts = a.split(".").map(Number);
+  const bParts = b.split(".").map(Number);
+  const len = Math.max(aParts.length, bParts.length);
+  for (let i = 0; i < len; i++) {
+    const diff = (aParts[i] ?? 0) - (bParts[i] ?? 0);
+    if (diff !== 0) {
+      return diff;
+    }
   }
-  return (aMinor ?? 0) - (bMinor ?? 0);
+  return 0;
 }
 
-/** Optional leading "7." / "1.2" / "P 1.2" before stem or solution prose. */
-const LEADING_NUMBER_RE = /^\s*(?:P\s*)?(?:\d+\.\d+|\d+)\s*[.)]?\s*/i;
+/** Optional leading "7." / "1.2" / "1.2.3" / "P 1.2" before stem or solution prose. */
+const LEADING_NUMBER_RE = /^\s*(?:P\s*)?\d+(?:\.\d+)*\s*[.)]?\s*/i;
 
 /** Solution opener at the very start of a line/body (no stem before it). */
 const SOLUTION_AT_START_RE =
@@ -700,10 +731,13 @@ function collectStreamItems(middleJson: MiddleJson): StreamItem[] {
 
       const fullText = blockToText(block).replace(/\s+/g, " ").trim();
 
-      if (type === "text") {
+      if (LABEL_BLOCK_TYPES.has(type)) {
         const lead = getTextBlockLead(block);
         const match = lead !== null ? matchLabelStart(lead) : null;
-        if (match !== null) {
+        const accept =
+          match !== null &&
+          (type === "text" || titleLeadLooksLikeProblem(lead!, match));
+        if (accept && match !== null) {
           items.push({
             kind: "label",
             match,
@@ -724,32 +758,43 @@ function collectStreamItems(middleJson: MiddleJson): StreamItem[] {
 }
 
 /**
- * Index of the first label that returns to the document's first problem
- * number (facit/answers). Cross-refs to other numbers do not count.
+ * Index where answer/facit mode begins.
+ * 1) Prefer an explicit heading ("Svar till…", "Lösningsskisser", "Facit").
+ * 2) Else the first label whose number was already seen (numbering restarted),
+ *    not only a return to the very first problem — answers may skip early numbers.
  * Returns `items.length` when there is no answer pass.
  */
 export function findAnswerRestartIndex(items: StreamItem[]): number {
-  const labelIndexes: number[] = [];
   for (let i = 0; i < items.length; i++) {
-    if (items[i]!.kind === "label") {
-      labelIndexes.push(i);
+    const item = items[i]!;
+    const text =
+      item.kind === "text"
+        ? item.text
+        : item.kind === "label"
+          ? item.fullText
+          : null;
+    if (text === null || !ANSWER_SECTION_HEADING_RE.test(text.trim())) {
+      continue;
     }
-  }
-  if (labelIndexes.length === 0) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[j]!.kind === "label") {
+        return j;
+      }
+    }
     return items.length;
   }
 
-  const firstBase = (items[labelIndexes[0]!] as Extract<
-    StreamItem,
-    { kind: "label" }
-  >).match.problemNumber;
-
-  for (let k = 1; k < labelIndexes.length; k++) {
-    const idx = labelIndexes[k]!;
-    const item = items[idx] as Extract<StreamItem, { kind: "label" }>;
-    if (item.match.problemNumber === firstBase) {
-      return idx;
+  const seen = new Set<string>();
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!;
+    if (item.kind !== "label") {
+      continue;
     }
+    const base = item.match.problemNumber;
+    if (seen.has(base)) {
+      return i;
+    }
+    seen.add(base);
   }
 
   return items.length;
@@ -819,8 +864,42 @@ function windowsFromStream(items: StreamItem[]): NumberedWindow[] {
  */
 export function detectProblemChunks(middleJson: MiddleJson): ProblemChunk[] {
   const items = collectStreamItems(middleJson);
+  const restartAt = findAnswerRestartIndex(items);
   const windows = windowsFromStream(items);
-  return windowsToChunks(windows);
+  const chunks = windowsToChunks(windows);
+  // #region agent log
+  // Convex-safe sync log (no dangling fetch). Shows in Convex dashboard.
+  const labels = items
+    .filter(
+      (item): item is Extract<StreamItem, { kind: "label" }> =>
+        item.kind === "label",
+    )
+    .map((item) => item.match.problemNumber);
+  const uniqueBases = [...new Set(labels)];
+  const answered = chunks.filter((c) => c.answerText.trim().length > 0).length;
+  console.log(
+    "[debug-54a079] detectProblemChunks",
+    JSON.stringify({
+      hypothesisId: "H5+H6",
+      labelCount: labels.length,
+      uniqueCount: uniqueBases.length,
+      uniqueBases: uniqueBases.slice(0, 40),
+      firstLabels: labels.slice(0, 20),
+      hasMajorOnly: uniqueBases.some((n) => /^\d+$/.test(n)),
+      restartAt,
+      restartLead:
+        restartAt < items.length && items[restartAt]?.kind === "label"
+          ? (
+              items[restartAt] as Extract<StreamItem, { kind: "label" }>
+            ).fullText.slice(0, 60)
+          : null,
+      chunkCount: chunks.length,
+      answeredCount: answered,
+      chunkNumbers: chunks.map((c) => c.problemNumber).slice(0, 40),
+    }),
+  );
+  // #endregion
+  return chunks;
 }
 
 /**

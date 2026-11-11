@@ -99,7 +99,7 @@ export function ProblemCompletionControl({
       aria-pressed={completed}
       onClick={() => onChange(!completed)}
       className={cn(
-        "inline-flex size-6 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
+        "inline-flex size-8 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         "active:scale-90",
         completed
@@ -110,7 +110,7 @@ export function ProblemCompletionControl({
     >
       <Check
         className={cn(
-          "size-3.5 transition-[opacity,transform] duration-150",
+          "size-4 transition-[opacity,transform] duration-150",
           completed ? "stroke-[3] opacity-100 scale-100" : "scale-90",
         )}
         aria-hidden

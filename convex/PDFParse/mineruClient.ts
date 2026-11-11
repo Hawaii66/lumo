@@ -9,8 +9,15 @@ import {
 
 const MINERU_BASE_URL = "https://mineru-production-9651.up.railway.app";
 
-const POLL_INTERVAL_MS = 3000;
-const POLL_MAX_ATTEMPTS = 80;
+/** How often a scheduled poll re-checks MinerU status. */
+export const MINERU_POLL_INTERVAL_MS = 15_000;
+/** Max wall time from task attach until we fail waiters. */
+export const MINERU_DEADLINE_MS = 30 * 60 * 1000;
+/**
+ * Steal an in-flight claim that never got a taskId (crashed before upload).
+ * Once a taskId exists, deadlineAt is the authority.
+ */
+export const MINERU_CLAIM_STALE_MS = 5 * 60 * 1000;
 
 const MIDDLE_JSON_ENTRY = "middle_json.json";
 
@@ -21,10 +28,6 @@ export type MineruZipResult = {
   /** Relative paths as referenced in middle_json (`images/…`) → bytes. */
   images: Map<string, Uint8Array>;
 };
-
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /** Prefer HTTPS for same-host MinerU links (API sometimes returns http://). */
 function resolveMinerUUrl(pathOrUrl: string): string {
@@ -77,7 +80,7 @@ export function blobFromMineruImage(
 }
 
 /** Unpack middle_json + image files from a MinerU result ZIP. */
-function parseMineruZip(zipBytes: ArrayBuffer): MineruZipResult {
+export function parseMineruZip(zipBytes: ArrayBuffer): MineruZipResult {
   const files = unzipSync(new Uint8Array(zipBytes));
 
   let middleEntry: Uint8Array | undefined;
@@ -173,61 +176,38 @@ async function uploadFile(
   }
 }
 
-async function pollTask(taskId: string): Promise<MineruTaskDetail> {
-  for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
-    const res = await fetch(
-      `${MINERU_BASE_URL}/v1/tasks/${encodeURIComponent(taskId)}`,
-    );
-    if (!res.ok) {
-      throw new Error(
-        `MinerU status-poll misslyckades: ${res.status} ${await res.text()}`,
-      );
-    }
-
-    const detail = parseMineruTaskDetail(await res.json());
-    const status = detail.status;
-
-    if (status === "completed") {
-      return detail;
-    }
-    if (
-      status === "failed" ||
-      status === "canceled" ||
-      status === "partial"
-    ) {
-      throw new Error(`MinerU-jobb misslyckades: ${JSON.stringify(detail)}`);
-    }
-
-    await sleep(POLL_INTERVAL_MS);
-  }
-  throw new Error("MinerU-jobb timeout");
-}
-
-async function downloadMineruZip(resultUrl: string): Promise<MineruZipResult> {
-  const res = await fetch(resolveMinerUUrl(resultUrl));
-  if (!res.ok) {
-    throw new Error(
-      `MinerU result-download misslyckades: ${res.status} ${await res.text()}`,
-    );
-  }
-  return parseMineruZip(await res.arrayBuffer());
-}
-
-/**
- * Upload a PDF to MinerU Tasks API (4.1+), wait for completion, and return
- * validated middle_json plus cropped images from the default result ZIP.
- */
-export async function fetchMineruZipResult(
+/** Create a MinerU task and upload the PDF. Does not wait for completion. */
+export async function startMineruTask(
   pdf: Blob,
   filename = "document.pdf",
-): Promise<MineruZipResult> {
+): Promise<string> {
   const { taskId, uploadUrl, uploadHeaders } = await createTask(
     filename,
     pdf.size,
   );
   await uploadFile(uploadUrl, uploadHeaders, pdf);
-  const detail = await pollTask(taskId);
+  return taskId;
+}
 
+/** Fetch current MinerU task status. */
+export async function fetchMineruTaskDetail(
+  taskId: string,
+): Promise<MineruTaskDetail> {
+  const res = await fetch(
+    `${MINERU_BASE_URL}/v1/tasks/${encodeURIComponent(taskId)}`,
+  );
+  if (!res.ok) {
+    throw new Error(
+      `MinerU status-poll misslyckades: ${res.status} ${await res.text()}`,
+    );
+  }
+  return parseMineruTaskDetail(await res.json());
+}
+
+/** Download and unpack the result ZIP for a completed MinerU task. */
+export async function downloadMineruZipFromDetail(
+  detail: MineruTaskDetail,
+): Promise<MineruZipResult> {
   const file = detail.files[0];
   if (file === undefined || file.status !== "completed" || !file.result_url) {
     throw new Error(
@@ -238,14 +218,36 @@ export async function fetchMineruZipResult(
     throw new Error(`MinerU-filfel: ${JSON.stringify(file.error)}`);
   }
 
-  return await downloadMineruZip(file.result_url);
+  const res = await fetch(resolveMinerUUrl(file.result_url));
+  if (!res.ok) {
+    throw new Error(
+      `MinerU result-download misslyckades: ${res.status} ${await res.text()}`,
+    );
+  }
+  return parseMineruZip(await res.arrayBuffer());
 }
 
-/** @deprecated Prefer fetchMineruZipResult — kept for call-site clarity. */
-export async function fetchMineruMiddleJson(
-  pdf: Blob,
-  filename = "document.pdf",
-): Promise<MiddleJson> {
-  const result = await fetchMineruZipResult(pdf, filename);
-  return result.middleJson;
+/**
+ * Download the raw result ZIP bytes for a completed task (for Convex storage).
+ */
+export async function downloadMineruZipBytes(
+  detail: MineruTaskDetail,
+): Promise<ArrayBuffer> {
+  const file = detail.files[0];
+  if (file === undefined || file.status !== "completed" || !file.result_url) {
+    throw new Error(
+      `MinerU completed utan result_url: ${JSON.stringify(detail.files)}`,
+    );
+  }
+  if (file.error !== null && file.error !== undefined) {
+    throw new Error(`MinerU-filfel: ${JSON.stringify(file.error)}`);
+  }
+
+  const res = await fetch(resolveMinerUUrl(file.result_url));
+  if (!res.ok) {
+    throw new Error(
+      `MinerU result-download misslyckades: ${res.status} ${await res.text()}`,
+    );
+  }
+  return await res.arrayBuffer();
 }

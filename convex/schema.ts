@@ -34,11 +34,13 @@ export default defineSchema({
       ),
     ),
     /**
-     * Room sidebar problem list layout. Missing → treat as "list".
-     * "list" = PDF → problems; "tree" = PDF → major chapters → problems.
+     * Room sidebar problem list layout. Missing → tillfällen if the room has
+     * any, otherwise "tree".
+     * "list" = PDF → problems; "tree" = PDF → major chapters → problems;
+     * "tillfallen" = tillfälle → assigned subproblem units.
      */
     problemListMode: v.optional(
-      v.union(v.literal("list"), v.literal("tree")),
+      v.union(v.literal("list"), v.literal("tree"), v.literal("tillfallen")),
     ),
   })
     .index("email", ["email"])
@@ -133,6 +135,32 @@ export default defineSchema({
     subproblemLetter: v.optional(v.string()),
     stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
   }).index("by_template", ["templateId"]),
+  /**
+   * Snapshot of room tillfällen for a published template.
+   * Copied into roomOccasions on clone.
+   */
+  roomTemplateOccasions: defineTable({
+    templateId: v.id("roomTemplates"),
+    name: v.string(),
+    /** Calendar day as YYYY-MM-DD. */
+    date: v.string(),
+    sortOrder: v.optional(v.number()),
+  }).index("by_template", ["templateId"]),
+  /**
+   * Snapshot of tillfälle problem assignments for a published template.
+   * Copied into roomOccasionAssignments on clone.
+   */
+  roomTemplateOccasionAssignments: defineTable({
+    templateId: v.id("roomTemplates"),
+    templateOccasionId: v.id("roomTemplateOccasions"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    subproblemLetter: v.optional(v.string()),
+    /** Manual order within the tillfälle (lower = earlier). Missing → natural order. */
+    sortOrder: v.optional(v.number()),
+  })
+    .index("by_template", ["templateId"])
+    .index("by_templateOccasion", ["templateOccasionId"]),
   scanSessions: defineTable({
     token: v.string(),
     roomId: v.id("rooms"),
@@ -199,14 +227,42 @@ export default defineSchema({
         }),
       ),
     ),
+    /**
+     * Temporary full MinerU result ZIP. Used so problems parse can crop
+     * figures after async completion without re-running MinerU.
+     * Cleared once referenced images are uploaded (or on cache delete).
+     */
+    zipStorageId: v.optional(v.id("_storage")),
   }).index("by_contentHash", ["contentHash"]),
   /**
    * Single-flight lock so concurrent parse jobs for the same PDF
-   * do not double-call MinerU. Cleared when cache is written; TTL on claimedAt.
+   * do not double-call MinerU. Cleared when cache is written.
+   * `deadlineAt` bounds how long scheduled polls may continue.
    */
   mineruInFlight: defineTable({
     contentHash: v.string(),
     claimedAt: v.number(),
+    /** MinerU Tasks API id — set after create+upload. */
+    taskId: v.optional(v.string()),
+    /** PDF in Convex storage used for the upload. */
+    pdfStorageId: v.optional(v.id("_storage")),
+    /** Wall-clock deadline for polling this task. */
+    deadlineAt: v.optional(v.number()),
+    /** Jobs/admin runs waiting for cache before continuing. */
+    waiters: v.optional(
+      v.array(
+        v.union(
+          v.object({
+            type: v.literal("parseJob"),
+            jobId: v.id("pdfParseJobs"),
+          }),
+          v.object({
+            type: v.literal("adminRun"),
+            runId: v.id("pdfAdminRuns"),
+          }),
+        ),
+      ),
+    ),
   }).index("by_contentHash", ["contentHash"]),
   /**
    * Parsed problems (global cache by PDF contentHash) or room-scoped shadow twins.
@@ -312,6 +368,43 @@ export default defineSchema({
   })
     .index("by_room", ["roomId"])
     .index("by_room_and_contentHash", ["roomId", "contentHash"]),
+  /**
+   * Room-scoped lecture/day ("tillfälle") for recommended problems.
+   * Created in room settings; sidebar can group Uppgifter by these.
+   */
+  roomOccasions: defineTable({
+    roomId: v.id("rooms"),
+    name: v.string(),
+    /** Calendar day as YYYY-MM-DD (timezone-safe). */
+    date: v.string(),
+    /** Tie-breaker when dates match (lower = earlier). Missing → after ordered. */
+    sortOrder: v.optional(v.number()),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_room_and_date", ["roomId", "date"]),
+  /**
+   * Assigns a parsed problem unit (whole problem or deluppgift) to one tillfälle.
+   * Keyed like stars/completions so assignments survive reparse. A unit belongs
+   * to at most one tillfälle (reassign moves it). Shadows are not assigned.
+   */
+  roomOccasionAssignments: defineTable({
+    roomId: v.id("rooms"),
+    occasionId: v.id("roomOccasions"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    /** `""` for whole problem; `a`–`z` for deluppgift. Missing on older → `""`. */
+    subproblemLetter: v.optional(v.string()),
+    /** Manual order within the tillfälle (lower = earlier). Missing → natural order. */
+    sortOrder: v.optional(v.number()),
+  })
+    .index("by_room", ["roomId"])
+    .index("by_occasion", ["occasionId"])
+    .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
+      "roomId",
+      "contentHash",
+      "problemNumber",
+      "subproblemLetter",
+    ]),
   /**
    * Distilled general instructions from a PDF, keyed by content hash.
    * Rooms opt in via cellsInUseByRoom.

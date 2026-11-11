@@ -66,7 +66,6 @@ function RoomPage() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const sendMessage = useMutation(api.threads.sendMessage)
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
-  const setProblemStars = useMutation(api.PDFParse.problems.setStars)
   const setProblemCompleted = useMutation(api.PDFParse.problems.setCompleted)
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
@@ -121,6 +120,12 @@ function RoomPage() {
 
   const selectedProblem = useQuery(
     api.PDFParse.problems.getForRoom,
+    selectedProblemId && section === "problems"
+      ? { roomId: typedRoomId, problemId: selectedProblemId }
+      : "skip",
+  )
+  const selectedProblemOccasionEntries = useQuery(
+    api.roomOccasions.listEntriesForProblem,
     selectedProblemId && section === "problems"
       ? { roomId: typedRoomId, problemId: selectedProblemId }
       : "skip",
@@ -410,6 +415,13 @@ function RoomPage() {
           }}
           onOpenProblemPdfOrder={() => {
             setSettingsFocus("problemPdfOrder")
+            setSection("settings")
+            setSelectedThreadId(null)
+            setIsDraftChat(false)
+            setSelectedProblemId(null)
+          }}
+          onOpenOccasions={() => {
+            setSettingsFocus("occasions")
             setSection("settings")
             setSelectedThreadId(null)
             setIsDraftChat(false)
@@ -715,19 +727,6 @@ function RoomPage() {
                       ? []
                       : selectedProblemStarEntries
                   }
-                  onStarsChange={
-                    selectedProblem.isShadow
-                      ? undefined
-                      : (letter, stars) => {
-                          void setProblemStars({
-                            roomId: typedRoomId,
-                            problemId: selectedProblem.id,
-                            stars,
-                            subproblemLetter:
-                              letter === "" ? undefined : letter,
-                          })
-                        }
-                  }
                   completionEntries={
                     selectedProblem.isShadow
                       ? []
@@ -745,6 +744,11 @@ function RoomPage() {
                               letter === "" ? undefined : letter,
                           })
                         }
+                  }
+                  occasionEntries={
+                    selectedProblem.isShadow
+                      ? []
+                      : (selectedProblemOccasionEntries ?? [])
                   }
                 />
                 <div className="flex justify-center py-6">

@@ -14,7 +14,13 @@ import {
   Settings,
   Star,
 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import {
@@ -59,9 +65,13 @@ import {
 } from "~/components/ui/sidebar"
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
+import { unitKey } from "~/lib/occasion-label"
 import {
   DEFAULT_PROBLEM_LIST_MODE,
   dottedProblemMajor,
+  PROBLEM_LIST_MODE_LABELS,
+  PROBLEM_LIST_MODES,
+  resolveProblemListMode,
   type ProblemListMode,
 } from "~/lib/problem-list-mode"
 import { cn } from "~/lib/utils"
@@ -120,6 +130,8 @@ export type RoomSidebarProps = {
   onSelectProblem: (id: string) => void
   /** Opens settings focused on problem-PDF order. */
   onOpenProblemPdfOrder?: () => void
+  /** Opens settings focused on tillfällen. */
+  onOpenOccasions?: () => void
 }
 
 type StarFilterLevel = 1 | 2 | 3
@@ -149,6 +161,7 @@ export function RoomSidebar({
   selectedProblemId,
   onSelectProblem,
   onOpenProblemPdfOrder,
+  onOpenOccasions,
 }: RoomSidebarProps) {
   const [listSection, setListSection] =
     useState<RoomSidebarListSection>("problems")
@@ -251,6 +264,7 @@ export function RoomSidebar({
                   onSelectProblem={onSelectProblem}
                   onShowFiles={() => onSectionChange("files")}
                   onOpenProblemPdfOrder={onOpenProblemPdfOrder}
+                  onOpenOccasions={onOpenOccasions}
                 />
               )}
             </SidebarGroupContent>
@@ -392,6 +406,270 @@ function bucketProblemsByChapter(
     })
 }
 
+type TillfallenUnitRow = {
+  key: string
+  problemId: string | null
+  label: string
+  subproblemLetter: string
+  starEntries: Array<ProblemStarEntry>
+  completionEntries: Array<ProblemCompletionEntry>
+}
+
+function unitMatchesStarFilter(
+  starEntries: Array<ProblemStarEntry>,
+  letter: string,
+  starLevelSet: Set<StarFilterLevel>,
+  showAllStars: boolean,
+): boolean {
+  if (showAllStars) return true
+  const matching = starEntries.filter((entry) => entry.letter === letter)
+  if (matching.length === 0) return false
+  return matching.some((entry) =>
+    starLevelSet.has(entry.stars as StarFilterLevel),
+  )
+}
+
+function TillfallenProblemList({
+  roomId,
+  query,
+  starLevelSet,
+  showAllStars,
+  selectedProblemId,
+  onSelectProblem,
+  onOpenOccasions,
+  collapsed,
+  setCollapsed,
+}: {
+  roomId?: Id<"rooms">
+  query: string
+  starLevelSet: Set<StarFilterLevel>
+  showAllStars: boolean
+  selectedProblemId: string | null
+  onSelectProblem: (id: string) => void
+  onOpenOccasions?: () => void
+  collapsed: Record<string, boolean>
+  setCollapsed: Dispatch<SetStateAction<Record<string, boolean>>>
+}) {
+  const occasions = useQuery(
+    api.roomOccasions.listByRoom,
+    roomId !== undefined ? { roomId } : "skip",
+  )
+  const units = useQuery(
+    api.roomOccasions.listAssignableUnits,
+    roomId !== undefined ? { roomId } : "skip",
+  )
+
+  const occasionBuckets = useMemo(() => {
+    if (occasions === undefined || units === undefined) return null
+
+    const unitByKey = new Map(
+      units.map((unit) => [
+        unitKey(unit.contentHash, unit.problemNumber, unit.subproblemLetter),
+        unit,
+      ] as const),
+    )
+    const buckets: Array<{
+      id: string
+      label: string
+      items: Array<TillfallenUnitRow>
+    }> = []
+
+    for (const occasion of occasions) {
+      const items: Array<TillfallenUnitRow> = []
+      for (const assignment of occasion.assignments) {
+        const key = unitKey(
+          assignment.contentHash,
+          assignment.problemNumber,
+          assignment.subproblemLetter,
+        )
+        const unit = unitByKey.get(key)
+        const starEntries = unit?.starEntries ?? []
+        const completionEntries = unit?.completionEntries ?? []
+        if (
+          !unitMatchesStarFilter(
+            starEntries,
+            assignment.subproblemLetter,
+            starLevelSet,
+            showAllStars,
+          )
+        ) {
+          continue
+        }
+        const label = assignment.label
+        if (
+          query.length > 0 &&
+          !label.toLowerCase().includes(query) &&
+          !(assignment.fileName?.toLowerCase().includes(query) ?? false) &&
+          !occasion.label.toLowerCase().includes(query)
+        ) {
+          continue
+        }
+        items.push({
+          key,
+          problemId: assignment.problemId,
+          label,
+          subproblemLetter: assignment.subproblemLetter,
+          starEntries,
+          completionEntries,
+        })
+      }
+      buckets.push({
+        id: occasion._id,
+        label: occasion.label,
+        items,
+      })
+    }
+
+    return buckets
+  }, [occasions, units, query, starLevelSet, showAllStars])
+
+  if (roomId === undefined) {
+    return (
+      <p className="px-2.5 py-2 text-sm text-muted-foreground">
+        Välj ett rum för att se tillfällen.
+      </p>
+    )
+  }
+
+  if (occasions === undefined || units === undefined || occasionBuckets === null) {
+    return (
+      <p className="px-2.5 py-2 text-sm text-muted-foreground">Hämtar…</p>
+    )
+  }
+
+  if (occasions.length === 0) {
+    return (
+      <p className="px-2.5 py-2 text-sm text-muted-foreground">
+        Inga tillfällen ännu.{" "}
+        {onOpenOccasions ? (
+          <Button
+            type="button"
+            variant="link"
+            className="h-auto p-0 font-medium text-sidebar-foreground"
+            onClick={onOpenOccasions}
+          >
+            Skapa i inställningar
+          </Button>
+        ) : (
+          "Skapa dem under Inställningar."
+        )}
+      </p>
+    )
+  }
+
+  const totalVisible = occasionBuckets.reduce(
+    (sum, bucket) => sum + bucket.items.length,
+    0,
+  )
+
+  if (totalVisible === 0) {
+    return (
+      <p className="px-2.5 py-2 text-sm text-muted-foreground">
+        {query.length > 0
+          ? "Inga träffar."
+          : !showAllStars
+            ? "Inga uppgifter med valda stjärnnivåer."
+            : "Inga tilldelade uppgifter ännu."}
+      </p>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      {occasionBuckets.map((bucket) => {
+        const isCollapsed = collapsed[`occasion:${bucket.id}`] === true
+        return (
+          <Collapsible
+            key={bucket.id}
+            open={!isCollapsed}
+            onOpenChange={(open) =>
+              setCollapsed((prev) => ({
+                ...prev,
+                [`occasion:${bucket.id}`]: !open,
+              }))
+            }
+          >
+            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
+              <ChevronDown
+                className={cn(
+                  "size-3.5 shrink-0 transition-transform",
+                  isCollapsed && "-rotate-90",
+                )}
+              />
+              <span className="min-w-0 flex-1 truncate normal-case">
+                {bucket.label}
+              </span>
+              <Badge
+                variant="secondary"
+                className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
+              >
+                {bucket.items.length}
+              </Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {bucket.items.length === 0 ? (
+                <p className="px-2 py-1 text-xs text-muted-foreground">
+                  Inga uppgifter.
+                </p>
+              ) : (
+                <SidebarMenu className="mt-0.5">
+                  {bucket.items.map((item) => (
+                    <TillfallenUnitRow
+                      key={item.key}
+                      item={item}
+                      selectedProblemId={selectedProblemId}
+                      onSelectProblem={onSelectProblem}
+                    />
+                  ))}
+                </SidebarMenu>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+        )
+      })}
+    </div>
+  )
+}
+
+function TillfallenUnitRow({
+  item,
+  selectedProblemId,
+  onSelectProblem,
+}: {
+  item: TillfallenUnitRow
+  selectedProblemId: string | null
+  onSelectProblem: (id: string) => void
+}) {
+  const selected =
+    item.problemId !== null && item.problemId === selectedProblemId
+  const displayStars = item.starEntries.filter(
+    (entry) => entry.letter === item.subproblemLetter,
+  )
+  const displayCompletions = item.completionEntries.filter(
+    (entry) => entry.letter === item.subproblemLetter,
+  )
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        isActive={selected}
+        className="h-auto py-1.5"
+        disabled={item.problemId === null}
+        onClick={() => {
+          if (item.problemId === null) return
+          onSelectProblem(item.problemId)
+        }}
+      >
+        <span className="min-w-0 flex-1 truncate tabular-nums">{item.label}</span>
+        <span className="inline-flex shrink-0 items-center gap-1.5">
+          <ProblemStarsDisplay entries={displayStars} />
+          <ProblemCompletionDisplay entries={displayCompletions} />
+        </span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
 function ProblemRow({
   problem,
   selectedProblemId,
@@ -448,6 +726,7 @@ function ProblemList({
   onSelectProblem,
   onShowFiles,
   onOpenProblemPdfOrder,
+  onOpenOccasions,
 }: {
   roomId?: Id<"rooms">
   groups: RoomSidebarProblemGroup[]
@@ -456,16 +735,48 @@ function ProblemList({
   onSelectProblem: (id: string) => void
   onShowFiles: () => void
   onOpenProblemPdfOrder?: () => void
+  onOpenOccasions?: () => void
 }) {
   const viewer = useQuery(api.users.viewer)
+  const updateProblemListMode = useMutation(api.users.updateProblemListMode)
+  const occasions = useQuery(
+    api.roomOccasions.listByRoom,
+    roomId !== undefined ? { roomId } : "skip",
+  )
   const archiveProblems = useMutation(
     api.PDFParse.problems.archiveProblemsFromRoom,
   )
   const unarchiveProblems = useMutation(
     api.PDFParse.problems.unarchiveProblemsFromRoom,
   )
+  const occasionsPending = roomId !== undefined && occasions === undefined
+  const hasOccasions =
+    roomId !== undefined &&
+    occasions !== undefined &&
+    occasions.length > 0
+  const savedMode = viewer?.problemListMode
+  // Keep tillfällen visible while loading if that mode is already selected
+  // (or unset, which defaults to tillfällen), so the tab does not flicker.
+  const showTillfallenTab =
+    hasOccasions ||
+    (occasionsPending &&
+      (savedMode === "tillfallen" || savedMode == null))
+  const preferredMode = resolveProblemListMode(
+    savedMode,
+    hasOccasions ||
+      (occasionsPending && (savedMode === "tillfallen" || savedMode == null)),
+  )
   const mode: ProblemListMode =
-    viewer?.problemListMode ?? DEFAULT_PROBLEM_LIST_MODE
+    preferredMode === "tillfallen" && !showTillfallenTab
+      ? DEFAULT_PROBLEM_LIST_MODE
+      : preferredMode
+  const availableModes = useMemo(
+    () =>
+      PROBLEM_LIST_MODES.filter(
+        (value) => value !== "tillfallen" || showTillfallenTab,
+      ),
+    [showTillfallenTab],
+  )
 
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Array<string>>([])
@@ -649,6 +960,36 @@ function ProblemList({
         />
       </div>
 
+      <div
+        className="flex w-full items-stretch gap-0.5 rounded-lg bg-sidebar-accent/40 p-0.5"
+        role="group"
+        aria-label="Uppgiftslistans vy"
+      >
+        {availableModes.map((value) => {
+          const active = mode === value
+          return (
+            <Button
+              key={value}
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={viewer === undefined}
+              aria-pressed={active}
+              onClick={() => {
+                if (active) return
+                void updateProblemListMode({ problemListMode: value })
+              }}
+              className={cn(
+                "h-7 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium shadow-none",
+                active && "bg-sidebar text-sidebar-foreground shadow-sm",
+              )}
+            >
+              {PROBLEM_LIST_MODE_LABELS[value]}
+            </Button>
+          )
+        })}
+      </div>
+
       <ToggleGroup
         multiple
         value={starLevels}
@@ -719,6 +1060,22 @@ function ProblemList({
         </div>
       </ToggleGroup>
 
+      {mode === "tillfallen" ? (
+        <TillfallenProblemList
+          roomId={roomId}
+          query={normalizedQuery}
+          starLevelSet={starLevelSet}
+          showAllStars={showAllStars}
+          selectedProblemId={selectedProblemId}
+          onSelectProblem={onSelectProblem}
+          onOpenOccasions={onOpenOccasions}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+        />
+      ) : null}
+
+      {mode !== "tillfallen" ? (
+      <>
       {filteredGroups.length === 0 ? (
         <p className="px-2.5 py-2 text-sm text-muted-foreground">
           {emptyMessage}
@@ -739,7 +1096,7 @@ function ProblemList({
                 }))
               }
             >
-              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
                 <ChevronDown
                   className={cn(
                     "size-3.5 shrink-0 transition-transform",
@@ -841,11 +1198,14 @@ function ProblemList({
           )
         })
       )}
+      </>
+      ) : null}
         </>
       ) : null}
 
-      {archived.length > 0 ||
-      (roomId !== undefined && archivableGroups.length > 0) ? (
+      {mode !== "tillfallen" &&
+      (archived.length > 0 ||
+        (roomId !== undefined && archivableGroups.length > 0)) ? (
         <Collapsible open={archivedOpen} onOpenChange={setArchivedOpen}>
           <CollapsibleTrigger className="mt-1 flex w-full items-center gap-1 rounded-md px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
             <ChevronDown
@@ -921,7 +1281,9 @@ function ProblemList({
         </Collapsible>
       ) : null}
 
-      {groups.length > 0 && onOpenProblemPdfOrder ? (
+      {mode !== "tillfallen" &&
+      groups.length > 0 &&
+      onOpenProblemPdfOrder ? (
         <Button
           type="button"
           variant="ghost"
@@ -930,6 +1292,18 @@ function ProblemList({
           className="mt-1 h-auto w-full justify-start px-2.5 py-1.5 text-xs font-medium text-muted-foreground underline-offset-4 hover:underline"
         >
           Ordna PDF:er
+        </Button>
+      ) : null}
+
+      {mode === "tillfallen" && onOpenOccasions ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onOpenOccasions}
+          className="mt-1 h-auto w-full justify-start px-2.5 py-1.5 text-xs font-medium text-muted-foreground underline-offset-4 hover:underline"
+        >
+          Hantera tillfällen
         </Button>
       ) : null}
 

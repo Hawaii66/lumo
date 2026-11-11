@@ -17,6 +17,7 @@ import type * as PDFParse_lumoProblemAgent from "../PDFParse/lumoProblemAgent.js
 import type * as PDFParse_middleJson from "../PDFParse/middleJson.js";
 import type * as PDFParse_mineruCache from "../PDFParse/mineruCache.js";
 import type * as PDFParse_mineruClient from "../PDFParse/mineruClient.js";
+import type * as PDFParse_mineruJobs from "../PDFParse/mineruJobs.js";
 import type * as PDFParse_mineruSchema from "../PDFParse/mineruSchema.js";
 import type * as PDFParse_pdfInfo from "../PDFParse/pdfInfo.js";
 import type * as PDFParse_pdfParse from "../PDFParse/pdfParse.js";
@@ -57,6 +58,7 @@ import type * as pdfExtracts from "../pdfExtracts.js";
 import type * as pdfMerges from "../pdfMerges.js";
 import type * as pdfTools from "../pdfTools.js";
 import type * as roles from "../roles.js";
+import type * as roomOccasions from "../roomOccasions.js";
 import type * as roomTemplates from "../roomTemplates.js";
 import type * as rooms from "../rooms.js";
 import type * as scanSessions from "../scanSessions.js";
@@ -80,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   "PDFParse/middleJson": typeof PDFParse_middleJson;
   "PDFParse/mineruCache": typeof PDFParse_mineruCache;
   "PDFParse/mineruClient": typeof PDFParse_mineruClient;
+  "PDFParse/mineruJobs": typeof PDFParse_mineruJobs;
   "PDFParse/mineruSchema": typeof PDFParse_mineruSchema;
   "PDFParse/pdfInfo": typeof PDFParse_pdfInfo;
   "PDFParse/pdfParse": typeof PDFParse_pdfParse;
@@ -120,6 +123,7 @@ declare const fullApi: ApiFromModules<{
   pdfMerges: typeof pdfMerges;
   pdfTools: typeof pdfTools;
   roles: typeof roles;
+  roomOccasions: typeof roomOccasions;
   roomTemplates: typeof roomTemplates;
   rooms: typeof rooms;
   scanSessions: typeof scanSessions;

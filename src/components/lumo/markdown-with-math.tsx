@@ -3,7 +3,13 @@ import { Highlighter } from "lucide-react"
 import { StaticMath } from "~/components/lumo/static-math"
 import { ProblemCompletionControl } from "~/components/rooms/problem-completion"
 import {
+  ProblemOccasionControl,
+  ProblemOccasionReadonly,
+  type ProblemOccasionOption,
+} from "~/components/rooms/problem-occasion"
+import {
   ProblemStarsControl,
+  ProblemStarsReadonly,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
 import { Button } from "~/components/ui/button"
@@ -21,15 +27,22 @@ type MarkdownWithMathProps = {
   scopeKey?: string
   onCiteMath?: (latex: string) => void
   className?: string
-  /** When set, star controls appear on deluppgift labels. */
+  /** When set, star levels appear on deluppgift labels (editable if onChange). */
   subproblemStars?: {
     getStars: (letter: string) => ProblemStars
-    onChange: (letter: string, stars: ProblemStars) => void
+    onChange?: (letter: string, stars: ProblemStars) => void
   }
   /** When set, completion toggles appear on deluppgift labels. */
   subproblemCompletion?: {
     isCompleted: (letter: string) => boolean
     onChange: (letter: string, completed: boolean) => void
+  }
+  /** When set, tillfälle labels/pickers appear on deluppgift labels. */
+  subproblemOccasion?: {
+    options?: Array<ProblemOccasionOption>
+    getOccasionId?: (letter: string) => string | null
+    getOccasionLabel?: (letter: string) => string | null
+    onChange?: (letter: string, occasionId: string | null) => void
   }
   /**
    * Images keyed by deluppgift letter (`""` = shared stem before first
@@ -288,6 +301,7 @@ export function MarkdownWithMath({
   className,
   subproblemStars,
   subproblemCompletion,
+  subproblemOccasion,
   imagesByLetter,
   renderImages,
 }: MarkdownWithMathProps) {
@@ -334,21 +348,51 @@ export function MarkdownWithMath({
               : undefined
           }
           data-lumo-subproblem={block.label}
-          className="scroll-mt-3 flex items-center gap-1.5"
+          className="scroll-mt-3 flex w-full items-center gap-1.5"
         >
           <p className="text-sm font-semibold text-muted-foreground">
             ({block.label})
           </p>
+          {subproblemOccasion ? (
+            subproblemOccasion.onChange ? (
+              <ProblemOccasionControl
+                letter={letter}
+                occasionId={
+                  subproblemOccasion.getOccasionId?.(letter) ?? null
+                }
+                options={subproblemOccasion.options ?? []}
+                onChange={(occasionId) =>
+                  subproblemOccasion.onChange?.(letter, occasionId)
+                }
+              />
+            ) : (
+              <ProblemOccasionReadonly
+                letter={letter}
+                label={
+                  subproblemOccasion.getOccasionLabel?.(letter) ?? null
+                }
+              />
+            )
+          ) : null}
           {subproblemStars ? (
-            <ProblemStarsControl
-              letter={letter}
-              hideLetter
-              stars={subproblemStars.getStars(letter)}
-              onChange={(stars) => subproblemStars.onChange(letter, stars)}
-            />
+            subproblemStars.onChange ? (
+              <ProblemStarsControl
+                letter={letter}
+                hideLetter
+                stars={subproblemStars.getStars(letter)}
+                onChange={(stars) => subproblemStars.onChange?.(letter, stars)}
+              />
+            ) : (
+              <ProblemStarsReadonly
+                letter={letter}
+                hideLetter
+                stars={subproblemStars.getStars(letter)}
+              />
+            )
           ) : null}
           {subproblemCompletion ? (
             <ProblemCompletionControl
+              className="ml-auto"
               letter={letter}
               completed={subproblemCompletion.isCompleted(letter)}
               onChange={(completed) =>

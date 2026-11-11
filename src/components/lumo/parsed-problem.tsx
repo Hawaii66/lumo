@@ -9,7 +9,16 @@ import {
   type ProblemCompletionEntry,
 } from "~/components/rooms/problem-completion"
 import {
+  occasionIdForLetter,
+  occasionLabelForLetter,
+  ProblemOccasionControl,
+  ProblemOccasionReadonly,
+  type ProblemOccasionEntry,
+  type ProblemOccasionOption,
+} from "~/components/rooms/problem-occasion"
+import {
   ProblemStarsControl,
+  ProblemStarsReadonly,
   starsForLetter,
   type ProblemStarEntry,
   type ProblemStars,
@@ -102,6 +111,12 @@ type ParsedProblemViewProps = {
   completionEntries?: Array<ProblemCompletionEntry>
   /** `letter` is `""` for whole-problem completion when there are no deluppgifter. */
   onCompletedChange?: (letter: string, completed: boolean) => void
+  /** Available tillfällen for the assignment picker. */
+  occasionOptions?: Array<ProblemOccasionOption>
+  /** Room-scoped tillfälle assignments for this problem. */
+  occasionEntries?: Array<ProblemOccasionEntry>
+  /** `letter` is `""` for whole-problem assignment when there are no deluppgifter. */
+  onOccasionChange?: (letter: string, occasionId: string | null) => void
 }
 
 export function ParsedProblemView({
@@ -115,15 +130,18 @@ export function ParsedProblemView({
   onStarsChange,
   completionEntries = [],
   onCompletedChange,
+  occasionOptions = [],
+  occasionEntries = [],
+  onOccasionChange,
 }: ParsedProblemViewProps) {
   const letters = subproblemLetters
     .map((letter) => letter.trim().toLowerCase())
     .filter((letter) => /^[a-z]$/.test(letter))
   const hasSubproblems = letters.length > 0
-  const showWholeProblemStars =
-    onStarsChange !== undefined && !hasSubproblems
+  const showWholeProblemStars = !hasSubproblems
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
+  const showWholeProblemOccasion = !hasSubproblems
   const questionImages = problem.questionImages ?? []
   const answerImages = problem.answerImages ?? []
   const questionImagesByLetter = useMemo(
@@ -142,18 +160,36 @@ export function ParsedProblemView({
   return (
     <article className={cn("space-y-4", className)}>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           <h2 className="text-xl font-semibold tracking-tight">
             {problem.problemNumber}
           </h2>
+          {showWholeProblemOccasion ? (
+            onOccasionChange ? (
+              <ProblemOccasionControl
+                occasionId={occasionIdForLetter(occasionEntries, "")}
+                options={occasionOptions}
+                onChange={(occasionId) => onOccasionChange("", occasionId)}
+              />
+            ) : (
+              <ProblemOccasionReadonly
+                label={occasionLabelForLetter(occasionEntries, "")}
+              />
+            )
+          ) : null}
           {showWholeProblemStars ? (
-            <ProblemStarsControl
-              stars={starsForLetter(starEntries, "")}
-              onChange={(stars) => onStarsChange("", stars)}
-            />
+            onStarsChange ? (
+              <ProblemStarsControl
+                stars={starsForLetter(starEntries, "")}
+                onChange={(stars) => onStarsChange("", stars)}
+              />
+            ) : (
+              <ProblemStarsReadonly stars={starsForLetter(starEntries, "")} />
+            )
           ) : null}
           {showWholeProblemCompletion ? (
             <ProblemCompletionControl
+              className="ml-auto"
               completed={isCompletedForLetter(completionEntries, "")}
               onChange={(completed) => onCompletedChange("", completed)}
             />
@@ -211,7 +247,7 @@ export function ParsedProblemView({
             />
           )}
           subproblemStars={
-            onStarsChange && hasSubproblems
+            hasSubproblems
               ? {
                   getStars: (letter) => starsForLetter(starEntries, letter),
                   onChange: onStarsChange,
@@ -225,6 +261,21 @@ export function ParsedProblemView({
                     isCompletedForLetter(completionEntries, letter),
                   onChange: onCompletedChange,
                 }
+              : undefined
+          }
+          subproblemOccasion={
+            hasSubproblems
+              ? onOccasionChange
+                ? {
+                    options: occasionOptions,
+                    getOccasionId: (letter) =>
+                      occasionIdForLetter(occasionEntries, letter),
+                    onChange: onOccasionChange,
+                  }
+                : {
+                    getOccasionLabel: (letter) =>
+                      occasionLabelForLetter(occasionEntries, letter),
+                  }
               : undefined
           }
         />

@@ -16,6 +16,7 @@ const themeValidator = v.union(
 const problemListModeValidator = v.union(
   v.literal("list"),
   v.literal("tree"),
+  v.literal("tillfallen"),
 );
 
 const roleSummaryValidator = v.object({
@@ -40,7 +41,8 @@ const viewerFieldsValidator = v.object({
   ),
   role: roleSummaryValidator,
   theme: themeValidator,
-  problemListMode: problemListModeValidator,
+  /** `null` when the user has not chosen a preference yet. */
+  problemListMode: v.union(problemListModeValidator, v.null()),
 });
 
 export const viewer = query({
@@ -80,7 +82,7 @@ export const viewer = query({
         freeDailyCredits: roleDoc.freeDailyCredits,
       },
       theme: user.theme ?? "light",
-      problemListMode: user.problemListMode ?? "list",
+      problemListMode: user.problemListMode ?? null,
     };
   },
 });
