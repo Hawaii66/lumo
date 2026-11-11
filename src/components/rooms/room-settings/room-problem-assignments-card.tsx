@@ -136,6 +136,7 @@ export function RoomProblemAssignmentsCard({
   const units = useQuery(api.roomOccasions.listAssignableUnits, { roomId })
   const setStars = useMutation(api.PDFParse.problems.setStars)
   const setForProblem = useMutation(api.roomOccasions.setForProblem)
+  const assignUnits = useMutation(api.roomOccasions.assignUnits)
   const setAssignmentOrder = useMutation(api.roomOccasions.setAssignmentOrder)
 
   const occasionOptions: Array<ProblemOccasionOption> = useMemo(
@@ -179,6 +180,13 @@ export function RoomProblemAssignmentsCard({
   const [collapsedSections, setCollapsedSections] = useState<
     Record<string, boolean>
   >({})
+  const [selectedKeys, setSelectedKeys] = useState<Set<UnitKey>>(
+    () => new Set(),
+  )
+  const [bulkStars, setBulkStars] = useState<ProblemStars>(0)
+  const [bulkOccasionId, setBulkOccasionId] = useState<string | null>(null)
+  const [bulkPending, setBulkPending] = useState(false)
+  const [bulkError, setBulkError] = useState<string | null>(null)
 
   useEffect(() => {
     if (occasions === undefined) return
@@ -266,6 +274,97 @@ export function RoomProblemAssignmentsCard({
     setUnassignedPdfFilter(ALL_PDFS_VALUE)
   }, [unassignedPdfFilter, unassignedPdfOptions])
 
+  useEffect(() => {
+    if (units === undefined) return
+    setSelectedKeys((prev) => {
+      if (prev.size === 0) return prev
+      const valid = new Set(unitByKey.keys())
+      let changed = false
+      const next = new Set<UnitKey>()
+      for (const key of prev) {
+        if (valid.has(key)) next.add(key)
+        else changed = true
+      }
+      return changed ? next : prev
+    })
+  }, [units, unitByKey])
+
+  function toggleSelected(key: UnitKey, selected: boolean) {
+    setBulkError(null)
+    setSelectedKeys((prev) => {
+      const next = new Set(prev)
+      if (selected) next.add(key)
+      else next.delete(key)
+      return next
+    })
+  }
+
+  function setGroupSelected(keys: Array<UnitKey>, selected: boolean) {
+    setBulkError(null)
+    setSelectedKeys((prev) => {
+      const next = new Set(prev)
+      for (const key of keys) {
+        if (selected) next.add(key)
+        else next.delete(key)
+      }
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setSelectedKeys(new Set())
+    setBulkStars(0)
+    setBulkOccasionId(null)
+    setBulkError(null)
+  }
+
+  async function handleBulkAssign() {
+    if (
+      bulkStars !== 1 &&
+      bulkStars !== 2 &&
+      bulkStars !== 3
+    ) {
+      return
+    }
+    if (bulkOccasionId === null || selectedKeys.size === 0) {
+      return
+    }
+    const stars = bulkStars
+    const occasionId = bulkOccasionId as Id<"roomOccasions">
+    const payload: Array<{
+      problemId: Id<"problems">
+      subproblemLetter?: string
+    }> = []
+    for (const key of selectedKeys) {
+      const unit = unitByKey.get(key)
+      if (unit === undefined) continue
+      payload.push({
+        problemId: unit.problemId,
+        subproblemLetter:
+          unit.subproblemLetter === "" ? undefined : unit.subproblemLetter,
+      })
+    }
+    if (payload.length === 0) return
+
+    setBulkPending(true)
+    setBulkError(null)
+    try {
+      await assignUnits({
+        roomId,
+        units: payload,
+        stars,
+        occasionId,
+      })
+      clearSelection()
+    } catch (err: unknown) {
+      setBulkError(
+        err instanceof Error ? err.message : "Kunde inte tilldela uppgifterna",
+      )
+    } finally {
+      setBulkPending(false)
+    }
+  }
+
   function move(occasionId: string, index: number, direction: -1 | 1) {
     setErrorByOccasion((prev) => {
       const next = { ...prev }
@@ -313,6 +412,39 @@ export function RoomProblemAssignmentsCard({
     })
   }
 
+  function renderSelectAllControl(args: {
+    keys: Array<UnitKey>
+    label: string
+    className?: string
+  }) {
+    if (args.keys.length === 0) return null
+    const selectedCount = args.keys.filter((key) => selectedKeys.has(key)).length
+    const allSelected = selectedCount === args.keys.length
+    const someSelected = selectedCount > 0 && !allSelected
+    return (
+      <label
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground",
+          args.className,
+        )}
+      >
+        <input
+          type="checkbox"
+          className="size-3.5 rounded border-border"
+          checked={allSelected}
+          ref={(el) => {
+            if (el) el.indeterminate = someSelected
+          }}
+          onChange={(e) => {
+            setGroupSelected(args.keys, e.target.checked)
+          }}
+          aria-label={args.label}
+        />
+        <span className="sr-only">{args.label}</span>
+      </label>
+    )
+  }
+
   function renderUnitRow(args: {
     key: string
     label: string
@@ -321,6 +453,7 @@ export function RoomProblemAssignmentsCard({
     letter: string
     stars: ProblemStars
     occasionId: string | null
+    selectable?: boolean
     reorder?: {
       occasionId: string
       index: number
@@ -328,11 +461,26 @@ export function RoomProblemAssignmentsCard({
       pending: boolean
     }
   }) {
+    const selected = selectedKeys.has(args.key)
     return (
       <li
         key={args.key}
-        className="flex flex-wrap items-center gap-2 rounded-md px-1 py-1.5 text-sm"
+        className={cn(
+          "flex flex-wrap items-center gap-2 rounded-md px-1 py-1.5 text-sm",
+          selected && "bg-muted/60",
+        )}
       >
+        {args.selectable ? (
+          <input
+            type="checkbox"
+            className="size-3.5 shrink-0 rounded border-border"
+            checked={selected}
+            onChange={(e) => {
+              toggleSelected(args.key, e.target.checked)
+            }}
+            aria-label={`Välj ${args.label}`}
+          />
+        ) : null}
         {args.reorder ? (
           <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
             {args.reorder.index + 1}.
@@ -423,8 +571,9 @@ export function RoomProblemAssignmentsCard({
       <CardHeader>
         <CardTitle>Stjärnor och tillfällen</CardTitle>
         <CardDescription>
-          Tilldela stjärnor och tillfällen här. Ordningen inom ett tillfälle
-          styr listan under Tillfällen. Skapa tillfällen under Allmänt.
+          Markera flera uppgifter och tilldela stjärnor och tillfälle
+          samtidigt. Ordningen inom ett tillfälle styr listan under
+          Tillfällen. Skapa tillfällen under Allmänt.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -445,10 +594,25 @@ export function RoomProblemAssignmentsCard({
           const dirty = dirtyOccasionIds.has(occasion._id)
           const pending = pendingOccasionId === occasion._id
           const error = errorByOccasion[occasion._id]
+          const occasionSelectableKeys = ordered
+            .map((row) =>
+              unitKey(
+                row.contentHash,
+                row.problemNumber,
+                row.subproblemLetter,
+              ),
+            )
+            .filter((key) => unitByKey.has(key))
           return (
             <section key={occasion._id} className="space-y-2">
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="text-sm font-medium">{occasion.label}</h3>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  {renderSelectAllControl({
+                    keys: occasionSelectableKeys,
+                    label: `Markera alla i ${occasion.label}`,
+                  })}
+                  <h3 className="text-sm font-medium">{occasion.label}</h3>
+                </div>
                 <span className="text-xs text-muted-foreground">
                   {ordered.length} uppgift{ordered.length === 1 ? "" : "er"}
                 </span>
@@ -493,6 +657,7 @@ export function RoomProblemAssignmentsCard({
                       letter: row.subproblemLetter,
                       stars,
                       occasionId: occasion._id,
+                      selectable: true,
                       reorder: {
                         occasionId: occasion._id,
                         index,
@@ -562,7 +727,19 @@ export function RoomProblemAssignmentsCard({
 
         <section className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-medium">Otilldelad</h3>
+            <div className="flex min-w-0 items-center gap-2">
+              {renderSelectAllControl({
+                keys: filteredUnassigned.map((unit) =>
+                  unitKey(
+                    unit.contentHash,
+                    unit.problemNumber,
+                    unit.subproblemLetter,
+                  ),
+                ),
+                label: "Markera alla otilldelade",
+              })}
+              <h3 className="text-sm font-medium">Otilldelad</h3>
+            </div>
             <span className="text-xs text-muted-foreground">
               {filteredUnassigned.length}
               {unassignedPdfFilter !== ALL_PDFS_VALUE
@@ -671,6 +848,7 @@ export function RoomProblemAssignmentsCard({
                                       unit.subproblemLetter,
                                     ),
                                     occasionId: null,
+                                    selectable: true,
                                   }),
                                 )}
                               </ul>
@@ -680,6 +858,13 @@ export function RoomProblemAssignmentsCard({
                           const chapterKey = `pdf:${pdfGroup.fileId}:ch:${bucket.major}`
                           const chapterCollapsed =
                             collapsedSections[chapterKey] === true
+                          const chapterKeys = bucket.units.map((unit) =>
+                            unitKey(
+                              unit.contentHash,
+                              unit.problemNumber,
+                              unit.subproblemLetter,
+                            ),
+                          )
                           return (
                             <Collapsible
                               key={chapterKey}
@@ -691,20 +876,26 @@ export function RoomProblemAssignmentsCard({
                                 }))
                               }
                             >
-                              <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-1 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground">
-                                <ChevronDown
-                                  className={cn(
-                                    "size-3 shrink-0 transition-transform",
-                                    chapterCollapsed && "-rotate-90",
-                                  )}
-                                />
-                                <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
-                                  {bucket.label}
-                                </span>
-                                <span className="shrink-0 text-[10px] font-medium normal-case tabular-nums text-muted-foreground">
-                                  {bucket.units.length}
-                                </span>
-                              </CollapsibleTrigger>
+                              <div className="flex items-center gap-1">
+                                {renderSelectAllControl({
+                                  keys: chapterKeys,
+                                  label: `Markera kapitel ${bucket.label}`,
+                                })}
+                                <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground">
+                                  <ChevronDown
+                                    className={cn(
+                                      "size-3 shrink-0 transition-transform",
+                                      chapterCollapsed && "-rotate-90",
+                                    )}
+                                  />
+                                  <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
+                                    {bucket.label}
+                                  </span>
+                                  <span className="shrink-0 text-[10px] font-medium normal-case tabular-nums text-muted-foreground">
+                                    {bucket.units.length}
+                                  </span>
+                                </CollapsibleTrigger>
+                              </div>
                               <CollapsibleContent>
                                 <ul className="mt-0.5 ml-1 space-y-0.5 border-l border-border pl-1">
                                   {bucket.units.map((unit) =>
@@ -722,6 +913,7 @@ export function RoomProblemAssignmentsCard({
                                         unit.subproblemLetter,
                                       ),
                                       occasionId: null,
+                                      selectable: true,
                                     }),
                                   )}
                                 </ul>
@@ -738,6 +930,14 @@ export function RoomProblemAssignmentsCard({
                       )
                     }
 
+                    const pdfKeys = pdfGroup.units.map((unit) =>
+                      unitKey(
+                        unit.contentHash,
+                        unit.problemNumber,
+                        unit.subproblemLetter,
+                      ),
+                    )
+
                     return (
                       <Collapsible
                         key={pdfGroup.fileId}
@@ -749,20 +949,26 @@ export function RoomProblemAssignmentsCard({
                           }))
                         }
                       >
-                        <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-1 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground">
-                          <ChevronDown
-                            className={cn(
-                              "size-3.5 shrink-0 transition-transform",
-                              pdfCollapsed && "-rotate-90",
-                            )}
-                          />
-                          <span className="min-w-0 flex-1 truncate normal-case">
-                            {pdfGroup.fileName}
-                          </span>
-                          <span className="shrink-0 text-[10px] font-medium normal-case tabular-nums">
-                            {pdfGroup.units.length}
-                          </span>
-                        </CollapsibleTrigger>
+                        <div className="flex items-center gap-1">
+                          {renderSelectAllControl({
+                            keys: pdfKeys,
+                            label: `Markera alla i ${pdfGroup.fileName}`,
+                          })}
+                          <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-1 rounded-md px-1 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground">
+                            <ChevronDown
+                              className={cn(
+                                "size-3.5 shrink-0 transition-transform",
+                                pdfCollapsed && "-rotate-90",
+                              )}
+                            />
+                            <span className="min-w-0 flex-1 truncate normal-case">
+                              {pdfGroup.fileName}
+                            </span>
+                            <span className="shrink-0 text-[10px] font-medium normal-case tabular-nums">
+                              {pdfGroup.units.length}
+                            </span>
+                          </CollapsibleTrigger>
+                        </div>
                         <CollapsibleContent>{chapterTree}</CollapsibleContent>
                       </Collapsible>
                     )
@@ -772,6 +978,60 @@ export function RoomProblemAssignmentsCard({
             </div>
           )}
         </section>
+
+        {selectedKeys.size > 0 ? (
+          <div className="sticky bottom-2 z-10 rounded-lg border border-border bg-card/95 p-3 shadow-md backdrop-blur supports-backdrop-filter:bg-card/90">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium tabular-nums">
+                {selectedKeys.size} vald
+                {selectedKeys.size === 1 ? "" : "a"}
+              </span>
+              <ProblemStarsControl
+                stars={bulkStars}
+                hideLetter
+                onChange={setBulkStars}
+              />
+              <ProblemOccasionControl
+                occasionId={bulkOccasionId}
+                options={occasionOptions}
+                disabled={occasions.length === 0}
+                onChange={setBulkOccasionId}
+              />
+              <Button
+                type="button"
+                size="sm"
+                disabled={
+                  bulkPending ||
+                  bulkStars === 0 ||
+                  bulkOccasionId === null ||
+                  occasions.length === 0
+                }
+                onClick={() => {
+                  void handleBulkAssign()
+                }}
+              >
+                {bulkPending ? "Tilldelar…" : "Tilldela"}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                disabled={bulkPending}
+                onClick={clearSelection}
+              >
+                Avmarkera
+              </Button>
+            </div>
+            {bulkStars === 0 || bulkOccasionId === null ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Välj stjärnnivå och tillfälle, sedan Tilldela.
+              </p>
+            ) : null}
+            {bulkError ? (
+              <p className="mt-2 text-sm text-destructive">{bulkError}</p>
+            ) : null}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   )
