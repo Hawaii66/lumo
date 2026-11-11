@@ -155,6 +155,8 @@ export default defineSchema({
     contentHash: v.string(),
     problemNumber: v.string(),
     subproblemLetter: v.optional(v.string()),
+    /** Manual order within the tillfälle (lower = earlier). Missing → natural order. */
+    sortOrder: v.optional(v.number()),
   })
     .index("by_template", ["templateId"])
     .index("by_templateOccasion", ["templateOccasionId"]),
@@ -391,6 +393,8 @@ export default defineSchema({
     problemNumber: v.string(),
     /** `""` for whole problem; `a`–`z` for deluppgift. Missing on older → `""`. */
     subproblemLetter: v.optional(v.string()),
+    /** Manual order within the tillfälle (lower = earlier). Missing → natural order. */
+    sortOrder: v.optional(v.number()),
   })
     .index("by_room", ["roomId"])
     .index("by_occasion", ["occasionId"])

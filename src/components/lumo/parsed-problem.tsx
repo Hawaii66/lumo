@@ -10,12 +10,15 @@ import {
 } from "~/components/rooms/problem-completion"
 import {
   occasionIdForLetter,
+  occasionLabelForLetter,
   ProblemOccasionControl,
+  ProblemOccasionReadonly,
   type ProblemOccasionEntry,
   type ProblemOccasionOption,
 } from "~/components/rooms/problem-occasion"
 import {
   ProblemStarsControl,
+  ProblemStarsReadonly,
   starsForLetter,
   type ProblemStarEntry,
   type ProblemStars,
@@ -135,12 +138,10 @@ export function ParsedProblemView({
     .map((letter) => letter.trim().toLowerCase())
     .filter((letter) => /^[a-z]$/.test(letter))
   const hasSubproblems = letters.length > 0
-  const showWholeProblemStars =
-    onStarsChange !== undefined && !hasSubproblems
+  const showWholeProblemStars = !hasSubproblems
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
-  const showWholeProblemOccasion =
-    onOccasionChange !== undefined && !hasSubproblems
+  const showWholeProblemOccasion = !hasSubproblems
   const questionImages = problem.questionImages ?? []
   const answerImages = problem.answerImages ?? []
   const questionImagesByLetter = useMemo(
@@ -164,10 +165,14 @@ export function ParsedProblemView({
             {problem.problemNumber}
           </h2>
           {showWholeProblemStars ? (
-            <ProblemStarsControl
-              stars={starsForLetter(starEntries, "")}
-              onChange={(stars) => onStarsChange("", stars)}
-            />
+            onStarsChange ? (
+              <ProblemStarsControl
+                stars={starsForLetter(starEntries, "")}
+                onChange={(stars) => onStarsChange("", stars)}
+              />
+            ) : (
+              <ProblemStarsReadonly stars={starsForLetter(starEntries, "")} />
+            )
           ) : null}
           {showWholeProblemCompletion ? (
             <ProblemCompletionControl
@@ -176,11 +181,17 @@ export function ParsedProblemView({
             />
           ) : null}
           {showWholeProblemOccasion ? (
-            <ProblemOccasionControl
-              occasionId={occasionIdForLetter(occasionEntries, "")}
-              options={occasionOptions}
-              onChange={(occasionId) => onOccasionChange("", occasionId)}
-            />
+            onOccasionChange ? (
+              <ProblemOccasionControl
+                occasionId={occasionIdForLetter(occasionEntries, "")}
+                options={occasionOptions}
+                onChange={(occasionId) => onOccasionChange("", occasionId)}
+              />
+            ) : (
+              <ProblemOccasionReadonly
+                label={occasionLabelForLetter(occasionEntries, "")}
+              />
+            )
           ) : null}
         </div>
 
@@ -235,7 +246,7 @@ export function ParsedProblemView({
             />
           )}
           subproblemStars={
-            onStarsChange && hasSubproblems
+            hasSubproblems
               ? {
                   getStars: (letter) => starsForLetter(starEntries, letter),
                   onChange: onStarsChange,
@@ -252,13 +263,18 @@ export function ParsedProblemView({
               : undefined
           }
           subproblemOccasion={
-            onOccasionChange && hasSubproblems
-              ? {
-                  options: occasionOptions,
-                  getOccasionId: (letter) =>
-                    occasionIdForLetter(occasionEntries, letter),
-                  onChange: onOccasionChange,
-                }
+            hasSubproblems
+              ? onOccasionChange
+                ? {
+                    options: occasionOptions,
+                    getOccasionId: (letter) =>
+                      occasionIdForLetter(occasionEntries, letter),
+                    onChange: onOccasionChange,
+                  }
+                : {
+                    getOccasionLabel: (letter) =>
+                      occasionLabelForLetter(occasionEntries, letter),
+                  }
               : undefined
           }
         />

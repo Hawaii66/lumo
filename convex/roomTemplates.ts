@@ -127,6 +127,9 @@ export const publishFromRoom = mutation({
         contentHash: assignment.contentHash,
         problemNumber: assignment.problemNumber,
         subproblemLetter: assignment.subproblemLetter ?? "",
+        ...(assignment.sortOrder !== undefined
+          ? { sortOrder: assignment.sortOrder }
+          : {}),
       });
     }
 
@@ -426,6 +429,9 @@ export const clone = mutation({
         contentHash: assignment.contentHash,
         problemNumber: assignment.problemNumber,
         subproblemLetter: assignment.subproblemLetter ?? "",
+        ...(assignment.sortOrder !== undefined
+          ? { sortOrder: assignment.sortOrder }
+          : {}),
       });
     }
 
