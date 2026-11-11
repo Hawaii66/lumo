@@ -67,10 +67,10 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
 import { unitKey } from "~/lib/occasion-label"
 import {
-  DEFAULT_PROBLEM_LIST_MODE,
   dottedProblemMajor,
   PROBLEM_LIST_MODE_LABELS,
   PROBLEM_LIST_MODES,
+  resolveProblemListMode,
   type ProblemListMode,
 } from "~/lib/problem-list-mode"
 import { cn } from "~/lib/utils"
@@ -738,14 +738,20 @@ function ProblemList({
 }) {
   const viewer = useQuery(api.users.viewer)
   const updateProblemListMode = useMutation(api.users.updateProblemListMode)
+  const occasions = useQuery(
+    api.roomOccasions.listByRoom,
+    roomId !== undefined ? { roomId } : "skip",
+  )
   const archiveProblems = useMutation(
     api.PDFParse.problems.archiveProblemsFromRoom,
   )
   const unarchiveProblems = useMutation(
     api.PDFParse.problems.unarchiveProblemsFromRoom,
   )
-  const mode: ProblemListMode =
-    viewer?.problemListMode ?? DEFAULT_PROBLEM_LIST_MODE
+  const mode: ProblemListMode = resolveProblemListMode(
+    viewer?.problemListMode,
+    (occasions?.length ?? 0) > 0,
+  )
 
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Array<string>>([])

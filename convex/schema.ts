@@ -34,7 +34,8 @@ export default defineSchema({
       ),
     ),
     /**
-     * Room sidebar problem list layout. Missing → treat as "list".
+     * Room sidebar problem list layout. Missing → tillfällen if the room has
+     * any, otherwise "tree".
      * "list" = PDF → problems; "tree" = PDF → major chapters → problems;
      * "tillfallen" = tillfälle → assigned subproblem units.
      */
