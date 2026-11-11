@@ -15,6 +15,7 @@ import {
 } from "./lib/roomFiles";
 import { saveRoomFile } from "./lib/saveRoomFile";
 import { deleteStorageIfUnreferenced } from "./lib/storageRefs";
+import { posthog } from "./posthog";
 
 export const generateUploadUrl = mutation({
   args: {
@@ -35,8 +36,14 @@ export const save = mutation({
   },
   returns: v.id("files"),
   handler: async (ctx, args) => {
-    await requireRoomMember(ctx, args.roomId);
-    return await saveRoomFile(ctx, args);
+    const userId = await requireRoomMember(ctx, args.roomId);
+    const fileId = await saveRoomFile(ctx, args);
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "pdf_uploaded",
+      properties: { fileId, roomId: args.roomId },
+    });
+    return fileId;
   },
 });
 

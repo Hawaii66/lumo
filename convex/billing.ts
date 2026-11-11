@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import { components, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { action, env } from "./_generated/server";
+import { posthog } from "./posthog";
 
 const stripeClient = new StripeSubscriptions(components.stripe, {
   STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
@@ -68,6 +69,16 @@ export const createDealCheckout = action({
       dealId: selected._id,
       creditsGranted: String(selected.creditsGranted),
     };
+
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "checkout_started",
+      properties: {
+        dealId: selected._id,
+        creditsGranted: selected.creditsGranted,
+        priceSek: selected.priceSek,
+      },
+    });
 
     // priceId is required by the helper but overridden by params.line_items.
     return await stripeClient.createCheckoutSession(ctx, {

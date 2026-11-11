@@ -4,6 +4,7 @@ import { Camera, CheckCircle2, ImagePlus, Loader2 } from "lucide-react"
 import { useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import { Logo } from "~/components/brand/logo"
+import { ImageCropScreen } from "~/components/scan/image-crop-screen"
 import { Button } from "~/components/ui/button"
 import { uploadFileToStorage } from "~/lib/upload"
 
@@ -19,6 +20,7 @@ function PhoneScanPage() {
 
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +30,22 @@ function PhoneScanPage() {
     session !== null &&
     (session.status === "expired" ||
       (session.status === "pending" && session.expiresAt <= Date.now()))
+
+  function clearFileInputs() {
+    if (cameraInputRef.current) cameraInputRef.current.value = ""
+    if (galleryInputRef.current) galleryInputRef.current.value = ""
+  }
+
+  function beginCrop(file: File | undefined) {
+    if (!file) return
+    setError(null)
+    setPendingFile(file)
+  }
+
+  function cancelCrop() {
+    setPendingFile(null)
+    clearFileInputs()
+  }
 
   async function uploadFile(file: File | undefined) {
     if (!file) return
@@ -45,13 +63,14 @@ function PhoneScanPage() {
         name: file.name || `foto-${Date.now()}.jpg`,
         storageId,
       })
+      setPendingFile(null)
       setDone(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Kunde inte ladda upp")
+      setPendingFile(null)
     } finally {
       setUploading(false)
-      if (cameraInputRef.current) cameraInputRef.current.value = ""
-      if (galleryInputRef.current) galleryInputRef.current.value = ""
+      clearFileInputs()
     }
   }
 
@@ -98,6 +117,19 @@ function PhoneScanPage() {
     )
   }
 
+  if (pendingFile) {
+    return (
+      <ImageCropScreen
+        file={pendingFile}
+        confirming={uploading}
+        onCancel={cancelCrop}
+        onConfirm={(cropped) => {
+          void uploadFile(cropped)
+        }}
+      />
+    )
+  }
+
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col gap-6 bg-background p-6">
       <div className="space-y-2 pt-4">
@@ -119,7 +151,7 @@ function PhoneScanPage() {
         className="sr-only"
         disabled={uploading}
         onChange={(event) => {
-          void uploadFile(event.target.files?.[0])
+          beginCrop(event.target.files?.[0])
         }}
       />
       <input
@@ -129,7 +161,7 @@ function PhoneScanPage() {
         className="sr-only"
         disabled={uploading}
         onChange={(event) => {
-          void uploadFile(event.target.files?.[0])
+          beginCrop(event.target.files?.[0])
         }}
       />
 
@@ -140,11 +172,7 @@ function PhoneScanPage() {
           disabled={uploading}
           onClick={() => cameraInputRef.current?.click()}
         >
-          {uploading ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <Camera />
-          )}
+          {uploading ? <Loader2 className="animate-spin" /> : <Camera />}
           {uploading ? "Laddar upp…" : "Ta foto"}
         </Button>
         <Button

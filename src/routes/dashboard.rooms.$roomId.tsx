@@ -823,6 +823,15 @@ function RoomPage() {
               setSelectedThreadId(null)
               setIsDraftChat(false)
             }}
+            onBackToProblem={(problemId) => {
+              setSection("problems")
+              setSelectedProblemId(problemId)
+              setSelectedThreadId(null)
+              setIsDraftChat(false)
+              setProblemChatError(null)
+              setShadowError(null)
+              setSettingsFocus(null)
+            }}
             composerFocusSignal={composerFocusSignal}
           />
         )}

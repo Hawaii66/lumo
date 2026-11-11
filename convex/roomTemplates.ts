@@ -4,6 +4,7 @@ import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
 import { requireRoomMember } from "./lib/roomAuth";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { posthog } from "./posthog";
 
 const MAX_ROOMS = 100;
 const MAX_FIELD_LENGTH = 50;
@@ -434,6 +435,12 @@ export const clone = mutation({
           : {}),
       });
     }
+
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "room_cloned",
+      properties: { roomId, templateId: args.templateId },
+    });
 
     return roomId;
   },

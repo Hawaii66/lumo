@@ -22,6 +22,11 @@ import {
 } from "../lib/subproblemSlice";
 import { lumoChatModel } from "../agents/openrouter";
 import {
+  aiTelemetry,
+  forceFlushPosthogTraces,
+} from "../lib/posthogOtel";
+import { posthog } from "../posthog";
+import {
   costUsdFromProviderMetadata,
   tokensFromSdkUsage,
 } from "../usage";
@@ -123,7 +128,17 @@ export const createShadow = action({
         refId: args.parentProblemId,
       });
 
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "twin_started",
+      properties: {
+        roomId: args.roomId,
+        parentProblemId: args.parentProblemId,
+      },
+    });
+
     try {
+      const twinSessionId = `${args.roomId}:${args.parentProblemId}`;
       const variantResult = await lumoTwinVariantAgent.generateText(
         ctx,
         { userId },
@@ -139,6 +154,11 @@ export const createShadow = action({
             questionText,
             answerText,
             subproblemLetter: letter ?? undefined,
+          }),
+          experimental_telemetry: aiTelemetry({
+            functionId: "twin-variant",
+            distinctId: userId,
+            sessionId: twinSessionId,
           }),
         },
         twinGenerateOpts,
@@ -162,6 +182,11 @@ export const createShadow = action({
           prompt: buildTwinSolvePrompt({
             suggestedNumber,
             questionText: twinQuestion,
+          }),
+          experimental_telemetry: aiTelemetry({
+            functionId: "twin-solve",
+            distinctId: userId,
+            sessionId: twinSessionId,
           }),
         },
         twinGenerateOpts,
@@ -211,6 +236,7 @@ export const createShadow = action({
         },
       );
 
+      await forceFlushPosthogTraces();
       return shadowId;
     } catch (err) {
       await ctx.runMutation(internal.credits.refundSpend, {
@@ -219,6 +245,7 @@ export const createShadow = action({
         fromPaid: spent.fromPaid,
         refId: args.parentProblemId,
       });
+      await forceFlushPosthogTraces();
       throw err;
     }
   },

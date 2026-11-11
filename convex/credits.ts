@@ -24,6 +24,7 @@ import {
   type UserCreditCosts,
 } from "./lib/credits";
 import { getUserRole, getUserRoleEnsured, requireAdmin } from "./lib/roles";
+import { posthog } from "./posthog";
 
 type DbCtx = MutationCtx | QueryCtx;
 
@@ -125,6 +126,11 @@ async function ensureBalanceWithDailyGrant(
       balanceAfterPaid: 0,
       kind: "daily_grant",
     });
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "credit_granted",
+      properties: { amount: freeDailyCredits, kind: "daily_grant" },
+    });
     const created = await ctx.db.get(id);
     if (created === null) {
       throw new Error("Kunde inte skapa creditBalances");
@@ -148,6 +154,11 @@ async function ensureBalanceWithDailyGrant(
     balanceAfterDaily: freeDailyCredits,
     balanceAfterPaid: existing.paidBalance,
     kind: "daily_grant",
+  });
+  await posthog.capture(ctx, {
+    distinctId: userId,
+    event: "credit_granted",
+    properties: { amount: freeDailyCredits, kind: "daily_grant" },
   });
   const refreshed = await ctx.db.get(existing._id);
   if (refreshed === null) {
@@ -205,6 +216,17 @@ async function spendCredits(
     kind: args.kind,
     refId: args.refId,
   });
+  await posthog.capture(ctx, {
+    distinctId: args.userId,
+    event: "credit_spent",
+    properties: {
+      amount: args.amount,
+      kind: args.kind,
+      fromDaily,
+      fromPaid,
+      ...(args.refId !== undefined ? { refId: args.refId } : {}),
+    },
+  });
 
   return { fromDaily, fromPaid };
 }
@@ -242,6 +264,17 @@ async function refundCredits(
     balanceAfterPaid: paidBalance,
     kind: "refund",
     refId: args.refId,
+  });
+  await posthog.capture(ctx, {
+    distinctId: args.userId,
+    event: "credit_refunded",
+    properties: {
+      amount,
+      kind: "refund",
+      fromDaily: args.fromDaily,
+      fromPaid: args.fromPaid,
+      ...(args.refId !== undefined ? { refId: args.refId } : {}),
+    },
   });
 }
 
@@ -767,6 +800,15 @@ export const grantPurchaseFromStripe = internalMutation({
       kind: "purchase",
       refId: args.stripeRefId,
       dealId,
+    });
+    await posthog.capture(ctx, {
+      distinctId: args.userId,
+      event: "credit_granted",
+      properties: {
+        amount: args.credits,
+        kind: "purchase",
+        ...(dealId !== undefined ? { dealId } : {}),
+      },
     });
 
     return { granted: true, paidBalance };

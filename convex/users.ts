@@ -30,6 +30,7 @@ const roleSummaryValidator = v.object({
 
 const viewerFieldsValidator = v.object({
   _id: v.id("users"),
+  _creationTime: v.number(),
   name: v.union(v.string(), v.null()),
   email: v.union(v.string(), v.null()),
   image: v.union(v.string(), v.null()),
@@ -70,6 +71,7 @@ export const viewer = query({
 
     return {
       _id: user._id,
+      _creationTime: user._creationTime,
       name: user.name ?? identity?.name ?? null,
       email: user.email ?? identity?.email ?? null,
       image: user.image ?? identity?.pictureUrl ?? null,

@@ -9,6 +9,10 @@ import {
   PDF_INFO_MAX_LENGTH,
   buildInfoConvertPrompt,
 } from "../lib/prompts";
+import {
+  aiTelemetry,
+  forceFlushPosthogTraces,
+} from "../lib/posthogOtel";
 import { openrouter } from "../agents/openrouter";
 
 export const lumoInfoAgent = new Agent(components.agent, {
@@ -55,6 +59,10 @@ export const convertDocumentInfo = internalAction({
             "Förväntade matematiska metoder i kursen — inte uppgifter eller AI-regler; tom text om inga metodråd",
         }),
         prompt: buildInfoConvertPrompt(documentText),
+        experimental_telemetry: aiTelemetry({
+          functionId: "pdf-info",
+          distinctId: args.userId,
+        }),
       },
       {
         storageOptions: { saveMessages: "none" },
@@ -62,6 +70,7 @@ export const convertDocumentInfo = internalAction({
       },
     );
 
+    await forceFlushPosthogTraces();
     return { text: clampInfoText(result.output.text) };
   },
 });

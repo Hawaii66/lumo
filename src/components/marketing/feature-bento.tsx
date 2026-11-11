@@ -11,10 +11,17 @@ import {
 } from "@tabler/icons-react"
 import { Check, ScanSearch, Star } from "lucide-react"
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react"
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react"
 import { StaticMath } from "~/components/lumo/static-math"
 import { CtaDashedGrid } from "~/components/marketing/cta-dashed-grid"
 import { FaqAccordion } from "~/components/marketing/faq-accordion"
+import { celebrateFromPoint } from "~/lib/celebrate"
 import { cn } from "~/lib/utils"
 
 /** Aceternity grid background shell for bento headers. */
@@ -158,8 +165,16 @@ function MarkCompleteHeader() {
     "2b": false,
   })
 
-  function toggle(num: string) {
-    setCompleted((current) => ({ ...current, [num]: !current[num] }))
+  function toggle(num: string, event: MouseEvent<HTMLButtonElement>) {
+    const next = !completed[num]
+    if (next) {
+      const rect = event.currentTarget.getBoundingClientRect()
+      celebrateFromPoint(
+        (rect.left + rect.width / 2) / window.innerWidth,
+        (rect.top + rect.height / 2) / window.innerHeight,
+      )
+    }
+    setCompleted((current) => ({ ...current, [num]: next }))
   }
 
   return (
@@ -183,7 +198,7 @@ function MarkCompleteHeader() {
                 title={label}
                 aria-label={label}
                 aria-pressed={done}
-                onClick={() => toggle(num)}
+                onClick={(event) => toggle(num, event)}
                 className={cn(
                   "inline-flex size-6 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40",

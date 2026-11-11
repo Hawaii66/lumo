@@ -31,6 +31,9 @@ type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
   readonly OPENROUTER_API_KEY: string | undefined;
+  readonly POSTHOG_HOST: string | undefined;
+  readonly POSTHOG_PERSONAL_API_KEY: string | undefined;
+  readonly POSTHOG_PROJECT_TOKEN: string;
   readonly SITE_URL: string | undefined;
   readonly STRIPE_SECRET_KEY: string | undefined;
   readonly STRIPE_WEBHOOK_SECRET: string | undefined;

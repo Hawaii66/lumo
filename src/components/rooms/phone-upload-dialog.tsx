@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog"
+import { celebrateSuccess } from "~/lib/celebrate"
 
 export type PhoneUploadCompletedFile = {
   fileId: Id<"files">
@@ -72,6 +73,7 @@ export function PhoneUploadDialog({
       status.storageId !== null &&
       status.fileName !== null
     ) {
+      celebrateSuccess()
       onCompletedRef.current?.({
         fileId: status.fileId,
         storageId: status.storageId,
