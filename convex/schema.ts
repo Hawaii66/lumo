@@ -199,14 +199,42 @@ export default defineSchema({
         }),
       ),
     ),
+    /**
+     * Temporary full MinerU result ZIP. Used so problems parse can crop
+     * figures after async completion without re-running MinerU.
+     * Cleared once referenced images are uploaded (or on cache delete).
+     */
+    zipStorageId: v.optional(v.id("_storage")),
   }).index("by_contentHash", ["contentHash"]),
   /**
    * Single-flight lock so concurrent parse jobs for the same PDF
-   * do not double-call MinerU. Cleared when cache is written; TTL on claimedAt.
+   * do not double-call MinerU. Cleared when cache is written.
+   * `deadlineAt` bounds how long scheduled polls may continue.
    */
   mineruInFlight: defineTable({
     contentHash: v.string(),
     claimedAt: v.number(),
+    /** MinerU Tasks API id — set after create+upload. */
+    taskId: v.optional(v.string()),
+    /** PDF in Convex storage used for the upload. */
+    pdfStorageId: v.optional(v.id("_storage")),
+    /** Wall-clock deadline for polling this task. */
+    deadlineAt: v.optional(v.number()),
+    /** Jobs/admin runs waiting for cache before continuing. */
+    waiters: v.optional(
+      v.array(
+        v.union(
+          v.object({
+            type: v.literal("parseJob"),
+            jobId: v.id("pdfParseJobs"),
+          }),
+          v.object({
+            type: v.literal("adminRun"),
+            runId: v.id("pdfAdminRuns"),
+          }),
+        ),
+      ),
+    ),
   }).index("by_contentHash", ["contentHash"]),
   /**
    * Parsed problems (global cache by PDF contentHash) or room-scoped shadow twins.

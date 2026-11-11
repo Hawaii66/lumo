@@ -2,16 +2,13 @@ import { internal } from "../_generated/api";
 import type { Id } from "../_generated/dataModel";
 import type { ActionCtx } from "../_generated/server";
 import {
-  fetchMineruZipResult,
+  MINERU_CLAIM_STALE_MS,
+  MINERU_POLL_INTERVAL_MS,
   normalizeMineruImagePath,
+  parseMineruZip,
 } from "./mineruClient";
+import type { MineruWaiter } from "./mineruCache";
 import { middleJsonSchema, type MiddleJson } from "./mineruSchema";
-
-/** Stale in-flight lock TTL — crashed winners must not block forever. */
-const IN_FLIGHT_TTL_MS = 5 * 60 * 1000;
-/** How long a waiter polls for cache after losing the claim. */
-const WAIT_POLL_MS = 2000;
-const WAIT_MAX_ATTEMPTS = 90;
 
 export type MineruImageAsset = {
   path: string;
@@ -21,17 +18,20 @@ export type MineruImageAsset = {
 export type MineruCachedParse = {
   middleJson: MiddleJson;
   /**
-   * Raw ZIP image bytes from a fresh MinerU fetch (this action only).
-   * Empty on cache hit — callers that need figures should re-fetch the ZIP
-   * or use `imageAssets` already uploaded for referenced problem images.
+   * Raw ZIP image bytes when a temporary zipStorageId is still present,
+   * or from a fresh unpack. Empty when only uploaded imageAssets remain.
    */
   imageBytes: Map<string, Uint8Array>;
   /**
-   * Previously uploaded figure assets referenced by problems (cache only).
+   * Previously uploaded figure assets referenced by problems.
    * Never includes unused equation crops.
    */
   imageAssets: Array<MineruImageAsset>;
 };
+
+export type EnsureMiddleJsonResult =
+  | { status: "ready"; parse: MineruCachedParse }
+  | { status: "pending" };
 
 async function loadCachedParse(
   ctx: ActionCtx,
@@ -41,6 +41,7 @@ async function loadCachedParse(
     _id: Id<"mineruCache">;
     middleJsonStorageId: Id<"_storage">;
     imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
+    zipStorageId: Id<"_storage"> | null;
   } | null = await ctx.runQuery(
     internal.PDFParse.mineruCache.getByContentHash,
     { contentHash },
@@ -55,141 +56,132 @@ async function loadCachedParse(
     return null;
   }
 
+  let middleJson: MiddleJson;
   try {
     const parsed = middleJsonSchema.safeParse(
       JSON.parse(await cachedBlob.text()),
     );
-    if (parsed.success) {
-      return {
-        middleJson: parsed.data,
-        imageBytes: new Map(),
-        imageAssets: cached.imageAssets.map((asset) => ({
-          path: normalizeMineruImagePath(asset.path),
-          storageId: asset.storageId,
-        })),
-      };
-    }
-  } catch {
-    // Corrupt cache entry.
-  }
-  return null;
-}
-
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function claimInFlight(
-  ctx: ActionCtx,
-  contentHash: string,
-): Promise<boolean> {
-  const claim: { won: boolean } = await ctx.runMutation(
-    internal.PDFParse.mineruCache.tryClaimInFlight,
-    { contentHash, ttlMs: IN_FLIGHT_TTL_MS },
-  );
-  return claim.won;
-}
-
-/**
- * Wait until cache appears or we win the in-flight claim (stale lock / finish).
- * Returns cached data, or null if we became the fetcher.
- */
-async function waitForCacheOrClaim(
-  ctx: ActionCtx,
-  contentHash: string,
-  onStatus?: (message: string) => Promise<void>,
-): Promise<MineruCachedParse | null> {
-  await onStatus?.("Väntar på MinerU-tolkning…");
-  for (let attempt = 0; attempt < WAIT_MAX_ATTEMPTS; attempt++) {
-    await sleep(WAIT_POLL_MS);
-    const waited = await loadCachedParse(ctx, contentHash);
-    if (waited !== null) {
-      await onStatus?.("Använder cachad MinerU-tolkning");
-      return waited;
-    }
-    if (await claimInFlight(ctx, contentHash)) {
+    if (!parsed.success) {
       return null;
     }
+    middleJson = parsed.data;
+  } catch {
+    return null;
   }
-  throw new Error("Kunde inte hämta MinerU-tolkning (timeout)");
-}
 
-async function fetchAndCacheParse(
-  ctx: ActionCtx,
-  pdfBytes: ArrayBuffer,
-  contentHash: string,
-  blobType: string,
-  onStatus?: (message: string) => Promise<void>,
-): Promise<MineruCachedParse> {
-  try {
-    await onStatus?.("Tolkar PDF med MinerU…");
-    const pdfForUpload = new Blob([new Uint8Array(pdfBytes)], {
-      type: blobType || "application/pdf",
-    });
-    const zip = await fetchMineruZipResult(pdfForUpload);
-
-    await onStatus?.("Sparar MinerU-tolkning…");
-    const middleJsonStorageId = await ctx.storage.store(
-      new Blob([JSON.stringify(zip.middleJson)], {
-        type: "application/json",
-      }),
-    );
-    // Only middle_json is cached here. Figure bytes stay in-memory; problem
-    // parse uploads solely the paths attached to question/answer images.
-    await ctx.runMutation(internal.PDFParse.mineruCache.save, {
-      contentHash,
-      middleJsonStorageId,
-      imageAssets: [],
-    });
-
-    const imageBytes = new Map<string, Uint8Array>();
-    for (const [path, bytes] of zip.images.entries()) {
-      imageBytes.set(normalizeMineruImagePath(path), bytes);
+  const imageBytes = new Map<string, Uint8Array>();
+  if (cached.zipStorageId !== null) {
+    const zipBlob = await ctx.storage.get(cached.zipStorageId);
+    if (zipBlob !== null) {
+      try {
+        const zip = parseMineruZip(await zipBlob.arrayBuffer());
+        for (const [path, bytes] of zip.images.entries()) {
+          imageBytes.set(normalizeMineruImagePath(path), bytes);
+        }
+      } catch {
+        // Corrupt zip — fall through with empty imageBytes.
+      }
     }
-    return {
-      middleJson: zip.middleJson,
-      imageBytes,
-      imageAssets: [],
-    };
-  } finally {
-    await ctx.runMutation(internal.PDFParse.mineruCache.releaseInFlight, {
-      contentHash,
-    });
   }
+
+  return {
+    middleJson,
+    imageBytes,
+    imageAssets: cached.imageAssets.map((asset) => ({
+      path: normalizeMineruImagePath(asset.path),
+      storageId: asset.storageId,
+    })),
+  };
 }
 
 /**
- * Reuse cached MinerU middle_json when present; otherwise single-flight
- * Tasks API call so concurrent problems/info jobs for the same PDF
- * do not double-call MinerU.
+ * Return cached MinerU parse when present; otherwise register `waiter`,
+ * start a scheduled MinerU fetch if needed, and return pending.
  *
- * Does not upload ZIP images to Convex — only middle_json is cached.
+ * Callers must exit the current action on pending — completion resumes
+ * waiters via `mineruJobs.pollMineruTask`.
  */
-export async function getOrFetchMiddleJson(
+export async function ensureMiddleJson(
   ctx: ActionCtx,
-  pdfBytes: ArrayBuffer,
   contentHash: string,
-  blobType: string,
+  pdfStorageId: Id<"_storage">,
+  waiter: MineruWaiter | undefined,
   onStatus?: (message: string) => Promise<void>,
-): Promise<MineruCachedParse> {
+): Promise<EnsureMiddleJsonResult> {
   const hit = await loadCachedParse(ctx, contentHash);
   if (hit !== null) {
     await onStatus?.("Använder cachad MinerU-tolkning");
-    return hit;
+    return { status: "ready", parse: hit };
   }
 
-  if (!(await claimInFlight(ctx, contentHash))) {
-    const waited = await waitForCacheOrClaim(ctx, contentHash, onStatus);
-    if (waited !== null) {
-      return waited;
-    }
-  }
+  await onStatus?.("Tolkar PDF med MinerU…");
 
-  return await fetchAndCacheParse(
-    ctx,
-    pdfBytes,
+  const claim: {
+    won: boolean;
+    taskId: string | null;
+    deadlineAt: number | null;
+  } = await ctx.runMutation(internal.PDFParse.mineruCache.tryClaimInFlight, {
     contentHash,
-    blobType,
-    onStatus,
-  );
+    pdfStorageId,
+    staleMs: MINERU_CLAIM_STALE_MS,
+  });
+
+  // Cache may have landed between the first check and the claim.
+  const ready = await loadCachedParse(ctx, contentHash);
+  if (ready !== null) {
+    if (claim.won) {
+      // Resume any prior waiters still on the row; we continue inline.
+      await ctx.scheduler.runAfter(
+        0,
+        internal.PDFParse.mineruJobs.startMineruFetch,
+        { contentHash, pdfStorageId },
+      );
+    }
+    await onStatus?.("Använder cachad MinerU-tolkning");
+    return { status: "ready", parse: ready };
+  }
+
+  // Only register waiters when we will exit and need a resume.
+  if (waiter !== undefined) {
+    await ctx.runMutation(internal.PDFParse.mineruCache.addWaiter, {
+      contentHash,
+      waiter,
+    });
+  }
+
+  if (claim.won) {
+    await ctx.scheduler.runAfter(
+      0,
+      internal.PDFParse.mineruJobs.startMineruFetch,
+      {
+        contentHash,
+        pdfStorageId,
+      },
+    );
+  } else if (claim.taskId !== null) {
+    await ctx.scheduler.runAfter(
+      MINERU_POLL_INTERVAL_MS,
+      internal.PDFParse.mineruJobs.pollMineruTask,
+      {
+        contentHash,
+        taskId: claim.taskId,
+      },
+    );
+  }
+
+  return { status: "pending" };
+}
+
+/**
+ * Load cached MinerU parse or throw. Does not start a fetch.
+ */
+export async function requireCachedMiddleJson(
+  ctx: ActionCtx,
+  contentHash: string,
+): Promise<MineruCachedParse> {
+  const hit = await loadCachedParse(ctx, contentHash);
+  if (hit === null) {
+    throw new Error("Ingen MinerU-cache för denna PDF — kör från MinerU först");
+  }
+  return hit;
 }

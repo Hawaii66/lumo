@@ -12,9 +12,11 @@ import {
   type LumoParsedProblemWithImages,
 } from "../lib/lumoContent";
 import {
-  getOrFetchMiddleJson,
+  ensureMiddleJson,
+  requireCachedMiddleJson,
   type MineruImageAsset,
 } from "./getOrFetchMiddleJson";
+import type { MineruWaiter } from "./mineruCache";
 import {
   flattenFullDocument,
   detectProblemChunks,
@@ -22,10 +24,12 @@ import {
 } from "./middleJson";
 import {
   blobFromMineruImage,
-  fetchMineruZipResult,
   normalizeMineruImagePath,
 } from "./mineruClient";
-import { middleJsonSchema } from "./mineruSchema";
+
+export type ParsePipelineResult<T> =
+  | { status: "done"; value: T }
+  | { status: "mineru_pending" };
 
 /** Max concurrent per-problem agent calls. */
 const AGENT_CONCURRENCY = 5;
@@ -330,92 +334,82 @@ async function convertChunksToProblems(
 /**
  * Shared MinerU → chunk → AI pipeline for problems.
  * Does not read/write the problems table.
+ * Returns `mineru_pending` when MinerU was started asynchronously — the
+ * caller must exit; waiters are resumed when the cache is ready.
  */
-export async function parsePdfBytesToProblems(
+export async function parsePdfToProblems(
   ctx: ActionCtx,
   userId: Id<"users">,
-  pdfBytes: ArrayBuffer,
   contentHash: string,
-  blobType: string,
+  pdfStorageId: Id<"_storage">,
+  waiter: MineruWaiter | undefined,
   onStatus?: StatusReporter,
-): Promise<LumoParsedProblemWithImages[]> {
-  const { middleJson, imageBytes, imageAssets } = await getOrFetchMiddleJson(
+): Promise<ParsePipelineResult<LumoParsedProblemWithImages[]>> {
+  const ensured = await ensureMiddleJson(
     ctx,
-    pdfBytes,
     contentHash,
-    blobType,
+    pdfStorageId,
+    waiter,
     async (message) => {
       await onStatus?.(message);
     },
   );
+  if (ensured.status === "pending") {
+    return { status: "mineru_pending" };
+  }
+
+  const { middleJson, imageBytes, imageAssets } = ensured.parse;
   await onStatus?.("Delar upp uppgifter…");
   const chunks = detectProblemChunks(middleJson);
-
-  let bytes = imageBytes;
-  const needed = referencedImagePaths(chunks);
-  const haveBytes = needed.every((path) => bytes.has(path));
-  const haveCached = needed.every((path) =>
-    imageAssets.some(
-      (asset) => normalizeMineruImagePath(asset.path) === path,
-    ),
-  );
-  if (needed.length > 0 && !haveBytes && !haveCached) {
-    // Cache hit without ZIP bytes (e.g. info job won MinerU) — re-fetch ZIP
-    // in-memory only; still upload just the referenced figure paths.
-    await onStatus?.("Hämtar MinerU-figurer…");
-    const pdfForUpload = new Blob([new Uint8Array(pdfBytes)], {
-      type: blobType || "application/pdf",
-    });
-    const zip = await fetchMineruZipResult(pdfForUpload);
-    bytes = new Map();
-    for (const [path, data] of zip.images.entries()) {
-      bytes.set(normalizeMineruImagePath(path), data);
-    }
-  }
 
   const uploadedAssets = await uploadReferencedImages(
     ctx,
     contentHash,
     chunks,
-    bytes,
+    imageBytes,
     imageAssets,
     onStatus,
   );
 
-  return await convertChunksToProblems(
+  const problems = await convertChunksToProblems(
     ctx,
     userId,
     chunks,
     uploadedAssets,
     onStatus,
   );
+  return { status: "done", value: problems };
 }
 
 /**
  * Shared MinerU → flatten → AI pipeline for document info.
  * Does not read/write the pdfInfo table.
  */
-export async function parsePdfBytesToInfo(
+export async function parsePdfToInfo(
   ctx: ActionCtx,
   userId: Id<"users">,
-  pdfBytes: ArrayBuffer,
   contentHash: string,
-  blobType: string,
+  pdfStorageId: Id<"_storage">,
+  waiter: MineruWaiter | undefined,
   onStatus?: StatusReporter,
-): Promise<string> {
-  const { middleJson } = await getOrFetchMiddleJson(
+): Promise<ParsePipelineResult<string>> {
+  const ensured = await ensureMiddleJson(
     ctx,
-    pdfBytes,
     contentHash,
-    blobType,
+    pdfStorageId,
+    waiter,
     async (message) => {
       await onStatus?.(message);
     },
   );
+  if (ensured.status === "pending") {
+    return { status: "mineru_pending" };
+  }
+
   await onStatus?.("Sammanställer dokumenttext…");
-  const documentText = flattenFullDocument(middleJson);
+  const documentText = flattenFullDocument(ensured.parse.middleJson);
   if (documentText.trim().length === 0) {
-    return "";
+    return { status: "done", value: "" };
   }
 
   await onStatus?.("Tolkar information med AI…");
@@ -426,7 +420,7 @@ export async function parsePdfBytesToInfo(
       documentText,
     },
   );
-  return result.text;
+  return { status: "done", value: result.text };
 }
 
 /**
@@ -439,34 +433,22 @@ export async function parseCachedMiddleJsonToProblems(
   contentHash: string,
   onStatus?: StatusReporter,
 ): Promise<LumoParsedProblemWithImages[]> {
-  const cached: {
-    _id: Id<"mineruCache">;
-    middleJsonStorageId: Id<"_storage">;
-    imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
-  } | null = await ctx.runQuery(
-    internal.PDFParse.mineruCache.getByContentHash,
-    { contentHash },
-  );
-  if (cached === null) {
-    throw new Error("Ingen MinerU-cache för denna PDF — kör från MinerU först");
-  }
-  const cachedBlob = await ctx.storage.get(cached.middleJsonStorageId);
-  if (cachedBlob === null) {
-    throw new Error("MinerU-cachen saknar data");
-  }
-  const parsed = middleJsonSchema.safeParse(
-    JSON.parse(await cachedBlob.text()),
-  );
-  if (!parsed.success) {
-    throw new Error("MinerU-cachen är korrupt");
-  }
+  const cached = await requireCachedMiddleJson(ctx, contentHash);
   await onStatus?.("Delar upp uppgifter…");
-  const chunks = detectProblemChunks(parsed.data);
+  const chunks = detectProblemChunks(cached.middleJson);
+  const uploadedAssets = await uploadReferencedImages(
+    ctx,
+    contentHash,
+    chunks,
+    cached.imageBytes,
+    cached.imageAssets,
+    onStatus,
+  );
   return await convertChunksToProblems(
     ctx,
     userId,
     chunks,
-    cached.imageAssets,
+    uploadedAssets,
     onStatus,
   );
 }
@@ -477,29 +459,9 @@ export async function parseCachedMiddleJsonToInfo(
   contentHash: string,
   onStatus?: StatusReporter,
 ): Promise<string> {
-  const cached: {
-    _id: Id<"mineruCache">;
-    middleJsonStorageId: Id<"_storage">;
-    imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
-  } | null = await ctx.runQuery(
-    internal.PDFParse.mineruCache.getByContentHash,
-    { contentHash },
-  );
-  if (cached === null) {
-    throw new Error("Ingen MinerU-cache för denna PDF — kör från MinerU först");
-  }
-  const cachedBlob = await ctx.storage.get(cached.middleJsonStorageId);
-  if (cachedBlob === null) {
-    throw new Error("MinerU-cachen saknar data");
-  }
-  const parsed = middleJsonSchema.safeParse(
-    JSON.parse(await cachedBlob.text()),
-  );
-  if (!parsed.success) {
-    throw new Error("MinerU-cachen är korrupt");
-  }
+  const cached = await requireCachedMiddleJson(ctx, contentHash);
   await onStatus?.("Sammanställer dokumenttext…");
-  const documentText = flattenFullDocument(parsed.data);
+  const documentText = flattenFullDocument(cached.middleJson);
   if (documentText.trim().length === 0) {
     return "";
   }
@@ -539,27 +501,26 @@ async function runProblemsJob(
     return;
   }
 
-  const blob = await ctx.storage.get(file.storageId);
-  if (blob === null) {
-    throw new Error("PDF-filen hittades inte i lagringen");
-  }
-
-  const problems = await parsePdfBytesToProblems(
+  const outcome = await parsePdfToProblems(
     ctx,
     job.createdBy,
-    await blob.arrayBuffer(),
     file.contentHash,
-    blob.type,
+    file.storageId,
+    { type: "parseJob", jobId },
     async (message, options) => {
       await appendJobStatus(ctx, jobId, message, options);
     },
   );
+  if (outcome.status === "mineru_pending") {
+    // Scheduled MinerU poll will resume this job when cache is ready.
+    return;
+  }
 
   await appendJobStatus(ctx, jobId, "Sparar uppgifter…");
-  await saveParsedProblems(ctx, file.contentHash, problems);
+  await saveParsedProblems(ctx, file.contentHash, outcome.value);
   await ctx.runMutation(internal.PDFParse.jobs.markDone, {
     jobId,
-    problemCount: problems.length,
+    problemCount: outcome.value.length,
   });
 }
 
@@ -590,26 +551,24 @@ async function runInfoJob(
     return;
   }
 
-  const blob = await ctx.storage.get(file.storageId);
-  if (blob === null) {
-    throw new Error("PDF-filen hittades inte i lagringen");
-  }
-
-  const text = await parsePdfBytesToInfo(
+  const outcome = await parsePdfToInfo(
     ctx,
     job.createdBy,
-    await blob.arrayBuffer(),
     file.contentHash,
-    blob.type,
+    file.storageId,
+    { type: "parseJob", jobId },
     async (message, options) => {
       await appendJobStatus(ctx, jobId, message, options);
     },
   );
+  if (outcome.status === "mineru_pending") {
+    return;
+  }
 
   await appendJobStatus(ctx, jobId, "Sparar information…");
   await ctx.runMutation(internal.PDFParse.pdfInfo.replaceForContentHash, {
     contentHash: file.contentHash,
-    text,
+    text: outcome.value,
   });
   await ctx.runMutation(internal.PDFParse.pdfInfo.addInUseInternal, {
     roomId: job.roomId,
@@ -670,17 +629,18 @@ export const problemParserTester = internalAction({
   returns: lumoProblemListValidator,
   handler: async (ctx, args): Promise<LumoParsedProblemWithImages[]> => {
     const file = await loadFile(ctx, args.fileId);
-    const blob = await ctx.storage.get(file.storageId);
-    if (blob === null) {
-      throw new Error("PDF-filen hittades inte i lagringen");
-    }
-
-    return await parsePdfBytesToProblems(
+    const outcome = await parsePdfToProblems(
       ctx,
       args.userId,
-      await blob.arrayBuffer(),
       file.contentHash,
-      blob.type,
+      file.storageId,
+      undefined,
     );
+    if (outcome.status === "mineru_pending") {
+      throw new Error(
+        "MinerU-tolkning startad — kör testaren igen när den är klar",
+      );
+    }
+    return outcome.value;
   },
 });

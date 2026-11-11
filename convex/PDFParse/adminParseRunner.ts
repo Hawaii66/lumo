@@ -9,8 +9,8 @@ import {
 import {
   parseCachedMiddleJsonToInfo,
   parseCachedMiddleJsonToProblems,
-  parsePdfBytesToInfo,
-  parsePdfBytesToProblems,
+  parsePdfToInfo,
+  parsePdfToProblems,
 } from "./pdfParse";
 
 type PreviewImage = {
@@ -169,6 +169,8 @@ async function commitPreview(
 /**
  * Admin sandbox runner: always produces a preview; commits only when commitToDb.
  * Supports restart from mineru / ai / commit.
+ * MinerU waits via scheduled polls; this action exits on pending and resumes
+ * when `mineruJobs` re-schedules the run after cache is written.
  */
 export const runAdminParse = internalAction({
   args: { runId: v.id("pdfAdminRuns") },
@@ -232,6 +234,10 @@ export const runAdminParse = internalAction({
           internal.PDFParse.mineruCache.deleteByContentHash,
           { contentHash: run.contentHash },
         );
+        await ctx.runMutation(
+          internal.PDFParse.adminParse.clearInvalidateMineru,
+          { runId: args.runId },
+        );
       }
 
       await report("Hämtar PDF…", {
@@ -239,96 +245,98 @@ export const runAdminParse = internalAction({
         stage: run.fromStage === "ai" ? "ai" : "mineru",
       });
 
-      const blob = await ctx.storage.get(run.storageId);
-      if (blob === null) {
-        throw new Error("PDF-filen hittades inte i lagringen");
-      }
-      const pdfBytes = await blob.arrayBuffer();
-      const blobType = blob.type || "application/pdf";
-
       let payload: PreviewPayload;
 
       if (run.kind === "problems") {
-        await report(
-          run.fromStage === "ai"
-            ? "Tolkar uppgifter från MinerU-cache…"
-            : "Tolkar PDF (MinerU + AI)…",
-          { stage: run.fromStage === "ai" ? "ai" : "mineru" },
+        if (run.fromStage === "ai") {
+          await report("Tolkar uppgifter från MinerU-cache…", {
+            stage: "ai",
+          });
+          const problems = await parseCachedMiddleJsonToProblems(
+            ctx,
+            run.createdBy,
+            run.contentHash,
+            async (message, options) => {
+              await report(message, {
+                stage: "ai",
+                replaceLast: options?.replaceLast,
+              });
+            },
+          );
+          payload = {
+            kind: "problems",
+            problems: await toPreviewProblems(ctx, problems),
+          };
+        } else {
+          await report("Tolkar PDF (MinerU + AI)…", { stage: "mineru" });
+          const outcome = await parsePdfToProblems(
+            ctx,
+            run.createdBy,
+            run.contentHash,
+            run.storageId,
+            { type: "adminRun", runId: args.runId },
+            async (message, options) => {
+              const stage =
+                message.startsWith("Tolkar uppgifter med AI") ||
+                message.startsWith("Delar upp")
+                  ? "ai"
+                  : "mineru";
+              await report(message, {
+                stage,
+                replaceLast: options?.replaceLast,
+              });
+            },
+          );
+          if (outcome.status === "mineru_pending") {
+            return null;
+          }
+          payload = {
+            kind: "problems",
+            problems: await toPreviewProblems(ctx, outcome.value),
+          };
+        }
+      } else if (run.fromStage === "ai") {
+        await report("Tolkar information från MinerU-cache…", {
+          stage: "ai",
+        });
+        const text = await parseCachedMiddleJsonToInfo(
+          ctx,
+          run.createdBy,
+          run.contentHash,
+          async (message, options) => {
+            await report(message, {
+              stage: "ai",
+              replaceLast: options?.replaceLast,
+            });
+          },
         );
-        const problems =
-          run.fromStage === "ai"
-            ? await parseCachedMiddleJsonToProblems(
-                ctx,
-                run.createdBy,
-                run.contentHash,
-                async (message, options) => {
-                  await report(message, {
-                    stage: "ai",
-                    replaceLast: options?.replaceLast,
-                  });
-                },
-              )
-            : await parsePdfBytesToProblems(
-                ctx,
-                run.createdBy,
-                pdfBytes,
-                run.contentHash,
-                blobType,
-                async (message, options) => {
-                  const stage =
-                    message.startsWith("Tolkar uppgifter med AI") ||
-                    message.startsWith("Delar upp")
-                      ? "ai"
-                      : "mineru";
-                  await report(message, {
-                    stage,
-                    replaceLast: options?.replaceLast,
-                  });
-                },
-              );
-        payload = {
-          kind: "problems",
-          problems: await toPreviewProblems(ctx, problems),
-        };
-      } else {
-        await report(
-          run.fromStage === "ai"
-            ? "Tolkar information från MinerU-cache…"
-            : "Tolkar PDF-information (MinerU + AI)…",
-          { stage: run.fromStage === "ai" ? "ai" : "mineru" },
-        );
-        const text =
-          run.fromStage === "ai"
-            ? await parseCachedMiddleJsonToInfo(
-                ctx,
-                run.createdBy,
-                run.contentHash,
-                async (message, options) => {
-                  await report(message, {
-                    stage: "ai",
-                    replaceLast: options?.replaceLast,
-                  });
-                },
-              )
-            : await parsePdfBytesToInfo(
-                ctx,
-                run.createdBy,
-                pdfBytes,
-                run.contentHash,
-                blobType,
-                async (message, options) => {
-                  const stage =
-                    message.startsWith("Tolkar information") ||
-                    message.startsWith("Sammanställer")
-                      ? "ai"
-                      : "mineru";
-                  await report(message, {
-                    stage,
-                    replaceLast: options?.replaceLast,
-                  });
-                },
-              );
         payload = { kind: "info", text };
+      } else {
+        await report("Tolkar PDF-information (MinerU + AI)…", {
+          stage: "mineru",
+        });
+        const outcome = await parsePdfToInfo(
+          ctx,
+          run.createdBy,
+          run.contentHash,
+          run.storageId,
+          { type: "adminRun", runId: args.runId },
+          async (message, options) => {
+            const stage =
+              message.startsWith("Tolkar information") ||
+              message.startsWith("Sammanställer")
+                ? "ai"
+                : "mineru";
+            await report(message, {
+              stage,
+              replaceLast: options?.replaceLast,
+            });
+          },
+        );
+        if (outcome.status === "mineru_pending") {
+          return null;
+        }
+        payload = { kind: "info", text: outcome.value };
       }
 
       await report("Sparar förhandsgranskning…", { stage: "ai" });
