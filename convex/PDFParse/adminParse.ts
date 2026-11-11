@@ -375,6 +375,7 @@ export const previewProblemSplit = action({
       _id: Id<"mineruCache">;
       middleJsonStorageId: Id<"_storage">;
       imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
+      zipStorageId: Id<"_storage"> | null;
     } | null = await ctx.runQuery(
       internal.PDFParse.mineruCache.getByContentHash,
       { contentHash: args.contentHash },
@@ -488,6 +489,19 @@ export const appendStatus = internalMutation({
       ...(args.status !== undefined ? { status: args.status } : {}),
       ...(args.stage !== undefined ? { stage: args.stage } : {}),
     });
+    return null;
+  },
+});
+
+/** Clear one-shot invalidateMineru so resumed runs do not wipe a fresh cache. */
+export const clearInvalidateMineru = internalMutation({
+  args: { runId: v.id("pdfAdminRuns") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runId);
+    if (run !== null && run.invalidateMineru) {
+      await ctx.db.patch(args.runId, { invalidateMineru: false });
+    }
     return null;
   },
 });
