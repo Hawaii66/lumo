@@ -588,7 +588,7 @@ function TillfallenProblemList({
               }))
             }
           >
-            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
               <ChevronDown
                 className={cn(
                   "size-3.5 shrink-0 transition-transform",
@@ -737,6 +737,10 @@ function ProblemList({
   onOpenOccasions?: () => void
 }) {
   const viewer = useQuery(api.users.viewer)
+  const occasions = useQuery(
+    api.roomOccasions.listByRoom,
+    roomId !== undefined ? { roomId } : "skip",
+  )
   const updateProblemListMode = useMutation(api.users.updateProblemListMode)
   const archiveProblems = useMutation(
     api.PDFParse.problems.archiveProblemsFromRoom,
@@ -744,8 +748,28 @@ function ProblemList({
   const unarchiveProblems = useMutation(
     api.PDFParse.problems.unarchiveProblemsFromRoom,
   )
-  const mode: ProblemListMode =
+  const occasionsPending = roomId !== undefined && occasions === undefined
+  const hasOccasions =
+    roomId !== undefined &&
+    occasions !== undefined &&
+    occasions.length > 0
+  const savedMode: ProblemListMode =
     viewer?.problemListMode ?? DEFAULT_PROBLEM_LIST_MODE
+  // Keep tillfällen visible while loading if that mode is already selected,
+  // so the tab does not flicker away and back.
+  const showTillfallenTab =
+    hasOccasions || (occasionsPending && savedMode === "tillfallen")
+  const mode: ProblemListMode =
+    savedMode === "tillfallen" && !showTillfallenTab
+      ? DEFAULT_PROBLEM_LIST_MODE
+      : savedMode
+  const availableModes = useMemo(
+    () =>
+      PROBLEM_LIST_MODES.filter(
+        (value) => value !== "tillfallen" || showTillfallenTab,
+      ),
+    [showTillfallenTab],
+  )
 
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Array<string>>([])
@@ -934,7 +958,7 @@ function ProblemList({
         role="group"
         aria-label="Uppgiftslistans vy"
       >
-        {PROBLEM_LIST_MODES.map((value) => {
+        {availableModes.map((value) => {
           const active = mode === value
           return (
             <Button
@@ -1065,7 +1089,7 @@ function ProblemList({
                 }))
               }
             >
-              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
                 <ChevronDown
                   className={cn(
                     "size-3.5 shrink-0 transition-transform",
