@@ -111,45 +111,82 @@ function ProblemListModePreview({ mode }: { mode: ProblemListMode }) {
       </div>
 
       <div className="flex shrink-0 flex-col gap-1">
-        <div className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
-          <IconChevronDown className="size-2.5 shrink-0" />
-          <span className="min-w-0 flex-1 truncate normal-case">
-            {PREVIEW_FILE}
-          </span>
-          <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            {problemCount}
-          </span>
-        </div>
-
-        {mode === "tree" ? (
-          <div className="space-y-1">
-            {PREVIEW_CHAPTERS.map((chapter) => (
-              <div key={chapter.label} className="min-w-0">
-                <div className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] font-medium tracking-wide text-neutral-500 uppercase">
-                  <IconChevronDown className="size-2 shrink-0" />
-                  <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
-                    {chapter.label}
-                  </span>
-                  <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[7px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                    {chapter.problems.length}
-                  </span>
-                </div>
-                <div className="mt-0.5 space-y-0.5 border-l border-neutral-200 pl-1.5 ml-1 dark:border-neutral-800">
-                  {chapter.problems.map((problem) => (
-                    <PreviewProblemRow key={problem.num} problem={problem} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+        {mode === "tillfallen" ? (
+          <>
+            <div className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
+              <IconChevronDown className="size-2.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate normal-case">
+                Lektion 1 (30/11)
+              </span>
+              <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                2
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              <PreviewProblemRow
+                problem={{ num: "1.1", stars: 1, done: true }}
+              />
+              <PreviewProblemRow
+                problem={{ num: "1.2a", stars: 2, selected: true }}
+              />
+            </div>
+            <div className="mt-1 flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
+              <IconChevronDown className="size-2.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate normal-case">
+                Otilldelade
+              </span>
+              <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                1
+              </span>
+            </div>
+            <PreviewProblemRow problem={{ num: "2.1", stars: 2 }} />
+          </>
         ) : (
-          <div className="space-y-0.5">
-            {PREVIEW_CHAPTERS.flatMap((chapter) => chapter.problems).map(
-              (problem) => (
-                <PreviewProblemRow key={problem.num} problem={problem} />
-              ),
+          <>
+            <div className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
+              <IconChevronDown className="size-2.5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate normal-case">
+                {PREVIEW_FILE}
+              </span>
+              <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                {problemCount}
+              </span>
+            </div>
+
+            {mode === "tree" ? (
+              <div className="space-y-1">
+                {PREVIEW_CHAPTERS.map((chapter) => (
+                  <div key={chapter.label} className="min-w-0">
+                    <div className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[8px] font-medium tracking-wide text-neutral-500 uppercase">
+                      <IconChevronDown className="size-2 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
+                        {chapter.label}
+                      </span>
+                      <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[7px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                        {chapter.problems.length}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 space-y-0.5 border-l border-neutral-200 pl-1.5 ml-1 dark:border-neutral-800">
+                      {chapter.problems.map((problem) => (
+                        <PreviewProblemRow
+                          key={problem.num}
+                          problem={problem}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-0.5">
+                {PREVIEW_CHAPTERS.flatMap((chapter) => chapter.problems).map(
+                  (problem) => (
+                    <PreviewProblemRow key={problem.num} problem={problem} />
+                  ),
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -182,8 +219,8 @@ export function ProblemListModeCard() {
       <CardHeader>
         <CardTitle>Uppgiftslista</CardTitle>
         <CardDescription>
-          Välj hur uppgifter grupperas i alla rum. Träd visar även kapitel som
-          1 och 2.
+          Välj hur uppgifter grupperas i alla rum. Träd visar kapitel (1, 2).
+          Tillfällen grupperar efter lektion/dag från rummets inställningar.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

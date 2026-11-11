@@ -16,6 +16,7 @@ const themeValidator = v.union(
 const problemListModeValidator = v.union(
   v.literal("list"),
   v.literal("tree"),
+  v.literal("tillfallen"),
 );
 
 const roleSummaryValidator = v.object({

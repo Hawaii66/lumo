@@ -415,6 +415,13 @@ function RoomPage() {
             setIsDraftChat(false)
             setSelectedProblemId(null)
           }}
+          onOpenOccasions={() => {
+            setSettingsFocus("occasions")
+            setSection("settings")
+            setSelectedThreadId(null)
+            setIsDraftChat(false)
+            setSelectedProblemId(null)
+          }}
         />
 
         <SidebarInset className="min-h-0 overflow-hidden">

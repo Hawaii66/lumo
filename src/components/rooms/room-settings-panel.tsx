@@ -11,11 +11,12 @@ import { ProblemPdfOrderCard } from "./room-settings/problem-pdf-order-card"
 import { RoomDangerZoneCard } from "./room-settings/room-danger-zone-card"
 import { RoomDetailsCard } from "./room-settings/room-details-card"
 import { RoomMembersCard } from "./room-settings/room-members-card"
+import { RoomOccasionsCard } from "./room-settings/room-occasions-card"
 import { RoomTemplatesCard } from "./room-settings/room-templates-card"
 
 type SettingsTab = "general" | "archived"
 
-export type RoomSettingsFocusSection = "problemPdfOrder"
+export type RoomSettingsFocusSection = "problemPdfOrder" | "occasions"
 
 type RoomSettingsPanelProps = {
   roomId: Id<"rooms">
@@ -31,16 +32,23 @@ export function RoomSettingsPanel({
 }: RoomSettingsPanelProps) {
   const room = useQuery(api.rooms.get, { roomId })
   const problemPdfOrderRef = useRef<HTMLDivElement>(null)
+  const occasionsRef = useRef<HTMLDivElement>(null)
 
   const [tab, setTab] = useState<SettingsTab>("general")
 
   useEffect(() => {
-    if (focusSection !== "problemPdfOrder") return
+    if (focusSection !== "problemPdfOrder" && focusSection !== "occasions") {
+      return
+    }
     // Wait until room data is ready so the target card is mounted.
     if (room == null) return
     setTab("general")
     const frame = requestAnimationFrame(() => {
-      problemPdfOrderRef.current?.scrollIntoView({
+      const target =
+        focusSection === "occasions"
+          ? occasionsRef.current
+          : problemPdfOrderRef.current
+      target?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       })
@@ -104,6 +112,9 @@ export function RoomSettingsPanel({
           <CourseInfoCellsCard roomId={roomId} />
           <div ref={problemPdfOrderRef}>
             <ProblemPdfOrderCard roomId={roomId} />
+          </div>
+          <div ref={occasionsRef}>
+            <RoomOccasionsCard roomId={roomId} />
           </div>
           <RoomTemplatesCard roomId={roomId} />
           <RoomMembersCard roomId={roomId} />
