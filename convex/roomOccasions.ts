@@ -827,6 +827,153 @@ export const setForProblem = mutation({
   },
 });
 
+const MAX_BULK_ASSIGN_UNITS = 100;
+
+const bulkAssignUnitValidator = v.object({
+  problemId: v.id("problems"),
+  subproblemLetter: v.optional(v.string()),
+});
+
+/**
+ * Mass-assign star level and tillfälle for many problem units in one mutation.
+ * Both `stars` (1–3) and `occasionId` are required — the settings UI applies
+ * them together from a multi-select.
+ */
+export const assignUnits = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    units: v.array(bulkAssignUnitValidator),
+    stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
+    occasionId: v.id("roomOccasions"),
+  },
+  returns: v.object({ assigned: v.number() }),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    if (args.units.length === 0) {
+      throw new Error("Inga uppgifter valda");
+    }
+    if (args.units.length > MAX_BULK_ASSIGN_UNITS) {
+      throw new Error(
+        `Högst ${MAX_BULK_ASSIGN_UNITS} uppgifter kan tilldelas samtidigt`,
+      );
+    }
+
+    const occasion = await ctx.db.get("roomOccasions", args.occasionId);
+    if (occasion === null || occasion.roomId !== args.roomId) {
+      throw new Error("Tillfället hittades inte");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+
+    let sortOrder = await nextSortOrderForOccasion(ctx, args.occasionId);
+    const seen = new Set<string>();
+    let assigned = 0;
+
+    for (const unit of args.units) {
+      const problem = await ctx.db.get("problems", unit.problemId);
+      if (problem === null) {
+        throw new Error("Uppgiften hittades inte");
+      }
+      if (isShadowProblem(problem)) {
+        throw new Error("Tvillingar kan inte tilldelas");
+      }
+      const contentHash = problem.contentHash;
+      if (contentHash === undefined) {
+        throw new Error("Uppgiften saknar källa");
+      }
+      if (
+        !problemVisibleInRoom(problem, args.roomId, files, archivedHashes)
+      ) {
+        throw new Error("Uppgiften tillhör inte det här rummet");
+      }
+
+      const hasParts = hasSubproblemHeadings(problem.problem);
+      let letter = "";
+      if (hasParts) {
+        const normalized = normalizeSubproblemLetter(unit.subproblemLetter);
+        if (normalized === null) {
+          throw new Error("Ange deluppgift (a–z) för att tilldela");
+        }
+        letter = normalized;
+      } else if (
+        unit.subproblemLetter !== undefined &&
+        unit.subproblemLetter.trim().length > 0
+      ) {
+        throw new Error("Uppgiften har inga deluppgifter");
+      }
+
+      const dedupeKey = `${contentHash}\0${problem.problemNumber}\0${letter}`;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+
+      const existingStars = await ctx.db
+        .query("roomProblemStars")
+        .withIndex(
+          "by_room_and_contentHash_and_problemNumber_and_subproblemLetter",
+          (q) =>
+            q
+              .eq("roomId", args.roomId)
+              .eq("contentHash", contentHash)
+              .eq("problemNumber", problem.problemNumber)
+              .eq("subproblemLetter", letter),
+        )
+        .unique();
+      if (existingStars !== null) {
+        if (existingStars.stars !== args.stars) {
+          await ctx.db.patch("roomProblemStars", existingStars._id, {
+            stars: args.stars,
+            subproblemLetter: letter,
+          });
+        }
+      } else {
+        await ctx.db.insert("roomProblemStars", {
+          roomId: args.roomId,
+          contentHash,
+          problemNumber: problem.problemNumber,
+          subproblemLetter: letter,
+          stars: args.stars,
+        });
+      }
+
+      const existingAssignment = await findAssignment(
+        ctx,
+        args.roomId,
+        contentHash,
+        problem.problemNumber,
+        letter,
+      );
+      if (existingAssignment !== null) {
+        if (existingAssignment.occasionId !== args.occasionId) {
+          await ctx.db.patch("roomOccasionAssignments", existingAssignment._id, {
+            occasionId: args.occasionId,
+            sortOrder,
+          });
+          sortOrder += 1;
+        }
+      } else {
+        await ctx.db.insert("roomOccasionAssignments", {
+          roomId: args.roomId,
+          occasionId: args.occasionId,
+          contentHash,
+          problemNumber: problem.problemNumber,
+          subproblemLetter: letter,
+          sortOrder,
+        });
+        sortOrder += 1;
+      }
+
+      assigned += 1;
+    }
+
+    return { assigned };
+  },
+});
+
 /**
  * Persist manual order of units within one tillfälle (contiguous 0..n-1).
  */
