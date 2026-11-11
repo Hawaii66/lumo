@@ -10,6 +10,7 @@ import {
   query,
 } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { posthog } from "./posthog";
 
 const MAX_FIELD_LENGTH = 50;
 const MAX_GENERAL_INFO_LENGTH = 4000;
@@ -245,6 +246,12 @@ export const create = mutation({
     await ctx.db.insert("roomMembers", {
       roomId,
       userId,
+    });
+
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "room_created",
+      properties: { roomId },
     });
 
     return roomId;

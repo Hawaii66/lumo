@@ -18,6 +18,10 @@ import {
   normalizeSubproblemLetter,
   sliceProblemTexts,
 } from "../lib/subproblemSlice";
+import {
+  aiTelemetry,
+  forceFlushPosthogTraces,
+} from "../lib/posthogOtel";
 import { chatUsageHandler } from "../usage";
 import { lumoChatModel } from "./openrouter";
 
@@ -137,6 +141,11 @@ export const generateResponse = internalAction({
             "Lumo-svar: version 2, markdown med $ / $$ och ### (a) / #### Fall N, plus quickReplies.",
         }),
         system: buildChatSystem({ mode, roomContext, problemContext }),
+        experimental_telemetry: aiTelemetry({
+          functionId: "room-agent",
+          distinctId: args.userId,
+          sessionId: args.threadId,
+        }),
       },
       {
         saveStreamDeltas: { chunking: "word", throttleMs: 100 },
@@ -145,6 +154,7 @@ export const generateResponse = internalAction({
     );
 
     await result.consumeStream();
+    await forceFlushPosthogTraces();
     return null;
   },
 });

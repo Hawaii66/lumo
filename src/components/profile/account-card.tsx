@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
+import { getPostHogClient } from "~/lib/posthog"
 
 function roleLabel(key: "default" | "promoter" | "admin"): string {
   if (key === "promoter") return "Promoter"
@@ -152,6 +153,7 @@ export function AccountCard() {
           disabled={signingOut}
           onClick={() => {
             setSigningOut(true)
+            getPostHogClient()?.reset()
             void signOut().finally(() => setSigningOut(false))
           }}
         >

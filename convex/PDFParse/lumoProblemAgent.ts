@@ -13,6 +13,10 @@ import {
   LUMO_PROBLEM_INSTRUCTIONS,
   buildConvertPrompt,
 } from "../lib/prompts";
+import {
+  aiTelemetry,
+  forceFlushPosthogTraces,
+} from "../lib/posthogOtel";
 import { openrouter } from "../agents/openrouter";
 
 export const lumoProblemAgent = new Agent(components.agent, {
@@ -55,6 +59,10 @@ export const convertProblemChunk = internalAction({
           problemText,
           answerText,
         }),
+        experimental_telemetry: aiTelemetry({
+          functionId: "pdf-problem",
+          distinctId: args.userId,
+        }),
       },
       {
         storageOptions: { saveMessages: "none" },
@@ -67,6 +75,7 @@ export const convertProblemChunk = internalAction({
       problemText,
       answerText,
     );
+    await forceFlushPosthogTraces();
     return {
       ...normalized,
       problemNumber:

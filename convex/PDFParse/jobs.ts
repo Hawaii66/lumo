@@ -10,6 +10,7 @@ import {
   type QueryCtx,
 } from "../_generated/server";
 import { requireRoomMember } from "../lib/roomAuth";
+import { posthog } from "../posthog";
 
 const MAX_STATUS_UPDATES = 40;
 const MAX_JOBS_LOOKUP = 40;
@@ -288,6 +289,17 @@ export const start = mutation({
 
     await ctx.scheduler.runAfter(0, internal.PDFParse.pdfParse.runParseJob, {
       jobId,
+    });
+
+    await posthog.capture(ctx, {
+      distinctId: userId,
+      event: "pdf_parse_started",
+      properties: {
+        jobId,
+        roomId: file.roomId,
+        kind: args.kind,
+        fileId: file._id,
+      },
     });
 
     return jobId;
