@@ -130,16 +130,6 @@ function ProblemListModePreview({ mode }: { mode: ProblemListMode }) {
                 problem={{ num: "1.2a", stars: 2, selected: true }}
               />
             </div>
-            <div className="mt-1 flex items-center gap-1 rounded-md px-1.5 py-1 text-[9px] font-medium tracking-wide text-neutral-500 uppercase">
-              <IconChevronDown className="size-2.5 shrink-0" />
-              <span className="min-w-0 flex-1 truncate normal-case">
-                Otilldelade
-              </span>
-              <span className="shrink-0 rounded bg-neutral-200 px-1 py-px text-[8px] font-medium normal-case tabular-nums text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                1
-              </span>
-            </div>
-            <PreviewProblemRow problem={{ num: "2.1", stars: 2 }} />
           </>
         ) : (
           <>

@@ -461,7 +461,6 @@ function TillfallenProblemList({
   const occasionBuckets = useMemo(() => {
     if (occasions === undefined || units === undefined) return null
 
-    const assignedKeys = new Set<string>()
     const unitByKey = new Map(
       units.map((unit) => [
         unitKey(unit.contentHash, unit.problemNumber, unit.subproblemLetter),
@@ -482,7 +481,6 @@ function TillfallenProblemList({
           assignment.problemNumber,
           assignment.subproblemLetter,
         )
-        assignedKeys.add(key)
         const unit = unitByKey.get(key)
         const starEntries = unit?.starEntries ?? []
         const completionEntries = unit?.completionEntries ?? []
@@ -521,42 +519,7 @@ function TillfallenProblemList({
       })
     }
 
-    const unassigned: Array<TillfallenUnitRow> = []
-    for (const unit of units) {
-      const key = unitKey(
-        unit.contentHash,
-        unit.problemNumber,
-        unit.subproblemLetter,
-      )
-      if (assignedKeys.has(key) || unit.occasionId !== null) continue
-      if (
-        !unitMatchesStarFilter(
-          unit.starEntries,
-          unit.subproblemLetter,
-          starLevelSet,
-          showAllStars,
-        )
-      ) {
-        continue
-      }
-      if (
-        query.length > 0 &&
-        !unit.label.toLowerCase().includes(query) &&
-        !unit.fileName.toLowerCase().includes(query)
-      ) {
-        continue
-      }
-      unassigned.push({
-        key,
-        problemId: unit.problemId,
-        label: unit.label,
-        subproblemLetter: unit.subproblemLetter,
-        starEntries: unit.starEntries,
-        completionEntries: unit.completionEntries,
-      })
-    }
-
-    return { buckets, unassigned }
+    return buckets
   }, [occasions, units, query, starLevelSet, showAllStars])
 
   if (roomId === undefined) {
@@ -593,9 +556,10 @@ function TillfallenProblemList({
     )
   }
 
-  const totalVisible =
-    occasionBuckets.buckets.reduce((sum, bucket) => sum + bucket.items.length, 0) +
-    occasionBuckets.unassigned.length
+  const totalVisible = occasionBuckets.reduce(
+    (sum, bucket) => sum + bucket.items.length,
+    0,
+  )
 
   if (totalVisible === 0) {
     return (
@@ -611,7 +575,7 @@ function TillfallenProblemList({
 
   return (
     <div className="flex flex-col gap-0.5">
-      {occasionBuckets.buckets.map((bucket) => {
+      {occasionBuckets.map((bucket) => {
         const isCollapsed = collapsed[`occasion:${bucket.id}`] === true
         return (
           <Collapsible
@@ -662,48 +626,6 @@ function TillfallenProblemList({
           </Collapsible>
         )
       })}
-
-      {occasionBuckets.unassigned.length > 0 ? (
-        <Collapsible
-          open={collapsed["occasion:unassigned"] !== true}
-          onOpenChange={(open) =>
-            setCollapsed((prev) => ({
-              ...prev,
-              "occasion:unassigned": !open,
-            }))
-          }
-        >
-          <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
-            <ChevronDown
-              className={cn(
-                "size-3.5 shrink-0 transition-transform",
-                collapsed["occasion:unassigned"] === true && "-rotate-90",
-              )}
-            />
-            <span className="min-w-0 flex-1 truncate normal-case">
-              Otilldelade
-            </span>
-            <Badge
-              variant="secondary"
-              className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
-            >
-              {occasionBuckets.unassigned.length}
-            </Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <SidebarMenu className="mt-0.5">
-              {occasionBuckets.unassigned.map((item) => (
-                <TillfallenUnitRow
-                  key={item.key}
-                  item={item}
-                  selectedProblemId={selectedProblemId}
-                  onSelectProblem={onSelectProblem}
-                />
-              ))}
-            </SidebarMenu>
-          </CollapsibleContent>
-        </Collapsible>
-      ) : null}
     </div>
   )
 }

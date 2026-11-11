@@ -1,9 +1,13 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
-import { isShadowProblem } from "./lib/problemAccess";
+import {
+  isShadowProblem,
+  problemVisibleInRoom,
+} from "./lib/problemAccess";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
 import { requireRoomMember } from "./lib/roomAuth";
 import {
+  hasSubproblemHeadings,
   listSubproblemLetters,
   normalizeSubproblemLetter,
 } from "./lib/subproblemSlice";
@@ -600,6 +604,187 @@ export const clearAssignment = mutation({
     if (existing !== null) {
       await ctx.db.delete("roomOccasionAssignments", existing._id);
     }
+    return null;
+  },
+});
+
+/**
+ * Current tillfälle assignments for one problem (by deluppgift letter).
+ * `letter` is `""` for whole-problem assignment when there are no deluppgifter.
+ */
+export const listEntriesForProblem = query({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+  },
+  returns: v.array(
+    v.object({
+      letter: v.string(),
+      occasionId: v.id("roomOccasions"),
+      occasionLabel: v.string(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    if (!(await isRoomMember(ctx, args.roomId))) {
+      return [];
+    }
+
+    const problem = await ctx.db.get("problems", args.problemId);
+    if (
+      problem === null ||
+      isShadowProblem(problem) ||
+      problem.contentHash === undefined
+    ) {
+      return [];
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+    if (
+      !problemVisibleInRoom(problem, args.roomId, files, archivedHashes)
+    ) {
+      return [];
+    }
+
+    const occasions = await ctx.db
+      .query("roomOccasions")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_OCCASIONS_PER_ROOM);
+    const labelById = new Map(
+      occasions.map(
+        (row) =>
+          [row._id, formatOccasionLabel(row.name, row.date)] as const,
+      ),
+    );
+
+    const assignmentRows = await ctx.db
+      .query("roomOccasionAssignments")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_ASSIGNMENTS_PER_ROOM);
+
+    const entries: Array<{
+      letter: string;
+      occasionId: Id<"roomOccasions">;
+      occasionLabel: string;
+    }> = [];
+    for (const row of assignmentRows) {
+      if (
+        row.contentHash !== problem.contentHash ||
+        row.problemNumber !== problem.problemNumber
+      ) {
+        continue;
+      }
+      const letter = normalizeStoredLetter(row.subproblemLetter);
+      const occasionLabel = labelById.get(row.occasionId);
+      if (occasionLabel === undefined) continue;
+      entries.push({
+        letter,
+        occasionId: row.occasionId,
+        occasionLabel,
+      });
+    }
+    entries.sort((a, b) => a.letter.localeCompare(b.letter));
+    return entries;
+  },
+});
+
+/**
+ * Assign or clear a tillfälle for a problem unit (whole or deluppgift).
+ * `occasionId: null` clears the assignment. Same letter rules as stars.
+ */
+export const setForProblem = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+    occasionId: v.union(v.id("roomOccasions"), v.null()),
+    subproblemLetter: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+
+    const problem = await ctx.db.get("problems", args.problemId);
+    if (problem === null) {
+      throw new Error("Uppgiften hittades inte");
+    }
+    if (isShadowProblem(problem)) {
+      throw new Error("Tvillingar kan inte tilldelas tillfällen");
+    }
+    const contentHash = problem.contentHash;
+    if (contentHash === undefined) {
+      throw new Error("Uppgiften saknar källa");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+    if (
+      !problemVisibleInRoom(problem, args.roomId, files, archivedHashes)
+    ) {
+      throw new Error("Uppgiften tillhör inte det här rummet");
+    }
+
+    const hasParts = hasSubproblemHeadings(problem.problem);
+    let letter = "";
+    if (hasParts) {
+      const normalized = normalizeSubproblemLetter(args.subproblemLetter);
+      if (normalized === null) {
+        throw new Error("Ange deluppgift (a–z) för att tilldela");
+      }
+      letter = normalized;
+    } else if (
+      args.subproblemLetter !== undefined &&
+      args.subproblemLetter.trim().length > 0
+    ) {
+      throw new Error("Uppgiften har inga deluppgifter");
+    }
+
+    if (args.occasionId === null) {
+      const existing = await findAssignment(
+        ctx,
+        args.roomId,
+        contentHash,
+        problem.problemNumber,
+        letter,
+      );
+      if (existing !== null) {
+        await ctx.db.delete("roomOccasionAssignments", existing._id);
+      }
+      return null;
+    }
+
+    const occasion = await ctx.db.get("roomOccasions", args.occasionId);
+    if (occasion === null || occasion.roomId !== args.roomId) {
+      throw new Error("Tillfället hittades inte");
+    }
+
+    const existing = await findAssignment(
+      ctx,
+      args.roomId,
+      contentHash,
+      problem.problemNumber,
+      letter,
+    );
+    if (existing !== null) {
+      if (existing.occasionId === args.occasionId) return null;
+      await ctx.db.patch("roomOccasionAssignments", existing._id, {
+        occasionId: args.occasionId,
+      });
+      return null;
+    }
+
+    await ctx.db.insert("roomOccasionAssignments", {
+      roomId: args.roomId,
+      occasionId: args.occasionId,
+      contentHash,
+      problemNumber: problem.problemNumber,
+      subproblemLetter: letter,
+    });
     return null;
   },
 });

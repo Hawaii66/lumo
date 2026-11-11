@@ -9,6 +9,12 @@ import {
   type ProblemCompletionEntry,
 } from "~/components/rooms/problem-completion"
 import {
+  occasionIdForLetter,
+  ProblemOccasionControl,
+  type ProblemOccasionEntry,
+  type ProblemOccasionOption,
+} from "~/components/rooms/problem-occasion"
+import {
   ProblemStarsControl,
   starsForLetter,
   type ProblemStarEntry,
@@ -102,6 +108,12 @@ type ParsedProblemViewProps = {
   completionEntries?: Array<ProblemCompletionEntry>
   /** `letter` is `""` for whole-problem completion when there are no deluppgifter. */
   onCompletedChange?: (letter: string, completed: boolean) => void
+  /** Available tillfällen for the assignment picker. */
+  occasionOptions?: Array<ProblemOccasionOption>
+  /** Room-scoped tillfälle assignments for this problem. */
+  occasionEntries?: Array<ProblemOccasionEntry>
+  /** `letter` is `""` for whole-problem assignment when there are no deluppgifter. */
+  onOccasionChange?: (letter: string, occasionId: string | null) => void
 }
 
 export function ParsedProblemView({
@@ -115,6 +127,9 @@ export function ParsedProblemView({
   onStarsChange,
   completionEntries = [],
   onCompletedChange,
+  occasionOptions = [],
+  occasionEntries = [],
+  onOccasionChange,
 }: ParsedProblemViewProps) {
   const letters = subproblemLetters
     .map((letter) => letter.trim().toLowerCase())
@@ -124,6 +139,8 @@ export function ParsedProblemView({
     onStarsChange !== undefined && !hasSubproblems
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
+  const showWholeProblemOccasion =
+    onOccasionChange !== undefined && !hasSubproblems
   const questionImages = problem.questionImages ?? []
   const answerImages = problem.answerImages ?? []
   const questionImagesByLetter = useMemo(
@@ -156,6 +173,13 @@ export function ParsedProblemView({
             <ProblemCompletionControl
               completed={isCompletedForLetter(completionEntries, "")}
               onChange={(completed) => onCompletedChange("", completed)}
+            />
+          ) : null}
+          {showWholeProblemOccasion ? (
+            <ProblemOccasionControl
+              occasionId={occasionIdForLetter(occasionEntries, "")}
+              options={occasionOptions}
+              onChange={(occasionId) => onOccasionChange("", occasionId)}
             />
           ) : null}
         </div>
@@ -224,6 +248,16 @@ export function ParsedProblemView({
                   isCompleted: (letter) =>
                     isCompletedForLetter(completionEntries, letter),
                   onChange: onCompletedChange,
+                }
+              : undefined
+          }
+          subproblemOccasion={
+            onOccasionChange && hasSubproblems
+              ? {
+                  options: occasionOptions,
+                  getOccasionId: (letter) =>
+                    occasionIdForLetter(occasionEntries, letter),
+                  onChange: onOccasionChange,
                 }
               : undefined
           }
