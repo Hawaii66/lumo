@@ -1,4 +1,5 @@
 import { Check } from "lucide-react"
+import { celebrateFromPoint } from "~/lib/celebrate"
 import { cn } from "~/lib/utils"
 
 export type ProblemCompletionEntry = {
@@ -97,7 +98,17 @@ export function ProblemCompletionControl({
       title={label}
       aria-label={label}
       aria-pressed={completed}
-      onClick={() => onChange(!completed)}
+      onClick={(event) => {
+        const next = !completed
+        if (next) {
+          const rect = event.currentTarget.getBoundingClientRect()
+          celebrateFromPoint(
+            (rect.left + rect.width / 2) / window.innerWidth,
+            (rect.top + rect.height / 2) / window.innerHeight,
+          )
+        }
+        onChange(next)
+      }}
       className={cn(
         "inline-flex size-8 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
