@@ -160,26 +160,10 @@ export function ParsedProblemView({
   return (
     <article className={cn("space-y-4", className)}>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
           <h2 className="text-xl font-semibold tracking-tight">
             {problem.problemNumber}
           </h2>
-          {showWholeProblemStars ? (
-            onStarsChange ? (
-              <ProblemStarsControl
-                stars={starsForLetter(starEntries, "")}
-                onChange={(stars) => onStarsChange("", stars)}
-              />
-            ) : (
-              <ProblemStarsReadonly stars={starsForLetter(starEntries, "")} />
-            )
-          ) : null}
-          {showWholeProblemCompletion ? (
-            <ProblemCompletionControl
-              completed={isCompletedForLetter(completionEntries, "")}
-              onChange={(completed) => onCompletedChange("", completed)}
-            />
-          ) : null}
           {showWholeProblemOccasion ? (
             onOccasionChange ? (
               <ProblemOccasionControl
@@ -192,6 +176,23 @@ export function ParsedProblemView({
                 label={occasionLabelForLetter(occasionEntries, "")}
               />
             )
+          ) : null}
+          {showWholeProblemStars ? (
+            onStarsChange ? (
+              <ProblemStarsControl
+                stars={starsForLetter(starEntries, "")}
+                onChange={(stars) => onStarsChange("", stars)}
+              />
+            ) : (
+              <ProblemStarsReadonly stars={starsForLetter(starEntries, "")} />
+            )
+          ) : null}
+          {showWholeProblemCompletion ? (
+            <ProblemCompletionControl
+              className="ml-auto"
+              completed={isCompletedForLetter(completionEntries, "")}
+              onChange={(completed) => onCompletedChange("", completed)}
+            />
           ) : null}
         </div>
 

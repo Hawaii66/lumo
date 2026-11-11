@@ -348,36 +348,11 @@ export function MarkdownWithMath({
               : undefined
           }
           data-lumo-subproblem={block.label}
-          className="scroll-mt-3 flex items-center gap-1.5"
+          className="scroll-mt-3 flex w-full items-center gap-1.5"
         >
           <p className="text-sm font-semibold text-muted-foreground">
             ({block.label})
           </p>
-          {subproblemStars ? (
-            subproblemStars.onChange ? (
-              <ProblemStarsControl
-                letter={letter}
-                hideLetter
-                stars={subproblemStars.getStars(letter)}
-                onChange={(stars) => subproblemStars.onChange?.(letter, stars)}
-              />
-            ) : (
-              <ProblemStarsReadonly
-                letter={letter}
-                hideLetter
-                stars={subproblemStars.getStars(letter)}
-              />
-            )
-          ) : null}
-          {subproblemCompletion ? (
-            <ProblemCompletionControl
-              letter={letter}
-              completed={subproblemCompletion.isCompleted(letter)}
-              onChange={(completed) =>
-                subproblemCompletion.onChange(letter, completed)
-              }
-            />
-          ) : null}
           {subproblemOccasion ? (
             subproblemOccasion.onChange ? (
               <ProblemOccasionControl
@@ -398,6 +373,32 @@ export function MarkdownWithMath({
                 }
               />
             )
+          ) : null}
+          {subproblemStars ? (
+            subproblemStars.onChange ? (
+              <ProblemStarsControl
+                letter={letter}
+                hideLetter
+                stars={subproblemStars.getStars(letter)}
+                onChange={(stars) => subproblemStars.onChange?.(letter, stars)}
+              />
+            ) : (
+              <ProblemStarsReadonly
+                letter={letter}
+                hideLetter
+                stars={subproblemStars.getStars(letter)}
+              />
+            )
+          ) : null}
+          {subproblemCompletion ? (
+            <ProblemCompletionControl
+              className="ml-auto"
+              letter={letter}
+              completed={subproblemCompletion.isCompleted(letter)}
+              onChange={(completed) =>
+                subproblemCompletion.onChange(letter, completed)
+              }
+            />
           ) : null}
         </div>,
       )
