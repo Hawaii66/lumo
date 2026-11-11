@@ -468,4 +468,105 @@ describe("detectProblemChunks", () => {
     expect(seven!.answerText).toContain("Derivatan")
     expect(seven!.answerText.toLowerCase()).toContain("se ovan")
   })
+
+  it("keeps three-part booklet numbers and title-block stems (TATA31 style)", () => {
+    const chunks = detectProblemChunks({
+      pages: [
+        {
+          page_idx: 0,
+          blocks: [
+            {
+              type: "paragraph_title",
+              content: [
+                { type: "text", content: "1. Linjära ekvationsystem" },
+              ],
+            },
+            {
+              type: "paragraph_title",
+              content: [{ type: "text", content: "1.2 Successiv elimination" }],
+            },
+            {
+              type: "paragraph_title",
+              content: [
+                { type: "text", content: "1.2.1. Verifiera att (sätt in)" },
+              ],
+            },
+            {
+              type: "text",
+              content: [{ type: "text", content: "(a) är en lösning" }],
+            },
+            {
+              type: "paragraph_title",
+              content: [{ type: "text", content: "1.2.2. Verifiera att" }],
+            },
+            {
+              type: "text",
+              content: [
+                {
+                  type: "text",
+                  content: "1.2.3. Uttryck på parameterform",
+                },
+              ],
+            },
+            {
+              type: "text",
+              content: [
+                { type: "text", content: "1.2.10. Lös ekvationssystemen:" },
+              ],
+            },
+          ],
+        },
+        {
+          page_idx: 1,
+          blocks: [
+            {
+              type: "text",
+              content: [{ type: "text", content: "Svar till övningarna" }],
+            },
+          ],
+        },
+        {
+          page_idx: 2,
+          blocks: [
+            {
+              type: "text",
+              content: [
+                {
+                  type: "text",
+                  content: "1.2.3. (a) T ex x = t, y = 4 − 2t",
+                },
+              ],
+            },
+            {
+              type: "text",
+              content: [
+                {
+                  type: "text",
+                  content: "1.2.10. (a) x = 1",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(chunks.map((c) => c.problemNumber)).toEqual([
+      "1.2.1",
+      "1.2.2",
+      "1.2.3",
+      "1.2.10",
+    ])
+    expect(chunks.find((c) => c.problemNumber === "1.2.1")!.problemText).toContain(
+      "Verifiera",
+    )
+    expect(chunks.some((c) => c.problemNumber === "1")).toBe(false)
+    expect(chunks.some((c) => c.problemNumber === "1.2")).toBe(false)
+    expect(chunks.find((c) => c.problemNumber === "1.2.3")!.answerText).toContain(
+      "T ex",
+    )
+    expect(
+      chunks.find((c) => c.problemNumber === "1.2.10")!.answerText,
+    ).toContain("x = 1")
+  })
 })

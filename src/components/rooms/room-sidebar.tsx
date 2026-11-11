@@ -67,6 +67,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group"
 import { unitKey } from "~/lib/occasion-label"
 import {
+  DEFAULT_PROBLEM_LIST_MODE,
   dottedProblemMajor,
   PROBLEM_LIST_MODE_LABELS,
   PROBLEM_LIST_MODES,
@@ -588,7 +589,7 @@ function TillfallenProblemList({
               }))
             }
           >
-            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
               <ChevronDown
                 className={cn(
                   "size-3.5 shrink-0 transition-transform",
@@ -748,9 +749,33 @@ function ProblemList({
   const unarchiveProblems = useMutation(
     api.PDFParse.problems.unarchiveProblemsFromRoom,
   )
-  const mode: ProblemListMode = resolveProblemListMode(
-    viewer?.problemListMode,
-    (occasions?.length ?? 0) > 0,
+  const occasionsPending = roomId !== undefined && occasions === undefined
+  const hasOccasions =
+    roomId !== undefined &&
+    occasions !== undefined &&
+    occasions.length > 0
+  const savedMode = viewer?.problemListMode
+  // Keep tillfällen visible while loading if that mode is already selected
+  // (or unset, which defaults to tillfällen), so the tab does not flicker.
+  const showTillfallenTab =
+    hasOccasions ||
+    (occasionsPending &&
+      (savedMode === "tillfallen" || savedMode == null))
+  const preferredMode = resolveProblemListMode(
+    savedMode,
+    hasOccasions ||
+      (occasionsPending && (savedMode === "tillfallen" || savedMode == null)),
+  )
+  const mode: ProblemListMode =
+    preferredMode === "tillfallen" && !showTillfallenTab
+      ? DEFAULT_PROBLEM_LIST_MODE
+      : preferredMode
+  const availableModes = useMemo(
+    () =>
+      PROBLEM_LIST_MODES.filter(
+        (value) => value !== "tillfallen" || showTillfallenTab,
+      ),
+    [showTillfallenTab],
   )
 
   const [query, setQuery] = useState("")
@@ -940,7 +965,7 @@ function ProblemList({
         role="group"
         aria-label="Uppgiftslistans vy"
       >
-        {PROBLEM_LIST_MODES.map((value) => {
+        {availableModes.map((value) => {
           const active = mode === value
           return (
             <Button
@@ -1071,7 +1096,7 @@ function ProblemList({
                 }))
               }
             >
-              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-sidebar px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+              <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
                 <ChevronDown
                   className={cn(
                     "size-3.5 shrink-0 transition-transform",
