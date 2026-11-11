@@ -1,16 +1,8 @@
 import { useMutation, useQuery } from "convex/react"
-import { ArrowDown, ArrowUp } from "lucide-react"
+import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
-import { Button } from "~/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card"
 import {
   ProblemOccasionControl,
   type ProblemOccasionOption,
@@ -20,6 +12,28 @@ import {
   starsForLetter,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
+import { Button } from "~/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select"
+import { dottedProblemMajor } from "~/lib/problem-list-mode"
+import { cn } from "~/lib/utils"
 
 type UnitKey = string
 
@@ -35,6 +49,82 @@ type OrderedUnit = {
   contentHash: string
   problemNumber: string
   subproblemLetter: string
+}
+
+type AssignableUnit = {
+  contentHash: string
+  problemNumber: string
+  subproblemLetter: string
+  problemId: Id<"problems">
+  fileId: Id<"files">
+  fileName: string
+  label: string
+  occasionId: Id<"roomOccasions"> | null
+  occasionName: string | null
+  starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>
+  completionEntries: Array<{ letter: string }>
+}
+
+const ALL_PDFS_VALUE = "__all__"
+
+function compareProblemNumbers(a: string, b: string) {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+}
+
+type ChapterBucket = {
+  major: string | null
+  label: string | null
+  units: Array<AssignableUnit>
+}
+
+function bucketUnitsByChapter(
+  units: Array<AssignableUnit>,
+): Array<ChapterBucket> {
+  const buckets = new Map<string, ChapterBucket>()
+  const order: Array<string> = []
+
+  for (const unit of units) {
+    const major = dottedProblemMajor(unit.problemNumber)
+    const key = major ?? "__flat__"
+    let bucket = buckets.get(key)
+    if (!bucket) {
+      bucket = { major, label: major, units: [] }
+      buckets.set(key, bucket)
+      order.push(key)
+    }
+    bucket.units.push(unit)
+  }
+
+  return order
+    .map((key) => buckets.get(key)!)
+    .sort((a, b) => {
+      if (a.major === null && b.major === null) return 0
+      if (a.major === null) return 1
+      if (b.major === null) return -1
+      return compareProblemNumbers(a.major, b.major)
+    })
+}
+
+type PdfGroup = {
+  fileId: Id<"files">
+  fileName: string
+  units: Array<AssignableUnit>
+}
+
+function groupUnitsByPdf(units: Array<AssignableUnit>): Array<PdfGroup> {
+  const groups = new Map<string, PdfGroup>()
+  const order: Array<string> = []
+  for (const unit of units) {
+    const key = unit.fileId
+    let group = groups.get(key)
+    if (!group) {
+      group = { fileId: unit.fileId, fileName: unit.fileName, units: [] }
+      groups.set(key, group)
+      order.push(key)
+    }
+    group.units.push(unit)
+  }
+  return order.map((key) => groups.get(key)!)
 }
 
 export function RoomProblemAssignmentsCard({
@@ -84,6 +174,11 @@ export function RoomProblemAssignmentsCard({
     Record<string, string>
   >({})
   const [savedOccasionId, setSavedOccasionId] = useState<string | null>(null)
+  const [unassignedPdfFilter, setUnassignedPdfFilter] =
+    useState<string>(ALL_PDFS_VALUE)
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<string, boolean>
+  >({})
 
   useEffect(() => {
     if (occasions === undefined) return
@@ -145,6 +240,32 @@ export function RoomProblemAssignmentsCard({
     return units.filter((unit) => unit.occasionId === null)
   }, [units])
 
+  const unassignedPdfOptions = useMemo(() => {
+    const seen = new Map<string, string>()
+    for (const unit of unassigned) {
+      if (!seen.has(unit.fileId)) {
+        seen.set(unit.fileId, unit.fileName)
+      }
+    }
+    return [...seen.entries()].map(([fileId, fileName]) => ({
+      fileId,
+      fileName,
+    }))
+  }, [unassigned])
+
+  const filteredUnassigned = useMemo(() => {
+    if (unassignedPdfFilter === ALL_PDFS_VALUE) return unassigned
+    return unassigned.filter((unit) => unit.fileId === unassignedPdfFilter)
+  }, [unassigned, unassignedPdfFilter])
+
+  useEffect(() => {
+    if (unassignedPdfFilter === ALL_PDFS_VALUE) return
+    if (unassignedPdfOptions.some((option) => option.fileId === unassignedPdfFilter)) {
+      return
+    }
+    setUnassignedPdfFilter(ALL_PDFS_VALUE)
+  }, [unassignedPdfFilter, unassignedPdfOptions])
+
   function move(occasionId: string, index: number, direction: -1 | 1) {
     setErrorByOccasion((prev) => {
       const next = { ...prev }
@@ -195,7 +316,7 @@ export function RoomProblemAssignmentsCard({
   function renderUnitRow(args: {
     key: string
     label: string
-    fileName: string
+    fileName?: string | null
     problemId: Id<"problems">
     letter: string
     stars: ProblemStars
@@ -219,9 +340,11 @@ export function RoomProblemAssignmentsCard({
         ) : null}
         <div className="min-w-0 flex-1">
           <div className="truncate font-medium">{args.label}</div>
-          <div className="truncate text-xs text-muted-foreground">
-            {args.fileName}
-          </div>
+          {args.fileName ? (
+            <div className="truncate text-xs text-muted-foreground">
+              {args.fileName}
+            </div>
+          ) : null}
         </div>
         <ProblemStarsControl
           stars={args.stars}
@@ -438,10 +561,15 @@ export function RoomProblemAssignmentsCard({
         })}
 
         <section className="space-y-2">
-          <div className="flex items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-medium">Otilldelad</h3>
             <span className="text-xs text-muted-foreground">
-              {unassigned.length} uppgift{unassigned.length === 1 ? "" : "er"}
+              {filteredUnassigned.length}
+              {unassignedPdfFilter !== ALL_PDFS_VALUE
+                ? ` av ${unassigned.length}`
+                : ""}{" "}
+              uppgift
+              {filteredUnassigned.length === 1 ? "" : "er"}
             </span>
           </div>
           {occasions.length === 0 ? (
@@ -454,26 +582,194 @@ export function RoomProblemAssignmentsCard({
               Alla uppgifter är tilldelade.
             </p>
           ) : (
-            <ul className="space-y-1 rounded-md border border-border p-2">
-              {unassigned.map((unit) =>
-                renderUnitRow({
-                  key: unitKey(
-                    unit.contentHash,
-                    unit.problemNumber,
-                    unit.subproblemLetter,
-                  ),
-                  label: unit.label,
-                  fileName: unit.fileName,
-                  problemId: unit.problemId,
-                  letter: unit.subproblemLetter,
-                  stars: starsForLetter(
-                    unit.starEntries,
-                    unit.subproblemLetter,
-                  ),
-                  occasionId: null,
-                }),
+            <div className="space-y-3">
+              {unassignedPdfOptions.length > 1 ? (
+                <Select
+                  value={unassignedPdfFilter}
+                  items={{
+                    [ALL_PDFS_VALUE]: "Alla PDF:er",
+                    ...Object.fromEntries(
+                      unassignedPdfOptions.map((option) => [
+                        option.fileId,
+                        option.fileName,
+                      ]),
+                    ),
+                  }}
+                  onValueChange={(value) => {
+                    if (value == null) return
+                    setUnassignedPdfFilter(value)
+                  }}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="w-full max-w-sm"
+                    aria-label="Filtrera otilldelade efter PDF"
+                  >
+                    <SelectValue placeholder="Välj PDF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_PDFS_VALUE}>Alla PDF:er</SelectItem>
+                    {unassignedPdfOptions.map((option) => (
+                      <SelectItem key={option.fileId} value={option.fileId}>
+                        {option.fileName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+
+              {filteredUnassigned.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Inga otilldelade uppgifter i den här PDF:en.
+                </p>
+              ) : (
+                <div className="space-y-2 rounded-md border border-border p-2">
+                  {(unassignedPdfFilter === ALL_PDFS_VALUE
+                    ? groupUnitsByPdf(filteredUnassigned)
+                    : [
+                        {
+                          fileId: filteredUnassigned[0]!
+                            .fileId,
+                          fileName: filteredUnassigned[0]!.fileName,
+                          units: filteredUnassigned,
+                        },
+                      ]
+                  ).map((pdfGroup) => {
+                    const pdfKey = `pdf:${pdfGroup.fileId}`
+                    const showPdfHeader =
+                      unassignedPdfFilter === ALL_PDFS_VALUE &&
+                      unassignedPdfOptions.length > 1
+                    const chapterBuckets = bucketUnitsByChapter(pdfGroup.units)
+                    const pdfCollapsed = collapsedSections[pdfKey] === true
+
+                    const chapterTree = (
+                      <div
+                        className={cn(
+                          "flex flex-col gap-0.5",
+                          showPdfHeader && "ml-1 border-l border-border pl-1",
+                        )}
+                      >
+                        {chapterBuckets.map((bucket) => {
+                          if (bucket.major === null || bucket.label === null) {
+                            return (
+                              <ul
+                                key={`${pdfGroup.fileId}:flat`}
+                                className="space-y-0.5"
+                              >
+                                {bucket.units.map((unit) =>
+                                  renderUnitRow({
+                                    key: unitKey(
+                                      unit.contentHash,
+                                      unit.problemNumber,
+                                      unit.subproblemLetter,
+                                    ),
+                                    label: unit.label,
+                                    problemId: unit.problemId,
+                                    letter: unit.subproblemLetter,
+                                    stars: starsForLetter(
+                                      unit.starEntries,
+                                      unit.subproblemLetter,
+                                    ),
+                                    occasionId: null,
+                                  }),
+                                )}
+                              </ul>
+                            )
+                          }
+
+                          const chapterKey = `pdf:${pdfGroup.fileId}:ch:${bucket.major}`
+                          const chapterCollapsed =
+                            collapsedSections[chapterKey] === true
+                          return (
+                            <Collapsible
+                              key={chapterKey}
+                              open={!chapterCollapsed}
+                              onOpenChange={(open) =>
+                                setCollapsedSections((prev) => ({
+                                  ...prev,
+                                  [chapterKey]: !open,
+                                }))
+                              }
+                            >
+                              <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-1 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground">
+                                <ChevronDown
+                                  className={cn(
+                                    "size-3 shrink-0 transition-transform",
+                                    chapterCollapsed && "-rotate-90",
+                                  )}
+                                />
+                                <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
+                                  {bucket.label}
+                                </span>
+                                <span className="shrink-0 text-[10px] font-medium normal-case tabular-nums text-muted-foreground">
+                                  {bucket.units.length}
+                                </span>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <ul className="mt-0.5 ml-1 space-y-0.5 border-l border-border pl-1">
+                                  {bucket.units.map((unit) =>
+                                    renderUnitRow({
+                                      key: unitKey(
+                                        unit.contentHash,
+                                        unit.problemNumber,
+                                        unit.subproblemLetter,
+                                      ),
+                                      label: unit.label,
+                                      problemId: unit.problemId,
+                                      letter: unit.subproblemLetter,
+                                      stars: starsForLetter(
+                                        unit.starEntries,
+                                        unit.subproblemLetter,
+                                      ),
+                                      occasionId: null,
+                                    }),
+                                  )}
+                                </ul>
+                              </CollapsibleContent>
+                            </Collapsible>
+                          )
+                        })}
+                      </div>
+                    )
+
+                    if (!showPdfHeader) {
+                      return (
+                        <div key={pdfGroup.fileId}>{chapterTree}</div>
+                      )
+                    }
+
+                    return (
+                      <Collapsible
+                        key={pdfGroup.fileId}
+                        open={!pdfCollapsed}
+                        onOpenChange={(open) =>
+                          setCollapsedSections((prev) => ({
+                            ...prev,
+                            [pdfKey]: !open,
+                          }))
+                        }
+                      >
+                        <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-1 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted/50 hover:text-foreground">
+                          <ChevronDown
+                            className={cn(
+                              "size-3.5 shrink-0 transition-transform",
+                              pdfCollapsed && "-rotate-90",
+                            )}
+                          />
+                          <span className="min-w-0 flex-1 truncate normal-case">
+                            {pdfGroup.fileName}
+                          </span>
+                          <span className="shrink-0 text-[10px] font-medium normal-case tabular-nums">
+                            {pdfGroup.units.length}
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>{chapterTree}</CollapsibleContent>
+                      </Collapsible>
+                    )
+                  })}
+                </div>
               )}
-            </ul>
+            </div>
           )}
         </section>
       </CardContent>
