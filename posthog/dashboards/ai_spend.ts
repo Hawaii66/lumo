@@ -98,7 +98,7 @@ ORDER BY day
 export default dashboard({
   key: "ai_spend",
   name: "Lumo AI spend",
-  description: "Product ai_usage cost plus $ai_generation observability traces",
+  description: "Product ai_usage cost and $ai_generation observability traces",
   pinned: true,
   tags: ["lumo", "ai"],
   tiles: [

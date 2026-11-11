@@ -94,7 +94,7 @@ ORDER BY users DESC
 export default dashboard({
   key: "activation",
   name: "Lumo activation",
-  description: "Visit → signup → room → message funnel and daily activation metrics",
+  description: "Visit → signup → room → message activation metrics",
   pinned: true,
   tags: ["lumo", "activation"],
   tiles: [

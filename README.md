@@ -120,4 +120,6 @@ Produktanalytics (frontend + Convex) + AI Observability + Definitions-dashboards
 
 `posthog:apply` / `posthog:dry` laddar `.env.local` via `scripts/posthog-definitions.mjs`. Om `POSTHOG_HOST` är ingestion-URL (`*.i.posthog.com`) skrivs den om till app-host automatiskt.
 
+`posthog:apply` kör också `posthog:fix-tiles` (workaround för [posthog-definitions#13](https://github.com/PostHog/posthog-definitions/issues/13) — insight-tiles droppas annars tyst).
+
 `npm run deploy` kör `posthog:apply` efter Convex/build (innan Wrangler) — sätt Definitions-env till **lumo-prod** i den miljön. Lokalt synkar du **lumo-dev** med `npm run posthog:apply` / `posthog:dry`.

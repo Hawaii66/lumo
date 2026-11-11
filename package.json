@@ -17,8 +17,9 @@
     "format": "prettier --write .",
     "lint": "npm run typecheck && eslint .  --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run",
-    "posthog:apply": "node ./scripts/posthog-definitions.mjs apply",
-    "posthog:dry": "node ./scripts/posthog-definitions.mjs apply --dry-run"
+    "posthog:apply": "node ./scripts/posthog-definitions.mjs apply && node ./scripts/posthog-fix-dashboard-tiles.mjs",
+    "posthog:dry": "node ./scripts/posthog-definitions.mjs apply --dry-run",
+    "posthog:fix-tiles": "node ./scripts/posthog-fix-dashboard-tiles.mjs"
   },
   "dependencies": {
     "@auth/core": "^0.41.1",

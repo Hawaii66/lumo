@@ -79,7 +79,7 @@ LIMIT 25
 export default dashboard({
   key: "credits",
   name: "Lumo credits",
-  description: "Credit spend, grants, purchases, and refunds",
+  description: "Credit spend, grants, purchases and refunds",
   pinned: true,
   tags: ["lumo", "credits"],
   tiles: [
