@@ -4,6 +4,7 @@ import { routerWithQueryClient } from '@tanstack/react-router-with-query'
 import { ConvexQueryClient } from '@convex-dev/react-query'
 import { ConvexAuthProvider } from '@convex-dev/auth/react'
 import { PostHogProvider } from '~/components/posthog-provider'
+import { getPostHogClient } from '~/lib/posthog'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
@@ -31,9 +32,14 @@ export function getRouter() {
       context: { queryClient },
       scrollRestoration: true,
       defaultPreloadStaleTime: 0, // Let React Query handle all caching
-      defaultErrorComponent: ({ error }) => (
-        <p>{error instanceof Error ? error.stack : String(error)}</p>
-      ),
+      defaultErrorComponent: ({ error }) => {
+        getPostHogClient()?.captureException(
+          error instanceof Error ? error : new Error(String(error)),
+        )
+        return (
+          <p>{error instanceof Error ? error.stack : String(error)}</p>
+        )
+      },
       defaultNotFoundComponent: () => <p>not found</p>,
       Wrap: ({ children }) => (
         <ConvexAuthProvider client={convexQueryClient.convexClient}>

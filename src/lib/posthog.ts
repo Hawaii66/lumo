@@ -17,10 +17,16 @@ export function getPostHogClient() {
       import.meta.env.VITE_POSTHOG_HOST ?? "https://eu.i.posthog.com"
     posthog.init(token, {
       api_host: host,
+      defaults: "2026-08-30",
       capture_pageview: true,
       capture_pageleave: true,
       persistence: "localStorage+cookie",
-      disable_session_recording: true,
+      // Also enable "Exception autocapture" in PostHog → Error tracking settings.
+      capture_exceptions: {
+        capture_unhandled_errors: true,
+        capture_unhandled_rejections: true,
+        capture_console_errors: false,
+      },
     })
     initialized = true
   }

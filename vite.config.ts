@@ -9,6 +9,10 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  build: {
+    // Needed for PostHog Error Tracking readable stack traces (upload maps in CI later).
+    sourcemap: true,
+  },
   plugins: [
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tailwindcss(),

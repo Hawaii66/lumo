@@ -123,3 +123,5 @@ Produktanalytics (frontend + Convex) + AI Observability + Definitions-dashboards
 `posthog:apply` kör också `posthog:fix-tiles` (workaround för [posthog-definitions#13](https://github.com/PostHog/posthog-definitions/issues/13) — insight-tiles droppas annars tyst).
 
 `npm run deploy` kör `posthog:apply` efter Convex/build (innan Wrangler) — sätt Definitions-env till **lumo-prod** i den miljön. Lokalt synkar du **lumo-dev** med `npm run posthog:apply` / `posthog:dry`.
+
+**Error tracking:** frontend har `capture_exceptions` + `PostHogErrorBoundary`. Slå på **Exception autocapture** under PostHog → Error tracking settings. Source maps genereras vid `vite build` (`build.sourcemap`); ladda upp dem i CI med `posthog-cli` / `@posthog/rollup-plugin` för läsbara stack traces i prod.

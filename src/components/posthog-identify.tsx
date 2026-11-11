@@ -15,7 +15,18 @@ export function PostHogIdentify() {
       return
     }
 
-    client.identify(viewer._id)
+    const properties: Record<string, string> = {}
+    if (viewer.email != null && viewer.email.length > 0) {
+      properties.email = viewer.email
+    }
+    if (viewer.name != null && viewer.name.length > 0) {
+      properties.name = viewer.name
+    }
+
+    client.identify(
+      viewer._id,
+      Object.keys(properties).length > 0 ? properties : undefined,
+    )
 
     const createdAgo = Date.now() - viewer._creationTime
     if (createdAgo >= 0 && createdAgo <= SIGNUP_WINDOW_MS) {
