@@ -151,18 +151,44 @@ function compareUnits(
     problemNumber: string;
     subproblemLetter: string;
     fileName?: string | null;
+    sortOrder?: number | null;
   },
   b: {
     problemNumber: string;
     subproblemLetter: string;
     fileName?: string | null;
+    sortOrder?: number | null;
   },
 ): number {
+  const aOrder = a.sortOrder ?? undefined;
+  const bOrder = b.sortOrder ?? undefined;
+  if (aOrder !== undefined && bOrder !== undefined && aOrder !== bOrder) {
+    return aOrder - bOrder;
+  }
+  if (aOrder !== undefined && bOrder === undefined) return -1;
+  if (aOrder === undefined && bOrder !== undefined) return 1;
   const fileCmp = (a.fileName ?? "").localeCompare(b.fileName ?? "", "sv");
   if (fileCmp !== 0) return fileCmp;
   const numCmp = compareProblemNumbers(a.problemNumber, b.problemNumber);
   if (numCmp !== 0) return numCmp;
   return a.subproblemLetter.localeCompare(b.subproblemLetter);
+}
+
+async function nextSortOrderForOccasion(
+  ctx: MutationCtx,
+  occasionId: Id<"roomOccasions">,
+): Promise<number> {
+  const rows = await ctx.db
+    .query("roomOccasionAssignments")
+    .withIndex("by_occasion", (q) => q.eq("occasionId", occasionId))
+    .take(MAX_ASSIGNMENTS_PER_OCCASION);
+  let max = -1;
+  for (const row of rows) {
+    if (row.sortOrder !== undefined && row.sortOrder > max) {
+      max = row.sortOrder;
+    }
+  }
+  return max + 1;
 }
 
 async function loadArchivedContentHashes(
@@ -272,6 +298,7 @@ export const listByRoom = query({
         problemId: Id<"problems"> | null;
         fileName: string | null;
         label: string;
+        sortOrder: number | null;
       }>
     >();
     for (const row of assignmentRows) {
@@ -286,6 +313,7 @@ export const listByRoom = query({
           null,
         fileName: fileNameByHash.get(row.contentHash) ?? null,
         label: unitLabel(row.problemNumber, letter),
+        sortOrder: row.sortOrder ?? null,
       });
       byOccasion.set(row.occasionId, list);
     }
@@ -299,7 +327,9 @@ export const listByRoom = query({
       date: occasion.date,
       sortOrder: occasion.sortOrder ?? null,
       label: formatOccasionLabel(occasion.name, occasion.date),
-      assignments: byOccasion.get(occasion._id) ?? [],
+      assignments: (byOccasion.get(occasion._id) ?? []).map(
+        ({ sortOrder: _sortOrder, ...assignment }) => assignment,
+      ),
     }));
   },
 });
@@ -566,18 +596,22 @@ export const setAssignment = mutation({
     );
     if (existing !== null) {
       if (existing.occasionId === args.occasionId) return null;
+      const sortOrder = await nextSortOrderForOccasion(ctx, args.occasionId);
       await ctx.db.patch("roomOccasionAssignments", existing._id, {
         occasionId: args.occasionId,
+        sortOrder,
       });
       return null;
     }
 
+    const sortOrder = await nextSortOrderForOccasion(ctx, args.occasionId);
     await ctx.db.insert("roomOccasionAssignments", {
       roomId: args.roomId,
       occasionId: args.occasionId,
       contentHash: unit.contentHash,
       problemNumber: unit.problemNumber,
       subproblemLetter: unit.subproblemLetter,
+      sortOrder,
     });
     return null;
   },
@@ -772,19 +806,83 @@ export const setForProblem = mutation({
     );
     if (existing !== null) {
       if (existing.occasionId === args.occasionId) return null;
+      const sortOrder = await nextSortOrderForOccasion(ctx, args.occasionId);
       await ctx.db.patch("roomOccasionAssignments", existing._id, {
         occasionId: args.occasionId,
+        sortOrder,
       });
       return null;
     }
 
+    const sortOrder = await nextSortOrderForOccasion(ctx, args.occasionId);
     await ctx.db.insert("roomOccasionAssignments", {
       roomId: args.roomId,
       occasionId: args.occasionId,
       contentHash,
       problemNumber: problem.problemNumber,
       subproblemLetter: letter,
+      sortOrder,
     });
+    return null;
+  },
+});
+
+/**
+ * Persist manual order of units within one tillfälle (contiguous 0..n-1).
+ */
+export const setAssignmentOrder = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    occasionId: v.id("roomOccasions"),
+    units: v.array(assignmentUnitValidator),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireRoomMember(ctx, args.roomId);
+    const occasion = await ctx.db.get("roomOccasions", args.occasionId);
+    if (occasion === null || occasion.roomId !== args.roomId) {
+      throw new Error("Tillfället hittades inte");
+    }
+    if (args.units.length > MAX_ASSIGNMENTS_PER_OCCASION) {
+      throw new Error("För många uppgifter på ett tillfälle");
+    }
+
+    const currentOnOccasion = await ctx.db
+      .query("roomOccasionAssignments")
+      .withIndex("by_occasion", (q) => q.eq("occasionId", args.occasionId))
+      .take(MAX_ASSIGNMENTS_PER_OCCASION);
+    const byKey = new Map<string, (typeof currentOnOccasion)[number]>();
+    for (const row of currentOnOccasion) {
+      const letter = normalizeStoredLetter(row.subproblemLetter);
+      byKey.set(
+        `${row.contentHash}\0${row.problemNumber}\0${letter}`,
+        row,
+      );
+    }
+
+    if (args.units.length !== currentOnOccasion.length) {
+      throw new Error("Ordningen måste innehålla alla uppgifter på tillfället");
+    }
+
+    const seen = new Set<string>();
+    for (let index = 0; index < args.units.length; index++) {
+      const unit = normalizeUnitArgs(args.units[index]!);
+      const key = `${unit.contentHash}\0${unit.problemNumber}\0${unit.subproblemLetter}`;
+      if (seen.has(key)) {
+        throw new Error("Duplicerade uppgifter i ordningen");
+      }
+      seen.add(key);
+      const row = byKey.get(key);
+      if (row === undefined) {
+        throw new Error("Uppgiften tillhör inte tillfället");
+      }
+      if (row.sortOrder !== index) {
+        await ctx.db.patch("roomOccasionAssignments", row._id, {
+          sortOrder: index,
+        });
+      }
+    }
+
     return null;
   },
 });
@@ -814,12 +912,17 @@ export const replaceOccasionAssignments = mutation({
       string,
       { contentHash: string; problemNumber: string; subproblemLetter: string }
     >();
+    const orderedUnits: Array<{
+      contentHash: string;
+      problemNumber: string;
+      subproblemLetter: string;
+    }> = [];
     for (const raw of args.units) {
       const unit = normalizeUnitArgs(raw);
-      desired.set(
-        `${unit.contentHash}\0${unit.problemNumber}\0${unit.subproblemLetter}`,
-        unit,
-      );
+      const key = `${unit.contentHash}\0${unit.problemNumber}\0${unit.subproblemLetter}`;
+      if (desired.has(key)) continue;
+      desired.set(key, unit);
+      orderedUnits.push(unit);
     }
 
     const currentOnOccasion = await ctx.db
@@ -835,7 +938,8 @@ export const replaceOccasionAssignments = mutation({
       }
     }
 
-    for (const unit of desired.values()) {
+    for (let index = 0; index < orderedUnits.length; index++) {
+      const unit = orderedUnits[index]!;
       const existing = await findAssignment(
         ctx,
         args.roomId,
@@ -850,14 +954,18 @@ export const replaceOccasionAssignments = mutation({
           contentHash: unit.contentHash,
           problemNumber: unit.problemNumber,
           subproblemLetter: unit.subproblemLetter,
+          sortOrder: index,
         });
         continue;
       }
+      const patch: {
+        occasionId?: Id<"roomOccasions">;
+        sortOrder: number;
+      } = { sortOrder: index };
       if (existing.occasionId !== args.occasionId) {
-        await ctx.db.patch("roomOccasionAssignments", existing._id, {
-          occasionId: args.occasionId,
-        });
+        patch.occasionId = args.occasionId;
       }
+      await ctx.db.patch("roomOccasionAssignments", existing._id, patch);
     }
 
     return null;

@@ -27,6 +27,45 @@ export function occasionIdForLetter(
   return entry?.occasionId ?? null
 }
 
+export function occasionLabelForLetter(
+  entries: Array<ProblemOccasionEntry>,
+  letter: string,
+): string | null {
+  const entry = entries.find((row) => row.letter === letter)
+  return entry?.occasionLabel ?? null
+}
+
+type ProblemOccasionReadonlyProps = {
+  label: string | null
+  letter?: string
+  className?: string
+}
+
+/** Read-only tillfälle label for the problem detail view. */
+export function ProblemOccasionReadonly({
+  label,
+  letter,
+  className,
+}: ProblemOccasionReadonlyProps) {
+  if (label === null) return null
+  const scope =
+    letter !== undefined && letter !== ""
+      ? `deluppgift (${letter})`
+      : "uppgiften"
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 max-w-40 items-center truncate rounded-md border border-sky-600/40 bg-sky-500/10 px-1.5 text-[10px] font-medium text-sky-800 dark:text-sky-200",
+        className,
+      )}
+      title={`Tillfälle för ${scope}: ${label}`}
+      aria-label={`Tillfälle för ${scope}: ${label}`}
+    >
+      {label}
+    </span>
+  )
+}
+
 const NONE_VALUE = "__none__"
 
 type ProblemOccasionControlProps = {

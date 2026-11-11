@@ -71,6 +71,7 @@ import {
   dottedProblemMajor,
   PROBLEM_LIST_MODE_LABELS,
   PROBLEM_LIST_MODES,
+  resolveProblemListMode,
   type ProblemListMode,
 } from "~/lib/problem-list-mode"
 import { cn } from "~/lib/utils"
@@ -737,11 +738,11 @@ function ProblemList({
   onOpenOccasions?: () => void
 }) {
   const viewer = useQuery(api.users.viewer)
+  const updateProblemListMode = useMutation(api.users.updateProblemListMode)
   const occasions = useQuery(
     api.roomOccasions.listByRoom,
     roomId !== undefined ? { roomId } : "skip",
   )
-  const updateProblemListMode = useMutation(api.users.updateProblemListMode)
   const archiveProblems = useMutation(
     api.PDFParse.problems.archiveProblemsFromRoom,
   )
@@ -753,16 +754,22 @@ function ProblemList({
     roomId !== undefined &&
     occasions !== undefined &&
     occasions.length > 0
-  const savedMode: ProblemListMode =
-    viewer?.problemListMode ?? DEFAULT_PROBLEM_LIST_MODE
-  // Keep tillfällen visible while loading if that mode is already selected,
-  // so the tab does not flicker away and back.
+  const savedMode = viewer?.problemListMode
+  // Keep tillfällen visible while loading if that mode is already selected
+  // (or unset, which defaults to tillfällen), so the tab does not flicker.
   const showTillfallenTab =
-    hasOccasions || (occasionsPending && savedMode === "tillfallen")
+    hasOccasions ||
+    (occasionsPending &&
+      (savedMode === "tillfallen" || savedMode == null))
+  const preferredMode = resolveProblemListMode(
+    savedMode,
+    hasOccasions ||
+      (occasionsPending && (savedMode === "tillfallen" || savedMode == null)),
+  )
   const mode: ProblemListMode =
-    savedMode === "tillfallen" && !showTillfallenTab
+    preferredMode === "tillfallen" && !showTillfallenTab
       ? DEFAULT_PROBLEM_LIST_MODE
-      : savedMode
+      : preferredMode
   const availableModes = useMemo(
     () =>
       PROBLEM_LIST_MODES.filter(

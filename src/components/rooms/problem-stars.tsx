@@ -109,6 +109,60 @@ export function ProblemStarsDisplay({
   )
 }
 
+type ProblemStarsReadonlyProps = {
+  stars: ProblemStars
+  letter?: string
+  /** When true, letter is rendered by the parent (e.g. subproblem heading). */
+  hideLetter?: boolean
+  className?: string
+}
+
+/** Read-only star level for the problem detail view. */
+export function ProblemStarsReadonly({
+  stars,
+  letter,
+  hideLetter = false,
+  className,
+}: ProblemStarsReadonlyProps) {
+  if (stars === 0) return null
+
+  const scope =
+    letter !== undefined && letter !== "" ? `deluppgift (${letter})` : "uppgiften"
+  const label = `${starCountLabel(stars)} för ${scope}`
+
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center gap-0.5 rounded-md px-1 py-0.5",
+        className,
+      )}
+      title={label}
+      aria-label={label}
+    >
+      {!hideLetter && letter !== undefined && letter !== "" ? (
+        <span className="mr-0.5 text-xs font-semibold text-muted-foreground">
+          {letter}
+        </span>
+      ) : null}
+      {([1, 2, 3] as const).map((n) => {
+        const filled = n <= stars
+        return (
+          <Star
+            key={n}
+            className={cn(
+              "size-3.5",
+              filled
+                ? "fill-amber-500 text-amber-500"
+                : "fill-none text-muted-foreground/50",
+            )}
+            aria-hidden
+          />
+        )
+      })}
+    </span>
+  )
+}
+
 type ProblemStarsControlProps = {
   stars: ProblemStars
   onChange: (stars: ProblemStars) => void
