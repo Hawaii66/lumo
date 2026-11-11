@@ -467,6 +467,8 @@ export const deleteCascade = internalMutation({
       v.literal("shadows"),
       v.literal("stars"),
       v.literal("completions"),
+      v.literal("occasionAssignments"),
+      v.literal("occasions"),
       v.literal("files"),
       v.literal("cells"),
       v.literal("archivedProblems"),
@@ -568,6 +570,50 @@ export const deleteCascade = internalMutation({
         await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
           roomId,
           phase: "completions",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "occasionAssignments",
+      });
+      return null;
+    }
+
+    if (phase === "occasionAssignments") {
+      const assignments = await ctx.db
+        .query("roomOccasionAssignments")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const row of assignments) {
+        await ctx.db.delete("roomOccasionAssignments", row._id);
+      }
+      if (assignments.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "occasionAssignments",
+        });
+        return null;
+      }
+      await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+        roomId,
+        phase: "occasions",
+      });
+      return null;
+    }
+
+    if (phase === "occasions") {
+      const occasions = await ctx.db
+        .query("roomOccasions")
+        .withIndex("by_room", (q) => q.eq("roomId", roomId))
+        .take(DELETE_BATCH);
+      for (const row of occasions) {
+        await ctx.db.delete("roomOccasions", row._id);
+      }
+      if (occasions.length === DELETE_BATCH) {
+        await ctx.scheduler.runAfter(0, internal.rooms.deleteCascade, {
+          roomId,
+          phase: "occasions",
         });
         return null;
       }

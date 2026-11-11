@@ -28,6 +28,11 @@ export function hasSubproblemHeadings(markdown: string): boolean {
   return listSubproblemHeadingLines(markdown).length > 0;
 }
 
+/** Deluppgift letters (`a`–`z`) in heading order; empty when none. */
+export function listSubproblemLetters(markdown: string): Array<string> {
+  return listSubproblemHeadingLines(markdown).map((heading) => heading.letter);
+}
+
 /**
  * Stem (shared intro before the first ### (x)) + the block for `letter`,
  * through the line before the next deluppgift heading.

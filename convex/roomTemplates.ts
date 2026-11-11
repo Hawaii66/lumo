@@ -11,6 +11,8 @@ const MAX_TEMPLATES_SEARCH = 30;
 const MAX_INFO_CELLS = 200;
 const MAX_TEMPLATES_PER_SOURCE = 50;
 const MAX_PROBLEM_STARS = 500 * MAX_FILES_PER_ROOM;
+const MAX_OCCASIONS = 100;
+const MAX_OCCASION_ASSIGNMENTS = 500 * MAX_FILES_PER_ROOM * 26;
 
 const templateSummaryValidator = v.object({
   _id: v.id("roomTemplates"),
@@ -49,6 +51,16 @@ export const publishFromRoom = mutation({
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
       .take(MAX_PROBLEM_STARS);
 
+    const occasions = await ctx.db
+      .query("roomOccasions")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_OCCASIONS);
+
+    const occasionAssignments = await ctx.db
+      .query("roomOccasionAssignments")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_OCCASION_ASSIGNMENTS);
+
     const templateId = await ctx.db.insert("roomTemplates", {
       sourceRoomId: args.roomId,
       publisherId: userId,
@@ -85,6 +97,36 @@ export const publishFromRoom = mutation({
         problemNumber: star.problemNumber,
         subproblemLetter: star.subproblemLetter ?? "",
         stars: star.stars,
+      });
+    }
+
+    const templateOccasionBySource = new Map<
+      Id<"roomOccasions">,
+      Id<"roomTemplateOccasions">
+    >();
+    for (const occasion of occasions) {
+      const templateOccasionId = await ctx.db.insert("roomTemplateOccasions", {
+        templateId,
+        name: occasion.name,
+        date: occasion.date,
+        ...(occasion.sortOrder !== undefined
+          ? { sortOrder: occasion.sortOrder }
+          : {}),
+      });
+      templateOccasionBySource.set(occasion._id, templateOccasionId);
+    }
+
+    for (const assignment of occasionAssignments) {
+      const templateOccasionId = templateOccasionBySource.get(
+        assignment.occasionId,
+      );
+      if (templateOccasionId === undefined) continue;
+      await ctx.db.insert("roomTemplateOccasionAssignments", {
+        templateId,
+        templateOccasionId,
+        contentHash: assignment.contentHash,
+        problemNumber: assignment.problemNumber,
+        subproblemLetter: assignment.subproblemLetter ?? "",
       });
     }
 
@@ -346,6 +388,44 @@ export const clone = mutation({
         problemNumber: star.problemNumber,
         subproblemLetter: star.subproblemLetter ?? "",
         stars: star.stars,
+      });
+    }
+
+    const templateOccasions = await ctx.db
+      .query("roomTemplateOccasions")
+      .withIndex("by_template", (q) => q.eq("templateId", args.templateId))
+      .take(MAX_OCCASIONS);
+    const roomOccasionByTemplate = new Map<
+      Id<"roomTemplateOccasions">,
+      Id<"roomOccasions">
+    >();
+    for (const occasion of templateOccasions) {
+      const occasionId = await ctx.db.insert("roomOccasions", {
+        roomId,
+        name: occasion.name,
+        date: occasion.date,
+        ...(occasion.sortOrder !== undefined
+          ? { sortOrder: occasion.sortOrder }
+          : {}),
+      });
+      roomOccasionByTemplate.set(occasion._id, occasionId);
+    }
+
+    const templateAssignments = await ctx.db
+      .query("roomTemplateOccasionAssignments")
+      .withIndex("by_template", (q) => q.eq("templateId", args.templateId))
+      .take(MAX_OCCASION_ASSIGNMENTS);
+    for (const assignment of templateAssignments) {
+      const occasionId = roomOccasionByTemplate.get(
+        assignment.templateOccasionId,
+      );
+      if (occasionId === undefined) continue;
+      await ctx.db.insert("roomOccasionAssignments", {
+        roomId,
+        occasionId,
+        contentHash: assignment.contentHash,
+        problemNumber: assignment.problemNumber,
+        subproblemLetter: assignment.subproblemLetter ?? "",
       });
     }
 

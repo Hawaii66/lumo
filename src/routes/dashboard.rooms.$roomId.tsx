@@ -68,6 +68,7 @@ function RoomPage() {
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
   const setProblemStars = useMutation(api.PDFParse.problems.setStars)
   const setProblemCompleted = useMutation(api.PDFParse.problems.setCompleted)
+  const setProblemOccasion = useMutation(api.roomOccasions.setForProblem)
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
 
@@ -121,6 +122,15 @@ function RoomPage() {
 
   const selectedProblem = useQuery(
     api.PDFParse.problems.getForRoom,
+    selectedProblemId && section === "problems"
+      ? { roomId: typedRoomId, problemId: selectedProblemId }
+      : "skip",
+  )
+  const roomOccasions = useQuery(api.roomOccasions.listByRoom, {
+    roomId: typedRoomId,
+  })
+  const selectedProblemOccasionEntries = useQuery(
+    api.roomOccasions.listEntriesForProblem,
     selectedProblemId && section === "problems"
       ? { roomId: typedRoomId, problemId: selectedProblemId }
       : "skip",
@@ -228,6 +238,15 @@ function RoomPage() {
     }
     return []
   }, [problemGroupItems, selectedProblemId])
+
+  const occasionOptions = useMemo(
+    () =>
+      (roomOccasions ?? []).map((occasion) => ({
+        id: occasion._id,
+        label: occasion.label,
+      })),
+    [roomOccasions],
+  )
 
   const subproblemLetters = useMemo(() => {
     const question = selectedProblem?.problem.question
@@ -410,6 +429,13 @@ function RoomPage() {
           }}
           onOpenProblemPdfOrder={() => {
             setSettingsFocus("problemPdfOrder")
+            setSection("settings")
+            setSelectedThreadId(null)
+            setIsDraftChat(false)
+            setSelectedProblemId(null)
+          }}
+          onOpenOccasions={() => {
+            setSettingsFocus("occasions")
             setSection("settings")
             setSelectedThreadId(null)
             setIsDraftChat(false)
@@ -741,6 +767,30 @@ function RoomPage() {
                             roomId: typedRoomId,
                             problemId: selectedProblem.id,
                             completed,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
+                  occasionOptions={
+                    selectedProblem.isShadow ? [] : occasionOptions
+                  }
+                  occasionEntries={
+                    selectedProblem.isShadow
+                      ? []
+                      : (selectedProblemOccasionEntries ?? [])
+                  }
+                  onOccasionChange={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter, occasionId) => {
+                          void setProblemOccasion({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            occasionId:
+                              occasionId === null
+                                ? null
+                                : (occasionId as Id<"roomOccasions">),
                             subproblemLetter:
                               letter === "" ? undefined : letter,
                           })

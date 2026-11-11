@@ -1,10 +1,11 @@
-export const PROBLEM_LIST_MODES = ["list", "tree"] as const
+export const PROBLEM_LIST_MODES = ["list", "tree", "tillfallen"] as const
 
 export type ProblemListMode = (typeof PROBLEM_LIST_MODES)[number]
 
 export const PROBLEM_LIST_MODE_LABELS: Record<ProblemListMode, string> = {
   list: "Lista",
   tree: "Träd",
+  tillfallen: "Tillfällen",
 }
 
 export const DEFAULT_PROBLEM_LIST_MODE: ProblemListMode = "list"

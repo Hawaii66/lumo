@@ -3,6 +3,10 @@ import { Highlighter } from "lucide-react"
 import { StaticMath } from "~/components/lumo/static-math"
 import { ProblemCompletionControl } from "~/components/rooms/problem-completion"
 import {
+  ProblemOccasionControl,
+  type ProblemOccasionOption,
+} from "~/components/rooms/problem-occasion"
+import {
   ProblemStarsControl,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
@@ -30,6 +34,12 @@ type MarkdownWithMathProps = {
   subproblemCompletion?: {
     isCompleted: (letter: string) => boolean
     onChange: (letter: string, completed: boolean) => void
+  }
+  /** When set, tillfälle pickers appear on deluppgift labels. */
+  subproblemOccasion?: {
+    options: Array<ProblemOccasionOption>
+    getOccasionId: (letter: string) => string | null
+    onChange: (letter: string, occasionId: string | null) => void
   }
   /**
    * Images keyed by deluppgift letter (`""` = shared stem before first
@@ -288,6 +298,7 @@ export function MarkdownWithMath({
   className,
   subproblemStars,
   subproblemCompletion,
+  subproblemOccasion,
   imagesByLetter,
   renderImages,
 }: MarkdownWithMathProps) {
@@ -353,6 +364,16 @@ export function MarkdownWithMath({
               completed={subproblemCompletion.isCompleted(letter)}
               onChange={(completed) =>
                 subproblemCompletion.onChange(letter, completed)
+              }
+            />
+          ) : null}
+          {subproblemOccasion ? (
+            <ProblemOccasionControl
+              letter={letter}
+              occasionId={subproblemOccasion.getOccasionId(letter)}
+              options={subproblemOccasion.options}
+              onChange={(occasionId) =>
+                subproblemOccasion.onChange(letter, occasionId)
               }
             />
           ) : null}

@@ -58,6 +58,7 @@ import type * as pdfExtracts from "../pdfExtracts.js";
 import type * as pdfMerges from "../pdfMerges.js";
 import type * as pdfTools from "../pdfTools.js";
 import type * as roles from "../roles.js";
+import type * as roomOccasions from "../roomOccasions.js";
 import type * as roomTemplates from "../roomTemplates.js";
 import type * as rooms from "../rooms.js";
 import type * as scanSessions from "../scanSessions.js";
@@ -122,6 +123,7 @@ declare const fullApi: ApiFromModules<{
   pdfMerges: typeof pdfMerges;
   pdfTools: typeof pdfTools;
   roles: typeof roles;
+  roomOccasions: typeof roomOccasions;
   roomTemplates: typeof roomTemplates;
   rooms: typeof rooms;
   scanSessions: typeof scanSessions;
