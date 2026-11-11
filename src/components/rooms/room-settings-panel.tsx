@@ -5,7 +5,6 @@ import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { Skeleton } from "~/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
-import { cn } from "~/lib/utils"
 import { ArchivedThreadsCard } from "./room-settings/archived-threads-card"
 import { CourseInfoCellsCard } from "./room-settings/course-info-cells-card"
 import { ProblemPdfOrderCard } from "./room-settings/problem-pdf-order-card"
@@ -91,12 +90,7 @@ export function RoomSettingsPanel({
   }
 
   return (
-    <div
-      className={cn(
-        "mx-auto flex w-full flex-col gap-6",
-        tab === "problems" ? "max-w-3xl" : "max-w-2xl",
-      )}
-    >
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <div>
         <h2 className="text-lg font-medium">Inställningar</h2>
         <p className="mt-1 text-sm text-muted-foreground">
