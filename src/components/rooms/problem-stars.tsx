@@ -124,12 +124,11 @@ export function ProblemStarsReadonly({
   hideLetter = false,
   className,
 }: ProblemStarsReadonlyProps) {
+  if (stars === 0) return null
+
   const scope =
     letter !== undefined && letter !== "" ? `deluppgift (${letter})` : "uppgiften"
-  const label =
-    stars === 0
-      ? `Inga stjärnor för ${scope}`
-      : `${starCountLabel(stars)} för ${scope}`
+  const label = `${starCountLabel(stars)} för ${scope}`
 
   return (
     <span
