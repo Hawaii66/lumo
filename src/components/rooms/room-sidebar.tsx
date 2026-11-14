@@ -577,7 +577,7 @@ function TillfallenProblemList({
   return (
     <div className="flex flex-col gap-0.5">
       {occasionBuckets.map((bucket) => {
-        const isCollapsed = collapsed[`occasion:${bucket.id}`] === true
+        const isCollapsed = collapsed[`occasion:${bucket.id}`] !== false
         return (
           <Collapsible
             key={bucket.id}
