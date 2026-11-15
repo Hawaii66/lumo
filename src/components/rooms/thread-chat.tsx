@@ -3,7 +3,7 @@ import {
   useUIMessages,
 } from "@convex-dev/agent/react"
 import { useMutation } from "convex/react"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ChevronsDown, ChevronsUp } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -105,7 +105,10 @@ export function ThreadChat({
   const [modePending, setModePending] = useState(false)
   const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [canJumpStart, setCanJumpStart] = useState(false)
+  const [canJumpEnd, setCanJumpEnd] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollContentRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<ChatInputHandle>(null)
   const messageNodeRefs = useRef(new Map<string, HTMLLIElement>())
   const scrolledToReplyKeyRef = useRef<string | null>(null)
@@ -206,6 +209,50 @@ export function ThreadChat({
     container.scrollTo({ top: Math.max(0, top), behavior })
     return true
   }
+
+  function updateJumpAvailability() {
+    const container = scrollRef.current
+    if (!container) {
+      setCanJumpStart(false)
+      setCanJumpEnd(false)
+      return
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = container
+    const overflow = scrollHeight - clientHeight > 8
+    setCanJumpStart(overflow && scrollTop > 8)
+    setCanJumpEnd(overflow && scrollTop < scrollHeight - clientHeight - 8)
+  }
+
+  function jumpToStart() {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function jumpToEnd() {
+    const container = scrollRef.current
+    if (!container) return
+    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+
+    updateJumpAvailability()
+    container.addEventListener("scroll", updateJumpAvailability, {
+      passive: true,
+    })
+    const resizeObserver = new ResizeObserver(updateJumpAvailability)
+    resizeObserver.observe(container)
+    if (scrollContentRef.current) {
+      resizeObserver.observe(scrollContentRef.current)
+    }
+
+    return () => {
+      container.removeEventListener("scroll", updateJumpAvailability)
+      resizeObserver.disconnect()
+    }
+  }, [threadId, messages.length, status])
 
   // Reset scroll bookkeeping when switching threads.
   useEffect(() => {
@@ -405,102 +452,142 @@ export function ThreadChat({
         </div>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="relative min-h-0 flex-1 overflow-y-auto py-4 pr-3"
-      >
-        {status === "LoadingFirstPage" ? (
-          <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
-        ) : messages.length === 0 && seedMentions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Skriv ett meddelande eller bifoga en bild för att börja.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {seedMentions.length > 0 ? (
-              <li className="flex w-full flex-col gap-2">
-                <MentionedProblems
-                  roomId={roomId}
-                  mentions={seedMentions}
-                  align="start"
-                />
-              </li>
-            ) : null}
-            {messages.map((message) => {
-              if (message.role === "user") {
-                const messageMentions = mentionsByMessageKey.get(message.key)
-                return (
-                  <li
-                    key={message.key}
-                    ref={(node) => {
-                      if (node) messageNodeRefs.current.set(message.key, node)
-                      else messageNodeRefs.current.delete(message.key)
-                    }}
-                    className="flex w-full flex-col gap-2"
-                  >
-                    {messageMentions && messageMentions.length > 0 ? (
-                      <MentionedProblems
-                        roomId={roomId}
-                        mentions={messageMentions}
-                        align="start"
-                      />
-                    ) : null}
-                    <div
-                      className={cn(
-                        "ml-auto max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                        "bg-primary text-primary-foreground",
-                      )}
-                    >
-                      <UserMessageContent message={message} />
-                    </div>
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={scrollRef}
+          className="absolute inset-y-0 left-0 right-2 overflow-y-auto py-4 pr-3"
+        >
+          <div ref={scrollContentRef}>
+            {status === "LoadingFirstPage" ? (
+              <p className="text-sm text-muted-foreground">
+                Hämtar meddelanden…
+              </p>
+            ) : messages.length === 0 && seedMentions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Skriv ett meddelande eller bifoga en bild för att börja.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {seedMentions.length > 0 ? (
+                  <li className="flex w-full flex-col gap-2">
+                    <MentionedProblems
+                      roomId={roomId}
+                      mentions={seedMentions}
+                      align="start"
+                    />
                   </li>
-                )
-              }
-
-              return (
-                <AssistantMessageRow
-                  key={message.key}
-                  message={message}
-                  responseNumber={
-                    responseNumberByKey.get(message.key) ??
-                    assistantResponseNumber(messages, message.key) ??
-                    1
+                ) : null}
+                {messages.map((message) => {
+                  if (message.role === "user") {
+                    const messageMentions = mentionsByMessageKey.get(
+                      message.key,
+                    )
+                    return (
+                      <li
+                        key={message.key}
+                        ref={(node) => {
+                          if (node)
+                            messageNodeRefs.current.set(message.key, node)
+                          else messageNodeRefs.current.delete(message.key)
+                        }}
+                        className="flex w-full flex-col gap-2"
+                      >
+                        {messageMentions && messageMentions.length > 0 ? (
+                          <MentionedProblems
+                            roomId={roomId}
+                            mentions={messageMentions}
+                            align="start"
+                          />
+                        ) : null}
+                        <div
+                          className={cn(
+                            "ml-auto max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                            "bg-primary text-primary-foreground",
+                          )}
+                        >
+                          <UserMessageContent message={message} />
+                        </div>
+                      </li>
+                    )
                   }
-                  listRef={(node) => {
-                    if (node) messageNodeRefs.current.set(message.key, node)
-                    else messageNodeRefs.current.delete(message.key)
-                  }}
-                  onQuickReply={(label) => {
-                    const responseNumber =
-                      responseNumberByKey.get(message.key) ??
-                      assistantResponseNumber(messages, message.key) ??
-                      1
-                    void sendPrompt(
-                      formatReplyToAssistant(responseNumber, label),
-                    ).catch(() => undefined)
-                  }}
-                  onCiteMath={(latex) => {
-                    const responseNumber =
-                      responseNumberByKey.get(message.key) ??
-                      assistantResponseNumber(messages, message.key) ??
-                      1
-                    chatInputRef.current?.insertCitation({
-                      responseNumber,
-                      latex,
-                    })
-                  }}
-                  quickRepliesDisabled={pending}
-                />
-              )
-            })}
-          </ul>
-        )}
-        <SelectionCitePopup
-          containerRef={scrollRef}
-          onCite={(citation) => {
-            chatInputRef.current?.insertCitation(citation)
-          }}
-        />
+
+                  return (
+                    <AssistantMessageRow
+                      key={message.key}
+                      message={message}
+                      responseNumber={
+                        responseNumberByKey.get(message.key) ??
+                        assistantResponseNumber(messages, message.key) ??
+                        1
+                      }
+                      listRef={(node) => {
+                        if (node)
+                          messageNodeRefs.current.set(message.key, node)
+                        else messageNodeRefs.current.delete(message.key)
+                      }}
+                      onQuickReply={(label) => {
+                        const responseNumber =
+                          responseNumberByKey.get(message.key) ??
+                          assistantResponseNumber(messages, message.key) ??
+                          1
+                        void sendPrompt(
+                          formatReplyToAssistant(responseNumber, label),
+                        ).catch(() => undefined)
+                      }}
+                      onCiteMath={(latex) => {
+                        const responseNumber =
+                          responseNumberByKey.get(message.key) ??
+                          assistantResponseNumber(messages, message.key) ??
+                          1
+                        chatInputRef.current?.insertCitation({
+                          responseNumber,
+                          latex,
+                        })
+                      }}
+                      quickRepliesDisabled={pending}
+                    />
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+          <SelectionCitePopup
+            containerRef={scrollRef}
+            onCite={(citation) => {
+              chatInputRef.current?.insertCitation(citation)
+            }}
+          />
+        </div>
+        {canJumpStart || canJumpEnd ? (
+          <div className="absolute right-4 bottom-3 z-10 flex flex-col gap-1">
+            {canJumpStart ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                className="bg-background/90 shadow-sm backdrop-blur-sm"
+                aria-label="Hoppa till början"
+                title="Hoppa till början"
+                onClick={jumpToStart}
+              >
+                <ChevronsUp />
+              </Button>
+            ) : null}
+            {canJumpEnd ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                className="bg-background/90 shadow-sm backdrop-blur-sm"
+                aria-label="Hoppa till slutet"
+                title="Hoppa till slutet"
+                onClick={jumpToEnd}
+              >
+                <ChevronsDown />
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <ChatInput
