@@ -36,25 +36,25 @@ describe("buildModeStartPrompt", () => {
 describe("buildScanStartPrompt", () => {
   it("builds whole-problem scan prompt with mention", () => {
     expect(buildScanStartPrompt("1.2", "tenta.pdf")).toBe(
-      "@1.2-tenta Här är mitt arbete hittills — hjälp mig utifrån det.",
+      "@1.2-tenta Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
     )
   })
 
   it("scopes scan prompt to a valid subproblem letter", () => {
     expect(buildScanStartPrompt("1.2", "tenta.pdf", "A")).toBe(
-      "@1.2-tenta Här är mitt arbete hittills för deluppgift (a) — hjälp mig utifrån det.",
+      "@1.2-tenta Titta på den bifogade bilden av mitt arbete för deluppgift (a). Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
     )
   })
 
   it("ignores invalid letters and omits mention when number/file missing", () => {
     expect(buildScanStartPrompt("1.2", "tenta.pdf", "ab")).toBe(
-      "@1.2-tenta Här är mitt arbete hittills — hjälp mig utifrån det.",
+      "@1.2-tenta Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
     )
     expect(buildScanStartPrompt("", "tenta.pdf")).toBe(
-      "Här är mitt arbete hittills — hjälp mig utifrån det.",
+      "Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
     )
     expect(buildScanStartPrompt("1.2", "  ")).toBe(
-      "Här är mitt arbete hittills — hjälp mig utifrån det.",
+      "Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
     )
   })
 })
