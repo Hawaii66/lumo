@@ -360,6 +360,12 @@
   math-field {
     color: var(--foreground);
   }
+  /* Read-only chat math: kill MathLive host padding so formulas don't look tall. */
+  math-field[read-only] {
+    --padding: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+  }
 }
 
 /*
