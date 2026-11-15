@@ -78,6 +78,11 @@ export default defineSchema({
     createdBy: v.optional(v.id("users")),
     /** Set when this room was cloned from a template; missing otherwise. */
     clonedFromTemplateId: v.optional(v.id("roomTemplates")),
+    /**
+     * When true, this room is a template workspace (no chats; excluded from Mina rum).
+     * Missing/false = normal course room.
+     */
+    isTemplateRoom: v.optional(v.boolean()),
   }),
   files: defineTable({
     roomId: v.id("rooms"),

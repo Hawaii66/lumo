@@ -20,6 +20,7 @@ import { Route as AdminPdfParseRouteImport } from './routes/admin.pdf-parse'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as ScanTokenRouteImport } from './routes/scan.$token'
 import { Route as DashboardRoomsRoomIdRouteImport } from './routes/dashboard.rooms.$roomId'
+import { Route as DashboardTemplatesRoomIdRouteImport } from './routes/dashboard.templates.$roomId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +77,12 @@ const DashboardRoomsRoomIdRoute = DashboardRoomsRoomIdRouteImport.update({
   path: '/rooms/$roomId',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardTemplatesRoomIdRoute =
+  DashboardTemplatesRoomIdRouteImport.update({
+    id: '/templates/$roomId',
+    path: '/templates/$roomId',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
+  '/dashboard/templates/$roomId': typeof DashboardTemplatesRoomIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -101,6 +109,7 @@ export interface FileRoutesByTo {
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
+  '/dashboard/templates/$roomId': typeof DashboardTemplatesRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -115,6 +124,7 @@ export interface FileRoutesById {
   '/scan/$token': typeof ScanTokenRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/rooms/$roomId': typeof DashboardRoomsRoomIdRoute
+  '/dashboard/templates/$roomId': typeof DashboardTemplatesRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/scan/$token'
     | '/dashboard/'
     | '/dashboard/rooms/$roomId'
+    | '/dashboard/templates/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/scan/$token'
     | '/dashboard'
     | '/dashboard/rooms/$roomId'
+    | '/dashboard/templates/$roomId'
   id:
     | '__root__'
     | '/'
@@ -155,6 +167,7 @@ export interface FileRouteTypes {
     | '/scan/$token'
     | '/dashboard/'
     | '/dashboard/rooms/$roomId'
+    | '/dashboard/templates/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,17 +261,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRoomsRoomIdRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/templates/$roomId': {
+      id: '/dashboard/templates/$roomId'
+      path: '/templates/$roomId'
+      fullPath: '/dashboard/templates/$roomId'
+      preLoaderRoute: typeof DashboardTemplatesRoomIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardRoomsRoomIdRoute: typeof DashboardRoomsRoomIdRoute
+  DashboardTemplatesRoomIdRoute: typeof DashboardTemplatesRoomIdRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardRoomsRoomIdRoute: DashboardRoomsRoomIdRoute,
+  DashboardTemplatesRoomIdRoute: DashboardTemplatesRoomIdRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

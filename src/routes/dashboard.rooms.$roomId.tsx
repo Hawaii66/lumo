@@ -108,6 +108,17 @@ function RoomPage() {
     setShadowError(null)
   }, [selectedProblemId])
 
+  useEffect(() => {
+    if (room == null) return
+    if (room.isTemplateRoom) {
+      void navigate({
+        to: "/dashboard/templates/$roomId",
+        params: { roomId: typedRoomId },
+        replace: true,
+      })
+    }
+  }, [navigate, room, typedRoomId])
+
   const hasTimedChats = useMemo(
     () => (threads ?? []).some((thread) => thread.deleteAt != null),
     [threads],
@@ -374,6 +385,15 @@ function RoomPage() {
             Profil
           </Button>
         </div>
+      </div>
+    )
+  }
+
+  if (room.isTemplateRoom) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-6">
+        <Skeleton className="h-4 w-40" />
+        <p className="text-sm text-muted-foreground">Öppnar mallstudio…</p>
       </div>
     )
   }
