@@ -1,10 +1,10 @@
-export const PROBLEM_LIST_MODES = ["tillfallen", "tree"] as const
+export const PROBLEM_LIST_MODES = ["tillfallen", "problems"] as const
 
 export type ProblemListMode = (typeof PROBLEM_LIST_MODES)[number]
 
 export const PROBLEM_LIST_MODE_LABELS: Record<ProblemListMode, string> = {
   tillfallen: "Tillfällen",
-  tree: "Träd",
+  problems: "Uppgifter",
 }
 
 /** Default on load; switches stay in client state only. */
@@ -18,7 +18,7 @@ export function isProblemListMode(value: unknown): value is ProblemListMode {
 }
 
 /**
- * Use the client preference when valid; fall back to tree when tillfällen
+ * Use the client preference when valid; fall back to problems when tillfällen
  * are requested but unavailable.
  */
 export function resolveProblemListMode(
@@ -26,7 +26,7 @@ export function resolveProblemListMode(
   showTillfallen: boolean,
 ): ProblemListMode {
   if (preferred === "tillfallen" && !showTillfallen) {
-    return "tree"
+    return "problems"
   }
   return preferred
 }
