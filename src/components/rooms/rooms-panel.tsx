@@ -305,7 +305,7 @@ function RoomsList() {
   if (rooms.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Du har inga rum ännu. Skapa ditt första, eller klona en mall.
+        Du har inga rum ännu. Skapa ditt första, eller starta från en mall.
       </p>
     )
   }
@@ -360,7 +360,7 @@ function CloneTemplatesBrowser() {
   return (
     <section className="space-y-3">
       <div>
-        <h3 className="text-sm font-medium">Klona från mall</h3>
+        <h3 className="text-sm font-medium">Starta från mall</h3>
         <p className="text-sm text-muted-foreground">
           Sök en publicerad mall och skapa ett nytt rum från den.
         </p>
@@ -437,7 +437,7 @@ function CloneTemplatesBrowser() {
                     .finally(() => setCloningId(null))
                 }}
               >
-                {cloningId === template._id ? "Klonar…" : "Klona"}
+                {cloningId === template._id ? "Startar…" : "Starta"}
               </Button>
             </li>
           ))}
