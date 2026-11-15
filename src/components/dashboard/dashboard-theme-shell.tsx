@@ -3,6 +3,7 @@ import { useRouteContext } from "@tanstack/react-router"
 import { type ReactNode, useEffect } from "react"
 import { api } from "../../../convex/_generated/api"
 import {
+  type DashboardTheme,
   isDarkTheme,
   isDashboardTheme,
   writeStoredDashboardTheme,
@@ -11,6 +12,19 @@ import { cn } from "~/lib/utils"
 
 type DashboardThemeShellProps = {
   children: ReactNode
+}
+
+/** Keep documentElement in sync so portaled UI (dialogs, sheets, menus) inherits theme tokens. */
+function applyThemeToDocument(theme: DashboardTheme) {
+  const root = document.documentElement
+  root.setAttribute("data-theme", theme)
+  root.classList.toggle("dark", isDarkTheme(theme))
+}
+
+function clearThemeFromDocument() {
+  const root = document.documentElement
+  root.removeAttribute("data-theme")
+  root.classList.remove("dark")
 }
 
 export function DashboardThemeShell({ children }: DashboardThemeShellProps) {
@@ -23,6 +37,13 @@ export function DashboardThemeShell({ children }: DashboardThemeShellProps) {
       writeStoredDashboardTheme(viewer.theme)
     }
   }, [viewer?.theme])
+
+  useEffect(() => {
+    applyThemeToDocument(theme)
+    return () => {
+      clearThemeFromDocument()
+    }
+  }, [theme])
 
   return (
     <div
