@@ -31,10 +31,10 @@ export function StaticMath({
   return createElement("math-field", {
     ref,
     className: cn(
-      "border-0 bg-transparent p-0 text-foreground shadow-none",
+      "border-0 bg-transparent p-0 text-foreground shadow-none leading-none",
       display === "inline"
-        ? "inline-block min-h-[1.5em] text-[1em]"
-        : "block w-full min-h-[2.5em] text-[1.125em]",
+        ? "inline-block align-middle text-[1em]"
+        : "block w-full text-[1.125em]",
       className,
     ),
   })
