@@ -276,7 +276,11 @@ export function AssistantMessageRow({
   }
 
   return (
-    <li ref={listRef} className="flex items-start gap-2">
+    <li
+      ref={listRef}
+      data-message-key={message.key}
+      className="flex items-start gap-2"
+    >
       <ChapterSelector
         chapters={chapters}
         loading={streaming}

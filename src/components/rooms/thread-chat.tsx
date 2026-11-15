@@ -116,6 +116,14 @@ export function ThreadChat({
   const seededScrollRef = useRef(false)
   /** Pin to bottom while true; cleared when the user scrolls away. */
   const stickToBottomRef = useRef(false)
+  /**
+   * After send / while aligning to a new reply’s top, block stick-to-bottom
+   * from re-arming just because the viewport is still near the chat end.
+   */
+  const suppressStickToBottomRef = useRef(false)
+  /** Mirrors streamingReplyKey for scroll handlers outside React render. */
+  const streamingReplyKeyRef = useRef<string | null>(null)
+  const wasStreamingRef = useRef(false)
 
   const messages = results
 
@@ -199,6 +207,7 @@ export function ThreadChat({
     }
     return null
   }, [messages])
+  streamingReplyKeyRef.current = streamingReplyKey
 
   function isNearBottom(container: HTMLElement) {
     return (
@@ -211,6 +220,22 @@ export function ThreadChat({
     const container = scrollRef.current
     if (!container) return
     container.scrollTo({ top: container.scrollHeight, behavior })
+  }
+
+  function scrollToMessageTop(
+    messageKey: string,
+    behavior: ScrollBehavior = "auto",
+  ) {
+    const container = scrollRef.current
+    if (!container) return
+    const el = container.querySelector(
+      `[data-message-key="${CSS.escape(messageKey)}"]`,
+    )
+    if (!(el instanceof HTMLElement)) return
+    const nextTop =
+      container.scrollTop +
+      (el.getBoundingClientRect().top - container.getBoundingClientRect().top)
+    container.scrollTo({ top: Math.max(0, nextTop), behavior })
   }
 
   function updateJumpButtons() {
@@ -228,11 +253,13 @@ export function ThreadChat({
   }
 
   function jumpToStart() {
+    suppressStickToBottomRef.current = false
     stickToBottomRef.current = false
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   function jumpToEnd() {
+    suppressStickToBottomRef.current = false
     stickToBottomRef.current = true
     scrollToBottom("smooth")
   }
@@ -242,12 +269,27 @@ export function ThreadChat({
     if (!container) return
 
     const onScroll = () => {
-      stickToBottomRef.current = isNearBottom(container)
+      // Don’t re-arm stick-to-bottom while aligning to a new reply — scrolling
+      // that message to the top often still counts as “near bottom” in a short
+      // thread, which would yank the viewport to the growing end again.
+      if (suppressStickToBottomRef.current || streamingReplyKeyRef.current) {
+        stickToBottomRef.current = false
+      } else {
+        stickToBottomRef.current = isNearBottom(container)
+      }
       updateJumpButtons()
     }
 
     const onContentResize = () => {
-      if (seededScrollRef.current && stickToBottomRef.current) {
+      // While stick-to-bottom is on (e.g. jump-to-end), keep chasing the end.
+      // During a new reply we leave the viewport at the message top so growing
+      // tokens don’t pull you to the bottom.
+      if (
+        seededScrollRef.current &&
+        stickToBottomRef.current &&
+        !suppressStickToBottomRef.current &&
+        !streamingReplyKeyRef.current
+      ) {
         scrollToBottom("auto")
       }
       updateJumpButtons()
@@ -271,6 +313,8 @@ export function ThreadChat({
   useEffect(() => {
     seededScrollRef.current = false
     stickToBottomRef.current = false
+    suppressStickToBottomRef.current = false
+    wasStreamingRef.current = false
     scrolledToUserKeyRef.current = null
     scrolledToReplyKeyRef.current = null
   }, [threadId])
@@ -283,8 +327,8 @@ export function ThreadChat({
     scrolledToUserKeyRef.current = lastUserMessageKey
   }, [status, lastUserMessageKey, threadId])
 
-  // On send: pin to bottom and scroll there. ResizeObserver keeps pinning
-  // while stickToBottomRef is true (cleared if the user scrolls up).
+  // On send: scroll the new user message to the top of the viewport (not the
+  // chat bottom) so you can read the reply from its start as it streams.
   useEffect(() => {
     if (!seededScrollRef.current) return
     if (
@@ -294,11 +338,14 @@ export function ThreadChat({
       return
     }
 
-    stickToBottomRef.current = true
+    suppressStickToBottomRef.current = true
+    stickToBottomRef.current = false
     scrolledToUserKeyRef.current = lastUserMessageKey
-    scrollToBottom("smooth")
+    scrollToMessageTop(lastUserMessageKey, "smooth")
   }, [lastUserMessageKey, pending])
 
+  // When the assistant reply appears, align its top once. Growing tokens only
+  // extend below — we intentionally do not keep sticking to the bottom.
   useEffect(() => {
     if (!seededScrollRef.current) return
     if (
@@ -309,9 +356,21 @@ export function ThreadChat({
     }
 
     scrolledToReplyKeyRef.current = streamingReplyKey
-    if (stickToBottomRef.current) {
-      scrollToBottom("smooth")
+    suppressStickToBottomRef.current = true
+    stickToBottomRef.current = false
+    scrollToMessageTop(streamingReplyKey, "smooth")
+  }, [streamingReplyKey])
+
+  // Allow stick-to-bottom again only after a live reply finishes — not in the
+  // gap between send and the first streaming token.
+  useEffect(() => {
+    if (streamingReplyKey) {
+      wasStreamingRef.current = true
+      return
     }
+    if (!wasStreamingRef.current) return
+    wasStreamingRef.current = false
+    suppressStickToBottomRef.current = false
   }, [streamingReplyKey])
 
   async function uploadImage(file: File) {
@@ -477,6 +536,7 @@ export function ThreadChat({
                     return (
                       <li
                         key={message.key}
+                        data-message-key={message.key}
                         className="flex w-full flex-col gap-2"
                       >
                         {messageMentions && messageMentions.length > 0 ? (
