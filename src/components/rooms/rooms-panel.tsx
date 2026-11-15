@@ -29,12 +29,9 @@ import {
 } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Textarea } from "~/components/ui/textarea"
 
 const MAX_FIELD_LENGTH = 50
-
-type HomeTab = "rooms" | "templates"
 
 function CreateRoomDialog() {
   const createRoom = useMutation(api.rooms.create)
@@ -144,6 +141,160 @@ function CreateRoomDialog() {
   )
 }
 
+function CreateTemplateDialog() {
+  const createTemplate = useMutation(api.rooms.createTemplate)
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+
+  function resetForm() {
+    setName("")
+    setDescription("")
+    setError(null)
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (!next) resetForm()
+      }}
+    >
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            className="border-primary bg-white text-primary hover:bg-primary/10 hover:text-primary"
+          />
+        }
+      >
+        Skapa mall
+      </DialogTrigger>
+      <DialogContent>
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault()
+            setError(null)
+            setPending(true)
+            void createTemplate({ name, description })
+              .then((roomId) => {
+                setOpen(false)
+                resetForm()
+                void navigate({
+                  to: "/dashboard/templates/$roomId",
+                  params: { roomId },
+                })
+              })
+              .catch((err: unknown) => {
+                setError(
+                  err instanceof Error ? err.message : "Kunde inte skapa mall",
+                )
+              })
+              .finally(() => setPending(false))
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Ny mall</DialogTitle>
+            <DialogDescription>
+              Skapa ett mallutkast (max {MAX_FIELD_LENGTH} tecken). Du redigerar
+              PDF:er och tillfällen i mallstudion — utan chatt.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="template-name">Namn</Label>
+            <Input
+              id="template-name"
+              value={name}
+              maxLength={MAX_FIELD_LENGTH}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {name.length}/{MAX_FIELD_LENGTH}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="template-description">Beskrivning</Label>
+            <Textarea
+              id="template-description"
+              value={description}
+              maxLength={MAX_FIELD_LENGTH}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              className="min-h-20"
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {description.length}/{MAX_FIELD_LENGTH}
+            </p>
+          </div>
+
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+          <DialogFooter>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Skapar…" : "Skapa"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MyTemplateDrafts() {
+  const drafts = useQuery(api.rooms.listMyTemplateRooms)
+
+  if (drafts === undefined) {
+    return <p className="text-sm text-muted-foreground">Hämtar utkast…</p>
+  }
+
+  if (drafts.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Inga mallutkast ännu. Skapa en mall för att börja.
+      </p>
+    )
+  }
+
+  return (
+    <ul className="divide-y divide-border rounded-lg border border-border">
+      {drafts.map((draft) => (
+        <li
+          key={draft._id}
+          className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="min-w-0 flex flex-col gap-0.5">
+            <span className="font-medium">{draft.name}</span>
+            <span className="text-sm text-muted-foreground line-clamp-2">
+              {draft.description}
+            </span>
+          </div>
+          <Button
+            size="sm"
+            className="shrink-0"
+            render={
+              <Link
+                to="/dashboard/templates/$roomId"
+                params={{ roomId: draft._id }}
+              />
+            }
+          >
+            Redigera
+          </Button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function RoomsList() {
   const rooms = useQuery(api.rooms.list)
 
@@ -154,7 +305,7 @@ function RoomsList() {
   if (rooms.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Du har inga rum ännu. Skapa ditt första, eller klona en mall.
+        Du har inga rum ännu. Skapa ditt första, eller starta från en mall.
       </p>
     )
   }
@@ -196,7 +347,7 @@ function formatPublishedAt(timestamp: number): string {
   }).format(new Date(timestamp))
 }
 
-function TemplatesBrowser() {
+function CloneTemplatesBrowser() {
   const navigate = useNavigate()
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const [query, setQuery] = useState("")
@@ -207,7 +358,13 @@ function TemplatesBrowser() {
   const templates = useQuery(api.roomTemplates.search, { query })
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-sm font-medium">Starta från mall</h3>
+        <p className="text-sm text-muted-foreground">
+          Sök en publicerad mall och skapa ett nytt rum från den.
+        </p>
+      </div>
       <form
         className="flex flex-col gap-2 sm:flex-row"
         onSubmit={(event) => {
@@ -280,23 +437,17 @@ function TemplatesBrowser() {
                     .finally(() => setCloningId(null))
                 }}
               >
-                {cloningId === template._id ? "Klonar…" : "Klona"}
+                {cloningId === template._id ? "Startar…" : "Starta"}
               </Button>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   )
 }
 
 export function RoomsPanel() {
-  const rooms = useQuery(api.rooms.list)
-  const [tabOverride, setTabOverride] = useState<HomeTab | null>(null)
-  const defaultTab: HomeTab =
-    rooms !== undefined && rooms.length === 0 ? "templates" : "rooms"
-  const tab = tabOverride ?? defaultTab
-
   return (
     <>
       <AuthLoading>
@@ -318,50 +469,39 @@ export function RoomsPanel() {
       <Authenticated>
         <Card>
           <CardHeader>
-            <CardTitle>{tab === "rooms" ? "Rum" : "Mallar"}</CardTitle>
-            <CardDescription>
-              {tab === "rooms"
-                ? "Dina rum — öppna eller skapa nytt"
-                : "Sök publicerade rumsmallar och klona till ett eget rum"}
-            </CardDescription>
-            {tab === "rooms" ? (
-              <CardAction>
-                <CreateRoomDialog />
-              </CardAction>
-            ) : null}
+            <CardTitle>Rum</CardTitle>
+            <CardDescription>Dina rum — öppna eller skapa nytt</CardDescription>
+            <CardAction>
+              <CreateRoomDialog />
+            </CardAction>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Tabs
-              value={tab}
-              onValueChange={(value) => setTabOverride(value as HomeTab)}
-            >
-              <TabsList
-                className="grid h-auto! w-full grid-cols-2 bg-sidebar-accent/40"
-                aria-label="Rum och mallar"
-              >
-                <TabsTrigger
-                  value="rooms"
-                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
-                >
-                  Mina rum
-                </TabsTrigger>
-                <TabsTrigger
-                  value="templates"
-                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
-                >
-                  Mallar
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="rooms" className="mt-4">
-                <RoomsList />
-              </TabsContent>
-              <TabsContent value="templates" className="mt-4">
-                <TemplatesBrowser />
-              </TabsContent>
-            </Tabs>
+          <CardContent className="space-y-8">
+            <RoomsList />
+            <CloneTemplatesBrowser />
           </CardContent>
         </Card>
       </Authenticated>
     </>
+  )
+}
+
+export function TemplatesPanel() {
+  return (
+    <Authenticated>
+      <Card>
+        <CardHeader>
+          <CardTitle>Mallar</CardTitle>
+          <CardDescription>
+            Skapa och redigera mallutkast i mallstudion
+          </CardDescription>
+          <CardAction>
+            <CreateTemplateDialog />
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <MyTemplateDrafts />
+        </CardContent>
+      </Card>
+    </Authenticated>
   )
 }

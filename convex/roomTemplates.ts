@@ -1,7 +1,10 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
-import { requireRoomMember } from "./lib/roomAuth";
+import {
+  assertTemplateRoom,
+  requireRoomMember,
+} from "./lib/roomAuth";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { posthog } from "./posthog";
@@ -31,11 +34,7 @@ export const publishFromRoom = mutation({
   returns: v.id("roomTemplates"),
   handler: async (ctx, args) => {
     const userId = await requireRoomMember(ctx, args.roomId);
-
-    const room = await ctx.db.get("rooms", args.roomId);
-    if (room === null) {
-      throw new Error("Rummet hittades inte");
-    }
+    const room = await assertTemplateRoom(ctx, args.roomId);
 
     const files = await ctx.db
       .query("files")

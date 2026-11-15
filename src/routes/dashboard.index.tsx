@@ -5,7 +5,10 @@ import { api } from "../../convex/_generated/api"
 import { ThemeSelector } from "~/components/dashboard/theme-selector"
 import { useHejPhrase } from "~/components/marketing/hej-phrase"
 import { CreditsBalanceSummary } from "~/components/profile/credits-balance-summary"
-import { RoomsPanel } from "~/components/rooms/rooms-panel"
+import {
+  RoomsPanel,
+  TemplatesPanel,
+} from "~/components/rooms/rooms-panel"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -60,6 +63,8 @@ function DashboardIndexPage() {
       >
         <CreditsBalanceSummary buyCreditsHref />
       </Suspense>
+
+      <TemplatesPanel />
     </main>
   )
 }
