@@ -34,13 +34,15 @@ export default defineSchema({
       ),
     ),
     /**
-     * Room sidebar problem list layout. Missing → tillfällen if the room has
-     * any, otherwise "tree".
-     * "list" = PDF → problems; "tree" = PDF → major chapters → problems;
-     * "tillfallen" = tillfälle → assigned subproblem units.
+     * Legacy / unused. View preference is client-only now; kept so existing
+     * user docs still pass schema validation.
      */
     problemListMode: v.optional(
-      v.union(v.literal("list"), v.literal("tree"), v.literal("tillfallen")),
+      v.union(
+        v.literal("list"),
+        v.literal("tree"),
+        v.literal("tillfallen"),
+      ),
     ),
   })
     .index("email", ["email"])

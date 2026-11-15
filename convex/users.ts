@@ -13,12 +13,6 @@ const themeValidator = v.union(
   v.literal("rose"),
 );
 
-const problemListModeValidator = v.union(
-  v.literal("list"),
-  v.literal("tree"),
-  v.literal("tillfallen"),
-);
-
 const roleSummaryValidator = v.object({
   key: v.union(
     v.literal("default"),
@@ -42,8 +36,6 @@ const viewerFieldsValidator = v.object({
   ),
   role: roleSummaryValidator,
   theme: themeValidator,
-  /** `null` when the user has not chosen a preference yet. */
-  problemListMode: v.union(problemListModeValidator, v.null()),
 });
 
 export const viewer = query({
@@ -84,7 +76,6 @@ export const viewer = query({
         freeDailyCredits: roleDoc.freeDailyCredits,
       },
       theme: user.theme ?? "light",
-      problemListMode: user.problemListMode ?? null,
     };
   },
 });
@@ -109,29 +100,6 @@ export const updateTheme = mutation({
     await ctx.db.patch(userId, { theme: args.theme });
 
     return { _id: userId, theme: args.theme };
-  },
-});
-
-export const updateProblemListMode = mutation({
-  args: { problemListMode: problemListModeValidator },
-  returns: v.object({
-    _id: v.id("users"),
-    problemListMode: problemListModeValidator,
-  }),
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Du måste vara inloggad");
-    }
-
-    const user = await ctx.db.get(userId);
-    if (user === null) {
-      throw new Error("Användaren hittades inte");
-    }
-
-    await ctx.db.patch(userId, { problemListMode: args.problemListMode });
-
-    return { _id: userId, problemListMode: args.problemListMode };
   },
 });
 
