@@ -138,8 +138,7 @@ function PhoneScanPage() {
           Ladda upp till {session.roomName}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Ta ett foto eller välj en bild från telefonen. Ingen inloggning
-          behövs.
+          Ta ett foto eller välj en bild från telefonen.
         </p>
       </div>
 
@@ -167,18 +166,21 @@ function PhoneScanPage() {
 
       <div className="flex flex-col gap-3">
         <Button
-          size="lg"
-          className="h-14 w-full text-base"
+          className="flex aspect-square h-auto w-full flex-col gap-4 rounded-2xl text-2xl font-semibold"
           disabled={uploading}
           onClick={() => cameraInputRef.current?.click()}
         >
-          {uploading ? <Loader2 className="animate-spin" /> : <Camera />}
-          {uploading ? "Laddar upp…" : "Ta foto"}
+          {uploading ? (
+            <Loader2 className="size-24 animate-spin" />
+          ) : (
+            <Camera className="size-24" />
+          )}
+          <span>{uploading ? "Laddar upp…" : "Ta foto"}</span>
         </Button>
         <Button
           size="lg"
           variant="outline"
-          className="h-14 w-full text-base"
+          className="h-12 w-full text-base"
           disabled={uploading}
           onClick={() => galleryInputRef.current?.click()}
         >
