@@ -283,9 +283,18 @@ export function ParsedProblemView({
 
       {showAnswer ? (
         <section className="space-y-3 border-t border-border/60 pt-4">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Svar
-          </h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Svar
+            </h3>
+            {showWholeProblemCompletion ? (
+              <ProblemCompletionControl
+                className="ml-auto"
+                completed={isCompletedForLetter(completionEntries, "")}
+                onChange={(completed) => onCompletedChange("", completed)}
+              />
+            ) : null}
+          </div>
           {problem.answer.trim().length === 0 ? (
             <p className="text-sm italic text-muted-foreground">Inget svar</p>
           ) : (
@@ -303,6 +312,15 @@ export function ParsedProblemView({
                   }
                 />
               )}
+              subproblemCompletion={
+                onCompletedChange && hasSubproblems
+                  ? {
+                      isCompleted: (letter) =>
+                        isCompletedForLetter(completionEntries, letter),
+                      onChange: onCompletedChange,
+                    }
+                  : undefined
+              }
             />
           )}
         </section>
