@@ -107,6 +107,66 @@ function tryParsePartialJson(input: string): unknown | undefined {
 }
 
 /**
+ * Extract a still-open `"markdown":"...` / `"content":"...` string value
+ * from truncated JSON so the UI can stream text before the string closes.
+ */
+function extractOpenMarkdownString(input: string): string | null {
+  const keyMatch = /"(markdown|content)"\s*:\s*"/g
+  let match: RegExpExecArray | null = null
+  let last: RegExpExecArray | null = null
+  while ((match = keyMatch.exec(input)) !== null) {
+    last = match
+  }
+  if (last === null) return null
+
+  const valueStart = last.index + last[0].length
+  let out = ""
+  for (let i = valueStart; i < input.length; i++) {
+    const ch = input[i]!
+    if (ch === "\\") {
+      const next = input[i + 1]
+      if (next === undefined) break
+      switch (next) {
+        case "n":
+          out += "\n"
+          break
+        case "r":
+          out += "\r"
+          break
+        case "t":
+          out += "\t"
+          break
+        case '"':
+        case "\\":
+        case "/":
+          out += next
+          break
+        case "u": {
+          const hex = input.slice(i + 2, i + 6)
+          if (/^[0-9a-fA-F]{4}$/.test(hex)) {
+            out += String.fromCharCode(Number.parseInt(hex, 16))
+            i += 4
+          } else {
+            out += next
+          }
+          break
+        }
+        default:
+          out += next
+      }
+      i += 1
+      continue
+    }
+    if (ch === '"') {
+      // Closed string — prefer JSON.parse / tryParsePartialJson instead.
+      return null
+    }
+    out += ch
+  }
+  return out
+}
+
+/**
  * Parse assistant message text as a ChatReply.
  * Plain non-JSON text becomes a markdown-only reply.
  */
@@ -133,6 +193,17 @@ export function parseChatReply(
   if (options?.streaming) {
     const partial = tryParsePartialJson(trimmed)
     const reply = partial !== undefined ? replyFromUnknown(partial) : null
+    if (reply !== null && chatReplyHasVisibleContent(reply)) return reply
+
+    const openMarkdown = extractOpenMarkdownString(trimmed)
+    if (openMarkdown !== null) {
+      return {
+        version: 2,
+        markdown: openMarkdown,
+        quickReplies: reply?.quickReplies ?? [],
+      }
+    }
+
     if (reply !== null) return reply
     return { version: 2, markdown: "", quickReplies: [] }
   }

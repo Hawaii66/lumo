@@ -69,6 +69,7 @@ type DraftThreadChatProps = {
 }
 
 const DEFAULT_DRAFT_TITLE = "Ny tråd"
+const NEAR_BOTTOM_PX = 80
 
 export function ThreadChat({
   roomId,
@@ -110,10 +111,11 @@ export function ThreadChat({
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollContentRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<ChatInputHandle>(null)
-  const messageNodeRefs = useRef(new Map<string, HTMLLIElement>())
   const scrolledToReplyKeyRef = useRef<string | null>(null)
   const scrolledToUserKeyRef = useRef<string | null>(null)
   const seededScrollRef = useRef(false)
+  /** Pin to bottom while true; cleared when the user scrolls away. */
+  const stickToBottomRef = useRef(false)
 
   const messages = results
 
@@ -198,19 +200,20 @@ export function ThreadChat({
     return null
   }, [messages])
 
-  function scrollMessageIntoView(key: string, behavior: ScrollBehavior) {
-    const container = scrollRef.current
-    const node = messageNodeRefs.current.get(key)
-    if (!container || !node) return false
-
-    const containerRect = container.getBoundingClientRect()
-    const nodeRect = node.getBoundingClientRect()
-    const top = container.scrollTop + (nodeRect.top - containerRect.top) - 12
-    container.scrollTo({ top: Math.max(0, top), behavior })
-    return true
+  function isNearBottom(container: HTMLElement) {
+    return (
+      container.scrollHeight - container.clientHeight - container.scrollTop <=
+      NEAR_BOTTOM_PX
+    )
   }
 
-  function updateJumpAvailability() {
+  function scrollToBottom(behavior: ScrollBehavior = "auto") {
+    const container = scrollRef.current
+    if (!container) return
+    container.scrollTo({ top: container.scrollHeight, behavior })
+  }
+
+  function updateJumpButtons() {
     const container = scrollRef.current
     if (!container) {
       setCanJumpStart(false)
@@ -225,31 +228,41 @@ export function ThreadChat({
   }
 
   function jumpToStart() {
+    stickToBottomRef.current = false
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   function jumpToEnd() {
-    const container = scrollRef.current
-    if (!container) return
-    container.scrollTo({ top: container.scrollHeight, behavior: "smooth" })
+    stickToBottomRef.current = true
+    scrollToBottom("smooth")
   }
 
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
 
-    updateJumpAvailability()
-    container.addEventListener("scroll", updateJumpAvailability, {
-      passive: true,
-    })
-    const resizeObserver = new ResizeObserver(updateJumpAvailability)
+    const onScroll = () => {
+      stickToBottomRef.current = isNearBottom(container)
+      updateJumpButtons()
+    }
+
+    const onContentResize = () => {
+      if (seededScrollRef.current && stickToBottomRef.current) {
+        scrollToBottom("auto")
+      }
+      updateJumpButtons()
+    }
+
+    updateJumpButtons()
+    container.addEventListener("scroll", onScroll, { passive: true })
+    const resizeObserver = new ResizeObserver(onContentResize)
     resizeObserver.observe(container)
     if (scrollContentRef.current) {
       resizeObserver.observe(scrollContentRef.current)
     }
 
     return () => {
-      container.removeEventListener("scroll", updateJumpAvailability)
+      container.removeEventListener("scroll", onScroll)
       resizeObserver.disconnect()
     }
   }, [threadId, messages.length, status])
@@ -257,9 +270,9 @@ export function ThreadChat({
   // Reset scroll bookkeeping when switching threads.
   useEffect(() => {
     seededScrollRef.current = false
+    stickToBottomRef.current = false
     scrolledToUserKeyRef.current = null
     scrolledToReplyKeyRef.current = null
-    messageNodeRefs.current.clear()
   }, [threadId])
 
   // Treat the first loaded history as already seen so opening a thread
@@ -270,8 +283,8 @@ export function ThreadChat({
     scrolledToUserKeyRef.current = lastUserMessageKey
   }, [status, lastUserMessageKey, threadId])
 
-  // Scroll once to the user’s send, then once to the start of the reply.
-  // Do not re-scroll as tokens arrive — that would yank the reader away.
+  // On send: pin to bottom and scroll there. ResizeObserver keeps pinning
+  // while stickToBottomRef is true (cleared if the user scrolls up).
   useEffect(() => {
     if (!seededScrollRef.current) return
     if (
@@ -281,20 +294,9 @@ export function ThreadChat({
       return
     }
 
-    let cancelled = false
-    let attempts = 0
-    const tryScroll = () => {
-      if (cancelled) return
-      if (scrollMessageIntoView(lastUserMessageKey, "smooth")) {
-        scrolledToUserKeyRef.current = lastUserMessageKey
-        return
-      }
-      if (attempts++ < 12) window.requestAnimationFrame(tryScroll)
-    }
-    tryScroll()
-    return () => {
-      cancelled = true
-    }
+    stickToBottomRef.current = true
+    scrolledToUserKeyRef.current = lastUserMessageKey
+    scrollToBottom("smooth")
   }, [lastUserMessageKey, pending])
 
   useEffect(() => {
@@ -306,19 +308,9 @@ export function ThreadChat({
       return
     }
 
-    let cancelled = false
-    let attempts = 0
-    const tryScroll = () => {
-      if (cancelled) return
-      if (scrollMessageIntoView(streamingReplyKey, "smooth")) {
-        scrolledToReplyKeyRef.current = streamingReplyKey
-        return
-      }
-      if (attempts++ < 12) window.requestAnimationFrame(tryScroll)
-    }
-    tryScroll()
-    return () => {
-      cancelled = true
+    scrolledToReplyKeyRef.current = streamingReplyKey
+    if (stickToBottomRef.current) {
+      scrollToBottom("smooth")
     }
   }, [streamingReplyKey])
 
@@ -485,11 +477,6 @@ export function ThreadChat({
                     return (
                       <li
                         key={message.key}
-                        ref={(node) => {
-                          if (node)
-                            messageNodeRefs.current.set(message.key, node)
-                          else messageNodeRefs.current.delete(message.key)
-                        }}
                         className="flex w-full flex-col gap-2"
                       >
                         {messageMentions && messageMentions.length > 0 ? (
@@ -520,11 +507,6 @@ export function ThreadChat({
                         assistantResponseNumber(messages, message.key) ??
                         1
                       }
-                      listRef={(node) => {
-                        if (node)
-                          messageNodeRefs.current.set(message.key, node)
-                        else messageNodeRefs.current.delete(message.key)
-                      }}
                       onQuickReply={(label) => {
                         const responseNumber =
                           responseNumberByKey.get(message.key) ??
