@@ -14,7 +14,6 @@ import { CreditConfigAdminCard } from "~/components/profile/credit-config-admin-
 import { CreditDealsAdminCard } from "~/components/profile/credit-deals-admin-card"
 import { CreditsCard } from "~/components/profile/credits-card"
 import { DailySpendCard } from "~/components/profile/daily-spend"
-import { ProblemListModeCard } from "~/components/profile/problem-list-mode-card"
 import { ProblemTextSizeCard } from "~/components/profile/problem-text-size-card"
 import { RolesAdminCard } from "~/components/profile/roles-admin-card"
 import { Button } from "~/components/ui/button"
@@ -195,7 +194,6 @@ function ProfilePage() {
 
             <TabsContent value="profile" className="mt-6 space-y-6">
               <AccountCard />
-              <ProblemListModeCard />
               <ProblemTextSizeCard />
             </TabsContent>
 

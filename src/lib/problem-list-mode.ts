@@ -1,15 +1,14 @@
-export const PROBLEM_LIST_MODES = ["tillfallen", "tree", "list"] as const
+export const PROBLEM_LIST_MODES = ["tillfallen", "problems"] as const
 
 export type ProblemListMode = (typeof PROBLEM_LIST_MODES)[number]
 
 export const PROBLEM_LIST_MODE_LABELS: Record<ProblemListMode, string> = {
   tillfallen: "Tillfällen",
-  tree: "Träd",
-  list: "Lista",
+  problems: "Uppgifter",
 }
 
-/** Fallback when no tillfällen exist and the user has no saved preference. */
-export const DEFAULT_PROBLEM_LIST_MODE: ProblemListMode = "tree"
+/** Default on load; switches stay in client state only. */
+export const DEFAULT_PROBLEM_LIST_MODE: ProblemListMode = "tillfallen"
 
 export function isProblemListMode(value: unknown): value is ProblemListMode {
   return (
@@ -19,15 +18,17 @@ export function isProblemListMode(value: unknown): value is ProblemListMode {
 }
 
 /**
- * Prefer a saved preference; otherwise tillfällen when the room has any,
- * else tree.
+ * Use the client preference when valid; fall back to problems when tillfällen
+ * are requested but unavailable.
  */
 export function resolveProblemListMode(
-  saved: ProblemListMode | null | undefined,
-  hasOccasions: boolean,
+  preferred: ProblemListMode,
+  showTillfallen: boolean,
 ): ProblemListMode {
-  if (saved != null) return saved
-  return hasOccasions ? "tillfallen" : DEFAULT_PROBLEM_LIST_MODE
+  if (preferred === "tillfallen" && !showTillfallen) {
+    return "problems"
+  }
+  return preferred
 }
 
 /** Major chapter for dotted booklet numbers like "1.2" → "1". */

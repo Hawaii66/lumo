@@ -577,7 +577,7 @@ function TillfallenProblemList({
   return (
     <div className="flex flex-col gap-0.5">
       {occasionBuckets.map((bucket) => {
-        const isCollapsed = collapsed[`occasion:${bucket.id}`] === true
+        const isCollapsed = collapsed[`occasion:${bucket.id}`] !== false
         return (
           <Collapsible
             key={bucket.id}
@@ -737,8 +737,6 @@ function ProblemList({
   onOpenProblemPdfOrder?: () => void
   onOpenOccasions?: () => void
 }) {
-  const viewer = useQuery(api.users.viewer)
-  const updateProblemListMode = useMutation(api.users.updateProblemListMode)
   const occasions = useQuery(
     api.roomOccasions.listByRoom,
     roomId !== undefined ? { roomId } : "skip",
@@ -754,22 +752,17 @@ function ProblemList({
     roomId !== undefined &&
     occasions !== undefined &&
     occasions.length > 0
-  const savedMode = viewer?.problemListMode
-  // Keep tillfällen visible while loading if that mode is already selected
-  // (or unset, which defaults to tillfällen), so the tab does not flicker.
+
+  // Client-only preference; defaults to tillfällen on each load.
+  const [modePreference, setModePreference] = useState<ProblemListMode>(
+    DEFAULT_PROBLEM_LIST_MODE,
+  )
+  // Keep tillfällen visible while loading if that mode is selected, so the
+  // tab does not flicker off then on.
   const showTillfallenTab =
     hasOccasions ||
-    (occasionsPending &&
-      (savedMode === "tillfallen" || savedMode == null))
-  const preferredMode = resolveProblemListMode(
-    savedMode,
-    hasOccasions ||
-      (occasionsPending && (savedMode === "tillfallen" || savedMode == null)),
-  )
-  const mode: ProblemListMode =
-    preferredMode === "tillfallen" && !showTillfallenTab
-      ? DEFAULT_PROBLEM_LIST_MODE
-      : preferredMode
+    (occasionsPending && modePreference === "tillfallen")
+  const mode = resolveProblemListMode(modePreference, showTillfallenTab)
   const availableModes = useMemo(
     () =>
       PROBLEM_LIST_MODES.filter(
@@ -870,16 +863,14 @@ function ProblemList({
 
   // While searching, force-open groups (and chapters) that still have matches.
   useEffect(() => {
-    if (!normalizedQuery) return
+    if (!normalizedQuery || mode === "tillfallen") return
     setCollapsed((prev) => {
       const next = { ...prev }
       for (const group of filteredGroups) {
         next[group.fileName] = false
-        if (mode === "tree") {
-          for (const bucket of bucketProblemsByChapter(group.problems)) {
-            if (bucket.major !== null) {
-              next[chapterCollapseKey(group.fileName, bucket.major)] = false
-            }
+        for (const bucket of bucketProblemsByChapter(group.problems)) {
+          if (bucket.major !== null) {
+            next[chapterCollapseKey(group.fileName, bucket.major)] = false
           }
         }
       }
@@ -973,11 +964,10 @@ function ProblemList({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={viewer === undefined}
               aria-pressed={active}
               onClick={() => {
                 if (active) return
-                void updateProblemListMode({ problemListMode: value })
+                setModePreference(value)
               }}
               className={cn(
                 "h-7 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium shadow-none",
@@ -1083,8 +1073,7 @@ function ProblemList({
       ) : (
         filteredGroups.map((group) => {
           const isCollapsed = collapsed[group.fileName] === true
-          const chapterBuckets =
-            mode === "tree" ? bucketProblemsByChapter(group.problems) : null
+          const chapterBuckets = bucketProblemsByChapter(group.problems)
           return (
             <Collapsible
               key={group.fileId ?? group.fileName}
@@ -1114,12 +1103,58 @@ function ProblemList({
                 </Badge>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                {chapterBuckets ? (
-                  <div className="mt-0.5 flex flex-col gap-0.5">
-                    {chapterBuckets.map((bucket) => {
-                      if (bucket.major === null || bucket.label === null) {
-                        return (
-                          <SidebarMenu key={bucket.problems[0]?.id ?? "flat"}>
+                <div className="mt-0.5 flex flex-col gap-0.5">
+                  {chapterBuckets.map((bucket) => {
+                    if (bucket.major === null || bucket.label === null) {
+                      return (
+                        <SidebarMenu key={bucket.problems[0]?.id ?? "flat"}>
+                          {bucket.problems.map((problem) => (
+                            <ProblemRow
+                              key={problem.id}
+                              problem={problem}
+                              selectedProblemId={selectedProblemId}
+                              onSelectProblem={onSelectProblem}
+                            />
+                          ))}
+                        </SidebarMenu>
+                      )
+                    }
+
+                    const chapterKey = chapterCollapseKey(
+                      group.fileName,
+                      bucket.major,
+                    )
+                    const chapterCollapsed = collapsed[chapterKey] === true
+                    return (
+                      <Collapsible
+                        key={chapterKey}
+                        open={!chapterCollapsed}
+                        onOpenChange={(open) =>
+                          setCollapsed((prev) => ({
+                            ...prev,
+                            [chapterKey]: !open,
+                          }))
+                        }
+                      >
+                        <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
+                          <ChevronDown
+                            className={cn(
+                              "size-3 shrink-0 transition-transform",
+                              chapterCollapsed && "-rotate-90",
+                            )}
+                          />
+                          <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
+                            {bucket.label}
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
+                          >
+                            {bucket.problems.length}
+                          </Badge>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenu className="mt-0.5 ml-1 border-l border-sidebar-border pl-1">
                             {bucket.problems.map((problem) => (
                               <ProblemRow
                                 key={problem.id}
@@ -1129,70 +1164,11 @@ function ProblemList({
                               />
                             ))}
                           </SidebarMenu>
-                        )
-                      }
-
-                      const chapterKey = chapterCollapseKey(
-                        group.fileName,
-                        bucket.major,
-                      )
-                      const chapterCollapsed = collapsed[chapterKey] === true
-                      return (
-                        <Collapsible
-                          key={chapterKey}
-                          open={!chapterCollapsed}
-                          onOpenChange={(open) =>
-                            setCollapsed((prev) => ({
-                              ...prev,
-                              [chapterKey]: !open,
-                            }))
-                          }
-                        >
-                          <CollapsibleTrigger className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground">
-                            <ChevronDown
-                              className={cn(
-                                "size-3 shrink-0 transition-transform",
-                                chapterCollapsed && "-rotate-90",
-                              )}
-                            />
-                            <span className="min-w-0 flex-1 truncate normal-case tabular-nums">
-                              {bucket.label}
-                            </span>
-                            <Badge
-                              variant="secondary"
-                              className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
-                            >
-                              {bucket.problems.length}
-                            </Badge>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <SidebarMenu className="mt-0.5 ml-1 border-l border-sidebar-border pl-1">
-                              {bucket.problems.map((problem) => (
-                                <ProblemRow
-                                  key={problem.id}
-                                  problem={problem}
-                                  selectedProblemId={selectedProblemId}
-                                  onSelectProblem={onSelectProblem}
-                                />
-                              ))}
-                            </SidebarMenu>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <SidebarMenu className="mt-0.5">
-                    {group.problems.map((problem) => (
-                      <ProblemRow
-                        key={problem.id}
-                        problem={problem}
-                        selectedProblemId={selectedProblemId}
-                        onSelectProblem={onSelectProblem}
-                      />
-                    ))}
-                  </SidebarMenu>
-                )}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )
+                  })}
+                </div>
               </CollapsibleContent>
             </Collapsible>
           )
