@@ -29,12 +29,9 @@ import {
 } from "~/components/ui/dialog"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Textarea } from "~/components/ui/textarea"
 
 const MAX_FIELD_LENGTH = 50
-
-type HomeTab = "rooms" | "templates"
 
 function CreateRoomDialog() {
   const createRoom = useMutation(api.rooms.create)
@@ -350,7 +347,7 @@ function formatPublishedAt(timestamp: number): string {
   }).format(new Date(timestamp))
 }
 
-function TemplatesBrowser() {
+function CloneTemplatesBrowser() {
   const navigate = useNavigate()
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const [query, setQuery] = useState("")
@@ -361,115 +358,96 @@ function TemplatesBrowser() {
   const templates = useQuery(api.roomTemplates.search, { query })
 
   return (
-    <div className="space-y-8">
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-medium">Mina utkast</h3>
-          <p className="text-sm text-muted-foreground">
-            Mallrum du arbetar på — öppna studion för att redigera och
-            publicera.
-          </p>
-        </div>
-        <MyTemplateDrafts />
-      </section>
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-sm font-medium">Klona från mall</h3>
+        <p className="text-sm text-muted-foreground">
+          Sök en publicerad mall och skapa ett nytt rum från den.
+        </p>
+      </div>
+      <form
+        className="flex flex-col gap-2 sm:flex-row"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setError(null)
+          setQuery(searchInput.trim())
+        }}
+      >
+        <Input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Sök mallar efter namn…"
+          aria-label="Sök rumsmallar"
+        />
+        <Button type="submit" variant="outline">
+          Sök
+        </Button>
+      </form>
 
-      <section className="space-y-3">
-        <div>
-          <h3 className="text-sm font-medium">Publicerade mallar</h3>
-          <p className="text-sm text-muted-foreground">
-            Sök och klona en mall till ett eget rum.
-          </p>
-        </div>
-        <form
-          className="flex flex-col gap-2 sm:flex-row"
-          onSubmit={(event) => {
-            event.preventDefault()
-            setError(null)
-            setQuery(searchInput.trim())
-          }}
-        >
-          <Input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Sök mallar efter namn…"
-            aria-label="Sök rumsmallar"
-          />
-          <Button type="submit" variant="outline">
-            Sök
-          </Button>
-        </form>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-        {templates === undefined ? (
-          <p className="text-sm text-muted-foreground">Hämtar mallar…</p>
-        ) : templates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Inga publicerade mallar hittades.
-          </p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border">
-            {templates.map((template) => (
-              <li
-                key={template._id}
-                className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+      {templates === undefined ? (
+        <p className="text-sm text-muted-foreground">Hämtar mallar…</p>
+      ) : templates.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Inga publicerade mallar hittades.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border rounded-lg border border-border">
+          {templates.map((template) => (
+            <li
+              key={template._id}
+              className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0 space-y-0.5">
+                <p className="font-medium">{template.name}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {template.description}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {template.fileCount} fil
+                  {template.fileCount === 1 ? "" : "er"}
+                  {template.publisherName
+                    ? ` · ${template.publisherName}`
+                    : ""}
+                  {` · ${formatPublishedAt(template.publishedAt)}`}
+                </p>
+              </div>
+              <Button
+                type="button"
+                className="shrink-0"
+                disabled={cloningId !== null}
+                onClick={() => {
+                  setError(null)
+                  setCloningId(template._id)
+                  void cloneTemplate({ templateId: template._id })
+                    .then((roomId) => {
+                      void navigate({
+                        to: "/dashboard/rooms/$roomId",
+                        params: { roomId },
+                      })
+                    })
+                    .catch((err: unknown) => {
+                      setError(
+                        err instanceof Error
+                          ? err.message
+                          : "Kunde inte klona mallen",
+                      )
+                    })
+                    .finally(() => setCloningId(null))
+                }}
               >
-                <div className="min-w-0 space-y-0.5">
-                  <p className="font-medium">{template.name}</p>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {template.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {template.fileCount} fil
-                    {template.fileCount === 1 ? "" : "er"}
-                    {template.publisherName
-                      ? ` · ${template.publisherName}`
-                      : ""}
-                    {` · ${formatPublishedAt(template.publishedAt)}`}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  className="shrink-0"
-                  disabled={cloningId !== null}
-                  onClick={() => {
-                    setError(null)
-                    setCloningId(template._id)
-                    void cloneTemplate({ templateId: template._id })
-                      .then((roomId) => {
-                        void navigate({
-                          to: "/dashboard/rooms/$roomId",
-                          params: { roomId },
-                        })
-                      })
-                      .catch((err: unknown) => {
-                        setError(
-                          err instanceof Error
-                            ? err.message
-                            : "Kunde inte klona mallen",
-                        )
-                      })
-                      .finally(() => setCloningId(null))
-                  }}
-                >
-                  {cloningId === template._id ? "Klonar…" : "Klona"}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+                {cloningId === template._id ? "Klonar…" : "Klona"}
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 
 export function RoomsPanel() {
-  const rooms = useQuery(api.rooms.list)
-  const [tabOverride, setTabOverride] = useState<HomeTab | null>(null)
-  const defaultTab: HomeTab =
-    rooms !== undefined && rooms.length === 0 ? "templates" : "rooms"
-  const tab = tabOverride ?? defaultTab
-
   return (
     <>
       <AuthLoading>
@@ -491,48 +469,39 @@ export function RoomsPanel() {
       <Authenticated>
         <Card>
           <CardHeader>
-            <CardTitle>{tab === "rooms" ? "Rum" : "Mallar"}</CardTitle>
-            <CardDescription>
-              {tab === "rooms"
-                ? "Dina rum — öppna eller skapa nytt"
-                : "Skapa mallutkast, eller sök publicerade mallar att klona"}
-            </CardDescription>
+            <CardTitle>Rum</CardTitle>
+            <CardDescription>Dina rum — öppna eller skapa nytt</CardDescription>
             <CardAction>
-              {tab === "rooms" ? <CreateRoomDialog /> : <CreateTemplateDialog />}
+              <CreateRoomDialog />
             </CardAction>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Tabs
-              value={tab}
-              onValueChange={(value) => setTabOverride(value as HomeTab)}
-            >
-              <TabsList
-                className="grid h-auto! w-full grid-cols-2 bg-sidebar-accent/40"
-                aria-label="Rum och mallar"
-              >
-                <TabsTrigger
-                  value="rooms"
-                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
-                >
-                  Mina rum
-                </TabsTrigger>
-                <TabsTrigger
-                  value="templates"
-                  className="flex h-auto! flex-col gap-0.5 py-1.5 text-[10px] font-medium tracking-wide uppercase data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:shadow-sm"
-                >
-                  Mallar
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="rooms" className="mt-4">
-                <RoomsList />
-              </TabsContent>
-              <TabsContent value="templates" className="mt-4">
-                <TemplatesBrowser />
-              </TabsContent>
-            </Tabs>
+          <CardContent className="space-y-8">
+            <RoomsList />
+            <CloneTemplatesBrowser />
           </CardContent>
         </Card>
       </Authenticated>
     </>
+  )
+}
+
+export function TemplatesPanel() {
+  return (
+    <Authenticated>
+      <Card>
+        <CardHeader>
+          <CardTitle>Mallar</CardTitle>
+          <CardDescription>
+            Skapa och redigera mallutkast i mallstudion
+          </CardDescription>
+          <CardAction>
+            <CreateTemplateDialog />
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <MyTemplateDrafts />
+        </CardContent>
+      </Card>
+    </Authenticated>
   )
 }
