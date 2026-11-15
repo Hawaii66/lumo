@@ -13,6 +13,12 @@ const themeValidator = v.union(
   v.literal("rose"),
 );
 
+const problemTextSizeValidator = v.union(
+  v.literal("small"),
+  v.literal("medium"),
+  v.literal("large"),
+);
+
 const roleSummaryValidator = v.object({
   key: v.union(
     v.literal("default"),
@@ -36,6 +42,8 @@ const viewerFieldsValidator = v.object({
   ),
   role: roleSummaryValidator,
   theme: themeValidator,
+  /** Missing preference → "medium". */
+  problemTextSize: problemTextSizeValidator,
 });
 
 export const viewer = query({
@@ -76,6 +84,7 @@ export const viewer = query({
         freeDailyCredits: roleDoc.freeDailyCredits,
       },
       theme: user.theme ?? "light",
+      problemTextSize: user.problemTextSize ?? "medium",
     };
   },
 });
@@ -100,6 +109,29 @@ export const updateTheme = mutation({
     await ctx.db.patch(userId, { theme: args.theme });
 
     return { _id: userId, theme: args.theme };
+  },
+});
+
+export const updateProblemTextSize = mutation({
+  args: { problemTextSize: problemTextSizeValidator },
+  returns: v.object({
+    _id: v.id("users"),
+    problemTextSize: problemTextSizeValidator,
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (user === null) {
+      throw new Error("Användaren hittades inte");
+    }
+
+    await ctx.db.patch(userId, { problemTextSize: args.problemTextSize });
+
+    return { _id: userId, problemTextSize: args.problemTextSize };
   },
 });
 

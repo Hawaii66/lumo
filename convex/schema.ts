@@ -44,6 +44,12 @@ export default defineSchema({
         v.literal("tillfallen"),
       ),
     ),
+    /**
+     * Problem view + chat prose/math size. Missing → "medium".
+     */
+    problemTextSize: v.optional(
+      v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
+    ),
   })
     .index("email", ["email"])
     .index("by_role", ["roleId"]),

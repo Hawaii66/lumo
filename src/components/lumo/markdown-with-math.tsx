@@ -468,7 +468,10 @@ export function MarkdownWithMath({
 
   return (
     <div
-      className={cn("flex flex-col gap-2 text-base leading-relaxed", className)}
+      className={cn(
+        "lumo-readable flex flex-col gap-2 leading-relaxed",
+        className,
+      )}
     >
       {nodes}
     </div>

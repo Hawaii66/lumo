@@ -501,7 +501,7 @@ export function ThreadChat({
                         ) : null}
                         <div
                           className={cn(
-                            "ml-auto max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                            "ml-auto max-w-[85%] rounded-lg px-3 py-2",
                             "bg-primary text-primary-foreground",
                           )}
                         >
