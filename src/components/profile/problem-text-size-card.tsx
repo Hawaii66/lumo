@@ -47,7 +47,7 @@ export function ProblemTextSizeCard() {
       <CardHeader>
         <CardTitle>Textstorlek</CardTitle>
         <CardDescription>
-          Storlek på uppgiftstext och formler i uppgiftsvyn och chatten. Liten är
+          Storlek på uppgiftstext och formler i uppgiftsvyn och chatten. Medium är
           standardstorleken.
         </CardDescription>
       </CardHeader>

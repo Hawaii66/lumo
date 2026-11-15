@@ -8,8 +8,8 @@ export const PROBLEM_TEXT_SIZE_LABELS: Record<ProblemTextSize, string> = {
   large: "Stor",
 }
 
-/** Current default sizes in problem view and chat. */
-export const DEFAULT_PROBLEM_TEXT_SIZE: ProblemTextSize = "small"
+/** Default size in problem view and chat. */
+export const DEFAULT_PROBLEM_TEXT_SIZE: ProblemTextSize = "medium"
 
 export function isProblemTextSize(value: unknown): value is ProblemTextSize {
   return (

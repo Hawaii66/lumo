@@ -50,7 +50,7 @@ const viewerFieldsValidator = v.object({
   theme: themeValidator,
   /** `null` when the user has not chosen a preference yet. */
   problemListMode: v.union(problemListModeValidator, v.null()),
-  /** Missing preference → "small". */
+  /** Missing preference → "medium". */
   problemTextSize: problemTextSizeValidator,
 });
 
@@ -93,7 +93,7 @@ export const viewer = query({
       },
       theme: user.theme ?? "light",
       problemListMode: user.problemListMode ?? null,
-      problemTextSize: user.problemTextSize ?? "small",
+      problemTextSize: user.problemTextSize ?? "medium",
     };
   },
 });

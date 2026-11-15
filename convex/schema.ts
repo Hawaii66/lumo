@@ -43,7 +43,7 @@ export default defineSchema({
       v.union(v.literal("list"), v.literal("tree"), v.literal("tillfallen")),
     ),
     /**
-     * Problem view + chat prose/math size. Missing → "small" (current default).
+     * Problem view + chat prose/math size. Missing → "medium".
      */
     problemTextSize: v.optional(
       v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
