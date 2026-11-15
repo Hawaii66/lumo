@@ -44,6 +44,10 @@ import {
 } from "~/components/ui/sidebar"
 import { Skeleton } from "~/components/ui/skeleton"
 import { TooltipProvider } from "~/components/ui/tooltip"
+import {
+  DEFAULT_PROBLEM_TEXT_SIZE,
+  resolveProblemTextSize,
+} from "~/lib/problem-text-size"
 import { uploadFileToStorage } from "~/lib/upload"
 import { useUiStore } from "~/stores/ui-store"
 
@@ -57,10 +61,14 @@ function RoomPage() {
   const navigate = useNavigate()
 
   const room = useQuery(api.rooms.get, { roomId: typedRoomId })
+  const viewer = useQuery(api.users.viewer)
   const threads = useQuery(api.threads.listByRoom, { roomId: typedRoomId })
   const problemGroups = useQuery(api.PDFParse.problems.listGroupedByRoom, {
     roomId: typedRoomId,
   })
+  const problemTextSize = resolveProblemTextSize(
+    viewer?.problemTextSize ?? DEFAULT_PROBLEM_TEXT_SIZE,
+  )
 
   const createThread = useMutation(api.threads.create)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
@@ -99,6 +107,17 @@ function RoomPage() {
   useEffect(() => {
     setShadowError(null)
   }, [selectedProblemId])
+
+  useEffect(() => {
+    if (room == null) return
+    if (room.isTemplateRoom) {
+      void navigate({
+        to: "/dashboard/templates/$roomId",
+        params: { roomId: typedRoomId },
+        replace: true,
+      })
+    }
+  }, [navigate, room, typedRoomId])
 
   const hasTimedChats = useMemo(
     () => (threads ?? []).some((thread) => thread.deleteAt != null),
@@ -370,6 +389,15 @@ function RoomPage() {
     )
   }
 
+  if (room.isTemplateRoom) {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-3 p-6">
+        <Skeleton className="h-4 w-40" />
+        <p className="text-sm text-muted-foreground">Öppnar mallstudio…</p>
+      </div>
+    )
+  }
+
   // TODO: Add a thin convex-test suite for critical authz + happy paths.
   return (
     <TooltipProvider>
@@ -434,7 +462,10 @@ function RoomPage() {
             <SidebarTrigger />
             <span className="truncate text-sm font-medium">{room.name}</span>
           </header>
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+          <div
+            className="flex min-h-0 flex-1 flex-col overflow-hidden p-6"
+            data-lumo-text-size={problemTextSize}
+          >
         {room.templateExpired ? (
           <Alert className="mb-4 shrink-0 border-amber-500/40 bg-amber-500/10">
             <AlertTitle>Mallen för det här rummet är utgången</AlertTitle>

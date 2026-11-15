@@ -360,6 +360,35 @@
   math-field {
     color: var(--foreground);
   }
+  /* Read-only chat math: kill MathLive host padding so formulas don't look tall. */
+  math-field[read-only] {
+    --padding: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+  }
+}
+
+/*
+ * Problem view + chat prose/math size preference.
+ * `small` keeps today's baselines; medium/large scale both text and MathLive.
+ */
+[data-lumo-text-size="small"] {
+  --lumo-text-scale: 1;
+}
+[data-lumo-text-size="medium"] {
+  --lumo-text-scale: 1.25;
+}
+[data-lumo-text-size="large"] {
+  --lumo-text-scale: 1.5;
+}
+
+.lumo-readable {
+  --lumo-readable-base: 1rem;
+  font-size: calc(var(--lumo-readable-base) * var(--lumo-text-scale, 1));
+}
+
+.lumo-readable-sm {
+  --lumo-readable-base: 0.875rem;
 }
 
 @keyframes stream-dot {

@@ -8,6 +8,8 @@ import {
   internalQuery,
   mutation,
   query,
+  type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { posthog } from "./posthog";
@@ -59,6 +61,7 @@ const roomSummaryValidator = v.object({
 
 const roomDetailValidator = roomSummaryValidator.extend({
   generalInfo: v.string(),
+  isTemplateRoom: v.boolean(),
   clonedFromTemplateId: v.union(v.id("roomTemplates"), v.null()),
   templateExpired: v.boolean(),
   replacementTemplate: v.union(
@@ -70,6 +73,37 @@ const roomDetailValidator = roomSummaryValidator.extend({
   ),
 });
 
+async function listMembershipRooms(
+  ctx: QueryCtx,
+  userId: Id<"users">,
+  templateOnly: boolean,
+) {
+  const memberships = await ctx.db
+    .query("roomMembers")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .order("desc")
+    .take(MAX_ROOMS);
+
+  const rooms = [];
+  for (const membership of memberships) {
+    const room = await ctx.db.get("rooms", membership.roomId);
+    if (room === null) {
+      continue;
+    }
+    const isTemplate = room.isTemplateRoom === true;
+    if (templateOnly !== isTemplate) {
+      continue;
+    }
+    rooms.push({
+      _id: room._id,
+      _creationTime: room._creationTime,
+      name: room.name,
+      description: room.description,
+    });
+  }
+  return rooms;
+}
+
 export const list = query({
   args: {},
   returns: v.array(roomSummaryValidator),
@@ -78,26 +112,19 @@ export const list = query({
     if (userId === null) {
       return [];
     }
+    return await listMembershipRooms(ctx, userId, false);
+  },
+});
 
-    const memberships = await ctx.db
-      .query("roomMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
-      .take(MAX_ROOMS);
-
-    const rooms = [];
-    for (const membership of memberships) {
-      const room = await ctx.db.get("rooms", membership.roomId);
-      if (room !== null) {
-        rooms.push({
-          _id: room._id,
-          _creationTime: room._creationTime,
-          name: room.name,
-          description: room.description,
-        });
-      }
+export const listMyTemplateRooms = query({
+  args: {},
+  returns: v.array(roomSummaryValidator),
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return [];
     }
-    return rooms;
+    return await listMembershipRooms(ctx, userId, true);
   },
 });
 
@@ -154,6 +181,7 @@ export const get = query({
       name: room.name,
       description: room.description,
       generalInfo: room.generalInfo ?? "",
+      isTemplateRoom: room.isTemplateRoom === true,
       clonedFromTemplateId: room.clonedFromTemplateId ?? null,
       templateExpired,
       replacementTemplate,
@@ -214,6 +242,44 @@ export const getChatContext = internalQuery({
   },
 });
 
+async function createRoomForUser(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  args: { name: string; description: string },
+  options: { isTemplateRoom: boolean; event: string },
+): Promise<Id<"rooms">> {
+  const memberships = await ctx.db
+    .query("roomMembers")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .take(MAX_ROOMS);
+  if (memberships.length >= MAX_ROOMS) {
+    throw new Error(`Du får ha högst ${MAX_ROOMS} rum`);
+  }
+
+  const name = trimField(args.name, "Namn");
+  const description = trimField(args.description, "Beskrivning");
+
+  const roomId = await ctx.db.insert("rooms", {
+    name,
+    description,
+    createdBy: userId,
+    ...(options.isTemplateRoom ? { isTemplateRoom: true } : {}),
+  });
+
+  await ctx.db.insert("roomMembers", {
+    roomId,
+    userId,
+  });
+
+  await posthog.capture(ctx, {
+    distinctId: userId,
+    event: options.event,
+    properties: { roomId },
+  });
+
+  return roomId;
+}
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -226,35 +292,29 @@ export const create = mutation({
       throw new Error("Du måste vara inloggad för att skapa ett rum");
     }
 
-    const memberships = await ctx.db
-      .query("roomMembers")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .take(MAX_ROOMS);
-    if (memberships.length >= MAX_ROOMS) {
-      throw new Error(`Du får ha högst ${MAX_ROOMS} rum`);
+    return await createRoomForUser(ctx, userId, args, {
+      isTemplateRoom: false,
+      event: "room_created",
+    });
+  },
+});
+
+export const createTemplate = mutation({
+  args: {
+    name: v.string(),
+    description: v.string(),
+  },
+  returns: v.id("rooms"),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad för att skapa en mall");
     }
 
-    const name = trimField(args.name, "Namn");
-    const description = trimField(args.description, "Beskrivning");
-
-    const roomId = await ctx.db.insert("rooms", {
-      name,
-      description,
-      createdBy: userId,
+    return await createRoomForUser(ctx, userId, args, {
+      isTemplateRoom: true,
+      event: "template_room_created",
     });
-
-    await ctx.db.insert("roomMembers", {
-      roomId,
-      userId,
-    });
-
-    await posthog.capture(ctx, {
-      distinctId: userId,
-      event: "room_created",
-      properties: { roomId },
-    });
-
-    return roomId;
   },
 });
 

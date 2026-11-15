@@ -115,7 +115,7 @@ function MathCite({
           className={
             isInline
               ? "mx-0.5 align-middle border-0 bg-transparent p-0 shadow-none"
-              : "my-1 border-0 bg-transparent p-0 shadow-none"
+              : "my-0.5 border-0 bg-transparent p-0 shadow-none"
           }
         />
       </span>
@@ -406,7 +406,6 @@ export function MarkdownWithMath({
     }
 
     if (block.type === "blank") {
-      nodes.push(<div key={index} className="h-1" aria-hidden />)
       return
     }
     if (block.type === "fall") {
@@ -468,7 +467,10 @@ export function MarkdownWithMath({
 
   return (
     <div
-      className={cn("flex flex-col gap-2 text-base leading-relaxed", className)}
+      className={cn(
+        "lumo-readable flex flex-col gap-2 leading-relaxed",
+        className,
+      )}
     >
       {nodes}
     </div>

@@ -30,6 +30,7 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { FilePart, ImagePart } from "ai";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { assertNotTemplateRoom } from "./lib/roomAuth";
 import { posthog } from "./posthog";
 
 const MAX_TITLE_LENGTH = 80;
@@ -209,6 +210,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireRoomMember(ctx, args.roomId);
+    await assertNotTemplateRoom(ctx, args.roomId);
 
     const title = (args.title?.trim() || "Ny tråd").slice(0, MAX_TITLE_LENGTH);
     const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
@@ -557,6 +559,7 @@ async function requireActiveRoomThread(
   roomId: Id<"rooms">,
   threadId: string,
 ) {
+  await assertNotTemplateRoom(ctx, roomId);
   const result = await requireRoomThread(ctx, roomId, threadId);
   if (result.roomThread.archivedAt !== undefined) {
     throw new Error("Chatten är arkiverad");

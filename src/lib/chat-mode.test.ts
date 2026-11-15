@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildModeStartPrompt } from "./chat-mode"
+import { buildModeStartPrompt, buildScanStartPrompt } from "./chat-mode"
 
 describe("buildModeStartPrompt", () => {
   it("builds normal and genomgang prompts with mention", () => {
@@ -29,6 +29,32 @@ describe("buildModeStartPrompt", () => {
     )
     expect(buildModeStartPrompt("normal", "1.2", "  ")).toBe(
       "Hjälp mig med den här uppgiften.",
+    )
+  })
+})
+
+describe("buildScanStartPrompt", () => {
+  it("builds whole-problem scan prompt with mention", () => {
+    expect(buildScanStartPrompt("1.2", "tenta.pdf")).toBe(
+      "@1.2-tenta Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
+    )
+  })
+
+  it("scopes scan prompt to a valid subproblem letter", () => {
+    expect(buildScanStartPrompt("1.2", "tenta.pdf", "A")).toBe(
+      "@1.2-tenta Titta på den bifogade bilden av mitt arbete för deluppgift (a). Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
+    )
+  })
+
+  it("ignores invalid letters and omits mention when number/file missing", () => {
+    expect(buildScanStartPrompt("1.2", "tenta.pdf", "ab")).toBe(
+      "@1.2-tenta Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
+    )
+    expect(buildScanStartPrompt("", "tenta.pdf")).toBe(
+      "Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
+    )
+    expect(buildScanStartPrompt("1.2", "  ")).toBe(
+      "Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.",
     )
   })
 })

@@ -33,10 +33,10 @@ export function RoomDangerZoneCard({ roomId }: { roomId: Id<"rooms"> }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Radera rum</CardTitle>
+          <CardTitle>Radera</CardTitle>
           <CardDescription>
-            Tar bort rummet och tillhörande filer, chattar och tvillingar för dig
-            och övriga medlemmar. Publicerade mallar påverkas inte.
+            Tar bort rummet eller mallutkastet och tillhörande filer. Publicerade
+            mallar påverkas inte.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

@@ -97,6 +97,40 @@ describe("parseChatReply", () => {
     })
   })
 
+  it("streams markdown from an unclosed JSON string", () => {
+    expect(
+      parseChatReply('{"version":2,"markdown":"Hej värld', {
+        streaming: true,
+      }),
+    ).toEqual({
+      version: 2,
+      markdown: "Hej värld",
+      quickReplies: [],
+    })
+  })
+
+  it("streams markdown with JSON escape sequences from an open string", () => {
+    expect(
+      parseChatReply('{"version":2,"markdown":"Rad 1\\nRad 2 \\"citat', {
+        streaming: true,
+      }),
+    ).toEqual({
+      version: 2,
+      markdown: 'Rad 1\nRad 2 "citat',
+      quickReplies: [],
+    })
+  })
+
+  it("streams content field when markdown key is absent", () => {
+    expect(
+      parseChatReply('{"content":"via content delvis', { streaming: true }),
+    ).toEqual({
+      version: 2,
+      markdown: "via content delvis",
+      quickReplies: [],
+    })
+  })
+
   it("returns empty markdown while streaming unrecoverable JSON", () => {
     expect(parseChatReply("{", { streaming: true })).toEqual({
       version: 2,

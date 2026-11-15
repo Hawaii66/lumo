@@ -13,7 +13,6 @@ import { RoomDetailsCard } from "./room-settings/room-details-card"
 import { RoomMembersCard } from "./room-settings/room-members-card"
 import { RoomOccasionsCard } from "./room-settings/room-occasions-card"
 import { RoomProblemAssignmentsCard } from "./room-settings/room-problem-assignments-card"
-import { RoomTemplatesCard } from "./room-settings/room-templates-card"
 
 type SettingsTab = "general" | "problems" | "archived"
 
@@ -138,7 +137,6 @@ export function RoomSettingsPanel({
           <div ref={occasionsRef}>
             <RoomOccasionsCard roomId={roomId} />
           </div>
-          <RoomTemplatesCard roomId={roomId} />
           <RoomMembersCard roomId={roomId} />
           <RoomDangerZoneCard roomId={roomId} />
         </TabsContent>

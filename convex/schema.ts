@@ -34,13 +34,21 @@ export default defineSchema({
       ),
     ),
     /**
-     * Room sidebar problem list layout. Missing → tillfällen if the room has
-     * any, otherwise "tree".
-     * "list" = PDF → problems; "tree" = PDF → major chapters → problems;
-     * "tillfallen" = tillfälle → assigned subproblem units.
+     * Legacy / unused. View preference is client-only now; kept so existing
+     * user docs still pass schema validation.
      */
     problemListMode: v.optional(
-      v.union(v.literal("list"), v.literal("tree"), v.literal("tillfallen")),
+      v.union(
+        v.literal("list"),
+        v.literal("tree"),
+        v.literal("tillfallen"),
+      ),
+    ),
+    /**
+     * Problem view + chat prose/math size. Missing → "medium".
+     */
+    problemTextSize: v.optional(
+      v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
     ),
   })
     .index("email", ["email"])
@@ -70,6 +78,11 @@ export default defineSchema({
     createdBy: v.optional(v.id("users")),
     /** Set when this room was cloned from a template; missing otherwise. */
     clonedFromTemplateId: v.optional(v.id("roomTemplates")),
+    /**
+     * When true, this room is a template workspace (no chats; excluded from Mina rum).
+     * Missing/false = normal course room.
+     */
+    isTemplateRoom: v.optional(v.boolean()),
   }),
   files: defineTable({
     roomId: v.id("rooms"),

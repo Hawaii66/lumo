@@ -50,11 +50,11 @@ export function RoomTemplatesCard({ roomId }: { roomId: Id<"rooms"> }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Rumsmallar</CardTitle>
+          <CardTitle>Publicera</CardTitle>
           <CardDescription>
-            Publicera en ögonblicksbild av rummet (filer, uppgifter via PDF,
-            namn, beskrivning och kursinformation) som andra kan söka upp och
-            klona. Ändringar i rummet synkas inte till redan klonade rum.
+            Publicera en ögonblicksbild av mallrummet (filer, tillfällen,
+            stjärnor, namn, beskrivning och kursinformation) som andra kan söka
+            upp och klona. Ändringar synkas inte till redan klonade rum.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -3,7 +3,7 @@ import {
   useUIMessages,
 } from "@convex-dev/agent/react"
 import { useMutation } from "convex/react"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ChevronsDown, ChevronsUp } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
@@ -69,6 +69,7 @@ type DraftThreadChatProps = {
 }
 
 const DEFAULT_DRAFT_TITLE = "Ny tråd"
+const NEAR_BOTTOM_PX = 80
 
 export function ThreadChat({
   roomId,
@@ -105,12 +106,24 @@ export function ThreadChat({
   const [modePending, setModePending] = useState(false)
   const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [canJumpStart, setCanJumpStart] = useState(false)
+  const [canJumpEnd, setCanJumpEnd] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollContentRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<ChatInputHandle>(null)
-  const messageNodeRefs = useRef(new Map<string, HTMLLIElement>())
   const scrolledToReplyKeyRef = useRef<string | null>(null)
   const scrolledToUserKeyRef = useRef<string | null>(null)
   const seededScrollRef = useRef(false)
+  /** Pin to bottom while true; cleared when the user scrolls away. */
+  const stickToBottomRef = useRef(false)
+  /**
+   * After send / while aligning to a new reply’s top, block stick-to-bottom
+   * from re-arming just because the viewport is still near the chat end.
+   */
+  const suppressStickToBottomRef = useRef(false)
+  /** Mirrors streamingReplyKey for scroll handlers outside React render. */
+  const streamingReplyKeyRef = useRef<string | null>(null)
+  const wasStreamingRef = useRef(false)
 
   const messages = results
 
@@ -194,25 +207,116 @@ export function ThreadChat({
     }
     return null
   }, [messages])
+  streamingReplyKeyRef.current = streamingReplyKey
 
-  function scrollMessageIntoView(key: string, behavior: ScrollBehavior) {
-    const container = scrollRef.current
-    const node = messageNodeRefs.current.get(key)
-    if (!container || !node) return false
-
-    const containerRect = container.getBoundingClientRect()
-    const nodeRect = node.getBoundingClientRect()
-    const top = container.scrollTop + (nodeRect.top - containerRect.top) - 12
-    container.scrollTo({ top: Math.max(0, top), behavior })
-    return true
+  function isNearBottom(container: HTMLElement) {
+    return (
+      container.scrollHeight - container.clientHeight - container.scrollTop <=
+      NEAR_BOTTOM_PX
+    )
   }
+
+  function scrollToBottom(behavior: ScrollBehavior = "auto") {
+    const container = scrollRef.current
+    if (!container) return
+    container.scrollTo({ top: container.scrollHeight, behavior })
+  }
+
+  function scrollToMessageTop(
+    messageKey: string,
+    behavior: ScrollBehavior = "auto",
+  ) {
+    const container = scrollRef.current
+    if (!container) return
+    const el = container.querySelector(
+      `[data-message-key="${CSS.escape(messageKey)}"]`,
+    )
+    if (!(el instanceof HTMLElement)) return
+    const nextTop =
+      container.scrollTop +
+      (el.getBoundingClientRect().top - container.getBoundingClientRect().top)
+    container.scrollTo({ top: Math.max(0, nextTop), behavior })
+  }
+
+  function updateJumpButtons() {
+    const container = scrollRef.current
+    if (!container) {
+      setCanJumpStart(false)
+      setCanJumpEnd(false)
+      return
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = container
+    const overflow = scrollHeight - clientHeight > 8
+    setCanJumpStart(overflow && scrollTop > 8)
+    setCanJumpEnd(overflow && scrollTop < scrollHeight - clientHeight - 8)
+  }
+
+  function jumpToStart() {
+    suppressStickToBottomRef.current = false
+    stickToBottomRef.current = false
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function jumpToEnd() {
+    suppressStickToBottomRef.current = false
+    stickToBottomRef.current = true
+    scrollToBottom("smooth")
+  }
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+
+    const onScroll = () => {
+      // Don’t re-arm stick-to-bottom while aligning to a new reply — scrolling
+      // that message to the top often still counts as “near bottom” in a short
+      // thread, which would yank the viewport to the growing end again.
+      if (suppressStickToBottomRef.current || streamingReplyKeyRef.current) {
+        stickToBottomRef.current = false
+      } else {
+        stickToBottomRef.current = isNearBottom(container)
+      }
+      updateJumpButtons()
+    }
+
+    const onContentResize = () => {
+      // While stick-to-bottom is on (e.g. jump-to-end), keep chasing the end.
+      // During a new reply we leave the viewport at the message top so growing
+      // tokens don’t pull you to the bottom.
+      if (
+        seededScrollRef.current &&
+        stickToBottomRef.current &&
+        !suppressStickToBottomRef.current &&
+        !streamingReplyKeyRef.current
+      ) {
+        scrollToBottom("auto")
+      }
+      updateJumpButtons()
+    }
+
+    updateJumpButtons()
+    container.addEventListener("scroll", onScroll, { passive: true })
+    const resizeObserver = new ResizeObserver(onContentResize)
+    resizeObserver.observe(container)
+    if (scrollContentRef.current) {
+      resizeObserver.observe(scrollContentRef.current)
+    }
+
+    return () => {
+      container.removeEventListener("scroll", onScroll)
+      resizeObserver.disconnect()
+    }
+  }, [threadId, messages.length, status])
 
   // Reset scroll bookkeeping when switching threads.
   useEffect(() => {
     seededScrollRef.current = false
+    stickToBottomRef.current = false
+    suppressStickToBottomRef.current = false
+    wasStreamingRef.current = false
     scrolledToUserKeyRef.current = null
     scrolledToReplyKeyRef.current = null
-    messageNodeRefs.current.clear()
   }, [threadId])
 
   // Treat the first loaded history as already seen so opening a thread
@@ -223,8 +327,8 @@ export function ThreadChat({
     scrolledToUserKeyRef.current = lastUserMessageKey
   }, [status, lastUserMessageKey, threadId])
 
-  // Scroll once to the user’s send, then once to the start of the reply.
-  // Do not re-scroll as tokens arrive — that would yank the reader away.
+  // On send: scroll the new user message to the top of the viewport (not the
+  // chat bottom) so you can read the reply from its start as it streams.
   useEffect(() => {
     if (!seededScrollRef.current) return
     if (
@@ -234,22 +338,14 @@ export function ThreadChat({
       return
     }
 
-    let cancelled = false
-    let attempts = 0
-    const tryScroll = () => {
-      if (cancelled) return
-      if (scrollMessageIntoView(lastUserMessageKey, "smooth")) {
-        scrolledToUserKeyRef.current = lastUserMessageKey
-        return
-      }
-      if (attempts++ < 12) window.requestAnimationFrame(tryScroll)
-    }
-    tryScroll()
-    return () => {
-      cancelled = true
-    }
+    suppressStickToBottomRef.current = true
+    stickToBottomRef.current = false
+    scrolledToUserKeyRef.current = lastUserMessageKey
+    scrollToMessageTop(lastUserMessageKey, "smooth")
   }, [lastUserMessageKey, pending])
 
+  // When the assistant reply appears, align its top once. Growing tokens only
+  // extend below — we intentionally do not keep sticking to the bottom.
   useEffect(() => {
     if (!seededScrollRef.current) return
     if (
@@ -259,20 +355,22 @@ export function ThreadChat({
       return
     }
 
-    let cancelled = false
-    let attempts = 0
-    const tryScroll = () => {
-      if (cancelled) return
-      if (scrollMessageIntoView(streamingReplyKey, "smooth")) {
-        scrolledToReplyKeyRef.current = streamingReplyKey
-        return
-      }
-      if (attempts++ < 12) window.requestAnimationFrame(tryScroll)
+    scrolledToReplyKeyRef.current = streamingReplyKey
+    suppressStickToBottomRef.current = true
+    stickToBottomRef.current = false
+    scrollToMessageTop(streamingReplyKey, "smooth")
+  }, [streamingReplyKey])
+
+  // Allow stick-to-bottom again only after a live reply finishes — not in the
+  // gap between send and the first streaming token.
+  useEffect(() => {
+    if (streamingReplyKey) {
+      wasStreamingRef.current = true
+      return
     }
-    tryScroll()
-    return () => {
-      cancelled = true
-    }
+    if (!wasStreamingRef.current) return
+    wasStreamingRef.current = false
+    suppressStickToBottomRef.current = false
   }, [streamingReplyKey])
 
   async function uploadImage(file: File) {
@@ -405,102 +503,133 @@ export function ThreadChat({
         </div>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="relative min-h-0 flex-1 overflow-y-auto py-4 pr-3"
-      >
-        {status === "LoadingFirstPage" ? (
-          <p className="text-sm text-muted-foreground">Hämtar meddelanden…</p>
-        ) : messages.length === 0 && seedMentions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Skriv ett meddelande eller bifoga en bild för att börja.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {seedMentions.length > 0 ? (
-              <li className="flex w-full flex-col gap-2">
-                <MentionedProblems
-                  roomId={roomId}
-                  mentions={seedMentions}
-                  align="start"
-                />
-              </li>
-            ) : null}
-            {messages.map((message) => {
-              if (message.role === "user") {
-                const messageMentions = mentionsByMessageKey.get(message.key)
-                return (
-                  <li
-                    key={message.key}
-                    ref={(node) => {
-                      if (node) messageNodeRefs.current.set(message.key, node)
-                      else messageNodeRefs.current.delete(message.key)
-                    }}
-                    className="flex w-full flex-col gap-2"
-                  >
-                    {messageMentions && messageMentions.length > 0 ? (
-                      <MentionedProblems
-                        roomId={roomId}
-                        mentions={messageMentions}
-                        align="start"
-                      />
-                    ) : null}
-                    <div
-                      className={cn(
-                        "ml-auto max-w-[85%] rounded-lg px-3 py-2 text-sm",
-                        "bg-primary text-primary-foreground",
-                      )}
-                    >
-                      <UserMessageContent message={message} />
-                    </div>
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={scrollRef}
+          className="absolute inset-y-0 left-0 right-2 overflow-y-auto py-4 pr-3"
+        >
+          <div ref={scrollContentRef}>
+            {status === "LoadingFirstPage" ? (
+              <p className="text-sm text-muted-foreground">
+                Hämtar meddelanden…
+              </p>
+            ) : messages.length === 0 && seedMentions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Skriv ett meddelande eller bifoga en bild för att börja.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {seedMentions.length > 0 ? (
+                  <li className="flex w-full flex-col gap-2">
+                    <MentionedProblems
+                      roomId={roomId}
+                      mentions={seedMentions}
+                      align="start"
+                    />
                   </li>
-                )
-              }
-
-              return (
-                <AssistantMessageRow
-                  key={message.key}
-                  message={message}
-                  responseNumber={
-                    responseNumberByKey.get(message.key) ??
-                    assistantResponseNumber(messages, message.key) ??
-                    1
+                ) : null}
+                {messages.map((message) => {
+                  if (message.role === "user") {
+                    const messageMentions = mentionsByMessageKey.get(
+                      message.key,
+                    )
+                    return (
+                      <li
+                        key={message.key}
+                        data-message-key={message.key}
+                        className="flex w-full flex-col gap-2"
+                      >
+                        {messageMentions && messageMentions.length > 0 ? (
+                          <MentionedProblems
+                            roomId={roomId}
+                            mentions={messageMentions}
+                            align="start"
+                          />
+                        ) : null}
+                        <div
+                          className={cn(
+                            "ml-auto max-w-[85%] rounded-lg px-3 py-2",
+                            "bg-primary text-primary-foreground",
+                          )}
+                        >
+                          <UserMessageContent message={message} />
+                        </div>
+                      </li>
+                    )
                   }
-                  listRef={(node) => {
-                    if (node) messageNodeRefs.current.set(message.key, node)
-                    else messageNodeRefs.current.delete(message.key)
-                  }}
-                  onQuickReply={(label) => {
-                    const responseNumber =
-                      responseNumberByKey.get(message.key) ??
-                      assistantResponseNumber(messages, message.key) ??
-                      1
-                    void sendPrompt(
-                      formatReplyToAssistant(responseNumber, label),
-                    ).catch(() => undefined)
-                  }}
-                  onCiteMath={(latex) => {
-                    const responseNumber =
-                      responseNumberByKey.get(message.key) ??
-                      assistantResponseNumber(messages, message.key) ??
-                      1
-                    chatInputRef.current?.insertCitation({
-                      responseNumber,
-                      latex,
-                    })
-                  }}
-                  quickRepliesDisabled={pending}
-                />
-              )
-            })}
-          </ul>
-        )}
-        <SelectionCitePopup
-          containerRef={scrollRef}
-          onCite={(citation) => {
-            chatInputRef.current?.insertCitation(citation)
-          }}
-        />
+
+                  return (
+                    <AssistantMessageRow
+                      key={message.key}
+                      message={message}
+                      responseNumber={
+                        responseNumberByKey.get(message.key) ??
+                        assistantResponseNumber(messages, message.key) ??
+                        1
+                      }
+                      onQuickReply={(label) => {
+                        const responseNumber =
+                          responseNumberByKey.get(message.key) ??
+                          assistantResponseNumber(messages, message.key) ??
+                          1
+                        void sendPrompt(
+                          formatReplyToAssistant(responseNumber, label),
+                        ).catch(() => undefined)
+                      }}
+                      onCiteMath={(latex) => {
+                        const responseNumber =
+                          responseNumberByKey.get(message.key) ??
+                          assistantResponseNumber(messages, message.key) ??
+                          1
+                        chatInputRef.current?.insertCitation({
+                          responseNumber,
+                          latex,
+                        })
+                      }}
+                      quickRepliesDisabled={pending}
+                    />
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+          <SelectionCitePopup
+            containerRef={scrollRef}
+            onCite={(citation) => {
+              chatInputRef.current?.insertCitation(citation)
+            }}
+          />
+        </div>
+        {canJumpStart || canJumpEnd ? (
+          <div className="absolute right-4 bottom-3 z-10 flex flex-col gap-1">
+            {canJumpStart ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                className="bg-background/90 shadow-sm backdrop-blur-sm"
+                aria-label="Hoppa till början"
+                title="Hoppa till början"
+                onClick={jumpToStart}
+              >
+                <ChevronsUp />
+              </Button>
+            ) : null}
+            {canJumpEnd ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                className="bg-background/90 shadow-sm backdrop-blur-sm"
+                aria-label="Hoppa till slutet"
+                title="Hoppa till slutet"
+                onClick={jumpToEnd}
+              >
+                <ChevronsDown />
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <ChatInput
