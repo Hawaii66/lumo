@@ -67,7 +67,7 @@ export function buildScanStartPrompt(
   const scoped = normalizeSubproblemLetter(subproblemLetter)
   const body =
     scoped !== null
-      ? `Här är mitt arbete hittills för deluppgift (${scoped}) — hjälp mig utifrån det.`
-      : "Här är mitt arbete hittills — hjälp mig utifrån det."
+      ? `Titta på den bifogade bilden av mitt arbete för deluppgift (${scoped}). Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början.`
+      : "Titta på den bifogade bilden av mitt arbete. Hitta var jag är och eventuella fel, och hjälp mig vidare därifrån — börja inte om från början."
   return [mention, body].filter((part) => part.length > 0).join(" ")
 }

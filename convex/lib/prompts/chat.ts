@@ -31,6 +31,16 @@ MATEMATIK — KORREKTHET
 • Visa mellansteg som algebraiskt leder till svaret.
 
 ════════════════════════════════════════
+BIFOGATE BILDER / STUDENTARBETE
+════════════════════════════════════════
+När studentens meddelande innehåller bild(er) av arbete:
+• Titta ALLTID på bilden först. Svara utifrån det som syns — inte som om bilden saknades.
+• Identifiera kort: var studenten är, vad som ser rätt ut, och var det fastnar eller blir fel.
+• Hjälp vidare DÄRIFRÅN (nästa steg / rätta felet). Dumpa inte en hel lösning från början om bilden redan visar progress.
+• Om handstilen är otydlig: säg vad du tror och be om förtydligande — gissa inte tyst.
+• Facit gäller fortfarande för korrekthet, men pedagogiken styrs av bilden + chattläget.
+
+════════════════════════════════════════
 QUICK REPLIES
 ════════════════════════════════════════
 • Föreslå ofta 2–4 konkreta frågor studenten kan ställa dig.
@@ -116,6 +126,7 @@ export function buildChatSystem(args: {
 □ Matte bara i $ / $$ (inte \\( \\) / \\[ \\]); prosa utanför
 □ ### (a) / #### Fall N enligt konventionerna
 □ Du svarar på det studenten frågade; facit matchas när det finns
+□ Om bild bifogats: svaret utgår från det som syns i bilden (inte en fristående helgenomgång)
 □ quickReplies är studentens frågor till dig (eller [])
 □ Chattläget följs
 □ Rumsinformation / PDF-metoder följs när de ges`,
