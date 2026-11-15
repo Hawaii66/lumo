@@ -33,8 +33,8 @@ export function StaticMath({
     className: cn(
       "border-0 bg-transparent p-0 text-foreground shadow-none",
       display === "inline"
-        ? "inline-block min-h-6 text-base"
-        : "block w-full min-h-10 text-lg",
+        ? "inline-block min-h-[1.5em] text-[1em]"
+        : "block w-full min-h-[2.5em] text-[1.125em]",
       className,
     ),
   })

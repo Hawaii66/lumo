@@ -64,7 +64,12 @@ export function UserMessageText({ text, className }: UserMessageTextProps) {
   const segments = splitTextWithInlineMath(text)
 
   return (
-    <div className={cn("whitespace-pre-wrap", className)}>
+    <div
+      className={cn(
+        "lumo-readable lumo-readable-sm whitespace-pre-wrap",
+        className,
+      )}
+    >
       {segments.map((segment, index) => {
         if (segment.type === "math") {
           return (
