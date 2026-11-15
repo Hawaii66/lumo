@@ -42,6 +42,12 @@ export default defineSchema({
     problemListMode: v.optional(
       v.union(v.literal("list"), v.literal("tree"), v.literal("tillfallen")),
     ),
+    /**
+     * Problem view + chat prose/math size. Missing → "small" (current default).
+     */
+    problemTextSize: v.optional(
+      v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
+    ),
   })
     .index("email", ["email"])
     .index("by_role", ["roleId"]),

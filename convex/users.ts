@@ -19,6 +19,12 @@ const problemListModeValidator = v.union(
   v.literal("tillfallen"),
 );
 
+const problemTextSizeValidator = v.union(
+  v.literal("small"),
+  v.literal("medium"),
+  v.literal("large"),
+);
+
 const roleSummaryValidator = v.object({
   key: v.union(
     v.literal("default"),
@@ -44,6 +50,8 @@ const viewerFieldsValidator = v.object({
   theme: themeValidator,
   /** `null` when the user has not chosen a preference yet. */
   problemListMode: v.union(problemListModeValidator, v.null()),
+  /** Missing preference → "small". */
+  problemTextSize: problemTextSizeValidator,
 });
 
 export const viewer = query({
@@ -85,6 +93,7 @@ export const viewer = query({
       },
       theme: user.theme ?? "light",
       problemListMode: user.problemListMode ?? null,
+      problemTextSize: user.problemTextSize ?? "small",
     };
   },
 });
@@ -132,6 +141,29 @@ export const updateProblemListMode = mutation({
     await ctx.db.patch(userId, { problemListMode: args.problemListMode });
 
     return { _id: userId, problemListMode: args.problemListMode };
+  },
+});
+
+export const updateProblemTextSize = mutation({
+  args: { problemTextSize: problemTextSizeValidator },
+  returns: v.object({
+    _id: v.id("users"),
+    problemTextSize: problemTextSizeValidator,
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (user === null) {
+      throw new Error("Användaren hittades inte");
+    }
+
+    await ctx.db.patch(userId, { problemTextSize: args.problemTextSize });
+
+    return { _id: userId, problemTextSize: args.problemTextSize };
   },
 });
 

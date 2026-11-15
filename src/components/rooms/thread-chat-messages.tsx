@@ -285,7 +285,7 @@ export function AssistantMessageRow({
       />
       <div
         data-assistant-response={responseNumber}
-        className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm text-foreground"
+        className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-foreground"
       >
         {reply ? (
           <div className="flex flex-col gap-3">
@@ -293,6 +293,7 @@ export function AssistantMessageRow({
               markdown={reply.markdown}
               scopeKey={message.key}
               onCiteMath={onCiteMath}
+              className="lumo-readable-sm"
             />
             {onQuickReply && !streaming ? (
               <QuickReplies
