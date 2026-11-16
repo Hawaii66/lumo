@@ -12,6 +12,7 @@ import { useEffect, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { FilesGrid } from "~/components/rooms/files-panel"
+import { ImportCourseSiteCard } from "~/components/rooms/import-course-site-card"
 import { CourseInfoCellsCard } from "~/components/rooms/room-settings/course-info-cells-card"
 import { ProblemPdfOrderCard } from "~/components/rooms/room-settings/problem-pdf-order-card"
 import { RoomDangerZoneCard } from "~/components/rooms/room-settings/room-danger-zone-card"
@@ -146,6 +147,7 @@ export function TemplateStudioPage({ roomId }: { roomId: Id<"rooms"> }) {
         </TabsContent>
 
         <TabsContent value="files" className="mt-6 flex flex-col gap-6">
+          <ImportCourseSiteCard roomId={roomId} />
           <FilesGrid roomId={roomId} />
           <ProblemPdfOrderCard roomId={roomId} />
         </TabsContent>
