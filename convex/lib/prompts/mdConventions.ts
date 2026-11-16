@@ -8,6 +8,9 @@ MARKDOWN + LATEX
 • Matematik ENDAST inne i $...$ (inline) eller $$...$$ (block).
 • ALDRIG TeX-delimitrar \\( \\) eller \\[ \\] — använd bara $ / $$.
 • INGEN rå TeX utanför $-delimitrar.
+• Flerradiga miljöer (\\\\begin{cases}, aligned, matrix, …) MÅSTE vara $$...$$ med BÅDA avslutande $$.
+  ✗ $\\\\begin{cases} … \\\\end{cases}   (saknad stängande $ / fel delimiter)
+  ✓ $$\\\\begin{cases} x=1 \\\\\\\\ y=2 \\\\end{cases}$$
 • INGEN \\\\text{svenska} / \\\\mathrm{Ja} — skriv prosa utanför matten.
   ✓ Vi får $x=\\\\frac{3}{4}$ när $t=2$.
   ✗ Vi får x=\\\\frac{3}{4} när t=2

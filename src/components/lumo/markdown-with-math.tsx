@@ -16,6 +16,7 @@ import { Button } from "~/components/ui/button"
 import {
   isFallHeading,
   isSubproblemHeading,
+  normalizeMarkdownMathDelimiters,
   splitMarkdownMath,
   subproblemAnchorId,
 } from "~/lib/markdown-math"
@@ -313,7 +314,9 @@ export function MarkdownWithMath({
     )
   }
 
-  const blocks = parseBlocks(markdown)
+  const normalized = normalizeMarkdownMathDelimiters(markdown)
+  const blocks = parseBlocks(normalized)
+
   const nodes: Array<ReactNode> = []
   let currentLetter = ""
   const flushedLetters = new Set<string>()
