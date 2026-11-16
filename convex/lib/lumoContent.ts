@@ -167,22 +167,27 @@ export const lumoTwinAnswerSchema = z.object({
 });
 export type LumoTwinAnswer = z.infer<typeof lumoTwinAnswerSchema>;
 
-/** Strip leading "P" and keep the first N.M number. */
+/**
+ * Strip leading "P" and keep the dotted number (1.2, 1.2.3, 3.14, …).
+ * Requires at least one "." so bare integers fall through to the trimmed raw.
+ */
+const DOTTED_PROBLEM_NUMBER_RE = /(\d+(?:\.\d+)+)/;
+
 export function normalizeProblemNumber(
   raw: string,
   fallback: string,
 ): string {
-  const fromRaw = raw.trim().match(/(\d+\.\d+)/);
+  const fromRaw = raw.trim().match(DOTTED_PROBLEM_NUMBER_RE);
   if (fromRaw?.[1]) return fromRaw[1];
-  const fromFallback = fallback.trim().match(/(\d+\.\d+)/);
+  const fromFallback = fallback.trim().match(DOTTED_PROBLEM_NUMBER_RE);
   if (fromFallback?.[1]) return fromFallback[1];
   const trimmed = raw.trim();
   return trimmed.length > 0 ? trimmed : fallback.trim();
 }
 
-/** Strip leading "P 1.2" / "P1.2" from raw answer text for salvage fallback. */
+/** Strip leading "P 1.2" / "P1.2" / "P 1.2.3" from raw answer text for salvage fallback. */
 export function stripProblemNumberPrefix(text: string): string {
-  return text.replace(/^\s*P\s*\d+\.\d+\s*/i, "").trim();
+  return text.replace(/^\s*P\s*\d+(?:\.\d+)+\s*/i, "").trim();
 }
 
 const LOSNING_SAKNAS_RE = /^lösning saknas\.?$/i;

@@ -17,7 +17,7 @@ OUTPUT-FORMAT
   "flags": []
 }
 
-problemNumber: basnummer UTAN "P" och UTAN bokstav ("1.1", inte "P 1.1" eller "1.1a").
+problemNumber: basnummer UTAN "P" och UTAN bokstav ("1.1" / "1.2.3", inte "P 1.1" eller "1.1a").
 question / answer: strängar med markdown + $ / $$ (inte JSON-parts).
 flags: ALLTID en array (använd [] om inget). Varje post är { "kind": "…", "data": {} }.
   • "needs_pdf" — eleven måste öppna PDF:en för figur/graf/tabell/diagram/bild.
