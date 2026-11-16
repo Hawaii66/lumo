@@ -13,6 +13,38 @@ type ChapterHeading = {
 const SUBPROBLEM_HEADING_RE = /^(#{2,4})\s*\(([a-z])\)\s*$/i
 const FALL_HEADING_RE = /^(#{2,4})\s*Fall\s+(\d+)\b(.*)$/i
 
+/**
+ * Multi-line TeX environments that must be block math (`$$...$$`).
+ * Models often emit a lone opening `$` (or bare env) with no closer.
+ */
+const BLOCK_MATH_ENV =
+  String.raw`cases|aligned|align\*?|gather\*?|eqnarray\*?|matrix|pmatrix|bmatrix|vmatrix|Vmatrix|array`
+
+/** Match optional `$`/`$$` around a block env; capture the env body. */
+const BLOCK_ENV_WITH_DOLLARS_RE = new RegExp(
+  String.raw`(\$\$|\$)?(\s*)(\\begin\{(${BLOCK_MATH_ENV})\}[\s\S]*?\\end\{\4\})(\s*)(\$\$|\$)?`,
+  "g",
+)
+
+/**
+ * Repair AI/OCR markdown so multi-line TeX envs become closed `$$...$$`
+ * blocks without internal blank lines (blank lines would split paragraphs
+ * before math parsing runs).
+ */
+export function normalizeMarkdownMathDelimiters(input: string): string {
+  return input.replace(
+    BLOCK_ENV_WITH_DOLLARS_RE,
+    (_match, _open, preWs, envBody, _envName, postWs) => {
+      const cleaned = String(envBody)
+        .replace(/\n[ \t]*\n+/g, "\n")
+        .trim()
+      const lead = preWs?.includes("\n") ? "\n\n" : preWs || ""
+      const trail = postWs?.includes("\n") ? "\n\n" : postWs || ""
+      return `${lead}$$${cleaned}$$${trail}`
+    },
+  )
+}
+
 /** Index of the next two-char closer (`\)` / `\]`), or -1. */
 function indexOfTexCloser(
   input: string,

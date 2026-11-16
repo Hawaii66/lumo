@@ -3,6 +3,7 @@ import {
   chaptersFromMarkdown,
   isFallHeading,
   isSubproblemHeading,
+  normalizeMarkdownMathDelimiters,
   splitMarkdownMath,
   subproblemAnchorId,
 } from "./markdown-math"
@@ -55,6 +56,43 @@ describe("splitMarkdownMath", () => {
     expect(splitMarkdownMath("a $x\ny b")).toEqual([
       { kind: "text", content: "a $x\ny b" },
     ])
+  })
+})
+
+describe("normalizeMarkdownMathDelimiters", () => {
+  it("closes unclosed $ around multi-line cases as block $$", () => {
+    const raw = `Lös:
+
+(a)
+
+$\\begin{cases}
+x_1 - x_2 = 0 \\\\
+
+x_1 + x_2 = 0
+\\end{cases}
+
+(b)`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toContain("$$\\begin{cases}")
+    expect(normalized).toContain("\\end{cases}$$")
+    expect(normalized).not.toMatch(/(?<!\$)\$(?!\$)\\begin\{cases\}/)
+    expect(normalized).not.toMatch(/\\\\\n\n/)
+    const segs = splitMarkdownMath(
+      normalized.split(/\n\n/).find((p) => p.includes("begin{cases}"))!,
+    )
+    expect(segs.some((s) => s.kind === "math")).toBe(true)
+  })
+
+  it("wraps bare aligned env in $$", () => {
+    const raw = String.raw`\begin{aligned} x&=1 \\ y&=2 \end{aligned}`
+    expect(normalizeMarkdownMathDelimiters(raw)).toBe(
+      String.raw`$$\begin{aligned} x&=1 \\ y&=2 \end{aligned}$$`,
+    )
+  })
+
+  it("is idempotent for already-correct $$ blocks", () => {
+    const raw = String.raw`$$\begin{cases} x=1 \\ y=2 \end{cases}$$`
+    expect(normalizeMarkdownMathDelimiters(raw)).toBe(raw)
   })
 })
 
