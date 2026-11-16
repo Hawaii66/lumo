@@ -78,10 +78,8 @@ export const convertProblemChunk = internalAction({
     await forceFlushPosthogTraces();
     return {
       ...normalized,
-      problemNumber:
-        normalized.problemNumber.length > 0
-          ? normalized.problemNumber
-          : suggestedNumber,
+      // Splitter number is authoritative; model often collapses 1.2.x → 1.2.
+      problemNumber: suggestedNumber,
     };
   },
 });
