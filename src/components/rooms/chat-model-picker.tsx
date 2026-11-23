@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "convex/react"
-import { Check, Star } from "lucide-react"
+import { Check, ChevronDown, Star } from "lucide-react"
 import { api } from "../../../convex/_generated/api"
 import { Button } from "~/components/ui/button"
 import {
@@ -56,12 +56,18 @@ export function ChatModelPicker({
               variant="outline"
               size="sm"
               disabled={disabled}
-              className="h-7 min-w-28 border-border bg-background px-2 text-xs font-medium"
+              className="h-7 min-w-28 justify-between gap-1.5 border-border bg-background px-2 text-xs font-medium"
               aria-label="Chattmodell"
             />
           }
         >
-          {triggerLabel}
+          <span className="min-w-0 flex-1 truncate text-left">
+            {triggerLabel}
+          </span>
+          <ChevronDown
+            className="size-4 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-56 p-1">
           {levels.map((entry) => {

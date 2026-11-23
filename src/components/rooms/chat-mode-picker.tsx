@@ -21,6 +21,9 @@ export function ChatModePicker({
   disabled = false,
   className,
 }: ChatModePickerProps) {
+  const selectedLabel =
+    CHAT_MODES.find((mode) => mode.value === value)?.label ?? value
+
   return (
     <div
       className={cn(
@@ -44,7 +47,7 @@ export function ChatModePicker({
           aria-label="Chattläge"
           className="h-7 min-w-28 border-border bg-background px-2 text-xs font-medium"
         >
-          <SelectValue />
+          <SelectValue>{selectedLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent align="start">
           {CHAT_MODES.map((mode) => (

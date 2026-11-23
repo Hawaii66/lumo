@@ -70,13 +70,13 @@ export function DefaultChatModelCard() {
                   })
                 }}
                 className={cn(
-                  "h-auto min-w-0 flex-1 justify-start gap-2 rounded-md px-3 py-2 text-left text-xs font-medium shadow-none sm:justify-center sm:px-2",
+                  "h-auto min-w-0 flex-1 justify-start gap-3 rounded-md px-3 py-3 text-left shadow-none sm:justify-center sm:px-3",
                   active && "bg-background text-foreground shadow-sm",
                 )}
               >
                 <Star
                   className={cn(
-                    "size-3.5 shrink-0",
+                    "size-5 shrink-0",
                     active
                       ? "fill-amber-500 text-amber-600 dark:text-amber-400"
                       : "text-muted-foreground",
@@ -84,8 +84,15 @@ export function DefaultChatModelCard() {
                   aria-hidden
                 />
                 <span className="min-w-0">
-                  <span className="block font-medium">{entry.name}</span>
-                  <span className="text-muted-foreground font-normal">
+                  <span className="block text-base font-semibold tracking-tight">
+                    {entry.name}
+                  </span>
+                  <span className="text-muted-foreground block truncate text-sm font-normal">
+                    {entry.modelId.includes("/")
+                      ? entry.modelId.slice(entry.modelId.indexOf("/") + 1)
+                      : entry.modelId}
+                  </span>
+                  <span className="text-muted-foreground text-sm font-normal">
                     {entry.creditCost} credits/meddelande
                   </span>
                 </span>
