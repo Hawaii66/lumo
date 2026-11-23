@@ -373,6 +373,34 @@ export default defineSchema({
       "subproblemLetter",
     ]),
   /**
+   * Per-user reason marker for a parsed problem / deluppgift (come-back /
+   * hard / insight / teacher). Same unit keying as roomProblemCompletions,
+   * plus userId — private to that member. Max one row per user+unit.
+   * Never published into templates or copied on clone. Shadows not marked.
+   */
+  roomProblemReasons: defineTable({
+    roomId: v.id("rooms"),
+    userId: v.id("users"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    subproblemLetter: v.optional(v.string()),
+    reason: v.union(
+      v.literal("hard"),
+      v.literal("insight"),
+      v.literal("teacher"),
+      v.literal("other"),
+    ),
+    note: v.optional(v.string()),
+  })
+    .index("by_room_and_user", ["roomId", "userId"])
+    .index("by_room_user_hash_number_letter", [
+      "roomId",
+      "userId",
+      "contentHash",
+      "problemNumber",
+      "subproblemLetter",
+    ]),
+  /**
    * Room-scoped archive of a PDF's parsed problems (by contentHash).
    * Global `problems` rows stay; the room's list moves the PDF to Archived
    * until unarchived. Not copied into templates or clones.

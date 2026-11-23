@@ -3,6 +3,7 @@ import {
   Archive,
   ArchiveRestore,
   ArrowLeft,
+  Bookmark,
   ChevronDown,
   Clock,
   FileText,
@@ -28,6 +29,11 @@ import {
   isCompletedForLetter,
   type ProblemCompletionEntry,
 } from "~/components/rooms/problem-completion"
+import {
+  ProblemReasonDetailDialog,
+  ProblemReasonDisplay,
+  type ProblemReasonEntry,
+} from "~/components/rooms/problem-reason"
 import {
   ProblemStarsDisplay,
   type ProblemStarEntry,
@@ -96,6 +102,8 @@ type RoomSidebarProblemItem = {
   starEntries: Array<ProblemStarEntry>
   /** Room-scoped completion marks (personal; not cloned from templates). */
   completionEntries?: Array<ProblemCompletionEntry>
+  /** Per-user reason markers for this problem. */
+  reasonEntries?: Array<ProblemReasonEntry>
   shadows?: Array<{
     id: string
     problemNumber: string
@@ -430,6 +438,7 @@ type TillfallenUnitRow = {
   subproblemLetter: string
   starEntries: Array<ProblemStarEntry>
   completionEntries: Array<ProblemCompletionEntry>
+  reasonEntries: Array<ProblemReasonEntry>
 }
 
 function unitMatchesStarFilter(
@@ -446,14 +455,25 @@ function unitMatchesStarFilter(
   )
 }
 
+function unitMatchesReasonFilter(
+  reasonEntries: Array<ProblemReasonEntry>,
+  letter: string,
+  hasReasonOnly: boolean,
+): boolean {
+  if (!hasReasonOnly) return true
+  return reasonEntries.some((entry) => entry.letter === letter)
+}
+
 function TillfallenProblemList({
   roomId,
   query,
   starLevelSet,
   showAllStars,
+  hasReasonOnly,
   selectedProblemId,
   onSelectProblem,
   onOpenOccasions,
+  onSelectReason,
   collapsed,
   setCollapsed,
 }: {
@@ -461,9 +481,11 @@ function TillfallenProblemList({
   query: string
   starLevelSet: Set<StarFilterLevel>
   showAllStars: boolean
+  hasReasonOnly: boolean
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
   onOpenOccasions?: () => void
+  onSelectReason: (problemId: string, entry: ProblemReasonEntry) => void
   collapsed: Record<string, boolean>
   setCollapsed: Dispatch<SetStateAction<Record<string, boolean>>>
 }) {
@@ -502,12 +524,22 @@ function TillfallenProblemList({
         const unit = unitByKey.get(key)
         const starEntries = unit?.starEntries ?? []
         const completionEntries = unit?.completionEntries ?? []
+        const reasonEntries = unit?.reasonEntries ?? []
         if (
           !unitMatchesStarFilter(
             starEntries,
             assignment.subproblemLetter,
             starLevelSet,
             showAllStars,
+          )
+        ) {
+          continue
+        }
+        if (
+          !unitMatchesReasonFilter(
+            reasonEntries,
+            assignment.subproblemLetter,
+            hasReasonOnly,
           )
         ) {
           continue
@@ -528,6 +560,7 @@ function TillfallenProblemList({
           subproblemLetter: assignment.subproblemLetter,
           starEntries,
           completionEntries,
+          reasonEntries,
         })
       }
       buckets.push({
@@ -538,7 +571,7 @@ function TillfallenProblemList({
     }
 
     return buckets
-  }, [occasions, units, query, starLevelSet, showAllStars])
+  }, [occasions, units, query, starLevelSet, showAllStars, hasReasonOnly])
 
   if (roomId === undefined) {
     return (
@@ -586,7 +619,9 @@ function TillfallenProblemList({
           ? "Inga träffar."
           : !showAllStars
             ? "Inga uppgifter med valda stjärnnivåer."
-            : "Inga tilldelade uppgifter ännu."}
+            : hasReasonOnly
+              ? "Inga uppgifter med markering."
+              : "Inga tilldelade uppgifter ännu."}
       </p>
     )
   }
@@ -647,6 +682,7 @@ function TillfallenProblemList({
                       item={item}
                       selectedProblemId={selectedProblemId}
                       onSelectProblem={onSelectProblem}
+                      onSelectReason={onSelectReason}
                     />
                   ))}
                 </SidebarMenu>
@@ -663,10 +699,12 @@ function TillfallenUnitRow({
   item,
   selectedProblemId,
   onSelectProblem,
+  onSelectReason,
 }: {
   item: TillfallenUnitRow
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
+  onSelectReason: (problemId: string, entry: ProblemReasonEntry) => void
 }) {
   const selected =
     item.problemId !== null && item.problemId === selectedProblemId
@@ -674,6 +712,9 @@ function TillfallenUnitRow({
     (entry) => entry.letter === item.subproblemLetter,
   )
   const displayCompletions = item.completionEntries.filter(
+    (entry) => entry.letter === item.subproblemLetter,
+  )
+  const displayReasons = item.reasonEntries.filter(
     (entry) => entry.letter === item.subproblemLetter,
   )
 
@@ -691,6 +732,14 @@ function TillfallenUnitRow({
         <span className="min-w-0 flex-1 truncate tabular-nums">{item.label}</span>
         <span className="inline-flex shrink-0 items-center gap-1.5">
           <ProblemStarsDisplay entries={displayStars} />
+          <ProblemReasonDisplay
+            entries={displayReasons}
+            onSelect={
+              item.problemId === null
+                ? undefined
+                : (entry) => onSelectReason(item.problemId!, entry)
+            }
+          />
           <ProblemCompletionDisplay entries={displayCompletions} />
         </span>
       </SidebarMenuButton>
@@ -702,10 +751,12 @@ function ProblemRow({
   problem,
   selectedProblemId,
   onSelectProblem,
+  onSelectReason,
 }: {
   problem: RoomSidebarProblemItem
   selectedProblemId: string | null
   onSelectProblem: (id: string) => void
+  onSelectReason: (problemId: string, entry: ProblemReasonEntry) => void
 }) {
   const selected = problem.id === selectedProblemId
   const shadows = problem.shadows ?? []
@@ -719,6 +770,10 @@ function ProblemRow({
         <span className="min-w-0 flex-1 truncate">{problem.problemNumber}</span>
         <span className="inline-flex shrink-0 items-center gap-1.5">
           <ProblemStarsDisplay entries={problem.starEntries} />
+          <ProblemReasonDisplay
+            entries={problem.reasonEntries ?? []}
+            onSelect={(entry) => onSelectReason(problem.id, entry)}
+          />
           <ProblemCompletionDisplay entries={problem.completionEntries ?? []} />
         </span>
       </SidebarMenuButton>
@@ -803,6 +858,11 @@ function ProblemList({
 
   const [query, setQuery] = useState("")
   const [starLevels, setStarLevels] = useState<Array<string>>([])
+  const [hasReasonOnly, setHasReasonOnly] = useState(false)
+  const [reasonDetail, setReasonDetail] = useState<{
+    problemId: string
+    entry: ProblemReasonEntry
+  } | null>(null)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [archivedOpen, setArchivedOpen] = useState(false)
   const [archivePickerOpen, setArchivePickerOpen] = useState(false)
@@ -814,8 +874,20 @@ function ProblemList({
   const [archiveError, setArchiveError] = useState<string | null>(null)
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null)
 
+  const setProblemReason = useMutation(api.PDFParse.problems.setReason)
+
   const archivableGroups = useMemo(
     () => groups.filter((group) => group.fileId !== undefined),
+    [groups],
+  )
+
+  const anyReasonsExist = useMemo(
+    () =>
+      groups.some((group) =>
+        group.problems.some(
+          (problem) => (problem.reasonEntries?.length ?? 0) > 0,
+        ),
+      ),
     [groups],
   )
 
@@ -873,7 +945,7 @@ function ProblemList({
           .filter((group) => group.problems.length > 0)
       : groups
 
-    const source =
+    const starFiltered =
       starLevelSet.size === 0
         ? searched
         : searched
@@ -887,9 +959,20 @@ function ProblemList({
             }))
             .filter((group) => group.problems.length > 0)
 
+    const source = !hasReasonOnly
+      ? starFiltered
+      : starFiltered
+          .map((group) => ({
+            ...group,
+            problems: group.problems.filter(
+              (problem) => (problem.reasonEntries?.length ?? 0) > 0,
+            ),
+          }))
+          .filter((group) => group.problems.length > 0)
+
     // Preserve backend group order (problemSortOrder); only sort within groups.
     return source.map(sortGroup)
-  }, [groups, normalizedQuery, starLevelSet])
+  }, [groups, normalizedQuery, starLevelSet, hasReasonOnly])
 
   // While searching, force-open groups (and chapters) that still have matches.
   useEffect(() => {
@@ -914,11 +997,19 @@ function ProblemList({
     setModePreference("tillfallen")
     setQuery("")
     setStarLevels([])
+    setHasReasonOnly(false)
     setCollapsed((prev) => ({
       ...prev,
       [`occasion:${revealOccasion.occasionId}`]: false,
     }))
   }, [revealOccasion])
+
+  // Hide reason filter when no reasons remain; clear active filter too.
+  useEffect(() => {
+    if (!anyReasonsExist && hasReasonOnly) {
+      setHasReasonOnly(false)
+    }
+  }, [anyReasonsExist, hasReasonOnly])
 
   if (groups.length === 0 && archived.length === 0) {
     return (
@@ -976,7 +1067,13 @@ function ProblemList({
       ? `Inga träffar för “${query.trim()}”.`
       : !showAllStars
         ? "Inga uppgifter med valda stjärnnivåer."
-        : "Inga uppgifter."
+        : hasReasonOnly
+          ? "Inga uppgifter med markering."
+          : "Inga uppgifter."
+
+  function handleSelectReason(problemId: string, entry: ProblemReasonEntry) {
+    setReasonDetail({ problemId, entry })
+  }
 
   return (
     <div className="flex flex-col gap-2" aria-label="Uppgifter">
@@ -1024,75 +1121,107 @@ function ProblemList({
         </div>
       ) : null}
 
-      <ToggleGroup
-        multiple
-        value={starLevels}
-        onValueChange={(next) => {
-          if (next.includes("all")) {
-            setStarLevels([])
-            return
-          }
+      <div className="flex w-full items-stretch gap-0.5">
+        <ToggleGroup
+          multiple
+          value={starLevels}
+          onValueChange={(next) => {
+            if (next.includes("all")) {
+              setStarLevels([])
+              return
+            }
 
-          setStarLevels(next)
-        }}
-        size="sm"
-        variant="outline"
-        className="flex w-full items-stretch gap-0.5 rounded-lg border-0 bg-sidebar-accent/40 p-0.5"
-        aria-label="Filtrera efter stjärnor"
-      >
-        <ToggleGroupItem
-          value="all"
-          aria-label="Visa alla uppgifter (0–3 stjärnor)"
-          aria-pressed={showAllStars}
-          className={cn(
-            "h-7 min-w-0 flex-1 rounded-md! border-0 px-1 text-[10px] font-medium leading-none shadow-none",
-            showAllStars && "bg-sidebar text-sidebar-foreground shadow-sm",
-          )}
+            setStarLevels(next)
+          }}
+          size="sm"
+          variant="outline"
+          className="flex min-w-0 flex-1 items-stretch gap-0.5 rounded-lg border-0 bg-sidebar-accent/40 p-0.5"
+          aria-label="Filtrera efter stjärnor"
         >
-          Alla
-        </ToggleGroupItem>
-        <div className="flex min-w-0 flex-[3] items-stretch">
-          {STAR_LEVEL_OPTIONS.map((option) => {
-            const active = starLevelSet.has(option.level)
-            const joinsLeft =
-              active &&
-              starLevelSet.has((option.level - 1) as StarFilterLevel)
-            const joinsRight =
-              active &&
-              starLevelSet.has((option.level + 1) as StarFilterLevel)
-            return (
-              <ToggleGroupItem
-                key={option.level}
-                value={String(option.level)}
-                title={option.title}
-                aria-label={option.title}
+          <ToggleGroupItem
+            value="all"
+            aria-label="Visa alla uppgifter (0–3 stjärnor)"
+            aria-pressed={showAllStars}
+            className={cn(
+              "h-7 min-w-0 flex-1 rounded-md! border-0 px-1 text-[10px] font-medium leading-none shadow-none",
+              showAllStars && "bg-sidebar text-sidebar-foreground shadow-sm",
+            )}
+          >
+            Alla
+          </ToggleGroupItem>
+          <div className="flex min-w-0 flex-[3] items-stretch">
+            {STAR_LEVEL_OPTIONS.map((option) => {
+              const active = starLevelSet.has(option.level)
+              const joinsLeft =
+                active &&
+                starLevelSet.has((option.level - 1) as StarFilterLevel)
+              const joinsRight =
+                active &&
+                starLevelSet.has((option.level + 1) as StarFilterLevel)
+              return (
+                <ToggleGroupItem
+                  key={option.level}
+                  value={String(option.level)}
+                  title={option.title}
+                  aria-label={option.title}
+                  className={cn(
+                    "h-7 min-w-0 flex-1 gap-px border-0 px-1 shadow-none",
+                    active && "bg-sidebar text-sidebar-foreground shadow-sm",
+                    // Contiguous selections share flat edges; outer ends stay rounded.
+                    !joinsLeft && !joinsRight && "rounded-md!",
+                    !joinsLeft && joinsRight && "rounded-l-md! rounded-r-none!",
+                    joinsLeft && !joinsRight && "rounded-l-none! rounded-r-md!",
+                    joinsLeft && joinsRight && "rounded-none!",
+                  )}
+                >
+                  {Array.from({ length: option.level }, (_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "size-2.5",
+                        active
+                          ? "fill-amber-500 text-amber-500"
+                          : "fill-none text-muted-foreground",
+                      )}
+                      aria-hidden
+                    />
+                  ))}
+                </ToggleGroupItem>
+              )
+            })}
+          </div>
+        </ToggleGroup>
+        {anyReasonsExist ? (
+          <button
+            type="button"
+            title="Visa endast markerade uppgifter"
+            aria-label="Visa endast markerade uppgifter"
+            aria-pressed={hasReasonOnly}
+            onClick={() => setHasReasonOnly((prev) => !prev)}
+            className={cn(
+              "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent/40 p-0.5 transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+            )}
+          >
+            <span
+              className={cn(
+                "inline-flex size-full items-center justify-center rounded-md",
+                hasReasonOnly
+                  ? "bg-sidebar text-violet-700 shadow-sm"
+                  : "text-muted-foreground",
+              )}
+            >
+              <Bookmark
                 className={cn(
-                  "h-7 min-w-0 flex-1 gap-px border-0 px-1 shadow-none",
-                  active && "bg-sidebar text-sidebar-foreground shadow-sm",
-                  // Contiguous selections share flat edges; outer ends stay rounded.
-                  !joinsLeft && !joinsRight && "rounded-md!",
-                  !joinsLeft && joinsRight && "rounded-l-md! rounded-r-none!",
-                  joinsLeft && !joinsRight && "rounded-l-none! rounded-r-md!",
-                  joinsLeft && joinsRight && "rounded-none!",
+                  "size-3",
+                  hasReasonOnly && "fill-violet-600 text-violet-600",
                 )}
-              >
-                {Array.from({ length: option.level }, (_, i) => (
-                  <Star
-                    key={i}
-                    className={cn(
-                      "size-2.5",
-                      active
-                        ? "fill-amber-500 text-amber-500"
-                        : "fill-none text-muted-foreground",
-                    )}
-                    aria-hidden
-                  />
-                ))}
-              </ToggleGroupItem>
-            )
-          })}
-        </div>
-      </ToggleGroup>
+                aria-hidden
+              />
+            </span>
+          </button>
+        ) : null}
+      </div>
 
       {mode === "tillfallen" ? (
         <TillfallenProblemList
@@ -1100,9 +1229,11 @@ function ProblemList({
           query={normalizedQuery}
           starLevelSet={starLevelSet}
           showAllStars={showAllStars}
+          hasReasonOnly={hasReasonOnly}
           selectedProblemId={selectedProblemId}
           onSelectProblem={onSelectProblem}
           onOpenOccasions={onOpenOccasions}
+          onSelectReason={handleSelectReason}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
         />
@@ -1158,6 +1289,7 @@ function ProblemList({
                               problem={problem}
                               selectedProblemId={selectedProblemId}
                               onSelectProblem={onSelectProblem}
+                              onSelectReason={handleSelectReason}
                             />
                           ))}
                         </SidebarMenu>
@@ -1205,6 +1337,7 @@ function ProblemList({
                                 problem={problem}
                                 selectedProblemId={selectedProblemId}
                                 onSelectProblem={onSelectProblem}
+                                onSelectReason={handleSelectReason}
                               />
                             ))}
                           </SidebarMenu>
@@ -1222,6 +1355,26 @@ function ProblemList({
       ) : null}
         </>
       ) : null}
+
+      <ProblemReasonDetailDialog
+        entry={reasonDetail?.entry ?? null}
+        open={reasonDetail !== null}
+        onOpenChange={(open) => {
+          if (!open) setReasonDetail(null)
+        }}
+        onClear={() => {
+          if (reasonDetail === null || roomId === undefined) return
+          void setProblemReason({
+            roomId,
+            problemId: reasonDetail.problemId as Id<"problems">,
+            reason: null,
+            subproblemLetter:
+              reasonDetail.entry.letter === ""
+                ? undefined
+                : reasonDetail.entry.letter,
+          })
+        }}
+      />
 
       {mode !== "tillfallen" &&
       (archived.length > 0 ||

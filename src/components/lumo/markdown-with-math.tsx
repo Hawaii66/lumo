@@ -8,10 +8,15 @@ import {
   type ProblemOccasionOption,
 } from "~/components/rooms/problem-occasion"
 import {
+  ProblemReasonControl,
+  type ProblemReasonEntry,
+} from "~/components/rooms/problem-reason"
+import {
   ProblemStarsControl,
   ProblemStarsReadonly,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
+import type { ProblemReasonId } from "~/lib/problem-reasons"
 import { Button } from "~/components/ui/button"
 import {
   isFallHeading,
@@ -37,6 +42,11 @@ type MarkdownWithMathProps = {
   subproblemCompletion?: {
     isCompleted: (letter: string) => boolean
     onChange: (letter: string, completed: boolean) => void
+  }
+  /** When set, reason markers appear on deluppgift labels. */
+  subproblemReason?: {
+    getEntry: (letter: string) => ProblemReasonEntry | undefined
+    onSave: (letter: string, reason: ProblemReasonId, note: string) => void
   }
   /** When set, tillfälle labels/pickers appear on deluppgift labels. */
   subproblemOccasion?: {
@@ -302,6 +312,7 @@ export function MarkdownWithMath({
   className,
   subproblemStars,
   subproblemCompletion,
+  subproblemReason,
   subproblemOccasion,
   imagesByLetter,
   renderImages,
@@ -353,7 +364,7 @@ export function MarkdownWithMath({
           data-lumo-subproblem={block.label}
           className={cn(
             "scroll-mt-3 flex w-full items-center gap-1.5",
-            subproblemCompletion &&
+            (subproblemCompletion || subproblemReason) &&
               "rounded-md border border-border/70 bg-muted/40 px-2 py-1",
           )}
         >
@@ -397,15 +408,27 @@ export function MarkdownWithMath({
               />
             )
           ) : null}
-          {subproblemCompletion ? (
-            <ProblemCompletionControl
-              className="ml-auto"
-              letter={letter}
-              completed={subproblemCompletion.isCompleted(letter)}
-              onChange={(completed) =>
-                subproblemCompletion.onChange(letter, completed)
-              }
-            />
+          {subproblemReason || subproblemCompletion ? (
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
+              {subproblemReason ? (
+                <ProblemReasonControl
+                  letter={letter}
+                  entry={subproblemReason.getEntry(letter)}
+                  onSave={(reason, note) =>
+                    subproblemReason.onSave(letter, reason, note)
+                  }
+                />
+              ) : null}
+              {subproblemCompletion ? (
+                <ProblemCompletionControl
+                  letter={letter}
+                  completed={subproblemCompletion.isCompleted(letter)}
+                  onChange={(completed) =>
+                    subproblemCompletion.onChange(letter, completed)
+                  }
+                />
+              ) : null}
+            </span>
           ) : null}
         </div>,
       )

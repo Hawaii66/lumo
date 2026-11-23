@@ -63,6 +63,18 @@ const assignableUnitValidator = v.object({
     }),
   ),
   completionEntries: v.array(v.object({ letter: v.string() })),
+  reasonEntries: v.array(
+    v.object({
+      letter: v.string(),
+      reason: v.union(
+        v.literal("hard"),
+        v.literal("insight"),
+        v.literal("teacher"),
+        v.literal("other"),
+      ),
+      note: v.optional(v.string()),
+    }),
+  ),
 });
 
 async function isRoomMember(
@@ -398,6 +410,35 @@ export const listAssignableUnits = query({
       completionsByProblem.set(key, list);
     }
 
+    const reasonsByProblem = new Map<
+      string,
+      Array<{
+        letter: string;
+        reason: "hard" | "insight" | "teacher" | "other";
+        note?: string;
+      }>
+    >();
+    const userId = await getAuthUserId(ctx);
+    if (userId !== null) {
+      const reasonRows = await ctx.db
+        .query("roomProblemReasons")
+        .withIndex("by_room_and_user", (q) =>
+          q.eq("roomId", args.roomId).eq("userId", userId),
+        )
+        .take(MAX_ASSIGNMENTS_PER_ROOM);
+      for (const row of reasonRows) {
+        const letter = normalizeStoredLetter(row.subproblemLetter);
+        const key = `${row.contentHash}\0${row.problemNumber}`;
+        const list = reasonsByProblem.get(key) ?? [];
+        list.push({
+          letter,
+          reason: row.reason,
+          ...(row.note !== undefined ? { note: row.note } : {}),
+        });
+        reasonsByProblem.set(key, list);
+      }
+    }
+
     const units: Array<{
       contentHash: string;
       problemNumber: string;
@@ -410,6 +451,11 @@ export const listAssignableUnits = query({
       occasionName: string | null;
       starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>;
       completionEntries: Array<{ letter: string }>;
+      reasonEntries: Array<{
+        letter: string;
+        reason: "hard" | "insight" | "teacher" | "other";
+        note?: string;
+      }>;
     }> = [];
 
     const seenHashes = new Set<string>();
@@ -444,6 +490,7 @@ export const listAssignableUnits = query({
         const problemKey = `${file.contentHash}\0${problem.problemNumber}`;
         const starEntries = starsByProblem.get(problemKey) ?? [];
         const completionEntries = completionsByProblem.get(problemKey) ?? [];
+        const reasonEntries = reasonsByProblem.get(problemKey) ?? [];
         const unitLetters = letters.length > 0 ? letters : [""];
 
         for (const letter of unitLetters) {
@@ -464,6 +511,7 @@ export const listAssignableUnits = query({
                 : (occasionNameById.get(occasionId) ?? null),
             starEntries,
             completionEntries,
+            reasonEntries,
           });
         }
       }
