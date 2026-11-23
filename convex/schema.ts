@@ -5,6 +5,8 @@ import {
   chargeSourceValidator,
   chatDeletionExpiryValidator,
   chatModeValidator,
+  chatModelLevelConfigValidator,
+  chatModelLevelValidator,
   problemFlagValidator,
 } from "./lib/lumoContent";
 
@@ -50,6 +52,10 @@ export default defineSchema({
     problemTextSize: v.optional(
       v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
     ),
+    /**
+     * Default chat model tier for new threads. Missing → 1 (Snabb).
+     */
+    defaultChatModelLevel: v.optional(chatModelLevelValidator),
   })
     .index("email", ["email"])
     .index("by_role", ["roleId"]),
@@ -203,6 +209,11 @@ export default defineSchema({
     /** Interaction mode for the chat. Missing on older threads → treat as normal. */
     mode: v.optional(chatModeValidator),
     /**
+     * Chat model tier (1–3). Missing on older threads → treat as 1.
+     * Cost/model id resolved from creditConfig.chatModelLevels at send time.
+     */
+    modelLevel: v.optional(chatModelLevelValidator),
+    /**
      * Auto-archive preference. Missing on older threads → infinite.
      * `deleteAt` is the absolute archive deadline when not infinite;
      * `archiveJobId` is the one-shot scheduler job that archives at that time.
@@ -345,6 +356,7 @@ export default defineSchema({
     stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
   })
     .index("by_room", ["roomId"])
+    .index("by_contentHash", ["contentHash"])
     .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
       "contentHash",
@@ -364,8 +376,37 @@ export default defineSchema({
     subproblemLetter: v.optional(v.string()),
   })
     .index("by_room", ["roomId"])
+    .index("by_contentHash", ["contentHash"])
     .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
+      "contentHash",
+      "problemNumber",
+      "subproblemLetter",
+    ]),
+  /**
+   * Per-user reason marker for a parsed problem / deluppgift (come-back /
+   * hard / insight / teacher). Same unit keying as roomProblemCompletions,
+   * plus userId — private to that member. Max one row per user+unit.
+   * Never published into templates or copied on clone. Shadows not marked.
+   */
+  roomProblemReasons: defineTable({
+    roomId: v.id("rooms"),
+    userId: v.id("users"),
+    contentHash: v.string(),
+    problemNumber: v.string(),
+    subproblemLetter: v.optional(v.string()),
+    reason: v.union(
+      v.literal("hard"),
+      v.literal("insight"),
+      v.literal("teacher"),
+      v.literal("other"),
+    ),
+    note: v.optional(v.string()),
+  })
+    .index("by_room_and_user", ["roomId", "userId"])
+    .index("by_room_user_hash_number_letter", [
+      "roomId",
+      "userId",
       "contentHash",
       "problemNumber",
       "subproblemLetter",
@@ -412,6 +453,7 @@ export default defineSchema({
   })
     .index("by_room", ["roomId"])
     .index("by_occasion", ["occasionId"])
+    .index("by_contentHash", ["contentHash"])
     .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
       "contentHash",
@@ -573,8 +615,17 @@ export default defineSchema({
   creditConfig: defineTable({
     key: v.literal("default"),
     freeDailyCredits: v.optional(v.number()),
+    /**
+     * Legacy flat chat cost. Kept for older rows / twin-adjacent displays;
+     * prefer chatModelLevels[0].creditCost when levels are present.
+     */
     chatCreditCost: v.number(),
     twinCreditCost: v.number(),
+    /**
+     * Exactly three tiers when set (admin-editable). Missing → derive a single
+     * level-1 entry from chatCreditCost + gpt-4.1-mini.
+     */
+    chatModelLevels: v.optional(v.array(chatModelLevelConfigValidator)),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
   /** Per-user credit wallets: daily free (resets) + paid top-ups (never expire). */
@@ -622,4 +673,32 @@ export default defineSchema({
     sortOrder: v.number(),
     updatedAt: v.number(),
   }).index("by_active_and_sortOrder", ["active", "sortOrder"]),
+  /**
+   * User-submitted reports about parsed/shadow problems (wrong content, formatting, etc.).
+   * Admins triage via status + optional hotfix of problem/answer markdown.
+   */
+  problemReports: defineTable({
+    problemId: v.id("problems"),
+    roomId: v.id("rooms"),
+    reporterUserId: v.id("users"),
+    reason: v.union(
+      v.literal("wrong_problem"),
+      v.literal("wrong_answer"),
+      v.literal("missing_figure"),
+      v.literal("wrong_formatting"),
+      v.literal("other"),
+    ),
+    details: v.string(),
+    status: v.union(
+      v.literal("open"),
+      v.literal("resolved"),
+      v.literal("dismissed"),
+    ),
+    adminNote: v.optional(v.string()),
+    resolvedAt: v.optional(v.number()),
+    resolvedBy: v.optional(v.id("users")),
+  })
+    .index("by_status", ["status"])
+    .index("by_problem", ["problemId"])
+    .index("by_reporter", ["reporterUserId"]),
 });

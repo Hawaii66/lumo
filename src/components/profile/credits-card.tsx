@@ -128,21 +128,26 @@ export function CreditsCard({ topup }: { topup: TopupStatus }) {
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Vad kostar credits?</h2>
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <li className="bg-muted/60 rounded-xl px-4 py-4">
-            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-              Chattmeddelande
-            </p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">
-              {balance.costs.chatCreditCost}
-              <span className="text-muted-foreground ml-1 text-sm font-medium">
-                credits
-              </span>
-            </p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Debiteras när du skickar ett chattmeddelande.
-            </p>
-          </li>
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {balance.costs.chatModelLevels.map((level) => (
+            <li
+              key={level.level}
+              className="bg-muted/60 rounded-xl px-4 py-4"
+            >
+              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                Chatt · {level.name}
+              </p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums">
+                {level.creditCost}
+                <span className="text-muted-foreground ml-1 text-sm font-medium">
+                  credits
+                </span>
+              </p>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Debiteras när du skickar ett chattmeddelande.
+              </p>
+            </li>
+          ))}
           <li className="bg-muted/60 rounded-xl px-4 py-4">
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               Tvillingproblem

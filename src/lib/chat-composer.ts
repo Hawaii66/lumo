@@ -184,6 +184,12 @@ const SLASH_COMMANDS: Array<SlashCommand> = [
     label: "/läge",
     description: "Byt chattläge",
   },
+  {
+    id: "model",
+    command: "modell",
+    label: "/modell",
+    description: "Byt chattmodell",
+  },
 ]
 
 /** Append freeform chat-box text after an auto-generated start prompt. */

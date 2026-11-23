@@ -57,6 +57,11 @@ export type RoomProblemGroup = {
     problemNumber: string
     starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>
     completionEntries: Array<{ letter: string }>
+    reasonEntries: Array<{
+      letter: string
+      reason: "hard" | "insight" | "teacher" | "other"
+      note?: string
+    }>
     shadows: Array<{ id: Id<"problems">; problemNumber: string }>
   }>
 }

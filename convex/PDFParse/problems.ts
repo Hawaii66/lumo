@@ -42,6 +42,10 @@ const MAX_STARS_PER_ROOM =
   MAX_PROBLEMS_PER_PDF * MAX_FILES_PER_ROOM * MAX_STAR_LETTERS_PER_PROBLEM;
 /** Hard cap for roomProblemCompletions batch in listGroupedByRoom. */
 const MAX_COMPLETIONS_PER_ROOM = MAX_STARS_PER_ROOM;
+/** Hard cap for per-user roomProblemReasons batch in listGroupedByRoom. */
+const MAX_REASONS_PER_ROOM = MAX_STARS_PER_ROOM;
+/** Soft max for freeform reason notes. */
+const MAX_REASON_NOTE_LENGTH = 500;
 
 const starsLevelValidator = v.union(
   v.literal(0),
@@ -59,6 +63,20 @@ const starEntryValidator = v.object({
 /** Letters marked complete; `""` = whole problem. */
 const completionEntryValidator = v.object({
   letter: v.string(),
+});
+
+const problemReasonIdValidator = v.union(
+  v.literal("hard"),
+  v.literal("insight"),
+  v.literal("teacher"),
+  v.literal("other"),
+);
+
+/** Per-user reason markers; `""` letter = whole problem. */
+const reasonEntryValidator = v.object({
+  letter: v.string(),
+  reason: problemReasonIdValidator,
+  note: v.optional(v.string()),
 });
 
 function normalizeStoredStarLetter(letter: string | undefined): string {
@@ -181,6 +199,7 @@ const problemGroupItemValidator = v.object({
       problemNumber: v.string(),
       starEntries: v.array(starEntryValidator),
       completionEntries: v.array(completionEntryValidator),
+      reasonEntries: v.array(reasonEntryValidator),
       shadows: v.array(shadowListItemValidator),
     }),
   ),
@@ -304,6 +323,39 @@ export const listGroupedByRoom = query({
       list.sort((a, b) => a.letter.localeCompare(b.letter));
     }
 
+    // Per-user reasons for the current member only.
+    const reasonsByProblem = new Map<
+      string,
+      Array<{
+        letter: string;
+        reason: "hard" | "insight" | "teacher" | "other";
+        note?: string;
+      }>
+    >();
+    const userId = await getAuthUserId(ctx);
+    if (userId !== null) {
+      const reasonRows = await ctx.db
+        .query("roomProblemReasons")
+        .withIndex("by_room_and_user", (q) =>
+          q.eq("roomId", args.roomId).eq("userId", userId),
+        )
+        .take(MAX_REASONS_PER_ROOM);
+      for (const row of reasonRows) {
+        const letter = normalizeStoredStarLetter(row.subproblemLetter);
+        const key = `${row.contentHash}\0${row.problemNumber}`;
+        const list = reasonsByProblem.get(key) ?? [];
+        list.push({
+          letter,
+          reason: row.reason,
+          ...(row.note !== undefined ? { note: row.note } : {}),
+        });
+        reasonsByProblem.set(key, list);
+      }
+      for (const list of reasonsByProblem.values()) {
+        list.sort((a, b) => a.letter.localeCompare(b.letter));
+      }
+    }
+
     const groups: Array<{
       fileId: Id<"files">;
       fileName: string;
@@ -313,6 +365,11 @@ export const listGroupedByRoom = query({
         problemNumber: string;
         starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>;
         completionEntries: Array<{ letter: string }>;
+        reasonEntries: Array<{
+          letter: string;
+          reason: "hard" | "insight" | "teacher" | "other";
+          note?: string;
+        }>;
         shadows: Array<{ id: Id<"problems">; problemNumber: string }>;
       }>;
     }> = [];
@@ -346,6 +403,7 @@ export const listGroupedByRoom = query({
               problemNumber: row.problemNumber,
               starEntries: starsByProblem.get(key) ?? [],
               completionEntries: completionsByProblem.get(key) ?? [],
+              reasonEntries: reasonsByProblem.get(key) ?? [],
               shadows: shadowsByParent.get(row._id) ?? [],
             };
           }),
@@ -610,6 +668,124 @@ export const setCompleted = mutation({
         subproblemLetter: letter,
       });
     }
+    return null;
+  },
+});
+
+/**
+ * Set or clear the current user's reason marker for a problem / deluppgift.
+ * reason=null clears the row. Replaces reason/note when a row already exists.
+ * Not copied into templates. Max one reason per user+unit.
+ */
+export const setReason = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    problemId: v.id("problems"),
+    reason: v.union(problemReasonIdValidator, v.null()),
+    note: v.optional(v.string()),
+    subproblemLetter: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const userId = await requireRoomMember(ctx, args.roomId);
+
+    const problem = await ctx.db.get(args.problemId);
+    if (problem === null) {
+      throw new Error("Uppgiften hittades inte");
+    }
+    if (isShadowProblem(problem)) {
+      throw new Error("Tvillingar kan inte markeras");
+    }
+    const contentHash = problem.contentHash;
+    if (contentHash === undefined) {
+      throw new Error("Uppgiften saknar källa");
+    }
+
+    const files = await ctx.db
+      .query("files")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .take(MAX_FILES_PER_ROOM);
+    const archivedHashes = await loadArchivedContentHashes(ctx, args.roomId);
+    if (
+      !(await isVisibleInRoom(
+        ctx,
+        problem,
+        args.roomId,
+        files,
+        archivedHashes,
+      ))
+    ) {
+      throw new Error("Uppgiften tillhör inte det här rummet");
+    }
+
+    const hasParts = hasSubproblemHeadings(problem.problem);
+    let letter = "";
+    if (hasParts) {
+      const normalized = normalizeSubproblemLetter(args.subproblemLetter);
+      if (normalized === null) {
+        throw new Error("Ange deluppgift (a–z) för att markera");
+      }
+      letter = normalized;
+    } else if (
+      args.subproblemLetter !== undefined &&
+      args.subproblemLetter.trim().length > 0
+    ) {
+      throw new Error("Uppgiften har inga deluppgifter");
+    }
+
+    const existing = await ctx.db
+      .query("roomProblemReasons")
+      .withIndex(
+        "by_room_user_hash_number_letter",
+        (q) =>
+          q
+            .eq("roomId", args.roomId)
+            .eq("userId", userId)
+            .eq("contentHash", contentHash)
+            .eq("problemNumber", problem.problemNumber)
+            .eq("subproblemLetter", letter),
+      )
+      .unique();
+
+    if (args.reason === null) {
+      if (existing !== null) {
+        await ctx.db.delete("roomProblemReasons", existing._id);
+      }
+      return null;
+    }
+
+    const trimmedNote =
+      args.note === undefined ? undefined : args.note.trim();
+    if (
+      trimmedNote !== undefined &&
+      trimmedNote.length > MAX_REASON_NOTE_LENGTH
+    ) {
+      throw new Error(
+        `Anteckningen får vara högst ${MAX_REASON_NOTE_LENGTH} tecken`,
+      );
+    }
+    const note =
+      trimmedNote !== undefined && trimmedNote.length > 0
+        ? trimmedNote
+        : undefined;
+
+    if (existing === null) {
+      await ctx.db.insert("roomProblemReasons", {
+        roomId: args.roomId,
+        userId,
+        contentHash,
+        problemNumber: problem.problemNumber,
+        subproblemLetter: letter,
+        reason: args.reason,
+        ...(note !== undefined ? { note } : {}),
+      });
+      return null;
+    }
+
+    await ctx.db.patch("roomProblemReasons", existing._id, {
+      reason: args.reason,
+      note,
+    });
     return null;
   },
 });

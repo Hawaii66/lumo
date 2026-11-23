@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useAction, useMutation, useQuery } from "convex/react"
-import { ChevronDown, CopyPlus, FileText } from "lucide-react"
+import { ChevronDown, CopyPlus, FileText, Flag } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
@@ -15,6 +15,7 @@ import { ChatInput } from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
 import { PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { ProblemHelpActions } from "~/components/rooms/problem-help-actions"
+import { ReportProblemDialog } from "~/components/rooms/report-problem-dialog"
 import {
   PROBLEM_CHAT_DELETION_EXPIRY,
   formatSidebarTimeLeft,
@@ -22,11 +23,13 @@ import {
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
 import { formatProblemMentionToken } from "~/lib/chat-composer"
 import { chaptersFromMarkdown } from "~/lib/markdown-math"
+import { formatUserFacingError } from "~/lib/user-facing-error"
 import { RoomSidebar } from "~/components/rooms/room-sidebar"
 import {
   RoomSettingsPanel,
   type RoomSettingsFocusSection,
 } from "~/components/rooms/room-settings-panel"
+import { RoomEmptyTips } from "~/components/rooms/tips/room-tips"
 import { DraftThreadChat, ThreadChat } from "~/components/rooms/thread-chat"
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert"
 import { Button } from "~/components/ui/button"
@@ -44,6 +47,10 @@ import {
 } from "~/components/ui/sidebar"
 import { Skeleton } from "~/components/ui/skeleton"
 import { TooltipProvider } from "~/components/ui/tooltip"
+import {
+  findNextIncompleteProblem,
+  hasAssignableProblems,
+} from "~/lib/next-incomplete-problem"
 import {
   DEFAULT_PROBLEM_TEXT_SIZE,
   resolveProblemTextSize,
@@ -75,6 +82,7 @@ function RoomPage() {
   const sendMessage = useMutation(api.threads.sendMessage)
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
   const setProblemCompleted = useMutation(api.PDFParse.problems.setCompleted)
+  const setProblemReason = useMutation(api.PDFParse.problems.setReason)
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
 
@@ -88,6 +96,7 @@ function RoomPage() {
   const [draftChatKey, setDraftChatKey] = useState(0)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
+  const [reportDialogOpen, setReportDialogOpen] = useState(false)
   const [viewingPdf, setViewingPdf] = useState<{
     name: string
     url: string
@@ -97,6 +106,10 @@ function RoomPage() {
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
+  const [revealOccasion, setRevealOccasion] = useState<{
+    occasionId: string
+    signal: number
+  } | null>(null)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
   const problemChatInputRef = useRef<ChatInputHandle>(null)
@@ -154,6 +167,14 @@ function RoomPage() {
     api.files.listByRoom,
     section === "problems" ? { roomId: typedRoomId } : "skip",
   )
+  const occasions = useQuery(
+    api.roomOccasions.listByRoom,
+    section === "problems" ? { roomId: typedRoomId } : "skip",
+  )
+  const assignableUnits = useQuery(
+    api.roomOccasions.listAssignableUnits,
+    section === "problems" ? { roomId: typedRoomId } : "skip",
+  )
 
   const selectedProblemFileUrl = useMemo(() => {
     if (selectedProblem == null || selectedProblem.fileId === null) {
@@ -198,6 +219,7 @@ function RoomPage() {
           problemNumber: problem.problemNumber,
           starEntries: problem.starEntries,
           completionEntries: problem.completionEntries,
+          reasonEntries: problem.reasonEntries,
           shadows: problem.shadows.map((shadow) => ({
             id: shadow.id,
             problemNumber: shadow.problemNumber,
@@ -252,6 +274,21 @@ function RoomPage() {
     }
     return []
   }, [problemGroupItems, selectedProblemId])
+
+  const selectedProblemReasonEntries = useMemo(() => {
+    if (selectedProblemId === null) return []
+    for (const group of problemGroupItems) {
+      for (const problem of group.problems) {
+        if (problem.id === selectedProblemId) return problem.reasonEntries
+      }
+    }
+    return []
+  }, [problemGroupItems, selectedProblemId])
+
+  const nextIncompleteProblem = useMemo(() => {
+    if (occasions === undefined || assignableUnits === undefined) return undefined
+    return findNextIncompleteProblem(occasions, assignableUnits)
+  }, [assignableUnits, occasions])
 
   const subproblemLetters = useMemo(() => {
     const question = selectedProblem?.problem.question
@@ -356,7 +393,7 @@ function RoomPage() {
       openThread(result.threadId)
     } catch (err: unknown) {
       setProblemChatError(
-        err instanceof Error ? err.message : "Kunde inte starta chatt",
+        formatUserFacingError(err, "Kunde inte starta chatt"),
       )
       throw err
     } finally {
@@ -409,7 +446,13 @@ function RoomPage() {
           onSectionChange={(next) => {
             setSection(next)
             if (next !== "settings") setSettingsFocus(null)
-            if (next !== "chats") {
+            if (next === "chats") {
+              // No thread in URL — entering chats with nothing selected opens a draft.
+              setSelectedThreadId(null)
+              setIsDraftChat(true)
+              setDraftChatKey((n) => n + 1)
+              setComposerFocusSignal((n) => n + 1)
+            } else {
               setSelectedThreadId(null)
               setIsDraftChat(false)
             }
@@ -455,6 +498,7 @@ function RoomPage() {
             setIsDraftChat(false)
             setSelectedProblemId(null)
           }}
+          revealOccasion={revealOccasion}
         />
 
         <SidebarInset className="min-h-0 overflow-hidden">
@@ -562,20 +606,61 @@ function RoomPage() {
           </ScrollArea>
         ) : section === "problems" ? (
           selectedProblemId === null ? (
-            <div className="overflow-y-auto">
-              <h2 className="text-lg font-medium">Uppgifter</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
-                <Button
-                  type="button"
-                  variant="link"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => setSection("files")}
-                >
-                  Filer
-                </Button>
-                .
-              </p>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-20 overflow-y-auto py-4 text-center">
+              <div className="flex flex-col items-center gap-4">
+                <h2 className="text-2xl font-medium tracking-tight">
+                  {room.name}
+                </h2>
+                {occasions === undefined ||
+                assignableUnits === undefined ||
+                nextIncompleteProblem === undefined ? (
+                  <p className="text-sm text-muted-foreground">Hämtar…</p>
+                ) : nextIncompleteProblem !== null ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setSelectedProblemId(
+                          nextIncompleteProblem.problemId as Id<"problems">,
+                        )
+                        setRevealOccasion((prev) => ({
+                          occasionId: nextIncompleteProblem.occasionId,
+                          signal: (prev?.signal ?? 0) + 1,
+                        }))
+                      }}
+                    >
+                      Fortsätt med {nextIncompleteProblem.label}
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      {nextIncompleteProblem.occasionLabel}
+                    </p>
+                  </div>
+                ) : hasAssignableProblems(occasions) ? (
+                  <p className="text-sm text-muted-foreground">
+                    Alla tilldelade uppgifter är klara.
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Välj en uppgift i listan till vänster, eller tolka en PDF
+                    under{" "}
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 font-medium"
+                      onClick={() => setSection("files")}
+                    >
+                      Filer
+                    </Button>
+                    .
+                  </p>
+                )}
+              </div>
+              <RoomEmptyTips
+                onOpenOccasionsSettings={() => {
+                  setSection("settings")
+                  setSettingsFocus("occasions")
+                }}
+              />
             </div>
           ) : selectedProblem === undefined ? (
             <div className="space-y-2">
@@ -737,6 +822,16 @@ function RoomPage() {
                       </DropdownMenu>
                     )
                   ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setReportDialogOpen(true)}
+                  >
+                    <Flag className="size-3.5" />
+                    Rapportera
+                  </Button>
                 </div>
               </div>
               {shadowError ? (
@@ -771,6 +866,38 @@ function RoomPage() {
                             roomId: typedRoomId,
                             problemId: selectedProblem.id,
                             completed,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
+                  reasonEntries={
+                    selectedProblem.isShadow
+                      ? []
+                      : selectedProblemReasonEntries
+                  }
+                  onReasonSave={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter, reason, note) => {
+                          void setProblemReason({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            reason,
+                            note,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
+                  onReasonClear={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter) => {
+                          void setProblemReason({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            reason: null,
                             subproblemLetter:
                               letter === "" ? undefined : letter,
                           })
@@ -819,7 +946,7 @@ function RoomPage() {
               />
             </div>
           )
-        ) : isDraftChat ? (
+        ) : isDraftChat || selectedThreadId === null ? (
           <DraftThreadChat
             key={draftChatKey}
             roomId={typedRoomId}
@@ -827,13 +954,6 @@ function RoomPage() {
             composerFocusSignal={composerFocusSignal}
             onCreated={openThread}
           />
-        ) : selectedThreadId === null ? (
-          <>
-            <h2 className="text-lg font-medium">Chattar</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Skapa en ny chatt eller välj en i listan till vänster.
-            </p>
-          </>
         ) : selectedThread === undefined ? (
           <p className="text-sm text-muted-foreground">Hämtar tråd…</p>
         ) : selectedThread === null ? (
@@ -847,12 +967,14 @@ function RoomPage() {
             title={selectedThread.title}
             problemGroups={problemGroups?.groups}
             mode={selectedThread.mode}
+            modelLevel={selectedThread.modelLevel}
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
             onArchived={() => {
               setSelectedThreadId(null)
-              setIsDraftChat(false)
+              setIsDraftChat(true)
+              setDraftChatKey((n) => n + 1)
             }}
             onBackToProblem={(problemId) => {
               setSection("problems")
@@ -879,6 +1001,16 @@ function RoomPage() {
         url={viewingPdf?.url ?? null}
         pageNumber={viewingPdf?.pageNumber ?? null}
       />
+
+      {selectedProblem !== undefined && selectedProblem !== null ? (
+        <ReportProblemDialog
+          roomId={typedRoomId}
+          problemId={selectedProblem.id}
+          problemNumber={selectedProblem.problem.problemNumber}
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
+        />
+      ) : null}
     </TooltipProvider>
   )
 }

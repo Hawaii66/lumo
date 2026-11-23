@@ -10,6 +10,7 @@
 
 import type * as PDFParse_adminParse from "../PDFParse/adminParse.js";
 import type * as PDFParse_adminParseRunner from "../PDFParse/adminParseRunner.js";
+import type * as PDFParse_adminReparse from "../PDFParse/adminReparse.js";
 import type * as PDFParse_getOrFetchMiddleJson from "../PDFParse/getOrFetchMiddleJson.js";
 import type * as PDFParse_jobs from "../PDFParse/jobs.js";
 import type * as PDFParse_lumoInfoAgent from "../PDFParse/lumoInfoAgent.js";
@@ -36,6 +37,7 @@ import type * as credits from "../credits.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as lib_chatErrors from "../lib/chatErrors.js";
 import type * as lib_courseSiteScrape from "../lib/courseSiteScrape.js";
 import type * as lib_creditDeals from "../lib/creditDeals.js";
 import type * as lib_credits from "../lib/credits.js";
@@ -45,6 +47,7 @@ import type * as lib_pdfExtract from "../lib/pdfExtract.js";
 import type * as lib_pdfMerge from "../lib/pdfMerge.js";
 import type * as lib_posthogOtel from "../lib/posthogOtel.js";
 import type * as lib_problemAccess from "../lib/problemAccess.js";
+import type * as lib_problemReports from "../lib/problemReports.js";
 import type * as lib_prompts_chat from "../lib/prompts/chat.js";
 import type * as lib_prompts_fragments from "../lib/prompts/fragments.js";
 import type * as lib_prompts_index from "../lib/prompts/index.js";
@@ -62,6 +65,7 @@ import type * as pdfExtracts from "../pdfExtracts.js";
 import type * as pdfMerges from "../pdfMerges.js";
 import type * as pdfTools from "../pdfTools.js";
 import type * as posthog from "../posthog.js";
+import type * as problemReports from "../problemReports.js";
 import type * as roles from "../roles.js";
 import type * as roomOccasions from "../roomOccasions.js";
 import type * as roomTemplates from "../roomTemplates.js";
@@ -80,6 +84,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "PDFParse/adminParse": typeof PDFParse_adminParse;
   "PDFParse/adminParseRunner": typeof PDFParse_adminParseRunner;
+  "PDFParse/adminReparse": typeof PDFParse_adminReparse;
   "PDFParse/getOrFetchMiddleJson": typeof PDFParse_getOrFetchMiddleJson;
   "PDFParse/jobs": typeof PDFParse_jobs;
   "PDFParse/lumoInfoAgent": typeof PDFParse_lumoInfoAgent;
@@ -106,6 +111,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   health: typeof health;
   http: typeof http;
+  "lib/chatErrors": typeof lib_chatErrors;
   "lib/courseSiteScrape": typeof lib_courseSiteScrape;
   "lib/creditDeals": typeof lib_creditDeals;
   "lib/credits": typeof lib_credits;
@@ -115,6 +121,7 @@ declare const fullApi: ApiFromModules<{
   "lib/pdfMerge": typeof lib_pdfMerge;
   "lib/posthogOtel": typeof lib_posthogOtel;
   "lib/problemAccess": typeof lib_problemAccess;
+  "lib/problemReports": typeof lib_problemReports;
   "lib/prompts/chat": typeof lib_prompts_chat;
   "lib/prompts/fragments": typeof lib_prompts_fragments;
   "lib/prompts/index": typeof lib_prompts_index;
@@ -132,6 +139,7 @@ declare const fullApi: ApiFromModules<{
   pdfMerges: typeof pdfMerges;
   pdfTools: typeof pdfTools;
   posthog: typeof posthog;
+  problemReports: typeof problemReports;
   roles: typeof roles;
   roomOccasions: typeof roomOccasions;
   roomTemplates: typeof roomTemplates;

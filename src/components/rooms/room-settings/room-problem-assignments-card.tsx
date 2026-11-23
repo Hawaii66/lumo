@@ -63,6 +63,11 @@ type AssignableUnit = {
   occasionName: string | null
   starEntries: Array<{ letter: string; stars: 1 | 2 | 3 }>
   completionEntries: Array<{ letter: string }>
+  reasonEntries: Array<{
+    letter: string
+    reason: "hard" | "insight" | "teacher" | "other"
+    note?: string
+  }>
 }
 
 const ALL_PDFS_VALUE = "__all__"

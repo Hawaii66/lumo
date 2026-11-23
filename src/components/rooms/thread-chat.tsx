@@ -2,7 +2,7 @@ import {
   optimisticallySendMessage,
   useUIMessages,
 } from "@convex-dev/agent/react"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { ArrowLeft, ChevronsDown, ChevronsUp } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../../convex/_generated/api"
@@ -16,6 +16,7 @@ import {
 import { SelectionCitePopup } from "~/components/rooms/selection-cite-popup"
 import { ChatDeletionExpiryPicker } from "~/components/rooms/chat-deletion-expiry-picker"
 import { ChatModePicker } from "~/components/rooms/chat-mode-picker"
+import { ChatModelPicker } from "~/components/rooms/chat-model-picker"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import {
   AssistantMessageRow,
@@ -39,6 +40,12 @@ import {
   DEFAULT_CHAT_MODE,
   type ChatMode,
 } from "~/lib/chat-mode"
+import {
+  DEFAULT_CHAT_MODEL_LEVEL,
+  normalizeChatModelLevel,
+  type ChatModelLevel,
+} from "~/lib/chat-model-level"
+import { formatUserFacingError } from "~/lib/user-facing-error"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
 
@@ -49,6 +56,7 @@ type ThreadChatProps = {
   /** Shared room problem tree from the parent page subscription. */
   problemGroups: Array<RoomProblemGroup> | undefined
   mode?: ChatMode
+  modelLevel?: ChatModelLevel
   deletionExpiry?: ChatDeletionExpiry
   deleteAt?: number | null
   mentionedProblemNumbers?: string[]
@@ -77,6 +85,7 @@ export function ThreadChat({
   title,
   problemGroups,
   mode = DEFAULT_CHAT_MODE,
+  modelLevel = DEFAULT_CHAT_MODEL_LEVEL,
   deletionExpiry = DEFAULT_CHAT_DELETION_EXPIRY,
   deleteAt = null,
   mentionedProblemNumbers = [],
@@ -91,6 +100,7 @@ export function ThreadChat({
   )
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const setMode = useMutation(api.threads.setMode)
+  const setModelLevel = useMutation(api.threads.setModelLevel)
   const setDeletionExpiry = useMutation(api.threads.setDeletionExpiry)
   const archiveThread = useMutation(api.threads.archive)
   const sendMessage = useMutation(api.threads.sendMessage).withOptimisticUpdate(
@@ -104,6 +114,7 @@ export function ThreadChat({
 
   const [pending, setPending] = useState(false)
   const [modePending, setModePending] = useState(false)
+  const [modelLevelPending, setModelLevelPending] = useState(false)
   const [expiryPending, setExpiryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [canJumpStart, setCanJumpStart] = useState(false)
@@ -408,7 +419,7 @@ export function ThreadChat({
         problemId: problemIds?.[0],
       })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte skicka")
+      setError(formatUserFacingError(err, "Kunde inte skicka"))
       throw err
     } finally {
       setPending(false)
@@ -422,9 +433,22 @@ export function ThreadChat({
     try {
       await setMode({ roomId, threadId, mode: next })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte byta läge")
+      setError(formatUserFacingError(err, "Kunde inte byta läge"))
     } finally {
       setModePending(false)
+    }
+  }
+
+  async function handleModelLevelChange(next: ChatModelLevel) {
+    if (next === modelLevel || modelLevelPending) return
+    setModelLevelPending(true)
+    setError(null)
+    try {
+      await setModelLevel({ roomId, threadId, modelLevel: next })
+    } catch (err: unknown) {
+      setError(formatUserFacingError(err, "Kunde inte byta modell"))
+    } finally {
+      setModelLevelPending(false)
     }
   }
 
@@ -435,9 +459,7 @@ export function ThreadChat({
     try {
       await setDeletionExpiry({ roomId, threadId, deletionExpiry: next })
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Kunde inte byta arkiveringstid",
-      )
+      setError(formatUserFacingError(err, "Kunde inte byta arkiveringstid"))
     } finally {
       setExpiryPending(false)
     }
@@ -449,9 +471,7 @@ export function ThreadChat({
       await archiveThread({ roomId, threadId })
       onArchived?.()
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Kunde inte arkivera chatten",
-      )
+      setError(formatUserFacingError(err, "Kunde inte arkivera chatten"))
       throw err
     }
   }
@@ -484,6 +504,13 @@ export function ThreadChat({
           ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <ChatModelPicker
+            value={modelLevel}
+            onChange={(next) => {
+              void handleModelLevelChange(next)
+            }}
+            disabled={modelLevelPending || pending}
+          />
           <ChatModePicker
             value={mode}
             onChange={(next) => {
@@ -640,6 +667,8 @@ export function ThreadChat({
         error={error}
         mode={mode}
         onModeChange={handleModeChange}
+        modelLevel={modelLevel}
+        onModelLevelChange={handleModelLevelChange}
         focusSignal={composerFocusSignal}
         onSubmit={async ({ prompt, images, problemIds, storageImages }) => {
           await sendPrompt(prompt, images, problemIds, storageImages)
@@ -659,9 +688,14 @@ export function DraftThreadChat({
   const createThread = useMutation(api.threads.create)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const sendMessage = useMutation(api.threads.sendMessage)
+  const viewer = useQuery(api.users.viewer)
 
   const [title, setTitle] = useState(DEFAULT_DRAFT_TITLE)
   const [mode, setMode] = useState<ChatMode>(DEFAULT_CHAT_MODE)
+  const [modelLevel, setModelLevel] = useState<ChatModelLevel>(
+    DEFAULT_CHAT_MODEL_LEVEL,
+  )
+  const [modelLevelSeeded, setModelLevelSeeded] = useState(false)
   const [deletionExpiry, setDeletionExpiry] = useState<ChatDeletionExpiry>(
     DEFAULT_CHAT_DELETION_EXPIRY,
   )
@@ -678,6 +712,12 @@ export function DraftThreadChat({
       titleInputRef.current?.select()
     }
   }, [editingTitle])
+
+  useEffect(() => {
+    if (modelLevelSeeded || viewer === undefined || viewer === null) return
+    setModelLevel(normalizeChatModelLevel(viewer.defaultChatModelLevel))
+    setModelLevelSeeded(true)
+  }, [viewer, modelLevelSeeded])
 
   function commitTitleEdit() {
     const next = titleDraft.trim().slice(0, 80)
@@ -709,6 +749,7 @@ export function DraftThreadChat({
         roomId,
         title,
         mode,
+        modelLevel,
         deletionExpiry,
       })
 
@@ -733,7 +774,7 @@ export function DraftThreadChat({
 
       onCreated(result.threadId)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte skicka")
+      setError(formatUserFacingError(err, "Kunde inte skicka"))
       throw err
     } finally {
       setPending(false)
@@ -780,6 +821,11 @@ export function DraftThreadChat({
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <ChatModelPicker
+              value={modelLevel}
+              onChange={setModelLevel}
+              disabled={pending}
+            />
             <ChatModePicker
               value={mode}
               onChange={setMode}
@@ -808,6 +854,8 @@ export function DraftThreadChat({
         error={error}
         mode={mode}
         onModeChange={setMode}
+        modelLevel={modelLevel}
+        onModelLevelChange={setModelLevel}
         focusSignal={composerFocusSignal}
         onSubmit={handleSubmit}
       />
