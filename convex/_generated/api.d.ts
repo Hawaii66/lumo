@@ -10,6 +10,7 @@
 
 import type * as PDFParse_adminParse from "../PDFParse/adminParse.js";
 import type * as PDFParse_adminParseRunner from "../PDFParse/adminParseRunner.js";
+import type * as PDFParse_adminReparse from "../PDFParse/adminReparse.js";
 import type * as PDFParse_getOrFetchMiddleJson from "../PDFParse/getOrFetchMiddleJson.js";
 import type * as PDFParse_jobs from "../PDFParse/jobs.js";
 import type * as PDFParse_lumoInfoAgent from "../PDFParse/lumoInfoAgent.js";
@@ -38,6 +39,7 @@ import type * as http from "../http.js";
 import type * as lib_creditDeals from "../lib/creditDeals.js";
 import type * as lib_credits from "../lib/credits.js";
 import type * as lib_lumoContent from "../lib/lumoContent.js";
+import type * as lib_maiCourseUrl from "../lib/maiCourseUrl.js";
 import type * as lib_pdfExtract from "../lib/pdfExtract.js";
 import type * as lib_pdfMerge from "../lib/pdfMerge.js";
 import type * as lib_posthogOtel from "../lib/posthogOtel.js";
@@ -77,6 +79,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "PDFParse/adminParse": typeof PDFParse_adminParse;
   "PDFParse/adminParseRunner": typeof PDFParse_adminParseRunner;
+  "PDFParse/adminReparse": typeof PDFParse_adminReparse;
   "PDFParse/getOrFetchMiddleJson": typeof PDFParse_getOrFetchMiddleJson;
   "PDFParse/jobs": typeof PDFParse_jobs;
   "PDFParse/lumoInfoAgent": typeof PDFParse_lumoInfoAgent;
@@ -105,6 +108,7 @@ declare const fullApi: ApiFromModules<{
   "lib/creditDeals": typeof lib_creditDeals;
   "lib/credits": typeof lib_credits;
   "lib/lumoContent": typeof lib_lumoContent;
+  "lib/maiCourseUrl": typeof lib_maiCourseUrl;
   "lib/pdfExtract": typeof lib_pdfExtract;
   "lib/pdfMerge": typeof lib_pdfMerge;
   "lib/posthogOtel": typeof lib_posthogOtel;

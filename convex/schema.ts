@@ -345,6 +345,7 @@ export default defineSchema({
     stars: v.union(v.literal(1), v.literal(2), v.literal(3)),
   })
     .index("by_room", ["roomId"])
+    .index("by_contentHash", ["contentHash"])
     .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
       "contentHash",
@@ -364,6 +365,7 @@ export default defineSchema({
     subproblemLetter: v.optional(v.string()),
   })
     .index("by_room", ["roomId"])
+    .index("by_contentHash", ["contentHash"])
     .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
       "contentHash",
@@ -412,6 +414,7 @@ export default defineSchema({
   })
     .index("by_room", ["roomId"])
     .index("by_occasion", ["occasionId"])
+    .index("by_contentHash", ["contentHash"])
     .index("by_room_and_contentHash_and_problemNumber_and_subproblemLetter", [
       "roomId",
       "contentHash",
