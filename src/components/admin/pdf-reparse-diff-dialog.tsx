@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
+import { diffPartsForSide, type DiffSide } from "~/lib/text-diff"
 import { cn } from "~/lib/utils"
 
 type DecisionAction = "keep" | "replace" | "delete" | "add" | "skip"
@@ -112,6 +113,8 @@ export function PdfReparseDiffDialog({
   const [selectedNumber, setSelectedNumber] = useState<string | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  /** Highlighted markdown source vs rendered math. */
+  const [previewMode, setPreviewMode] = useState<"diff" | "rendered">("diff")
 
   useEffect(() => {
     if (!open || runId === null) {
@@ -134,6 +137,7 @@ export function PdfReparseDiffDialog({
         }
         setDecisions(next)
         setSelectedNumber(data.rows[0]?.problemNumber ?? null)
+        setPreviewMode("diff")
       })
       .catch((err: unknown) => {
         if (cancelled) return
@@ -360,7 +364,7 @@ export function PdfReparseDiffDialog({
                           ) : null}
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {selected.allowedActions.map((action) => {
                             const current =
                               decisions[selected.problemNumber] ??
@@ -383,17 +387,50 @@ export function PdfReparseDiffDialog({
                               </Button>
                             )
                           })}
+                          {selected.live !== null &&
+                          selected.preview !== null ? (
+                            <div className="ml-auto flex gap-1">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={
+                                  previewMode === "diff" ? "default" : "outline"
+                                }
+                                onClick={() => setPreviewMode("diff")}
+                              >
+                                Diff
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={
+                                  previewMode === "rendered"
+                                    ? "default"
+                                    : "outline"
+                                }
+                                onClick={() => setPreviewMode("rendered")}
+                              >
+                                Renderat
+                              </Button>
+                            </div>
+                          ) : null}
                         </div>
 
                         <div className="grid gap-3 lg:grid-cols-2">
                           <SidePanel
                             title="Sparad"
                             side={selected.live}
+                            other={selected.preview}
+                            diffSide="old"
+                            mode={previewMode}
                             empty="Saknas i databasen"
                           />
                           <SidePanel
                             title="Ny parse"
                             side={selected.preview}
+                            other={selected.live}
+                            diffSide="new"
+                            mode={previewMode}
                             empty="Saknas i förhandsgranskningen"
                           />
                         </div>
@@ -508,10 +545,16 @@ export function PdfReparseDiffDialog({
 function SidePanel({
   title,
   side,
+  other,
+  diffSide,
+  mode,
   empty,
 }: {
   title: string
   side: SideSummary | null
+  other: SideSummary | null
+  diffSide: DiffSide
+  mode: "diff" | "rendered"
   empty: string
 }) {
   if (side === null) {
@@ -524,6 +567,11 @@ function SidePanel({
       </div>
     )
   }
+
+  const useDiff =
+    mode === "diff" &&
+    other !== null &&
+    (side.question !== other.question || side.answer !== other.answer)
 
   return (
     <div className="rounded-md border border-border p-3">
@@ -543,15 +591,72 @@ function SidePanel({
           : ""}
       </p>
       <p className="mt-2 text-xs font-medium text-muted-foreground">Fråga</p>
-      <MarkdownWithMath
-        className="text-sm"
-        markdown={side.question.length > 0 ? side.question : "(tom)"}
+      <FieldPreview
+        text={side.question}
+        otherText={other?.question ?? null}
+        diffSide={diffSide}
+        useDiff={useDiff}
       />
       <p className="mt-2 text-xs font-medium text-muted-foreground">Svar</p>
-      <MarkdownWithMath
-        className="text-sm"
-        markdown={side.answer.length > 0 ? side.answer : "(tom)"}
+      <FieldPreview
+        text={side.answer}
+        otherText={other?.answer ?? null}
+        diffSide={diffSide}
+        useDiff={useDiff}
       />
     </div>
+  )
+}
+
+function FieldPreview({
+  text,
+  otherText,
+  diffSide,
+  useDiff,
+}: {
+  text: string
+  otherText: string | null
+  diffSide: DiffSide
+  useDiff: boolean
+}) {
+  const display = text.length > 0 ? text : "(tom)"
+
+  if (
+    !useDiff ||
+    otherText === null ||
+    text === otherText
+  ) {
+    return (
+      <MarkdownWithMath className="text-sm" markdown={display} />
+    )
+  }
+
+  const oldText = diffSide === "old" ? text : otherText
+  const newText = diffSide === "old" ? otherText : text
+  const parts = diffPartsForSide(oldText, newText, diffSide)
+
+  return (
+    <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed">
+      {parts.map((part, index) => {
+        const changed =
+          (diffSide === "old" && part.removed === true) ||
+          (diffSide === "new" && part.added === true)
+        return (
+          <span
+            key={index}
+            className={cn(
+              changed &&
+                diffSide === "old" &&
+                "rounded-sm bg-red-500/20 text-red-950 dark:text-red-100",
+              changed &&
+                diffSide === "new" &&
+                "rounded-sm bg-emerald-500/20 text-emerald-950 dark:text-emerald-100",
+            )}
+          >
+            {part.value}
+          </span>
+        )
+      })}
+    </pre>
   )
 }
