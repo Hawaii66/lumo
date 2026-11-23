@@ -254,13 +254,22 @@ export function RoomSidebar({
         <ScrollArea className="h-full">
           <SidebarGroup className="px-2 py-2">
             <SidebarGroupContent>
-              {activeListSection === "chats" ? (
+              {/* Keep both lists mounted so open/collapsed, mode, and filters
+                  survive switching to a chat and back. */}
+              <div
+                className={cn(activeListSection !== "chats" && "hidden")}
+                aria-hidden={activeListSection !== "chats"}
+              >
                 <ChatList
                   chats={chats}
                   selectedChatId={section === "chats" ? selectedChatId : null}
                   onSelectChat={onSelectChat}
                 />
-              ) : (
+              </div>
+              <div
+                className={cn(activeListSection !== "problems" && "hidden")}
+                aria-hidden={activeListSection !== "problems"}
+              >
                 <ProblemList
                   roomId={roomId}
                   groups={problemGroups}
@@ -274,7 +283,7 @@ export function RoomSidebar({
                   onOpenOccasions={onOpenOccasions}
                   revealOccasion={revealOccasion}
                 />
-              )}
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
         </ScrollArea>
