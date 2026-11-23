@@ -1,6 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { chatModelLevelValidator } from "./lib/lumoContent";
+import { normalizeChatModelLevel } from "./lib/credits";
 import { getUserRole } from "./lib/roles";
 
 const MAX_NAME_LENGTH = 80;
@@ -44,6 +46,8 @@ const viewerFieldsValidator = v.object({
   theme: themeValidator,
   /** Missing preference → "medium". */
   problemTextSize: problemTextSizeValidator,
+  /** Missing preference → 1 (Snabb). */
+  defaultChatModelLevel: chatModelLevelValidator,
 });
 
 export const viewer = query({
@@ -85,6 +89,37 @@ export const viewer = query({
       },
       theme: user.theme ?? "light",
       problemTextSize: user.problemTextSize ?? "medium",
+      defaultChatModelLevel: normalizeChatModelLevel(
+        user.defaultChatModelLevel,
+      ),
+    };
+  },
+});
+
+export const updateDefaultChatModelLevel = mutation({
+  args: { defaultChatModelLevel: chatModelLevelValidator },
+  returns: v.object({
+    _id: v.id("users"),
+    defaultChatModelLevel: chatModelLevelValidator,
+  }),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+
+    const user = await ctx.db.get(userId);
+    if (user === null) {
+      throw new Error("Användaren hittades inte");
+    }
+
+    await ctx.db.patch(userId, {
+      defaultChatModelLevel: args.defaultChatModelLevel,
+    });
+
+    return {
+      _id: userId,
+      defaultChatModelLevel: args.defaultChatModelLevel,
     };
   },
 });

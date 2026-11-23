@@ -1,3 +1,4 @@
+import { useQuery } from "convex/react"
 import {
   useEffect,
   useMemo,
@@ -5,6 +6,7 @@ import {
   useState,
 } from "react"
 import type { FormEvent, KeyboardEvent, RefObject } from "react"
+import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
 import type { ChatFilePickerSelectedFile } from "~/components/rooms/chat-file-picker-dialog"
 import type { ChatInputMathDraft } from "./math-chips"
@@ -38,6 +40,10 @@ import {
   type SlashCommand,
 } from "~/lib/chat-composer"
 import { CHAT_MODES, type ChatMode } from "~/lib/chat-mode"
+import {
+  resolveChatModelLevels,
+  type ChatModelLevel,
+} from "~/lib/chat-model-level"
 
 const MAX_IMAGES = 4
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -51,6 +57,8 @@ export type UseChatInputComposerArgs = {
   defaultProblemId?: Id<"problems">
   mode?: ChatMode
   onModeChange?: (mode: ChatMode) => void | Promise<void>
+  modelLevel?: ChatModelLevel
+  onModelLevelChange?: (level: ChatModelLevel) => void | Promise<void>
   focusSignal?: number
 }
 
@@ -62,8 +70,16 @@ export function useChatInputComposer({
   defaultProblemId,
   mode,
   onModeChange,
+  modelLevel,
+  onModelLevelChange,
   focusSignal,
 }: UseChatInputComposerArgs) {
+  const creditConfig = useQuery(api.credits.getConfig)
+  const modelLevels = useMemo(
+    () => resolveChatModelLevels(creditConfig?.chatModelLevels),
+    [creditConfig?.chatModelLevels],
+  )
+
   const [prompt, setPrompt] = useState("")
   const [pendingImages, setPendingImages] = useState<Array<ChatInputImage>>([])
   const [pendingStorageImages, setPendingStorageImages] = useState<
@@ -74,7 +90,12 @@ export function useChatInputComposer({
   const [editingMathId, setEditingMathId] = useState<string | null>(null)
   const [modeMenuOpen, setModeMenuOpen] = useState(false)
   const [modeMenuIndex, setModeMenuIndex] = useState(0)
+  const [modelMenuOpen, setModelMenuOpen] = useState(false)
+  const [modelMenuIndex, setModelMenuIndex] = useState(0)
   const [draftMode, setDraftMode] = useState<ChatMode | undefined>(undefined)
+  const [draftModelLevel, setDraftModelLevel] = useState<
+    ChatModelLevel | undefined
+  >(undefined)
   const [filePickerOpen, setFilePickerOpen] = useState(false)
   const [phoneScanOpen, setPhoneScanOpen] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
@@ -84,6 +105,7 @@ export function useChatInputComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const typeaheadOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const modeOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const modelOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const mathInsertCursorRef = useRef(0)
   const pendingImagesRef = useRef(pendingImages)
   pendingImagesRef.current = pendingImages
@@ -91,6 +113,7 @@ export function useChatInputComposer({
   pendingStorageImagesRef.current = pendingStorageImages
 
   const activeMode = mode ?? draftMode
+  const activeModelLevel = modelLevel ?? draftModelLevel
   const attachedImageCount =
     pendingImages.length + pendingStorageImages.length
   const imagesFull = attachedImageCount >= MAX_IMAGES
@@ -185,6 +208,21 @@ export function useChatInputComposer({
     })
   }, [modeMenuOpen, modeMenuIndex])
 
+  useEffect(() => {
+    if (!modelMenuOpen) return
+    const selectedIndex = modelLevels.findIndex(
+      (item) => item.level === activeModelLevel,
+    )
+    setModelMenuIndex(selectedIndex >= 0 ? selectedIndex : 0)
+  }, [modelMenuOpen, activeModelLevel, modelLevels])
+
+  useEffect(() => {
+    if (!modelMenuOpen) return
+    modelOptionRefs.current[modelMenuIndex]?.scrollIntoView({
+      block: "nearest",
+    })
+  }, [modelMenuOpen, modelMenuIndex])
+
   const displayError = localError ?? error
   const hasMath = mathDrafts.some((draft) => draft.latex.trim().length > 0)
   const canSend =
@@ -245,7 +283,15 @@ export function useChatInputComposer({
   }
 
   function openModeMenu() {
+    setModelMenuOpen(false)
     setModeMenuOpen(true)
+    setTypeaheadOpen(false)
+    setLocalError(null)
+  }
+
+  function openModelMenu() {
+    setModeMenuOpen(false)
+    setModelMenuOpen(true)
     setTypeaheadOpen(false)
     setLocalError(null)
   }
@@ -266,6 +312,22 @@ export function useChatInputComposer({
     focusTextareaAt(cursor)
   }
 
+  async function selectModelLevel(next: ChatModelLevel) {
+    setModelMenuOpen(false)
+    setDraftModelLevel(next)
+    setLocalError(null)
+    if (onModelLevelChange) {
+      try {
+        await onModelLevelChange(next)
+      } catch (err: unknown) {
+        setLocalError(
+          err instanceof Error ? err.message : "Kunde inte byta modell",
+        )
+      }
+    }
+    focusTextareaAt(cursor)
+  }
+
   function runSlashCommand(command: SlashCommand) {
     setTypeaheadOpen(false)
     if (command.id === "formel") {
@@ -276,6 +338,11 @@ export function useChatInputComposer({
     if (command.id === "mode") {
       stripSlashCommandFromPrompt()
       openModeMenu()
+      return
+    }
+    if (command.id === "model") {
+      stripSlashCommandFromPrompt()
+      openModelMenu()
     }
   }
 
@@ -488,6 +555,36 @@ export function useChatInputComposer({
       }
     }
 
+    if (modelMenuOpen) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault()
+        setModelMenuIndex((i) =>
+          i + 1 >= modelLevels.length ? 0 : i + 1,
+        )
+        return
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault()
+        setModelMenuIndex((i) =>
+          i - 1 < 0 ? modelLevels.length - 1 : i - 1,
+        )
+        return
+      }
+      if (event.key === "Enter" || event.key === "Tab") {
+        const option = modelLevels[modelMenuIndex]
+        if (option) {
+          event.preventDefault()
+          void selectModelLevel(option.level)
+          return
+        }
+      }
+      if (event.key === "Escape") {
+        event.preventDefault()
+        setModelMenuOpen(false)
+        return
+      }
+    }
+
     if (showSlashTypeahead) {
       if (event.key === "ArrowDown") {
         event.preventDefault()
@@ -520,7 +617,7 @@ export function useChatInputComposer({
       }
     }
 
-    // Exact `/läge` or `/formel` + Enter opens even if typeahead was dismissed.
+    // Exact `/läge`, `/modell`, or `/formel` + Enter opens even if typeahead was dismissed.
     if (event.key === "Enter" && !event.shiftKey && slashQuery) {
       const exact = filterSlashCommands(slashQuery.query)
       if (exact.length === 1 && exact[0]!.command === slashQuery.query) {
@@ -760,11 +857,14 @@ export function useChatInputComposer({
     mathDrafts,
     mathDialogOpen,
     modeMenuOpen,
+    modelMenuOpen,
     filePickerOpen,
     setFilePickerOpen,
     phoneScanOpen,
     setPhoneScanOpen,
     activeMode,
+    activeModelLevel,
+    modelLevels,
     imagesFull,
     mathFull: mathDrafts.length >= MAX_MATH_CHIPS,
     draftMentions,
@@ -774,6 +874,7 @@ export function useChatInputComposer({
     showSlashTypeahead,
     typeaheadIndex,
     modeMenuIndex,
+    modelMenuIndex,
     displayError,
     canSend,
     editingDraft,
@@ -786,10 +887,14 @@ export function useChatInputComposer({
     modeOptionRefs: modeOptionRefs as RefObject<
       Array<HTMLButtonElement | null>
     >,
+    modelOptionRefs: modelOptionRefs as RefObject<
+      Array<HTMLButtonElement | null>
+    >,
     handle,
     openMathDialog,
     openMathDialogAtCursor,
     selectMode,
+    selectModelLevel,
     runSlashCommand,
     handleMathConfirm,
     removeMathDraft,

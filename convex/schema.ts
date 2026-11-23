@@ -5,6 +5,8 @@ import {
   chargeSourceValidator,
   chatDeletionExpiryValidator,
   chatModeValidator,
+  chatModelLevelConfigValidator,
+  chatModelLevelValidator,
   problemFlagValidator,
 } from "./lib/lumoContent";
 
@@ -50,6 +52,10 @@ export default defineSchema({
     problemTextSize: v.optional(
       v.union(v.literal("small"), v.literal("medium"), v.literal("large")),
     ),
+    /**
+     * Default chat model tier for new threads. Missing → 1 (Snabb).
+     */
+    defaultChatModelLevel: v.optional(chatModelLevelValidator),
   })
     .index("email", ["email"])
     .index("by_role", ["roleId"]),
@@ -202,6 +208,11 @@ export default defineSchema({
     createdBy: v.id("users"),
     /** Interaction mode for the chat. Missing on older threads → treat as normal. */
     mode: v.optional(chatModeValidator),
+    /**
+     * Chat model tier (1–3). Missing on older threads → treat as 1.
+     * Cost/model id resolved from creditConfig.chatModelLevels at send time.
+     */
+    modelLevel: v.optional(chatModelLevelValidator),
     /**
      * Auto-archive preference. Missing on older threads → infinite.
      * `deleteAt` is the absolute archive deadline when not infinite;
@@ -576,8 +587,17 @@ export default defineSchema({
   creditConfig: defineTable({
     key: v.literal("default"),
     freeDailyCredits: v.optional(v.number()),
+    /**
+     * Legacy flat chat cost. Kept for older rows / twin-adjacent displays;
+     * prefer chatModelLevels[0].creditCost when levels are present.
+     */
     chatCreditCost: v.number(),
     twinCreditCost: v.number(),
+    /**
+     * Exactly three tiers when set (admin-editable). Missing → derive a single
+     * level-1 entry from chatCreditCost + gpt-4.1-mini.
+     */
+    chatModelLevels: v.optional(v.array(chatModelLevelConfigValidator)),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
   /** Per-user credit wallets: daily free (resets) + paid top-ups (never expire). */

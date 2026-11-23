@@ -19,13 +19,20 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { userFacingChatError } from "./lib/chatErrors";
 import {
+  CREDIT_CONFIG_KEY,
+  normalizeChatModelLevel,
+  resolveChatModelLevel,
+} from "./lib/credits";
+import {
   DEFAULT_CHAT_DELETION_EXPIRY,
   DEFAULT_CHAT_MODE,
   chatDeletionExpiryValidator,
   chatModeValidator,
+  chatModelLevelValidator,
   computeDeleteAt,
   type ChatDeletionExpiry,
   type ChatMode,
+  type ChatModelLevel,
 } from "./lib/lumoContent";
 import {
   isShadowProblem,
@@ -156,6 +163,7 @@ export const listByRoom = query({
         title: thread.title,
         createdBy: thread.createdBy,
         mode: (thread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
+        modelLevel: normalizeChatModelLevel(thread.modelLevel),
         deletionExpiry: (thread.deletionExpiry ??
           DEFAULT_CHAT_DELETION_EXPIRY) as ChatDeletionExpiry,
         deleteAt: thread.deleteAt ?? null,
@@ -207,6 +215,7 @@ export const create = mutation({
     roomId: v.id("rooms"),
     title: v.optional(v.string()),
     mode: v.optional(chatModeValidator),
+    modelLevel: v.optional(chatModelLevelValidator),
     deletionExpiry: v.optional(chatDeletionExpiryValidator),
     mentionedProblemNumbers: v.optional(v.array(v.string())),
   },
@@ -216,6 +225,10 @@ export const create = mutation({
 
     const title = (args.title?.trim() || "Ny tråd").slice(0, MAX_TITLE_LENGTH);
     const mode: ChatMode = args.mode ?? DEFAULT_CHAT_MODE;
+    const user = await ctx.db.get(userId);
+    const modelLevel: ChatModelLevel =
+      args.modelLevel ??
+      normalizeChatModelLevel(user?.defaultChatModelLevel);
     const deletionExpiry: ChatDeletionExpiry =
       args.deletionExpiry ?? DEFAULT_CHAT_DELETION_EXPIRY;
     const deleteAt = computeDeleteAt(deletionExpiry);
@@ -235,6 +248,7 @@ export const create = mutation({
       title,
       createdBy: userId,
       mode,
+      modelLevel,
       deletionExpiry,
       ...(deleteAt !== undefined ? { deleteAt } : {}),
       ...(mentionedProblemNumbers !== undefined
@@ -311,6 +325,23 @@ export const setMode = mutation({
     );
     await ctx.db.patch(roomThread._id, { mode: args.mode });
     return { mode: args.mode };
+  },
+});
+
+export const setModelLevel = mutation({
+  args: {
+    roomId: v.id("rooms"),
+    threadId: v.string(),
+    modelLevel: chatModelLevelValidator,
+  },
+  handler: async (ctx, args) => {
+    const { roomThread } = await requireActiveRoomThread(
+      ctx,
+      args.roomId,
+      args.threadId,
+    );
+    await ctx.db.patch(roomThread._id, { modelLevel: args.modelLevel });
+    return { modelLevel: args.modelLevel };
   },
 });
 
@@ -528,6 +559,7 @@ export const get = query({
       title: roomThread.title,
       createdBy: roomThread.createdBy,
       mode: (roomThread.mode ?? DEFAULT_CHAT_MODE) as ChatMode,
+      modelLevel: normalizeChatModelLevel(roomThread.modelLevel),
       deletionExpiry: (roomThread.deletionExpiry ??
         DEFAULT_CHAT_DELETION_EXPIRY) as ChatDeletionExpiry,
       deleteAt: roomThread.deleteAt ?? null,
@@ -740,6 +772,16 @@ export const sendMessage = mutation({
       args.threadId,
     );
     const mode: ChatMode = roomThread.mode ?? DEFAULT_CHAT_MODE;
+    const modelLevel = normalizeChatModelLevel(roomThread.modelLevel);
+
+    const creditConfig = await ctx.db
+      .query("creditConfig")
+      .withIndex("by_key", (q) => q.eq("key", CREDIT_CONFIG_KEY))
+      .unique();
+    if (creditConfig === null) {
+      throw new Error("creditConfig saknas — kör credits.createConfig först");
+    }
+    const modelConfig = resolveChatModelLevel(creditConfig, modelLevel);
 
     const fileIds: Array<string> = [];
     const content: Array<
@@ -800,6 +842,7 @@ export const sendMessage = mutation({
     await ctx.runMutation(internal.credits.spendForChat, {
       userId,
       refId: args.threadId,
+      modelLevel,
     });
 
     const { messageId } =
@@ -898,6 +941,8 @@ export const sendMessage = mutation({
       promptMessageId: messageId,
       userId,
       mode,
+      modelId: modelConfig.modelId,
+      modelLevel,
       roomId: args.roomId,
       problemIds: problemIds.length > 0 ? problemIds : undefined,
       subproblemLetter,
@@ -910,6 +955,8 @@ export const sendMessage = mutation({
         threadId: args.threadId,
         roomId: args.roomId,
         chatMode: mode,
+        modelLevel,
+        modelId: modelConfig.modelId,
         hasImages: images.length > 0,
         problemCount: problemIds.length,
       },

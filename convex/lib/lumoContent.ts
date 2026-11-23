@@ -288,6 +288,25 @@ export const chatModeValidator = v.union(
 
 export type ChatMode = "normal" | "genomgang";
 
+/** Chat model tier (1=cheap/fast … 3=premium). Stored on thread + user default. */
+export const chatModelLevelValidator = v.union(
+  v.literal(1),
+  v.literal(2),
+  v.literal(3),
+);
+
+export type ChatModelLevel = 1 | 2 | 3;
+
+export const DEFAULT_CHAT_MODEL_LEVEL: ChatModelLevel = 1;
+
+/** One admin-configured slot in creditConfig.chatModelLevels. */
+export const chatModelLevelConfigValidator = v.object({
+  level: chatModelLevelValidator,
+  name: v.string(),
+  modelId: v.string(),
+  creditCost: v.number(),
+});
+
 /**
  * Billable product feature that caused LLM spend.
  * Add literals here when new chargeable modes ship (e.g. exam_mode).
