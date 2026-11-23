@@ -1,3 +1,5 @@
+import { ConvexError } from "convex/values";
+
 /** Seeded into `creditConfig` when the singleton row is missing. */
 export const DEFAULT_FREE_DAILY_CREDITS = 30;
 export const DEFAULT_CHAT_CREDIT_COST = 1;
@@ -9,13 +11,14 @@ export type DebugTopUpAmount = (typeof DEBUG_TOP_UP_AMOUNTS)[number];
 
 export const CREDIT_CONFIG_KEY = "default" as const;
 
-/** Stable prefix so clients can detect paywall failures. */
+/** Stable code so clients can detect paywall failures via ConvexError.data. */
 export const INSUFFICIENT_CREDITS_CODE = "INSUFFICIENT_CREDITS";
 
 export function insufficientCreditsError(available: number, needed: number) {
-  return new Error(
-    `${INSUFFICIENT_CREDITS_CODE}: Du har ${available} credits kvar men behöver ${needed}. Toppa upp eller vänta till morgondagens free credits.`,
-  );
+  return new ConvexError({
+    code: INSUFFICIENT_CREDITS_CODE,
+    message: `Du har ${available} credits kvar men behöver ${needed}. Toppa upp eller vänta till morgondagens free credits.`,
+  });
 }
 
 /** Pricing from the creditConfig singleton (chat/twin costs). */
