@@ -6,12 +6,14 @@ import { MathInputDialog } from "~/components/rooms/math-input-dialog"
 import { MentionedProblems } from "~/components/rooms/mentioned-problems"
 import { PhoneUploadDialog } from "~/components/rooms/phone-upload-dialog"
 import type { ChatMode } from "~/lib/chat-mode"
+import type { ChatModelLevel } from "~/lib/chat-model-level"
 import { cn } from "~/lib/utils"
 import { ChatInputAttachments } from "./attachments"
 import { ChatInputComposerActions } from "./composer-actions"
 import { ChatInputMathChips } from "./math-chips"
 import { ChatInputMentionTypeahead } from "./mention-typeahead"
 import { ChatInputModeMenu } from "./mode-menu"
+import { ChatInputModelMenu } from "./model-menu"
 import { ChatInputSlashTypeahead } from "./slash-typeahead"
 import type {
   ChatInputHandle,
@@ -41,6 +43,10 @@ type ChatInputProps = {
   mode?: ChatMode
   /** Persist mode change (thread). Optional — /läge still works locally for draft. */
   onModeChange?: (mode: ChatMode) => void | Promise<void>
+  /** Current model tier (thread). Used to highlight selection in /modell. */
+  modelLevel?: ChatModelLevel
+  /** Persist model change (thread). Optional — /modell still works locally for draft. */
+  onModelLevelChange?: (level: ChatModelLevel) => void | Promise<void>
   /**
    * Increment to request focus on the composer textarea (e.g. after starting
    * a new chat). Values `undefined` / `0` are ignored.
@@ -56,11 +62,13 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       onSubmit,
       pending = false,
       error = null,
-      placeholder = "Skriv ett meddelande… @1.2, /formel eller /läge",
+      placeholder = "Skriv ett meddelande… @1.2, /formel, /läge eller /modell",
       className,
       defaultProblemId,
       mode,
       onModeChange,
+      modelLevel,
+      onModelLevelChange,
       focusSignal,
     },
     ref,
@@ -73,6 +81,8 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       defaultProblemId,
       mode,
       onModeChange,
+      modelLevel,
+      onModelLevelChange,
       focusSignal,
     })
 
@@ -173,6 +183,17 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
                 optionRefs={composer.modeOptionRefs}
                 onSelect={(next) => {
                   void composer.selectMode(next)
+                }}
+              />
+            ) : null}
+            {composer.modelMenuOpen ? (
+              <ChatInputModelMenu
+                levels={composer.modelLevels}
+                activeLevel={composer.activeModelLevel}
+                selectedIndex={composer.modelMenuIndex}
+                optionRefs={composer.modelOptionRefs}
+                onSelect={(next) => {
+                  void composer.selectModelLevel(next)
                 }}
               />
             ) : null}

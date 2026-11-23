@@ -174,11 +174,14 @@ describe("slash commands", () => {
     expect(filterSlashCommands("").map((c) => c.id)).toEqual([
       "formel",
       "mode",
+      "model",
     ])
     expect(filterSlashCommands("for").map((c) => c.command)).toEqual([
       "formel",
     ])
     expect(filterSlashCommands("läge").map((c) => c.id)).toEqual(["mode"])
+    expect(filterSlashCommands("mod").map((c) => c.id)).toEqual(["model"])
+    expect(filterSlashCommands("modell").map((c) => c.id)).toEqual(["model"])
     expect(filterSlashCommands("zzz")).toEqual([])
   })
 })

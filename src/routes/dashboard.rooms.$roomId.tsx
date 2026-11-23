@@ -957,6 +957,7 @@ function RoomPage() {
             title={selectedThread.title}
             problemGroups={problemGroups?.groups}
             mode={selectedThread.mode}
+            modelLevel={selectedThread.modelLevel}
             deletionExpiry={selectedThread.deletionExpiry}
             deleteAt={selectedThread.deleteAt}
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}

@@ -12,31 +12,44 @@ import {
   CREDIT_CONFIG_KEY,
   DEBUG_TOP_UP_AMOUNTS,
   DEFAULT_CHAT_CREDIT_COST,
+  DEFAULT_CHAT_MODEL_LEVELS,
   DEFAULT_TWIN_CREDIT_COST,
+  assertChatModelLevels,
   assertNonNegInt,
   assertPositiveInt,
   insufficientCreditsError,
   isDebugTopUpAmount,
   nextStockholmMidnightMs,
+  resolveChatModelLevel,
+  resolveChatModelLevels,
   stockholmDateString,
   type CreditConfigValues,
   type CreditLedgerKind,
   type UserCreditCosts,
 } from "./lib/credits";
+import {
+  chatModelLevelConfigValidator,
+  chatModelLevelValidator,
+  type ChatModelLevel,
+} from "./lib/lumoContent";
 import { getUserRole, getUserRoleEnsured, requireAdmin } from "./lib/roles";
 import { posthog } from "./posthog";
 
 type DbCtx = MutationCtx | QueryCtx;
 
+const chatModelLevelsValidator = v.array(chatModelLevelConfigValidator);
+
 const pricingValidator = v.object({
   chatCreditCost: v.number(),
   twinCreditCost: v.number(),
+  chatModelLevels: chatModelLevelsValidator,
 });
 
 const costsValidator = v.object({
   chatCreditCost: v.number(),
   twinCreditCost: v.number(),
   freeDailyCredits: v.number(),
+  chatModelLevels: chatModelLevelsValidator,
 });
 
 const balanceValidator = v.object({
@@ -62,9 +75,11 @@ async function requireConfig(ctx: DbCtx): Promise<Doc<"creditConfig">> {
 }
 
 function configValues(doc: Doc<"creditConfig">): CreditConfigValues {
+  const chatModelLevels = resolveChatModelLevels(doc);
   return {
-    chatCreditCost: doc.chatCreditCost,
+    chatCreditCost: chatModelLevels[0]?.creditCost ?? doc.chatCreditCost,
     twinCreditCost: doc.twinCreditCost,
+    chatModelLevels,
   };
 }
 
@@ -174,10 +189,12 @@ async function costsForUser(
   config: Doc<"creditConfig">,
 ): Promise<UserCreditCosts> {
   const role = await getUserRole(ctx, userId);
+  const values = configValues(config);
   return {
     freeDailyCredits: role.freeDailyCredits,
-    chatCreditCost: config.chatCreditCost,
-    twinCreditCost: config.twinCreditCost,
+    chatCreditCost: values.chatCreditCost,
+    twinCreditCost: values.twinCreditCost,
+    chatModelLevels: values.chatModelLevels,
   };
 }
 
@@ -283,6 +300,7 @@ export const createConfig = mutation({
   args: {
     chatCreditCost: v.optional(v.number()),
     twinCreditCost: v.optional(v.number()),
+    chatModelLevels: v.optional(chatModelLevelsValidator),
   },
   returns: pricingValidator,
   handler: async (ctx, args) => {
@@ -299,7 +317,13 @@ export const createConfig = mutation({
       throw new Error("creditConfig finns redan");
     }
 
-    const chatCreditCost = args.chatCreditCost ?? DEFAULT_CHAT_CREDIT_COST;
+    const chatModelLevels = assertChatModelLevels(
+      args.chatModelLevels ?? DEFAULT_CHAT_MODEL_LEVELS,
+    );
+    const chatCreditCost =
+      args.chatCreditCost ??
+      chatModelLevels[0]?.creditCost ??
+      DEFAULT_CHAT_CREDIT_COST;
     const twinCreditCost = args.twinCreditCost ?? DEFAULT_TWIN_CREDIT_COST;
 
     assertPositiveInt("chatCreditCost", chatCreditCost);
@@ -309,10 +333,15 @@ export const createConfig = mutation({
       key: CREDIT_CONFIG_KEY,
       chatCreditCost,
       twinCreditCost,
+      chatModelLevels,
       updatedAt: Date.now(),
     });
 
-    return { chatCreditCost, twinCreditCost };
+    return {
+      chatCreditCost,
+      twinCreditCost,
+      chatModelLevels,
+    };
   },
 });
 
@@ -625,6 +654,7 @@ export const updateConfig = mutation({
   args: {
     chatCreditCost: v.optional(v.number()),
     twinCreditCost: v.optional(v.number()),
+    chatModelLevels: v.optional(chatModelLevelsValidator),
   },
   returns: pricingValidator,
   handler: async (ctx, args) => {
@@ -639,8 +669,20 @@ export const updateConfig = mutation({
 
     const config = await requireConfig(ctx);
     const patch: Partial<Doc<"creditConfig">> = { updatedAt: Date.now() };
-    if (args.chatCreditCost !== undefined) {
+    if (args.chatModelLevels !== undefined) {
+      const chatModelLevels = assertChatModelLevels(args.chatModelLevels);
+      patch.chatModelLevels = chatModelLevels;
+      // Keep legacy flat chat cost aligned with level 1.
+      patch.chatCreditCost =
+        args.chatCreditCost ?? chatModelLevels[0]!.creditCost;
+    } else if (args.chatCreditCost !== undefined) {
       patch.chatCreditCost = args.chatCreditCost;
+      const currentLevels = resolveChatModelLevels(config);
+      patch.chatModelLevels = currentLevels.map((entry) =>
+        entry.level === 1
+          ? { ...entry, creditCost: args.chatCreditCost! }
+          : entry,
+      );
     }
     if (args.twinCreditCost !== undefined) {
       patch.twinCreditCost = args.twinCreditCost;
@@ -819,13 +861,18 @@ export const spendForChat = internalMutation({
   args: {
     userId: v.id("users"),
     refId: v.optional(v.string()),
+    modelLevel: v.optional(chatModelLevelValidator),
   },
   returns: v.object({ fromDaily: v.number(), fromPaid: v.number() }),
   handler: async (ctx, args) => {
     const config = await requireConfig(ctx);
+    const levelConfig = resolveChatModelLevel(
+      config,
+      args.modelLevel as ChatModelLevel | undefined,
+    );
     return await spendCredits(ctx, {
       userId: args.userId,
-      amount: config.chatCreditCost,
+      amount: levelConfig.creditCost,
       kind: "spend_chat",
       refId: args.refId,
     });

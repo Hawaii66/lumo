@@ -39,6 +39,12 @@ export type CreditsBalance = {
     freeDailyCredits: number
     chatCreditCost: number
     twinCreditCost: number
+    chatModelLevels: Array<{
+      level: 1 | 2 | 3
+      name: string
+      modelId: string
+      creditCost: number
+    }>
   }
 }
 
