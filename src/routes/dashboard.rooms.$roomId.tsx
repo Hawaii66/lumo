@@ -29,6 +29,7 @@ import {
   RoomSettingsPanel,
   type RoomSettingsFocusSection,
 } from "~/components/rooms/room-settings-panel"
+import { RoomEmptyTips } from "~/components/rooms/tips/room-tips"
 import { DraftThreadChat, ThreadChat } from "~/components/rooms/thread-chat"
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert"
 import { Button } from "~/components/ui/button"
@@ -605,52 +606,61 @@ function RoomPage() {
           </ScrollArea>
         ) : section === "problems" ? (
           selectedProblemId === null ? (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-y-auto text-center">
-              <h2 className="text-2xl font-medium tracking-tight">
-                {room.name}
-              </h2>
-              {occasions === undefined ||
-              assignableUnits === undefined ||
-              nextIncompleteProblem === undefined ? (
-                <p className="text-sm text-muted-foreground">Hämtar…</p>
-              ) : nextIncompleteProblem !== null ? (
-                <div className="flex flex-col items-center gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProblemId(
-                        nextIncompleteProblem.problemId as Id<"problems">,
-                      )
-                      setRevealOccasion((prev) => ({
-                        occasionId: nextIncompleteProblem.occasionId,
-                        signal: (prev?.signal ?? 0) + 1,
-                      }))
-                    }}
-                  >
-                    Fortsätt med {nextIncompleteProblem.label}
-                  </Button>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-20 overflow-y-auto py-4 text-center">
+              <div className="flex flex-col items-center gap-4">
+                <h2 className="text-2xl font-medium tracking-tight">
+                  {room.name}
+                </h2>
+                {occasions === undefined ||
+                assignableUnits === undefined ||
+                nextIncompleteProblem === undefined ? (
+                  <p className="text-sm text-muted-foreground">Hämtar…</p>
+                ) : nextIncompleteProblem !== null ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setSelectedProblemId(
+                          nextIncompleteProblem.problemId as Id<"problems">,
+                        )
+                        setRevealOccasion((prev) => ({
+                          occasionId: nextIncompleteProblem.occasionId,
+                          signal: (prev?.signal ?? 0) + 1,
+                        }))
+                      }}
+                    >
+                      Fortsätt med {nextIncompleteProblem.label}
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      {nextIncompleteProblem.occasionLabel}
+                    </p>
+                  </div>
+                ) : hasAssignableProblems(occasions) ? (
                   <p className="text-sm text-muted-foreground">
-                    {nextIncompleteProblem.occasionLabel}
+                    Alla tilldelade uppgifter är klara.
                   </p>
-                </div>
-              ) : hasAssignableProblems(occasions) ? (
-                <p className="text-sm text-muted-foreground">
-                  Alla tilldelade uppgifter är klara.
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="h-auto p-0 font-medium"
-                    onClick={() => setSection("files")}
-                  >
-                    Filer
-                  </Button>
-                  .
-                </p>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Välj en uppgift i listan till vänster, eller tolka en PDF
+                    under{" "}
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 font-medium"
+                      onClick={() => setSection("files")}
+                    >
+                      Filer
+                    </Button>
+                    .
+                  </p>
+                )}
+              </div>
+              <RoomEmptyTips
+                onOpenOccasionsSettings={() => {
+                  setSection("settings")
+                  setSettingsFocus("occasions")
+                }}
+              />
             </div>
           ) : selectedProblem === undefined ? (
             <div className="space-y-2">
