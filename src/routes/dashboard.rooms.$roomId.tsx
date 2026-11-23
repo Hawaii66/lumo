@@ -880,6 +880,19 @@ function RoomPage() {
                           })
                         }
                   }
+                  onReasonClear={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter) => {
+                          void setProblemReason({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            reason: null,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
                   occasionEntries={
                     selectedProblem.isShadow
                       ? []

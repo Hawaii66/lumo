@@ -125,6 +125,8 @@ type ParsedProblemViewProps = {
     reason: ProblemReasonId,
     note: string,
   ) => void
+  /** Clear the reason marker for a letter (`""` = whole problem). */
+  onReasonClear?: (letter: string) => void
   /** Available tillfällen for the assignment picker. */
   occasionOptions?: Array<ProblemOccasionOption>
   /** Room-scoped tillfälle assignments for this problem. */
@@ -146,6 +148,7 @@ export function ParsedProblemView({
   onCompletedChange,
   reasonEntries = [],
   onReasonSave,
+  onReasonClear,
   occasionOptions = [],
   occasionEntries = [],
   onOccasionChange,
@@ -158,7 +161,9 @@ export function ParsedProblemView({
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
   const showWholeProblemReason =
-    onReasonSave !== undefined && !hasSubproblems
+    onReasonSave !== undefined &&
+    onReasonClear !== undefined &&
+    !hasSubproblems
   const showWholeProblemOccasion = !hasSubproblems
   const questionImages = problem.questionImages ?? []
   const answerImages = problem.answerImages ?? []
@@ -211,6 +216,7 @@ export function ParsedProblemView({
                 <ProblemReasonControl
                   entry={reasonForLetter(reasonEntries, "")}
                   onSave={(reason, note) => onReasonSave("", reason, note)}
+                  onClear={() => onReasonClear("")}
                 />
               ) : null}
               {showWholeProblemCompletion ? (
@@ -291,10 +297,11 @@ export function ParsedProblemView({
               : undefined
           }
           subproblemReason={
-            onReasonSave && hasSubproblems
+            onReasonSave && onReasonClear && hasSubproblems
               ? {
                   getEntry: (letter) => reasonForLetter(reasonEntries, letter),
                   onSave: onReasonSave,
+                  onClear: onReasonClear,
                 }
               : undefined
           }
@@ -328,6 +335,7 @@ export function ParsedProblemView({
                   <ProblemReasonControl
                     entry={reasonForLetter(reasonEntries, "")}
                     onSave={(reason, note) => onReasonSave("", reason, note)}
+                    onClear={() => onReasonClear("")}
                   />
                 ) : null}
                 {showWholeProblemCompletion ? (
@@ -366,11 +374,12 @@ export function ParsedProblemView({
                   : undefined
               }
               subproblemReason={
-                onReasonSave && hasSubproblems
+                onReasonSave && onReasonClear && hasSubproblems
                   ? {
                       getEntry: (letter) =>
                         reasonForLetter(reasonEntries, letter),
                       onSave: onReasonSave,
+                      onClear: onReasonClear,
                     }
                   : undefined
               }

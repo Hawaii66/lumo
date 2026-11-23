@@ -47,6 +47,7 @@ type MarkdownWithMathProps = {
   subproblemReason?: {
     getEntry: (letter: string) => ProblemReasonEntry | undefined
     onSave: (letter: string, reason: ProblemReasonId, note: string) => void
+    onClear: (letter: string) => void
   }
   /** When set, tillfälle labels/pickers appear on deluppgift labels. */
   subproblemOccasion?: {
@@ -417,6 +418,7 @@ export function MarkdownWithMath({
                   onSave={(reason, note) =>
                     subproblemReason.onSave(letter, reason, note)
                   }
+                  onClear={() => subproblemReason.onClear(letter)}
                 />
               ) : null}
               {subproblemCompletion ? (

@@ -193,6 +193,7 @@ export function ProblemReasonDisplay({
 type ProblemReasonControlProps = {
   entry: ProblemReasonEntry | undefined
   onSave: (reason: ProblemReasonId, note: string) => void
+  onClear: () => void
   letter?: string
   className?: string
 }
@@ -201,16 +202,18 @@ type ProblemReasonControlProps = {
 export function ProblemReasonControl({
   entry,
   onSave,
+  onClear,
   letter,
   className,
 }: ProblemReasonControlProps) {
-  const [open, setOpen] = useState(false)
+  const [pickOpen, setPickOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
   const named = letter !== undefined && letter !== ""
   const scope = named ? `deluppgift (${letter})` : "uppgiften"
   const meta = entry ? REASON_META[entry.reason] : null
   const Icon = meta?.Icon ?? Bookmark
   const label = entry
-    ? `Ändra markering för ${scope}`
+    ? `Visa markering för ${scope}`
     : `Markera ${scope} att återkomma till`
 
   return (
@@ -220,7 +223,13 @@ export function ProblemReasonControl({
         title={label}
         aria-label={label}
         aria-pressed={entry !== undefined}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (entry !== undefined) {
+            setDetailOpen(true)
+            return
+          }
+          setPickOpen(true)
+        }}
         className={cn(
           "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
@@ -240,14 +249,20 @@ export function ProblemReasonControl({
         />
       </button>
       <ProblemReasonPickDialog
-        open={open}
-        onOpenChange={setOpen}
+        open={pickOpen}
+        onOpenChange={setPickOpen}
         initial={entry}
         letter={letter}
         onSave={(reason, note) => {
           onSave(reason, note)
-          setOpen(false)
+          setPickOpen(false)
         }}
+      />
+      <ProblemReasonDetailDialog
+        entry={entry ?? null}
+        open={detailOpen && entry !== undefined}
+        onOpenChange={setDetailOpen}
+        onClear={onClear}
       />
     </>
   )
