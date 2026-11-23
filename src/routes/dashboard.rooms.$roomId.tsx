@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useAction, useMutation, useQuery } from "convex/react"
-import { ChevronDown, CopyPlus, FileText } from "lucide-react"
+import { ChevronDown, CopyPlus, FileText, Flag } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import type { Id } from "../../convex/_generated/dataModel"
@@ -15,6 +15,7 @@ import { ChatInput } from "~/components/rooms/chat-input"
 import { FilesGrid } from "~/components/rooms/files-panel"
 import { PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { ProblemHelpActions } from "~/components/rooms/problem-help-actions"
+import { ReportProblemDialog } from "~/components/rooms/report-problem-dialog"
 import {
   PROBLEM_CHAT_DELETION_EXPIRY,
   formatSidebarTimeLeft,
@@ -93,6 +94,7 @@ function RoomPage() {
   const [draftChatKey, setDraftChatKey] = useState(0)
   const [creatingShadow, setCreatingShadow] = useState(false)
   const [shadowError, setShadowError] = useState<string | null>(null)
+  const [reportDialogOpen, setReportDialogOpen] = useState(false)
   const [viewingPdf, setViewingPdf] = useState<{
     name: string
     url: string
@@ -798,6 +800,16 @@ function RoomPage() {
                       </DropdownMenu>
                     )
                   ) : null}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => setReportDialogOpen(true)}
+                  >
+                    <Flag className="size-3.5" />
+                    Rapportera
+                  </Button>
                 </div>
               </div>
               {shadowError ? (
@@ -934,6 +946,16 @@ function RoomPage() {
         url={viewingPdf?.url ?? null}
         pageNumber={viewingPdf?.pageNumber ?? null}
       />
+
+      {selectedProblem !== undefined && selectedProblem !== null ? (
+        <ReportProblemDialog
+          roomId={typedRoomId}
+          problemId={selectedProblem.id}
+          problemNumber={selectedProblem.problem.problemNumber}
+          open={reportDialogOpen}
+          onOpenChange={setReportDialogOpen}
+        />
+      ) : null}
     </TooltipProvider>
   )
 }

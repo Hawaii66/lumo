@@ -5,7 +5,7 @@ import {
   Unauthenticated,
   useQuery,
 } from "convex/react"
-import { CreditCard, FileSearch, Gauge, Shield, User } from "lucide-react"
+import { CreditCard, FileSearch, Flag, Gauge, Shield, User } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 import { api } from "../../convex/_generated/api"
 import { DashboardThemeShell } from "~/components/dashboard/dashboard-theme-shell"
@@ -245,6 +245,25 @@ function ProfilePage() {
                       render={<Link to="/admin/pdf-parse" />}
                     >
                       Öppna labb
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Flag className="size-5" />
+                      Rapporterade uppgifter
+                    </CardTitle>
+                    <CardDescription>
+                      Se användarrapporter, avvisa eller lös dem, och hotfixa
+                      uppgifts-/facit-markdown.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      render={<Link to="/admin/problem-reports" />}
+                    >
+                      Öppna inbox
                     </Button>
                   </CardContent>
                 </Card>

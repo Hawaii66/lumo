@@ -625,4 +625,32 @@ export default defineSchema({
     sortOrder: v.number(),
     updatedAt: v.number(),
   }).index("by_active_and_sortOrder", ["active", "sortOrder"]),
+  /**
+   * User-submitted reports about parsed/shadow problems (wrong content, formatting, etc.).
+   * Admins triage via status + optional hotfix of problem/answer markdown.
+   */
+  problemReports: defineTable({
+    problemId: v.id("problems"),
+    roomId: v.id("rooms"),
+    reporterUserId: v.id("users"),
+    reason: v.union(
+      v.literal("wrong_problem"),
+      v.literal("wrong_answer"),
+      v.literal("missing_figure"),
+      v.literal("wrong_formatting"),
+      v.literal("other"),
+    ),
+    details: v.string(),
+    status: v.union(
+      v.literal("open"),
+      v.literal("resolved"),
+      v.literal("dismissed"),
+    ),
+    adminNote: v.optional(v.string()),
+    resolvedAt: v.optional(v.number()),
+    resolvedBy: v.optional(v.id("users")),
+  })
+    .index("by_status", ["status"])
+    .index("by_problem", ["problemId"])
+    .index("by_reporter", ["reporterUserId"]),
 });
