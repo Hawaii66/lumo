@@ -1,7 +1,7 @@
 import { sections } from "./fragments";
 
 /** Max characters stored in pdfInfo.text after distillation. */
-export const PDF_INFO_MAX_LENGTH = 400;
+export const PDF_INFO_MAX_LENGTH = 800;
 
 /**
  * Agent instructions: PDF/OCR → expected course methods / techniques.
@@ -49,7 +49,8 @@ Svara med ETT JSON-objekt:
 • Format: varje rad börjar med "• " (ingen prosa, inga stycken, ingen fluff).
 • Max en kort mening per punkt; bara det viktigaste.
 • Inga inledningar, avslutningar eller "Använd gärna…"-utfyllnad.
-• Behåll åäöÅÄÖ. Max cirka ${PDF_INFO_MAX_LENGTH} tecken.
+• Behåll åäöÅÄÖ. Håll text under ${PDF_INFO_MAX_LENGTH} tecken — gå aldrig över.
+• Prioritera det viktigaste om utrymmet inte räcker; klipp hellre än överskrid.
 • Hitta inte på innehåll som inte finns i källan.
 • Om inga metodråd finns: { "text": "" }.`,
 );
@@ -65,10 +66,11 @@ export function buildInfoConvertPrompt(documentText: string): string {
     `Extrahera ENDAST vilka metoder/tillvägagångssätt som förväntas.
 Skriv ENDAST korta "• "-punkter — ingen prosa.
 Ignorera uppgifter, facit och AI-/hjälpregler.
+Håll text under ${PDF_INFO_MAX_LENGTH} tecken — gå aldrig över.
 Om dokumentet saknar metodråd → text = "".`,
     "─── OCR ───",
     clipped,
     "─── SLUT ───",
-    `Returnera JSON: { "text": "…" }`,
+    `Returnera JSON: { "text": "…" } (max ${PDF_INFO_MAX_LENGTH} tecken i text).`,
   );
 }
