@@ -963,34 +963,36 @@ function ProblemList({
         />
       </div>
 
-      <div
-        className="flex w-full items-stretch gap-0.5 rounded-lg bg-sidebar-accent/40 p-0.5"
-        role="group"
-        aria-label="Uppgiftslistans vy"
-      >
-        {availableModes.map((value) => {
-          const active = mode === value
-          return (
-            <Button
-              key={value}
-              type="button"
-              variant="ghost"
-              size="sm"
-              aria-pressed={active}
-              onClick={() => {
-                if (active) return
-                setModePreference(value)
-              }}
-              className={cn(
-                "h-7 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium shadow-none",
-                active && "bg-sidebar text-sidebar-foreground shadow-sm",
-              )}
-            >
-              {PROBLEM_LIST_MODE_LABELS[value]}
-            </Button>
-          )
-        })}
-      </div>
+      {availableModes.length > 1 ? (
+        <div
+          className="flex w-full items-stretch gap-0.5 rounded-lg bg-sidebar-accent/40 p-0.5"
+          role="group"
+          aria-label="Uppgiftslistans vy"
+        >
+          {availableModes.map((value) => {
+            const active = mode === value
+            return (
+              <Button
+                key={value}
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-pressed={active}
+                onClick={() => {
+                  if (active) return
+                  setModePreference(value)
+                }}
+                className={cn(
+                  "h-7 min-w-0 flex-1 rounded-md px-1 text-[10px] font-medium shadow-none",
+                  active && "bg-sidebar text-sidebar-foreground shadow-sm",
+                )}
+              >
+                {PROBLEM_LIST_MODE_LABELS[value]}
+              </Button>
+            )
+          })}
+        </div>
+      ) : null}
 
       <ToggleGroup
         multiple
