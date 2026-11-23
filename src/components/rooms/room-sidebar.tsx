@@ -1072,7 +1072,7 @@ function ProblemList({
         </p>
       ) : (
         filteredGroups.map((group) => {
-          const isCollapsed = collapsed[group.fileName] === true
+          const isCollapsed = collapsed[group.fileName] !== false
           const chapterBuckets = bucketProblemsByChapter(group.problems)
           return (
             <Collapsible
@@ -1124,7 +1124,7 @@ function ProblemList({
                       group.fileName,
                       bucket.major,
                     )
-                    const chapterCollapsed = collapsed[chapterKey] === true
+                    const chapterCollapsed = collapsed[chapterKey] !== false
                     return (
                       <Collapsible
                         key={chapterKey}
