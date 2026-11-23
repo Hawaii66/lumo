@@ -17,12 +17,18 @@ import {
   type ProblemOccasionOption,
 } from "~/components/rooms/problem-occasion"
 import {
+  ProblemReasonControl,
+  reasonForLetter,
+  type ProblemReasonEntry,
+} from "~/components/rooms/problem-reason"
+import {
   ProblemStarsControl,
   ProblemStarsReadonly,
   starsForLetter,
   type ProblemStarEntry,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
+import type { ProblemReasonId } from "~/lib/problem-reasons"
 import { cn } from "~/lib/utils"
 
 function flagNotice(flag: ProblemFlag): string {
@@ -111,6 +117,16 @@ type ParsedProblemViewProps = {
   completionEntries?: Array<ProblemCompletionEntry>
   /** `letter` is `""` for whole-problem completion when there are no deluppgifter. */
   onCompletedChange?: (letter: string, completed: boolean) => void
+  /** Per-user reason markers for this problem. */
+  reasonEntries?: Array<ProblemReasonEntry>
+  /** `letter` is `""` for whole-problem reason when there are no deluppgifter. */
+  onReasonSave?: (
+    letter: string,
+    reason: ProblemReasonId,
+    note: string,
+  ) => void
+  /** Clear the reason marker for a letter (`""` = whole problem). */
+  onReasonClear?: (letter: string) => void
   /** Available tillfällen for the assignment picker. */
   occasionOptions?: Array<ProblemOccasionOption>
   /** Room-scoped tillfälle assignments for this problem. */
@@ -130,6 +146,9 @@ export function ParsedProblemView({
   onStarsChange,
   completionEntries = [],
   onCompletedChange,
+  reasonEntries = [],
+  onReasonSave,
+  onReasonClear,
   occasionOptions = [],
   occasionEntries = [],
   onOccasionChange,
@@ -141,6 +160,10 @@ export function ParsedProblemView({
   const showWholeProblemStars = !hasSubproblems
   const showWholeProblemCompletion =
     onCompletedChange !== undefined && !hasSubproblems
+  const showWholeProblemReason =
+    onReasonSave !== undefined &&
+    onReasonClear !== undefined &&
+    !hasSubproblems
   const showWholeProblemOccasion = !hasSubproblems
   const questionImages = problem.questionImages ?? []
   const answerImages = problem.answerImages ?? []
@@ -187,12 +210,22 @@ export function ParsedProblemView({
               <ProblemStarsReadonly stars={starsForLetter(starEntries, "")} />
             )
           ) : null}
-          {showWholeProblemCompletion ? (
-            <ProblemCompletionControl
-              className="ml-auto"
-              completed={isCompletedForLetter(completionEntries, "")}
-              onChange={(completed) => onCompletedChange("", completed)}
-            />
+          {showWholeProblemReason || showWholeProblemCompletion ? (
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
+              {showWholeProblemReason ? (
+                <ProblemReasonControl
+                  entry={reasonForLetter(reasonEntries, "")}
+                  onSave={(reason, note) => onReasonSave("", reason, note)}
+                  onClear={() => onReasonClear("")}
+                />
+              ) : null}
+              {showWholeProblemCompletion ? (
+                <ProblemCompletionControl
+                  completed={isCompletedForLetter(completionEntries, "")}
+                  onChange={(completed) => onCompletedChange("", completed)}
+                />
+              ) : null}
+            </span>
           ) : null}
         </div>
 
@@ -263,6 +296,15 @@ export function ParsedProblemView({
                 }
               : undefined
           }
+          subproblemReason={
+            onReasonSave && onReasonClear && hasSubproblems
+              ? {
+                  getEntry: (letter) => reasonForLetter(reasonEntries, letter),
+                  onSave: onReasonSave,
+                  onClear: onReasonClear,
+                }
+              : undefined
+          }
           subproblemOccasion={
             hasSubproblems
               ? onOccasionChange
@@ -287,12 +329,22 @@ export function ParsedProblemView({
             <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Svar
             </h3>
-            {showWholeProblemCompletion ? (
-              <ProblemCompletionControl
-                className="ml-auto"
-                completed={isCompletedForLetter(completionEntries, "")}
-                onChange={(completed) => onCompletedChange("", completed)}
-              />
+            {showWholeProblemReason || showWholeProblemCompletion ? (
+              <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
+                {showWholeProblemReason ? (
+                  <ProblemReasonControl
+                    entry={reasonForLetter(reasonEntries, "")}
+                    onSave={(reason, note) => onReasonSave("", reason, note)}
+                    onClear={() => onReasonClear("")}
+                  />
+                ) : null}
+                {showWholeProblemCompletion ? (
+                  <ProblemCompletionControl
+                    completed={isCompletedForLetter(completionEntries, "")}
+                    onChange={(completed) => onCompletedChange("", completed)}
+                  />
+                ) : null}
+              </span>
             ) : null}
           </div>
           {problem.answer.trim().length === 0 ? (
@@ -318,6 +370,16 @@ export function ParsedProblemView({
                       isCompleted: (letter) =>
                         isCompletedForLetter(completionEntries, letter),
                       onChange: onCompletedChange,
+                    }
+                  : undefined
+              }
+              subproblemReason={
+                onReasonSave && onReasonClear && hasSubproblems
+                  ? {
+                      getEntry: (letter) =>
+                        reasonForLetter(reasonEntries, letter),
+                      onSave: onReasonSave,
+                      onClear: onReasonClear,
                     }
                   : undefined
               }

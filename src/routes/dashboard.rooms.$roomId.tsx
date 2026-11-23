@@ -81,6 +81,7 @@ function RoomPage() {
   const sendMessage = useMutation(api.threads.sendMessage)
   const createShadow = useAction(api.PDFParse.shadowProblems.createShadow)
   const setProblemCompleted = useMutation(api.PDFParse.problems.setCompleted)
+  const setProblemReason = useMutation(api.PDFParse.problems.setReason)
   const cloneTemplate = useMutation(api.roomTemplates.clone)
   const removeRoom = useMutation(api.rooms.remove)
 
@@ -217,6 +218,7 @@ function RoomPage() {
           problemNumber: problem.problemNumber,
           starEntries: problem.starEntries,
           completionEntries: problem.completionEntries,
+          reasonEntries: problem.reasonEntries,
           shadows: problem.shadows.map((shadow) => ({
             id: shadow.id,
             problemNumber: shadow.problemNumber,
@@ -267,6 +269,16 @@ function RoomPage() {
     for (const group of problemGroupItems) {
       for (const problem of group.problems) {
         if (problem.id === selectedProblemId) return problem.completionEntries
+      }
+    }
+    return []
+  }, [problemGroupItems, selectedProblemId])
+
+  const selectedProblemReasonEntries = useMemo(() => {
+    if (selectedProblemId === null) return []
+    for (const group of problemGroupItems) {
+      for (const problem of group.problems) {
+        if (problem.id === selectedProblemId) return problem.reasonEntries
       }
     }
     return []
@@ -844,6 +856,38 @@ function RoomPage() {
                             roomId: typedRoomId,
                             problemId: selectedProblem.id,
                             completed,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
+                  reasonEntries={
+                    selectedProblem.isShadow
+                      ? []
+                      : selectedProblemReasonEntries
+                  }
+                  onReasonSave={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter, reason, note) => {
+                          void setProblemReason({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            reason,
+                            note,
+                            subproblemLetter:
+                              letter === "" ? undefined : letter,
+                          })
+                        }
+                  }
+                  onReasonClear={
+                    selectedProblem.isShadow
+                      ? undefined
+                      : (letter) => {
+                          void setProblemReason({
+                            roomId: typedRoomId,
+                            problemId: selectedProblem.id,
+                            reason: null,
                             subproblemLetter:
                               letter === "" ? undefined : letter,
                           })
