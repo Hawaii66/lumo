@@ -25,6 +25,7 @@ import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import {
   ProblemCompletionDisplay,
+  isCompletedForLetter,
   type ProblemCompletionEntry,
 } from "~/components/rooms/problem-completion"
 import {
@@ -578,6 +579,12 @@ function TillfallenProblemList({
     <div className="flex flex-col gap-0.5">
       {occasionBuckets.map((bucket) => {
         const isCollapsed = collapsed[`occasion:${bucket.id}`] !== false
+        const completedCount = bucket.items.filter((item) =>
+          isCompletedForLetter(item.completionEntries, item.subproblemLetter),
+        ).length
+        const totalCount = bucket.items.length
+        const allComplete = totalCount > 0 && completedCount === totalCount
+        const progressLabel = `${completedCount} av ${totalCount} klara`
         return (
           <Collapsible
             key={bucket.id}
@@ -589,7 +596,7 @@ function TillfallenProblemList({
               }))
             }
           >
-            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground dark:bg-muted/50 dark:hover:bg-muted/50">
+            <CollapsibleTrigger className="sticky top-0 z-10 flex w-full items-center gap-1 rounded-md bg-muted px-2 py-1.5 text-left text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors hover:bg-muted hover:text-sidebar-foreground">
               <ChevronDown
                 className={cn(
                   "size-3.5 shrink-0 transition-transform",
@@ -601,9 +608,14 @@ function TillfallenProblemList({
               </span>
               <Badge
                 variant="secondary"
-                className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
+                title={progressLabel}
+                aria-label={progressLabel}
+                className={cn(
+                  "shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums",
+                  allComplete && "text-emerald-700 dark:text-emerald-400",
+                )}
               >
-                {bucket.items.length}
+                {completedCount}/{totalCount}
               </Badge>
             </CollapsibleTrigger>
             <CollapsibleContent>
