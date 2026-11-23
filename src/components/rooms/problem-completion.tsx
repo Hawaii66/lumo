@@ -86,8 +86,8 @@ export function ProblemCompletionControl({
   letter,
   className,
 }: ProblemCompletionControlProps) {
-  const scope =
-    letter !== undefined && letter !== "" ? `deluppgift (${letter})` : "uppgiften"
+  const named = letter !== undefined && letter !== ""
+  const scope = named ? `deluppgift (${letter})` : "uppgiften"
   const label = completed
     ? `Markera ${scope} som inte klar`
     : `Markera ${scope} som klar`
@@ -110,9 +110,10 @@ export function ProblemCompletionControl({
         onChange(next)
       }}
       className={cn(
-        "inline-flex size-8 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
+        "inline-flex h-8 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         "active:scale-90",
+        "w-8",
         completed
           ? "border-emerald-600/50 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25"
           : "border-border text-muted-foreground hover:bg-muted/60",

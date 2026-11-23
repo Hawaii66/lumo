@@ -351,7 +351,11 @@ export function MarkdownWithMath({
               : undefined
           }
           data-lumo-subproblem={block.label}
-          className="scroll-mt-3 flex w-full items-center gap-1.5"
+          className={cn(
+            "scroll-mt-3 flex w-full items-center gap-1.5",
+            subproblemCompletion &&
+              "rounded-md border border-border/70 bg-muted/40 px-2 py-1",
+          )}
         >
           <p className="text-sm font-semibold text-muted-foreground">
             ({block.label})
