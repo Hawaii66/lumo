@@ -2,16 +2,22 @@ import {
   createThread,
   getFile,
   getThreadMetadata,
-  listUIMessages,
+  listMessages as listAgentMessages,
   saveMessage,
   syncStreams,
+  toUIMessages,
   updateThreadMetadata,
   vStreamArgs,
 } from "@convex-dev/agent";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import type { FilePart, ImagePart } from "ai";
 import { components, internal } from "./_generated/api";
+import type { Doc, Id } from "./_generated/dataModel";
+import { internalMutation, mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { userFacingChatError } from "./lib/chatErrors";
 import {
   DEFAULT_CHAT_DELETION_EXPIRY,
   DEFAULT_CHAT_MODE,
@@ -21,16 +27,12 @@ import {
   type ChatDeletionExpiry,
   type ChatMode,
 } from "./lib/lumoContent";
-import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
 import {
   isShadowProblem,
   problemVisibleInRoom,
 } from "./lib/problemAccess";
-import { internalMutation, mutation, query } from "./_generated/server";
-import type { Doc, Id } from "./_generated/dataModel";
-import type { FilePart, ImagePart } from "ai";
-import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { assertNotTemplateRoom } from "./lib/roomAuth";
+import { MAX_FILES_PER_ROOM } from "./lib/roomFiles";
 import { posthog } from "./posthog";
 
 const MAX_TITLE_LENGTH = 80;
@@ -656,7 +658,7 @@ export const listMessages = query({
       return empty;
     }
 
-    const paginated = await listUIMessages(ctx, components.agent, {
+    const paginated = await listAgentMessages(ctx, components.agent, {
       threadId: args.threadId,
       paginationOpts: args.paginationOpts,
     });
@@ -665,7 +667,37 @@ export const listMessages = query({
       streamArgs: args.streamArgs,
     });
 
-    return { ...paginated, streams };
+    // Failed turns store the raw provider error on MessageDoc.error, which
+    // toUIMessages drops — inject a ChatReply so the UI can render it.
+    const page = toUIMessages(
+      paginated.page.map((doc) => {
+        if (doc.status !== "failed") return doc;
+        const friendly = userFacingChatError(doc.error ?? "");
+        const payload = JSON.stringify({
+          version: 2,
+          markdown: friendly,
+          quickReplies: [],
+        });
+        const hasVisibleText =
+          (typeof doc.text === "string" && doc.text.trim().length > 0) ||
+          (doc.message !== undefined &&
+            typeof doc.message === "object" &&
+            "content" in doc.message &&
+            Array.isArray(doc.message.content) &&
+            doc.message.content.length > 0);
+        if (hasVisibleText) return doc;
+        return {
+          ...doc,
+          text: payload,
+          message: {
+            role: "assistant" as const,
+            content: payload,
+          },
+        };
+      }),
+    );
+
+    return { ...paginated, page, streams };
   },
 });
 
