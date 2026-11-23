@@ -46,6 +46,10 @@ import {
 import { Skeleton } from "~/components/ui/skeleton"
 import { TooltipProvider } from "~/components/ui/tooltip"
 import {
+  findNextIncompleteProblem,
+  hasAssignableProblems,
+} from "~/lib/next-incomplete-problem"
+import {
   DEFAULT_PROBLEM_TEXT_SIZE,
   resolveProblemTextSize,
 } from "~/lib/problem-text-size"
@@ -98,6 +102,10 @@ function RoomPage() {
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
+  const [revealOccasion, setRevealOccasion] = useState<{
+    occasionId: string
+    signal: number
+  } | null>(null)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
   const problemChatInputRef = useRef<ChatInputHandle>(null)
@@ -153,6 +161,14 @@ function RoomPage() {
 
   const roomFiles = useQuery(
     api.files.listByRoom,
+    section === "problems" ? { roomId: typedRoomId } : "skip",
+  )
+  const occasions = useQuery(
+    api.roomOccasions.listByRoom,
+    section === "problems" ? { roomId: typedRoomId } : "skip",
+  )
+  const assignableUnits = useQuery(
+    api.roomOccasions.listAssignableUnits,
     section === "problems" ? { roomId: typedRoomId } : "skip",
   )
 
@@ -253,6 +269,11 @@ function RoomPage() {
     }
     return []
   }, [problemGroupItems, selectedProblemId])
+
+  const nextIncompleteProblem = useMemo(() => {
+    if (occasions === undefined || assignableUnits === undefined) return undefined
+    return findNextIncompleteProblem(occasions, assignableUnits)
+  }, [assignableUnits, occasions])
 
   const subproblemLetters = useMemo(() => {
     const question = selectedProblem?.problem.question
@@ -410,7 +431,13 @@ function RoomPage() {
           onSectionChange={(next) => {
             setSection(next)
             if (next !== "settings") setSettingsFocus(null)
-            if (next !== "chats") {
+            if (next === "chats") {
+              // No thread in URL — entering chats with nothing selected opens a draft.
+              setSelectedThreadId(null)
+              setIsDraftChat(true)
+              setDraftChatKey((n) => n + 1)
+              setComposerFocusSignal((n) => n + 1)
+            } else {
               setSelectedThreadId(null)
               setIsDraftChat(false)
             }
@@ -456,6 +483,7 @@ function RoomPage() {
             setIsDraftChat(false)
             setSelectedProblemId(null)
           }}
+          revealOccasion={revealOccasion}
         />
 
         <SidebarInset className="min-h-0 overflow-hidden">
@@ -563,20 +591,52 @@ function RoomPage() {
           </ScrollArea>
         ) : section === "problems" ? (
           selectedProblemId === null ? (
-            <div className="overflow-y-auto">
-              <h2 className="text-lg font-medium">Uppgifter</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
-                <Button
-                  type="button"
-                  variant="link"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => setSection("files")}
-                >
-                  Filer
-                </Button>
-                .
-              </p>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-y-auto text-center">
+              <h2 className="text-2xl font-medium tracking-tight">
+                {room.name}
+              </h2>
+              {occasions === undefined ||
+              assignableUnits === undefined ||
+              nextIncompleteProblem === undefined ? (
+                <p className="text-sm text-muted-foreground">Hämtar…</p>
+              ) : nextIncompleteProblem !== null ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProblemId(
+                        nextIncompleteProblem.problemId as Id<"problems">,
+                      )
+                      setRevealOccasion((prev) => ({
+                        occasionId: nextIncompleteProblem.occasionId,
+                        signal: (prev?.signal ?? 0) + 1,
+                      }))
+                    }}
+                  >
+                    Fortsätt med {nextIncompleteProblem.label}
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    {nextIncompleteProblem.occasionLabel}
+                  </p>
+                </div>
+              ) : hasAssignableProblems(occasions) ? (
+                <p className="text-sm text-muted-foreground">
+                  Alla tilldelade uppgifter är klara.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Välj en uppgift i listan till vänster, eller tolka en PDF under{" "}
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="h-auto p-0 font-medium"
+                    onClick={() => setSection("files")}
+                  >
+                    Filer
+                  </Button>
+                  .
+                </p>
+              )}
             </div>
           ) : selectedProblem === undefined ? (
             <div className="space-y-2">
@@ -820,7 +880,7 @@ function RoomPage() {
               />
             </div>
           )
-        ) : isDraftChat ? (
+        ) : isDraftChat || selectedThreadId === null ? (
           <DraftThreadChat
             key={draftChatKey}
             roomId={typedRoomId}
@@ -828,13 +888,6 @@ function RoomPage() {
             composerFocusSignal={composerFocusSignal}
             onCreated={openThread}
           />
-        ) : selectedThreadId === null ? (
-          <>
-            <h2 className="text-lg font-medium">Chattar</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Skapa en ny chatt eller välj en i listan till vänster.
-            </p>
-          </>
         ) : selectedThread === undefined ? (
           <p className="text-sm text-muted-foreground">Hämtar tråd…</p>
         ) : selectedThread === null ? (
@@ -853,7 +906,8 @@ function RoomPage() {
             mentionedProblemNumbers={selectedThread.mentionedProblemNumbers}
             onArchived={() => {
               setSelectedThreadId(null)
-              setIsDraftChat(false)
+              setIsDraftChat(true)
+              setDraftChatKey((n) => n + 1)
             }}
             onBackToProblem={(problemId) => {
               setSection("problems")
