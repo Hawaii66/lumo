@@ -19,6 +19,8 @@ import {
 import { useEffect, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
+import { PdfReparseDiffDialog } from "~/components/admin/pdf-reparse-diff-dialog"
+import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
 import { PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
 import { SignInCard } from "~/components/sign-in"
@@ -124,7 +126,7 @@ function AdminProblemBrowser({
   return (
     <div className="grid min-h-[28rem] gap-4 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]">
       <div
-        className="flex max-h-[28rem] flex-col gap-0.5 overflow-y-auto rounded-md border border-border p-1"
+        className="flex max-h-[28rem] min-h-0 flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-md border border-border p-1"
         aria-label="Uppgiftslista"
       >
         {problems.map((item) => {
@@ -264,7 +266,7 @@ function SplitChunkBrowser({
       </p>
       <div className="grid min-h-[28rem] gap-4 md:grid-cols-[minmax(0,11rem)_minmax(0,1fr)]">
         <div
-          className="flex max-h-[28rem] flex-col gap-0.5 overflow-y-auto rounded-md border border-border p-1"
+          className="flex max-h-[28rem] min-h-0 flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-md border border-border p-1"
           aria-label="Split-lista"
         >
           {chunks.map((chunk) => {
@@ -358,17 +360,21 @@ function SplitChunkBrowser({
                 <p className="mb-1 text-xs font-medium text-muted-foreground">
                   Fråga
                 </p>
-                <pre className="whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
-                  {selected.problemText || "(tom)"}
-                </pre>
+                <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+                  <MarkdownWithMath
+                    markdown={selected.problemText || "(tom)"}
+                  />
+                </div>
               </div>
               <div>
                 <p className="mb-1 text-xs font-medium text-muted-foreground">
                   Svar
                 </p>
-                <pre className="whitespace-pre-wrap rounded-md border border-border bg-muted/30 p-3 text-xs">
-                  {selected.answerText || "(tom)"}
-                </pre>
+                <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+                  <MarkdownWithMath
+                    markdown={selected.answerText || "(tom)"}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -509,6 +515,7 @@ function LabBody() {
   const [selectedSplitNumber, setSelectedSplitNumber] = useState<string | null>(
     null,
   )
+  const [diffOpen, setDiffOpen] = useState(false)
 
   useEffect(() => {
     if (runs !== undefined && runs.length > 0 && selectedRunId === null) {
@@ -914,8 +921,9 @@ function LabBody() {
                 <CardHeader>
                   <CardTitle className="text-base">Starta om</CardTitle>
                   <CardDescription>
-                    Kör om från valfri sparad etapp. Commit skriver senaste
-                    förhandsgranskning till databasen.
+                    Kör om från valfri sparad etapp. För uppgifter: använd Diff
+                    &amp; publicera istället för blind commit när du vill välja
+                    behåll/ersätt/ta bort per nummer.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -923,7 +931,8 @@ function LabBody() {
                     <div>
                       <p className="text-sm font-medium">Spara till databasen</p>
                       <p className="text-xs text-muted-foreground">
-                        Gäller omstart från MinerU/AI
+                        Gäller omstart från MinerU/AI (full replace). Info kan
+                        fortfarande commitas direkt.
                       </p>
                     </div>
                     <Switch
@@ -977,22 +986,36 @@ function LabBody() {
                       )}
                       Från AI
                     </Button>
-                    <Button
-                      size="sm"
-                      disabled={
-                        runActive ||
-                        restarting !== null ||
-                        detail.run.previewStorageId === null
-                      }
-                      onClick={() => {
-                        void handleRestart("commit")
-                      }}
-                    >
-                      {restarting === "commit" ? (
-                        <Loader2 className="animate-spin" />
-                      ) : null}
-                      Committa förhandsgranskning
-                    </Button>
+                    {detail.run.kind === "problems" ? (
+                      <Button
+                        size="sm"
+                        disabled={
+                          runActive ||
+                          restarting !== null ||
+                          detail.run.previewStorageId === null
+                        }
+                        onClick={() => setDiffOpen(true)}
+                      >
+                        Diff &amp; publicera
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        disabled={
+                          runActive ||
+                          restarting !== null ||
+                          detail.run.previewStorageId === null
+                        }
+                        onClick={() => {
+                          void handleRestart("commit")
+                        }}
+                      >
+                        {restarting === "commit" ? (
+                          <Loader2 className="animate-spin" />
+                        ) : null}
+                        Committa förhandsgranskning
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1182,6 +1205,14 @@ function LabBody() {
         fileName={viewingPdf?.name ?? null}
         url={viewingPdf?.url ?? null}
         pageNumber={viewingPdf?.pageNumber ?? null}
+      />
+
+      <PdfReparseDiffDialog
+        open={diffOpen}
+        onOpenChange={setDiffOpen}
+        runId={
+          detail?.run.kind === "problems" ? selectedRunId : null
+        }
       />
     </div>
   )
