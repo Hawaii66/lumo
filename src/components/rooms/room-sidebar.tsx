@@ -599,7 +599,6 @@ function TillfallenProblemList({
           isCompletedForLetter(item.completionEntries, item.subproblemLetter),
         ).length
         const totalCount = bucket.items.length
-        const allComplete = totalCount > 0 && completedCount === totalCount
         const progressLabel = `${completedCount} av ${totalCount} klara`
         return (
           <Collapsible
@@ -626,10 +625,7 @@ function TillfallenProblemList({
                 variant="secondary"
                 title={progressLabel}
                 aria-label={progressLabel}
-                className={cn(
-                  "shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums",
-                  allComplete && "text-emerald-700 dark:text-emerald-400",
-                )}
+                className="shrink-0 rounded px-1.5 py-0 text-[10px] font-medium normal-case tabular-nums"
               >
                 {completedCount}/{totalCount}
               </Badge>
