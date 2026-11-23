@@ -22,6 +22,7 @@ import {
 import { DEFAULT_CHAT_MODE } from "~/lib/chat-mode"
 import { formatProblemMentionToken } from "~/lib/chat-composer"
 import { chaptersFromMarkdown } from "~/lib/markdown-math"
+import { formatUserFacingError } from "~/lib/user-facing-error"
 import { RoomSidebar } from "~/components/rooms/room-sidebar"
 import {
   RoomSettingsPanel,
@@ -356,7 +357,7 @@ function RoomPage() {
       openThread(result.threadId)
     } catch (err: unknown) {
       setProblemChatError(
-        err instanceof Error ? err.message : "Kunde inte starta chatt",
+        formatUserFacingError(err, "Kunde inte starta chatt"),
       )
       throw err
     } finally {

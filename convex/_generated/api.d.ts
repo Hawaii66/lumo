@@ -37,6 +37,7 @@ import type * as credits from "../credits.js";
 import type * as files from "../files.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
+import type * as lib_chatErrors from "../lib/chatErrors.js";
 import type * as lib_courseSiteScrape from "../lib/courseSiteScrape.js";
 import type * as lib_creditDeals from "../lib/creditDeals.js";
 import type * as lib_credits from "../lib/credits.js";
@@ -108,6 +109,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   health: typeof health;
   http: typeof http;
+  "lib/chatErrors": typeof lib_chatErrors;
   "lib/courseSiteScrape": typeof lib_courseSiteScrape;
   "lib/creditDeals": typeof lib_creditDeals;
   "lib/credits": typeof lib_credits;

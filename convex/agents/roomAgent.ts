@@ -22,6 +22,7 @@ import {
   aiTelemetry,
   forceFlushPosthogTraces,
 } from "../lib/posthogOtel";
+import { userFacingChatError } from "../lib/chatErrors";
 import { chatUsageHandler } from "../usage";
 import { lumoChatModel } from "./openrouter";
 
@@ -129,31 +130,41 @@ export const generateResponse = internalAction({
       problemContext = buildProblemContext(problems, args.subproblemLetter);
     }
 
-    const result = await roomAgent.streamText(
-      ctx,
-      { threadId: args.threadId, userId: args.userId },
-      {
-        promptMessageId: args.promptMessageId,
-        output: Output.object({
-          schema: chatReplySchema,
-          name: "ChatReply",
-          description:
-            "Lumo-svar: version 2, markdown med $ / $$ och ### (a) / #### Fall N, plus quickReplies.",
-        }),
-        system: buildChatSystem({ mode, roomContext, problemContext }),
-        experimental_telemetry: aiTelemetry({
-          functionId: "room-agent",
-          distinctId: args.userId,
-          sessionId: args.threadId,
-        }),
-      },
-      {
-        saveStreamDeltas: { chunking: "word", throttleMs: 100 },
-        usageHandler: chatUsageHandler(mode),
-      },
-    );
+    try {
+      const result = await roomAgent.streamText(
+        ctx,
+        { threadId: args.threadId, userId: args.userId },
+        {
+          promptMessageId: args.promptMessageId,
+          output: Output.object({
+            schema: chatReplySchema,
+            name: "ChatReply",
+            description:
+              "Lumo-svar: version 2, markdown med $ / $$ och ### (a) / #### Fall N, plus quickReplies.",
+          }),
+          system: buildChatSystem({ mode, roomContext, problemContext }),
+          experimental_telemetry: aiTelemetry({
+            functionId: "room-agent",
+            distinctId: args.userId,
+            sessionId: args.threadId,
+          }),
+        },
+        {
+          saveStreamDeltas: { chunking: "word", throttleMs: 100 },
+          usageHandler: chatUsageHandler(mode),
+        },
+      );
 
-    await result.consumeStream();
+      await result.consumeStream();
+    } catch (error: unknown) {
+      // Pending assistant turn is already marked failed by the agent with the
+      // raw provider error; listMessages maps that into a user-facing bubble.
+      console.error(
+        "roomAgent.generateResponse failed:",
+        userFacingChatError(error),
+        error,
+      );
+    }
     await forceFlushPosthogTraces();
     return null;
   },

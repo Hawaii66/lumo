@@ -39,6 +39,7 @@ import {
   DEFAULT_CHAT_MODE,
   type ChatMode,
 } from "~/lib/chat-mode"
+import { formatUserFacingError } from "~/lib/user-facing-error"
 import { uploadFileToStorage } from "~/lib/upload"
 import { cn } from "~/lib/utils"
 
@@ -408,7 +409,7 @@ export function ThreadChat({
         problemId: problemIds?.[0],
       })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte skicka")
+      setError(formatUserFacingError(err, "Kunde inte skicka"))
       throw err
     } finally {
       setPending(false)
@@ -422,7 +423,7 @@ export function ThreadChat({
     try {
       await setMode({ roomId, threadId, mode: next })
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte byta läge")
+      setError(formatUserFacingError(err, "Kunde inte byta läge"))
     } finally {
       setModePending(false)
     }
@@ -435,9 +436,7 @@ export function ThreadChat({
     try {
       await setDeletionExpiry({ roomId, threadId, deletionExpiry: next })
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Kunde inte byta arkiveringstid",
-      )
+      setError(formatUserFacingError(err, "Kunde inte byta arkiveringstid"))
     } finally {
       setExpiryPending(false)
     }
@@ -449,9 +448,7 @@ export function ThreadChat({
       await archiveThread({ roomId, threadId })
       onArchived?.()
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Kunde inte arkivera chatten",
-      )
+      setError(formatUserFacingError(err, "Kunde inte arkivera chatten"))
       throw err
     }
   }
@@ -733,7 +730,7 @@ export function DraftThreadChat({
 
       onCreated(result.threadId)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Kunde inte skicka")
+      setError(formatUserFacingError(err, "Kunde inte skicka"))
       throw err
     } finally {
       setPending(false)

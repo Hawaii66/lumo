@@ -275,6 +275,12 @@ export function AssistantMessageRow({
     el?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
+  const failed = message.status === "failed"
+  const errorMarkdown =
+    failed && !streaming
+      ? (reply?.markdown ?? "Kunde inte generera svar. Försök igen.")
+      : null
+
   return (
     <li
       ref={listRef}
@@ -282,16 +288,24 @@ export function AssistantMessageRow({
       className="flex items-start gap-2"
     >
       <ChapterSelector
-        chapters={chapters}
+        chapters={failed ? [] : chapters}
         loading={streaming}
         activePartIndex={activePartIndex}
         onSelect={jumpToChapter}
       />
       <div
         data-assistant-response={responseNumber}
-        className="min-w-0 max-w-[85%] rounded-lg bg-muted px-3 py-2 text-foreground"
+        className={cn(
+          "min-w-0 max-w-[85%] rounded-lg px-3 py-2",
+          failed
+            ? "border border-destructive/30 bg-destructive/10 text-destructive"
+            : "bg-muted text-foreground",
+        )}
+        role={failed ? "alert" : undefined}
       >
-        {reply ? (
+        {errorMarkdown ? (
+          <p className="text-sm whitespace-pre-wrap">{errorMarkdown}</p>
+        ) : reply ? (
           <div className="flex flex-col gap-3">
             <MarkdownWithMath
               markdown={reply.markdown}
