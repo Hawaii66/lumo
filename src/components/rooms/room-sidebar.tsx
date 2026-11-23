@@ -132,6 +132,11 @@ export type RoomSidebarProps = {
   onOpenProblemPdfOrder?: () => void
   /** Opens settings focused on tillfällen. */
   onOpenOccasions?: () => void
+  /**
+   * When `signal` increases, switch to tillfällen mode and expand this
+   * occasion so the selected problem is visible in the list.
+   */
+  revealOccasion?: { occasionId: string; signal: number } | null
 }
 
 type StarFilterLevel = 1 | 2 | 3
@@ -162,6 +167,7 @@ export function RoomSidebar({
   onSelectProblem,
   onOpenProblemPdfOrder,
   onOpenOccasions,
+  revealOccasion = null,
 }: RoomSidebarProps) {
   const [listSection, setListSection] =
     useState<RoomSidebarListSection>("problems")
@@ -265,6 +271,7 @@ export function RoomSidebar({
                   onShowFiles={() => onSectionChange("files")}
                   onOpenProblemPdfOrder={onOpenProblemPdfOrder}
                   onOpenOccasions={onOpenOccasions}
+                  revealOccasion={revealOccasion}
                 />
               )}
             </SidebarGroupContent>
@@ -727,6 +734,7 @@ function ProblemList({
   onShowFiles,
   onOpenProblemPdfOrder,
   onOpenOccasions,
+  revealOccasion = null,
 }: {
   roomId?: Id<"rooms">
   groups: RoomSidebarProblemGroup[]
@@ -736,6 +744,7 @@ function ProblemList({
   onShowFiles: () => void
   onOpenProblemPdfOrder?: () => void
   onOpenOccasions?: () => void
+  revealOccasion?: { occasionId: string; signal: number } | null
 }) {
   const occasions = useQuery(
     api.roomOccasions.listByRoom,
@@ -877,6 +886,18 @@ function ProblemList({
       return next
     })
   }, [filteredGroups, mode, normalizedQuery])
+
+  // Continue CTA: show tillfällen, clear filters, expand the target occasion.
+  useEffect(() => {
+    if (revealOccasion == null || revealOccasion.signal === 0) return
+    setModePreference("tillfallen")
+    setQuery("")
+    setStarLevels([])
+    setCollapsed((prev) => ({
+      ...prev,
+      [`occasion:${revealOccasion.occasionId}`]: false,
+    }))
+  }, [revealOccasion])
 
   if (groups.length === 0 && archived.length === 0) {
     return (

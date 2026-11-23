@@ -101,6 +101,10 @@ function RoomPage() {
   const [bannerPending, setBannerPending] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
   const [composerFocusSignal, setComposerFocusSignal] = useState(0)
+  const [revealOccasion, setRevealOccasion] = useState<{
+    occasionId: string
+    signal: number
+  } | null>(null)
   const [problemChatPending, setProblemChatPending] = useState(false)
   const [problemChatError, setProblemChatError] = useState<string | null>(null)
   const problemChatInputRef = useRef<ChatInputHandle>(null)
@@ -478,6 +482,7 @@ function RoomPage() {
             setIsDraftChat(false)
             setSelectedProblemId(null)
           }}
+          revealOccasion={revealOccasion}
         />
 
         <SidebarInset className="min-h-0 overflow-hidden">
@@ -597,11 +602,15 @@ function RoomPage() {
                 <div className="flex flex-col items-center gap-2">
                   <Button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
                       setSelectedProblemId(
                         nextIncompleteProblem.problemId as Id<"problems">,
                       )
-                    }
+                      setRevealOccasion((prev) => ({
+                        occasionId: nextIncompleteProblem.occasionId,
+                        signal: (prev?.signal ?? 0) + 1,
+                      }))
+                    }}
                   >
                     Fortsätt med {nextIncompleteProblem.label}
                   </Button>

@@ -66,6 +66,7 @@ describe("findNextIncompleteProblem", () => {
     ).toEqual({
       problemId: "p1b",
       label: "1b",
+      occasionId: "occ1",
       occasionLabel: "Lektion 1 (1/1)",
     })
   })
@@ -75,6 +76,7 @@ describe("findNextIncompleteProblem", () => {
       findNextIncompleteProblem(
         [
           {
+            _id: "occ1",
             label: "Lektion 1 (1/1)",
             assignments: [
               {
@@ -106,6 +108,7 @@ describe("findNextIncompleteProblem", () => {
     ).toEqual({
       problemId: "p2",
       label: "2",
+      occasionId: "occ1",
       occasionLabel: "Lektion 1 (1/1)",
     })
   })
@@ -141,6 +144,7 @@ describe("hasAssignableProblems", () => {
     expect(
       hasAssignableProblems([
         {
+          _id: "occ1",
           label: "Lektion 1 (1/1)",
           assignments: [
             {
@@ -160,6 +164,7 @@ describe("hasAssignableProblems", () => {
     expect(
       hasAssignableProblems([
         {
+          _id: "occ1",
           label: "Lektion 1 (1/1)",
           assignments: [
             {
