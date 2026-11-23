@@ -113,18 +113,13 @@ export function ProblemCompletionControl({
         "inline-flex h-8 shrink-0 items-center justify-center rounded-md border transition-[transform,colors,background-color,border-color] duration-100",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
         "active:scale-90",
-        named ? "gap-1 px-1.5" : "w-8",
+        "w-8",
         completed
           ? "border-emerald-600/50 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25"
           : "border-border text-muted-foreground hover:bg-muted/60",
         className,
       )}
     >
-      {named ? (
-        <span className="text-xs font-semibold leading-none text-foreground">
-          {letter}
-        </span>
-      ) : null}
       <Check
         className={cn(
           "size-4 transition-[opacity,transform] duration-150",
