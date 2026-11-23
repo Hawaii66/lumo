@@ -730,7 +730,7 @@ function TillfallenUnitRow({
         }}
       >
         <span className="min-w-0 flex-1 truncate tabular-nums">{item.label}</span>
-        <span className="inline-flex shrink-0 items-center gap-1.5">
+        <span className="inline-flex shrink-0 items-center gap-1.5 overflow-visible!">
           <ProblemStarsDisplay entries={displayStars} />
           <ProblemReasonDisplay
             entries={displayReasons}
@@ -768,7 +768,7 @@ function ProblemRow({
         onClick={() => onSelectProblem(problem.id)}
       >
         <span className="min-w-0 flex-1 truncate">{problem.problemNumber}</span>
-        <span className="inline-flex shrink-0 items-center gap-1.5">
+        <span className="inline-flex shrink-0 items-center gap-1.5 overflow-visible!">
           <ProblemStarsDisplay entries={problem.starEntries} />
           <ProblemReasonDisplay
             entries={problem.reasonEntries ?? []}

@@ -37,6 +37,8 @@ type ReasonMeta = {
   Icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>
   /** Classes for the colored icon / active control. */
   iconClassName: string
+  /** Tinted badge behind the sidebar icon. */
+  badgeClassName: string
   activeButtonClassName: string
   chipClassName: string
 }
@@ -46,41 +48,41 @@ export const REASON_META: Record<ProblemReasonId, ReasonMeta> = {
     id: "hard",
     label: "Svår",
     Icon: Flame,
-    iconClassName: "text-rose-600",
+    iconClassName: "text-rose-600!",
+    badgeClassName: "bg-rose-500/20",
     activeButtonClassName:
       "border-rose-600/50 bg-rose-500/15 text-rose-700 hover:bg-rose-500/25",
-    chipClassName:
-      "border-rose-600/60 bg-rose-500/15 text-foreground",
+    chipClassName: "border-rose-600/60 bg-rose-500/15 text-foreground",
   },
   insight: {
     id: "insight",
     label: "Bra insikt",
     Icon: Lightbulb,
-    iconClassName: "text-amber-600",
+    iconClassName: "text-amber-600!",
+    badgeClassName: "bg-amber-500/20",
     activeButtonClassName:
       "border-amber-600/50 bg-amber-500/15 text-amber-800 hover:bg-amber-500/25",
-    chipClassName:
-      "border-amber-600/60 bg-amber-500/15 text-foreground",
+    chipClassName: "border-amber-600/60 bg-amber-500/15 text-foreground",
   },
   teacher: {
     id: "teacher",
     label: "Behöver lärarhjälp",
     Icon: GraduationCap,
-    iconClassName: "text-sky-600",
+    iconClassName: "text-sky-600!",
+    badgeClassName: "bg-sky-500/20",
     activeButtonClassName:
       "border-sky-600/50 bg-sky-500/15 text-sky-800 hover:bg-sky-500/25",
-    chipClassName:
-      "border-sky-600/60 bg-sky-500/15 text-foreground",
+    chipClassName: "border-sky-600/60 bg-sky-500/15 text-foreground",
   },
   other: {
     id: "other",
     label: "Övrigt",
     Icon: Bookmark,
-    iconClassName: "text-violet-600",
+    iconClassName: "text-violet-600!",
+    badgeClassName: "bg-violet-500/20",
     activeButtonClassName:
       "border-violet-600/50 bg-violet-500/15 text-violet-800 hover:bg-violet-500/25",
-    chipClassName:
-      "border-violet-600/60 bg-violet-500/15 text-foreground",
+    chipClassName: "border-violet-600/60 bg-violet-500/15 text-foreground",
   },
 }
 
@@ -89,6 +91,61 @@ type ProblemReasonDisplayProps = {
   className?: string
   /** When set, icons are clickable (e.g. open detail modal). */
   onSelect?: (entry: ProblemReasonEntry) => void
+}
+
+function ReasonBadge({
+  entry,
+  onSelect,
+}: {
+  entry: ProblemReasonEntry
+  onSelect?: (entry: ProblemReasonEntry) => void
+}) {
+  const meta = REASON_META[entry.reason]
+  const Icon = meta.Icon
+  const named = entry.letter !== ""
+  const label = named ? `${entry.letter}: ${meta.label}` : meta.label
+
+  return (
+    <span
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      title={label}
+      aria-label={label}
+      className={cn(
+        "inline-flex h-5 max-w-full shrink-0 items-center gap-0.5 rounded px-1",
+        meta.badgeClassName,
+        onSelect && "cursor-pointer hover:brightness-95",
+      )}
+      onClick={
+        onSelect
+          ? (event) => {
+              event.stopPropagation()
+              onSelect(entry)
+            }
+          : undefined
+      }
+      onKeyDown={
+        onSelect
+          ? (event) => {
+              if (event.key !== "Enter" && event.key !== " ") return
+              event.preventDefault()
+              event.stopPropagation()
+              onSelect(entry)
+            }
+          : undefined
+      }
+    >
+      {named ? (
+        <span className="text-[10px] font-semibold leading-none text-foreground">
+          {entry.letter}
+        </span>
+      ) : null}
+      <Icon
+        className={cn("size-3! shrink-0", meta.iconClassName)}
+        aria-hidden
+      />
+    </span>
+  )
 }
 
 /** Read-only reason icons for the sidebar list. */
@@ -106,101 +163,29 @@ export function ProblemReasonDisplay({
   if (letterEntries.length > 0) {
     return (
       <span
-        className={cn("inline-flex shrink-0 items-center gap-1", className)}
+        className={cn(
+          "inline-flex shrink-0 items-center gap-0.5 overflow-visible!",
+          className,
+        )}
       >
-        {letterEntries.map((entry) => {
-          const meta = REASON_META[entry.reason]
-          const Icon = meta.Icon
-          const label = `${entry.letter}: ${meta.label}`
-          const content = (
-            <>
-              <span className="text-[10px] font-medium text-muted-foreground">
-                {entry.letter}:
-              </span>
-              <Icon
-                className={cn("size-2.5", meta.iconClassName)}
-                aria-hidden
-              />
-            </>
-          )
-          if (onSelect) {
-            return (
-              <span
-                key={entry.letter}
-                role="button"
-                tabIndex={0}
-                title={label}
-                aria-label={label}
-                className="inline-flex cursor-pointer items-center gap-0.5 rounded-sm hover:bg-muted/70"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onSelect(entry)
-                }}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter" && event.key !== " ") return
-                  event.preventDefault()
-                  event.stopPropagation()
-                  onSelect(entry)
-                }}
-              >
-                {content}
-              </span>
-            )
-          }
-          return (
-            <span
-              key={entry.letter}
-              className="inline-flex items-center gap-0.5"
-              title={label}
-              aria-label={label}
-            >
-              {content}
-            </span>
-          )
-        })}
+        {letterEntries.map((entry) => (
+          <ReasonBadge key={entry.letter} entry={entry} onSelect={onSelect} />
+        ))}
       </span>
     )
   }
 
   const whole = entries.find((entry) => entry.letter === "")
   if (whole === undefined) return null
-  const meta = REASON_META[whole.reason]
-  const Icon = meta.Icon
-
-  if (onSelect) {
-    return (
-      <span
-        role="button"
-        tabIndex={0}
-        title={meta.label}
-        aria-label={meta.label}
-        className={cn(
-          "inline-flex shrink-0 cursor-pointer items-center rounded-sm hover:bg-muted/70",
-          className,
-        )}
-        onClick={(event) => {
-          event.stopPropagation()
-          onSelect(whole)
-        }}
-        onKeyDown={(event) => {
-          if (event.key !== "Enter" && event.key !== " ") return
-          event.preventDefault()
-          event.stopPropagation()
-          onSelect(whole)
-        }}
-      >
-        <Icon className={cn("size-3", meta.iconClassName)} aria-hidden />
-      </span>
-    )
-  }
 
   return (
     <span
-      className={cn("inline-flex shrink-0 items-center", className)}
-      title={meta.label}
-      aria-label={meta.label}
+      className={cn(
+        "inline-flex shrink-0 items-center overflow-visible!",
+        className,
+      )}
     >
-      <Icon className={cn("size-3", meta.iconClassName)} aria-hidden />
+      <ReasonBadge entry={whole} onSelect={onSelect} />
     </span>
   )
 }
