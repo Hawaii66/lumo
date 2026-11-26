@@ -2,6 +2,7 @@ import { Fragment, type ReactNode } from "react"
 import { Highlighter } from "lucide-react"
 import { StaticMath } from "~/components/lumo/static-math"
 import { ProblemCompletionControl } from "~/components/rooms/problem-completion"
+import { ProblemFacitJumpControl } from "~/components/rooms/problem-facit-jump"
 import {
   ProblemOccasionControl,
   ProblemOccasionReadonly,
@@ -20,10 +21,13 @@ import type { ProblemReasonId } from "~/lib/problem-reasons"
 import { Button } from "~/components/ui/button"
 import {
   isFallHeading,
+  isMarkdownTableStart,
   isSubproblemHeading,
   normalizeMarkdownMathDelimiters,
   splitMarkdownMath,
   subproblemAnchorId,
+  tryParseMarkdownTableAt,
+  type MarkdownTableAlignment,
 } from "~/lib/markdown-math"
 import { cn } from "~/lib/utils"
 
@@ -55,6 +59,14 @@ type MarkdownWithMathProps = {
     getOccasionId?: (letter: string) => string | null
     getOccasionLabel?: (letter: string) => string | null
     onChange?: (letter: string, occasionId: string | null) => void
+  }
+  /** When set, jump controls appear outside each deluppgift row. */
+  subproblemJump?: {
+    direction: "to-facit" | "to-question"
+    targetSectionId: string
+    /** False while the jump target is not mounted (e.g. facit hidden). */
+    targetAvailable?: boolean
+    onJump: (letter: string) => void
   }
   /**
    * Images keyed by deluppgift letter (`""` = shared stem before first
@@ -192,7 +204,26 @@ type Block =
   | { type: "subproblem"; label: string; chapterIndex: number }
   | { type: "fall"; n: string; condition: string }
   | { type: "list"; ordered: boolean; items: Array<string> }
+  | {
+      type: "table"
+      headers: Array<string>
+      alignments: Array<MarkdownTableAlignment>
+      rows: Array<Array<string>>
+    }
   | { type: "blank" }
+
+function shouldBreakParagraph(lines: Array<string>, index: number): boolean {
+  const nt = lines[index]!.trim()
+  return (
+    nt.length === 0 ||
+    isSubproblemHeading(nt) !== null ||
+    isFallHeading(nt) !== null ||
+    /^(#{1,4})\s+/.test(nt) ||
+    /^[-*]\s+/.test(nt) ||
+    /^\d+\.\s+/.test(nt) ||
+    isMarkdownTableStart(lines, index)
+  )
+}
 
 function parseBlocks(markdown: string): Array<Block> {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n")
@@ -239,6 +270,18 @@ function parseBlocks(markdown: string): Array<Block> {
       continue
     }
 
+    const table = tryParseMarkdownTableAt(lines, i)
+    if (table) {
+      blocks.push({
+        type: "table",
+        headers: table.table.headers,
+        alignments: table.table.alignments,
+        rows: table.table.rows,
+      })
+      i = table.end
+      continue
+    }
+
     const unordered = trimmed.match(/^[-*]\s+(.+)$/)
     const ordered = trimmed.match(/^\d+\.\s+(.+)$/)
     if (unordered || ordered) {
@@ -259,25 +302,20 @@ function parseBlocks(markdown: string): Array<Block> {
     const para: Array<string> = [line]
     i += 1
     while (i < lines.length) {
-      const next = lines[i]!
-      const nt = next.trim()
-      if (
-        nt.length === 0 ||
-        isSubproblemHeading(nt) ||
-        isFallHeading(nt) ||
-        /^(#{1,4})\s+/.test(nt) ||
-        /^[-*]\s+/.test(nt) ||
-        /^\d+\.\s+/.test(nt)
-      ) {
-        break
-      }
-      para.push(next)
+      if (shouldBreakParagraph(lines, i)) break
+      para.push(lines[i]!)
       i += 1
     }
     blocks.push({ type: "paragraph", text: para.join("\n") })
   }
 
   return blocks
+}
+
+const TABLE_ALIGN_CLASS: Record<MarkdownTableAlignment, string> = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
 }
 
 function DefaultSectionImages({
@@ -315,6 +353,7 @@ export function MarkdownWithMath({
   subproblemCompletion,
   subproblemReason,
   subproblemOccasion,
+  subproblemJump,
   imagesByLetter,
   renderImages,
 }: MarkdownWithMathProps) {
@@ -363,74 +402,89 @@ export function MarkdownWithMath({
               : undefined
           }
           data-lumo-subproblem={block.label}
-          className={cn(
-            "scroll-mt-3 flex w-full items-center gap-1.5",
-            (subproblemCompletion || subproblemReason) &&
-              "rounded-md border border-border/70 bg-muted/40 px-2 py-1",
-          )}
+          className="scroll-mt-3 flex w-full items-center gap-1.5"
         >
-          <p className="text-sm font-semibold text-muted-foreground">
-            ({block.label})
-          </p>
-          {subproblemOccasion ? (
-            subproblemOccasion.onChange ? (
-              <ProblemOccasionControl
-                letter={letter}
-                occasionId={
-                  subproblemOccasion.getOccasionId?.(letter) ?? null
-                }
-                options={subproblemOccasion.options ?? []}
-                onChange={(occasionId) =>
-                  subproblemOccasion.onChange?.(letter, occasionId)
-                }
-              />
-            ) : (
-              <ProblemOccasionReadonly
-                letter={letter}
-                label={
-                  subproblemOccasion.getOccasionLabel?.(letter) ?? null
-                }
-              />
-            )
-          ) : null}
-          {subproblemStars ? (
-            subproblemStars.onChange ? (
-              <ProblemStarsControl
-                letter={letter}
-                hideLetter
-                stars={subproblemStars.getStars(letter)}
-                onChange={(stars) => subproblemStars.onChange?.(letter, stars)}
-              />
-            ) : (
-              <ProblemStarsReadonly
-                letter={letter}
-                hideLetter
-                stars={subproblemStars.getStars(letter)}
-              />
-            )
-          ) : null}
-          {subproblemReason || subproblemCompletion ? (
-            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
-              {subproblemReason ? (
-                <ProblemReasonControl
+          <div
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-1.5",
+              (subproblemCompletion || subproblemReason) &&
+                "rounded-md border border-border/70 bg-muted/40 px-2 py-1",
+            )}
+          >
+            <p className="text-sm font-semibold text-muted-foreground">
+              ({block.label})
+            </p>
+            {subproblemOccasion ? (
+              subproblemOccasion.onChange ? (
+                <ProblemOccasionControl
                   letter={letter}
-                  entry={subproblemReason.getEntry(letter)}
-                  onSave={(reason, note) =>
-                    subproblemReason.onSave(letter, reason, note)
+                  occasionId={
+                    subproblemOccasion.getOccasionId?.(letter) ?? null
                   }
-                  onClear={() => subproblemReason.onClear(letter)}
-                />
-              ) : null}
-              {subproblemCompletion ? (
-                <ProblemCompletionControl
-                  letter={letter}
-                  completed={subproblemCompletion.isCompleted(letter)}
-                  onChange={(completed) =>
-                    subproblemCompletion.onChange(letter, completed)
+                  options={subproblemOccasion.options ?? []}
+                  onChange={(occasionId) =>
+                    subproblemOccasion.onChange?.(letter, occasionId)
                   }
                 />
-              ) : null}
-            </span>
+              ) : (
+                <ProblemOccasionReadonly
+                  letter={letter}
+                  label={
+                    subproblemOccasion.getOccasionLabel?.(letter) ?? null
+                  }
+                />
+              )
+            ) : null}
+            {subproblemStars ? (
+              subproblemStars.onChange ? (
+                <ProblemStarsControl
+                  letter={letter}
+                  hideLetter
+                  stars={subproblemStars.getStars(letter)}
+                  onChange={(stars) =>
+                    subproblemStars.onChange?.(letter, stars)
+                  }
+                />
+              ) : (
+                <ProblemStarsReadonly
+                  letter={letter}
+                  hideLetter
+                  stars={subproblemStars.getStars(letter)}
+                />
+              )
+            ) : null}
+            {subproblemReason || subproblemCompletion ? (
+              <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
+                {subproblemReason ? (
+                  <ProblemReasonControl
+                    letter={letter}
+                    entry={subproblemReason.getEntry(letter)}
+                    onSave={(reason, note) =>
+                      subproblemReason.onSave(letter, reason, note)
+                    }
+                    onClear={() => subproblemReason.onClear(letter)}
+                  />
+                ) : null}
+                {subproblemCompletion ? (
+                  <ProblemCompletionControl
+                    letter={letter}
+                    completed={subproblemCompletion.isCompleted(letter)}
+                    onChange={(completed) =>
+                      subproblemCompletion.onChange(letter, completed)
+                    }
+                  />
+                ) : null}
+              </span>
+            ) : null}
+          </div>
+          {subproblemJump ? (
+            <ProblemFacitJumpControl
+              direction={subproblemJump.direction}
+              targetSectionId={subproblemJump.targetSectionId}
+              letter={letter}
+              targetAvailable={subproblemJump.targetAvailable}
+              onJump={() => subproblemJump.onJump(letter)}
+            />
           ) : null}
         </div>,
       )
@@ -482,6 +536,50 @@ export function MarkdownWithMath({
             <li key={j}>{renderRichInline(item, onCiteMath)}</li>
           ))}
         </ListTag>,
+      )
+      return
+    }
+    if (block.type === "table") {
+      nodes.push(
+        <div key={index} className="my-1 w-full overflow-x-auto">
+          <table className="w-full min-w-[12rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                {block.headers.map((header, j) => (
+                  <th
+                    key={j}
+                    className={cn(
+                      "px-2.5 py-1.5 font-semibold text-foreground",
+                      TABLE_ALIGN_CLASS[block.alignments[j] ?? "left"],
+                    )}
+                  >
+                    {renderRichInline(header, onCiteMath)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, r) => (
+                <tr
+                  key={r}
+                  className="border-b border-border/70 last:border-b-0"
+                >
+                  {row.map((cell, c) => (
+                    <td
+                      key={c}
+                      className={cn(
+                        "px-2.5 py-1.5 align-top text-foreground",
+                        TABLE_ALIGN_CLASS[block.alignments[c] ?? "left"],
+                      )}
+                    >
+                      {renderRichInline(cell, onCiteMath)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
       )
       return
     }

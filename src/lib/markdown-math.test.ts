@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest"
 import {
   chaptersFromMarkdown,
   isFallHeading,
+  isMarkdownTableSeparator,
+  isMarkdownTableStart,
   isSubproblemHeading,
   normalizeMarkdownMathDelimiters,
+  prepareLatexForMathLive,
   splitMarkdownMath,
+  splitMarkdownTableRow,
   subproblemAnchorId,
+  tryParseMarkdownTableAt,
 } from "./markdown-math"
 
 describe("splitMarkdownMath", () => {
@@ -94,6 +99,66 @@ x_1 + x_2 = 0
     const raw = String.raw`$$\begin{cases} x=1 \\ y=2 \end{cases}$$`
     expect(normalizeMarkdownMathDelimiters(raw)).toBe(raw)
   })
+
+  it("does not re-wrap array already inside $$\\left(...\\right)$$", () => {
+    const raw = String.raw`$$\left(\begin{array}{cccc|c}
+1 & -2 & 4 & -1 & -3 \\
+2 & 1 & -1 & 3 & 7 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)$$`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toBe(raw)
+    expect(normalized).not.toContain(String.raw`$$\left($$`)
+    const segs = splitMarkdownMath(normalized)
+    expect(segs).toEqual([
+      {
+        kind: "math",
+        latex: String.raw`\left(\begin{array}{cccc|c}
+1 & -2 & 4 & -1 & -3 \\
+2 & 1 & -1 & 3 & 7 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)`,
+        display: "block",
+      },
+    ])
+  })
+})
+
+describe("normalizeMarkdownMathDelimiters multi-env $$", () => {
+  it("keeps chained pmatrices inside one $$ block", () => {
+    const raw = String.raw`$$\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} = \begin{pmatrix} -5t \\ 3t \\ t \end{pmatrix} = t \begin{pmatrix} -5 \\ 3 \\ 1 \end{pmatrix}, \quad t \in \mathbb{R}$$`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toBe(raw)
+    expect(normalized).not.toContain(String.raw`\end{pmatrix}$$ =`)
+    expect(splitMarkdownMath(normalized)).toEqual([
+      {
+        kind: "math",
+        latex: String.raw`\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} = \begin{pmatrix} -5t \\ 3t \\ t \end{pmatrix} = t \begin{pmatrix} -5 \\ 3 \\ 1 \end{pmatrix}, \quad t \in \mathbb{R}`,
+        display: "block",
+      },
+    ])
+  })
+})
+
+describe("prepareLatexForMathLive", () => {
+  it("rewrites augmented array to matrix + \\middle|", () => {
+    const raw = String.raw`\left(\begin{array}{cccc|c}
+2 & 1 & -1 & 3 & 7 \\
+1 & -2 & 4 & -1 & -3 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)`
+    expect(prepareLatexForMathLive(raw)).toBe(
+      String.raw`\left(\begin{matrix}2 & 1 & -1 & 3 \\ 1 & -2 & 4 & -1 \\ 3 & 1 & 2 & 1\end{matrix}\middle|\begin{matrix}7 \\ -3 \\ 5\end{matrix}\right)`,
+    )
+  })
+
+  it("rewrites plain array to matrix", () => {
+    expect(
+      prepareLatexForMathLive(
+        String.raw`\begin{array}{cc}1 & 2 \\ 3 & 4\end{array}`,
+      ),
+    ).toBe(String.raw`\begin{matrix}1 & 2 \\ 3 & 4\end{matrix}`)
+  })
 })
 
 describe("heading helpers", () => {
@@ -123,5 +188,55 @@ describe("heading helpers", () => {
     expect(subproblemAnchorId("msg/key:1!", 2)).toBe(
       "lumo-subproblem-msg_key_1_-2",
     )
+  })
+})
+
+describe("markdown tables", () => {
+  it("splits rows and unescapes pipes without stripping LaTeX backslashes", () => {
+    expect(splitMarkdownTableRow("| a | b | c |")).toEqual(["a", "b", "c"])
+    expect(splitMarkdownTableRow("a | b | c")).toEqual(["a", "b", "c"])
+    expect(splitMarkdownTableRow(String.raw`| a \| b | c |`)).toEqual([
+      "a | b",
+      "c",
+    ])
+    expect(
+      splitMarkdownTableRow(
+        String.raw`| $\searrow$ | MIN | $\nearrow$ |`,
+      ),
+    ).toEqual([String.raw`$\searrow$`, "MIN", String.raw`$\nearrow$`])
+  })
+
+  it("detects separator rows and alignments", () => {
+    expect(isMarkdownTableSeparator("| --- | :---: | ---: |")).toBe(true)
+    expect(isMarkdownTableSeparator("| foo | bar |")).toBe(false)
+  })
+
+  it("parses a full GFM table with alignment", () => {
+    const lines = [
+      "| Namn | Värde | Diff |",
+      "| :--- | :---: | ---: |",
+      "| $x$ | **2** | 3 |",
+      "| y | 4 | 5 |",
+      "",
+      "Efter tabellen",
+    ]
+    expect(isMarkdownTableStart(lines, 0)).toBe(true)
+    expect(tryParseMarkdownTableAt(lines, 0)).toEqual({
+      table: {
+        headers: ["Namn", "Värde", "Diff"],
+        alignments: ["left", "center", "right"],
+        rows: [
+          ["$x$", "**2**", "3"],
+          ["y", "4", "5"],
+        ],
+      },
+      end: 4,
+    })
+  })
+
+  it("rejects a pipe line without a separator", () => {
+    const lines = ["| not | a | table |", "bara text"]
+    expect(isMarkdownTableStart(lines, 0)).toBe(false)
+    expect(tryParseMarkdownTableAt(lines, 0)).toBeNull()
   })
 })

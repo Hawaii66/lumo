@@ -284,9 +284,10 @@ export function normalizeLumoParsedProblem(
 export const chatModeValidator = v.union(
   v.literal("normal"),
   v.literal("genomgang"),
+  v.literal("forsta_steget"),
 );
 
-export type ChatMode = "normal" | "genomgang";
+export type ChatMode = "normal" | "genomgang" | "forsta_steget";
 
 /** Chat model tier (1=cheap/fast … 3=premium). Stored on thread + user default. */
 export const chatModelLevelValidator = v.union(

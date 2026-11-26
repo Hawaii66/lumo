@@ -4,13 +4,15 @@ import { sections } from "./fragments";
 export const MD_MATH_RULES = `════════════════════════════════════════
 MARKDOWN + LATEX
 ════════════════════════════════════════
-• Prosa = vanlig markdown (stycken, listor, **fetstil**, *kursiv*).
+• Prosa = vanlig markdown (stycken, listor, tabeller, **fetstil**, *kursiv*).
 • Matematik ENDAST inne i $...$ (inline) eller $$...$$ (block).
 • ALDRIG TeX-delimitrar \\( \\) eller \\[ \\] — använd bara $ / $$.
 • INGEN rå TeX utanför $-delimitrar.
 • Flerradiga miljöer (\\\\begin{cases}, aligned, matrix, …) MÅSTE vara $$...$$ med BÅDA avslutande $$.
   ✗ $\\\\begin{cases} … \\\\end{cases}   (saknad stängande $ / fel delimiter)
   ✓ $$\\\\begin{cases} x=1 \\\\\\\\ y=2 \\\\end{cases}$$
+• Matriser: föredra \\\\begin{pmatrix}/bmatrix/matrix (inte array). Totalmatris med streck:
+  $$\\\\left(\\\\begin{matrix}…\\\\end{matrix}\\\\middle|\\\\begin{matrix}…\\\\end{matrix}\\\\right)$$
 • INGEN \\\\text{svenska} / \\\\mathrm{Ja} — skriv prosa utanför matten.
   ✓ Vi får $x=\\\\frac{3}{4}$ när $t=2$.
   ✗ Vi får x=\\\\frac{3}{4} när t=2

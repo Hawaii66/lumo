@@ -1,0 +1,19 @@
+{
+  "allowNumberRestart": false,
+  "answerSectionHeading": null,
+  "examples": [
+    "P 1.1",
+    "P 1.2",
+    "P 1.3",
+    "P 1.4",
+    "P 1.5",
+    "P 1.6",
+    "P 1.7",
+    "P 1.8"
+  ],
+  "pgaFormat": "P 1.1",
+  "prefix": "P",
+  "requireTerminator": false,
+  "segmentCount": 2,
+  "titleBlocks": "never"
+}

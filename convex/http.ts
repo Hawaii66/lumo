@@ -5,10 +5,37 @@ import { auth } from "./auth";
 import { components, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { env } from "./_generated/server";
+import {
+  fixtureExport,
+  fixtureStart,
+  fixtureStatus,
+  fixtureUploadUrl,
+} from "./PDFParse/fixtureHttp";
 
 const http = httpRouter();
 
 auth.addHttpRoutes(http);
+
+http.route({
+  path: "/fixtures/split/upload-url",
+  method: "POST",
+  handler: fixtureUploadUrl,
+});
+http.route({
+  path: "/fixtures/split/start",
+  method: "POST",
+  handler: fixtureStart,
+});
+http.route({
+  path: "/fixtures/split/status",
+  method: "GET",
+  handler: fixtureStatus,
+});
+http.route({
+  path: "/fixtures/split/export",
+  method: "GET",
+  handler: fixtureExport,
+});
 
 registerRoutes(http, components.stripe, {
   webhookPath: "/stripe/webhook",

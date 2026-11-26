@@ -1,0 +1,80 @@
+[
+  {
+    "problemNumber": "1",
+    "problemText": "1. (a) Ange medelpunkt och radie till cirkeln x^{2}+y^{2}+4x=6y-8.\n(1 p)\n(b) Beräkna Im \\left( \\frac{3 + i}{2 + i} - 1 + i \\right)\n(1 p)\n\\left( c \\right) \\mathrm{Ange\\ minsta\\ m ö jlinga\\ helat\\ }n\\ \\mathrm{\\hat{s}\\ at\\ t}\\ \\sum_{k = 11}^{n}\\left( k - \\frac{1}{2} \\right) \\geq 4000.\\tag{1 p}",
+    "answerText": "(a) medelpunkt: (−2, 3); radie: \\sqrt { 5 } (b) \\frac{4}{5} (c) n = 90.",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 1
+  },
+  {
+    "problemNumber": "2",
+    "problemText": "2. (a) Lös ekvationen ln \\begin{aligned}&.(x^{2}+5)-\\ln x+\\ln 3=\\ln(4x-2).\\end{aligned}\n(2 p)\n(b) 'Finn alla losingar tilt ekvitonen $1 + \\ln ( e ^ { - 2 } + e ^ { - x } ) = 0 .$\\tag{1 p}",
+    "answerText": "(a) 5 (b) 2 - \\ln(e - 1)",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 1
+  },
+  {
+    "problemNumber": "3",
+    "problemText": "3. På denna uppgift ska endast svar ges. Inga lösningar ska lämnas in på uppgift 3.\n(a) Lös ekvationen cos \\left( 4x + \\frac{\\pi}{5} \\right) = \\cos \\left( 2x + \\frac{\\pi}{7} \\right)\n(1 p)\n(b) Beräkna arcsin \\left( \\sin { \\frac { 5 4 \\pi } { 5 } } \\right)\n(1 p)\n(c) Bestäm cos \\left(2\\arccos\\frac{1}{5}\\right)\n(1 p)",
+    "answerText": "(a) x = - \\frac{\\pi}{35} + \\pi n, n \\in \\mathbf{Z} , eller x = - \\frac{2\\pi}{35} + \\frac{\\pi n}{3}, n \\in \\mathbf{Z}. (b) \\frac{\\pi}{5} (c) -\\frac{23}{25}",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
+  },
+  {
+    "problemNumber": "4",
+    "problemText": "4. Bestäm D _ { f } och (om möjligt) ett uttryck för f ^ { - 1 } om f(x) = \\ln \\left( \\frac{x - 3}{2x + 1} \\right)",
+    "answerText": "D _ { f } = \\biggl ] - \\infty , - \\frac { 1 } { 2 } \\biggl [ \\cup ] 3 , \\infty [ ; f ^ { - 1 } ( y ) = \\frac { 3 + e ^ { y } } { 1 - 2 e ^ { y } } .",
+    "questionImages": [],
+    "answerImages": [
+      {
+        "path": "images/page_2_table_5.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
+  },
+  {
+    "problemNumber": "5",
+    "problemText": "5. Skriv 2 sin 2x cos x + sin x cos 4x som en summa av cos- och/eller sin-termer.\nLös också ekvationen 1 + 8 sin 2x cos x + 4 sin x cos 4x = 4 sin x + 2 sin 3x.",
+    "answerText": "2 sin 2x\\cos x+\\sin x\\cos 4x=\\sin x+\\frac{\\sin 5x+\\sin 3x}{2};\nx = - { \\frac { \\pi } { 3 0 } } + { \\frac { 2 \\pi n } { 5 } } , n \\in \\mathbf { Z } , { \\mathrm { e l l e r ~ } } x = - { \\frac { \\pi } { 6 } } + { \\frac { 2 \\pi n } { 5 } } , { \\overset { \\rightharpoonup } { n \\in \\mathbf { Z } } } .",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
+  },
+  {
+    "problemNumber": "6",
+    "problemText": "6. Ange alla komplexa lösningar till ekvationen 9z^{4} = - 2 + 2\\sqrt{3}i\nSvaret ska ges på formen z = a + bi, a, b \\in \\mathbf{R}",
+    "answerText": "6. Eftersom | - 2 + 2\\sqrt{3}i | = \\sqrt{(-2)^2 + (2\\sqrt{3})^2} = \\sqrt{16} = 4 så ser vi att\n- 2 + 2 \\sqrt{3} i = 4 \\left( - \\frac{1}{2} + i \\frac{\\sqrt{3}}{2} \\right) = 4 e^{i 2 \\pi / 3},\ndär vi enklast ser omskrivningen till polär form genom att rita en enhetscirkel (rita en ordentlig figur!). Ekvationen i uppgiften kan således skrivas\n9 z ^ { 4 } = 4 e ^ { i 2 \\pi / 3 } \\quad \\Leftrightarrow \\quad z ^ { 4 } = \\frac { 4 } { 9 } e ^ { i 2 \\pi / 3 } .\nLåt nu z = r e ^ { i \\varphi } , där r \\geq 0 och \\varphi \\in \\mathbf { R } . Då måste\nz ^ { 4 } = r ^ { 4 } e ^ { i 4 \\varphi } = \\frac { 4 } { 9 } e ^ { i 2 \\pi / 3 } \\quad \\Leftrightarrow \\quad \\left\\{ \\begin{aligned} { } & { { } r ^ { 4 } = \\frac { 4 } { 9 } , \\; r \\geq 0 , } \\\\ { } & { { } 4 \\varphi = 2 \\pi / 3 + 2 \\pi n , \\; n \\in { \\bf Z } . } \\\\ \\end{aligned} \\right.\\tag{1}\nDetta visar att r = \\sqrt { 2 / 3 } och \\varphi = \\pi / 6 + { \\frac { n \\pi } { 2 } } , n \\in \\mathbf { Z }\nVåra lösningar blir nu\nz = \\sqrt{\\frac{2}{3}} e^{i \\left( \\frac{\\pi}{6} + \\frac{n \\pi}{2} \\right)}, \\quad n = 0, 1, 2, 3.\nHär har vi valt att endast numrera de lösningar som är unika (när n = 4 får vi samma lösning som när n = 0 ~ \\mathrm { e t c ) } . Observera dock att för ekvivalensen i ekvation (1) måste vi ha n \\in \\mathbf { Z } godtycklig.\nVi skriver om lösningarna till rektangulär form:\nz _ { 0 } = { \\frac { \\sqrt { 2 } } { \\sqrt { 3 } } } e ^ { i \\pi / 6 } = { \\frac { \\sqrt { 2 } } { \\sqrt { 3 } } } \\left( { \\frac { \\sqrt { 3 } } { 2 } } + { \\frac { i } { 2 } } \\right) = { \\frac { \\sqrt { 2 } } { 2 } } + i { \\frac { 1 } { \\sqrt { 6 } } } ,\nz _ { 1 } = \\frac { \\sqrt { 2 } } { \\sqrt { 3 } } e ^ { i 2 \\pi / 3 } = \\frac { \\sqrt { 2 } } { \\sqrt { 3 } } \\left( - \\frac { 1 } { 2 } + \\frac { i \\sqrt { 3 } } { 2 } \\right) = - \\frac { 1 } { \\sqrt { 6 } } + i \\frac { \\sqrt { 2 } } { 2 } ,\nz _ { 2 } = \\frac { \\sqrt { 2 } } { \\sqrt { 3 } } e ^ { i 7 \\pi / 6 } = \\frac { \\sqrt { 2 } } { \\sqrt { 3 } } \\left( - \\frac { \\sqrt { 3 } } { 2 } - \\frac { i } { 2 } \\right) = - \\frac { \\sqrt { 2 } } { 2 } - i \\frac { 1 } { \\sqrt { 6 } } ,\nz_{3} = \\frac{\\sqrt{2}}{\\sqrt{3}}e^{i5\\pi/3} = \\frac{\\sqrt{2}}{\\sqrt{3}}\\left(\\frac{1}{2} - \\frac{i\\sqrt{3}}{2}\\right) = \\frac{1}{\\sqrt{6}} - i\\frac{\\sqrt{2}}{2}.\n\\mathbf { S v a r } \\colon { \\frac { { \\sqrt { 2 } } } { 2 } } + i { \\frac { 1 } { { \\sqrt { 6 } } } } , - { \\frac { 1 } { { \\sqrt { 6 } } } } + i { \\frac { { \\sqrt { 2 } } } { 2 } } , - { \\frac { { \\sqrt { 2 } } } { 2 } } - i { \\frac { 1 } { { \\sqrt { 6 } } } } { \\mathrm { ~ o c h ~ } } { \\frac { 1 } { { \\sqrt { 6 } } } } - i { \\frac { { \\sqrt { 2 } } } { 2 } } .\nAnmärkning. Notera att z _ { 3 } = i z _ { 2 } = i ^ { 2 } z _ { 1 } = i ^ { 3 } z _ { 0 } . Addition av \\pi / 2 till argumentet för ett komplext tal motsvarar multiplikation med i (vi roterar alltså det komplexa talet z _ { 0 } med \\pi / 2 \\cdot -radianer i taget för att få samtliga fyra lösningar).",
+    "questionImages": [],
+    "answerImages": [
+      {
+        "path": "images/page_3_image_17.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 3
+  },
+  {
+    "problemNumber": "7",
+    "problemText": "7. Låt f ( x ) = \\left\\{ \\begin{array} { c c c } { { \\displaystyle \\frac { 1 } { 1 - x } } } & { { , } } & { { x < 0 } } \\\\ { { x ^ { 2 } - 1 } } & { { , } } & { { 1 < x < 3 . } } \\end{array} \\right. och sätt g = f \\circ f , \\mathrm { ~ d ~ v ~ s ~ } g ( x ) = f ( f ( x ) )\nAnge D _ { g } och (om möjligt) ett uttryck för g ^ { - 1 }\n1Godkänd dugga 1 ger 2 bonuspoäng. Godkänd dugga 2 ger 4 bonuspoäng.\nLösningsförslag matematisk grundkurs 2024-01-05",
+    "answerText": "D _ { g } = ] \\sqrt { 2 } , \\; 2 [ ; \\: g ^ { - 1 } ( y ) = \\sqrt { 1 + \\sqrt { y + 1 } } .\nOm vi skissar grafen till f finner vi följande.",
+    "questionImages": [],
+    "answerImages": [
+      {
+        "path": "images/page_5_chart_1.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 4
+  }
+]

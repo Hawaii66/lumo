@@ -5,6 +5,7 @@ import {
   Copy,
   Eye,
   EyeOff,
+  Footprints,
   Lightbulb,
   QrCode,
   ScanSearch,
@@ -43,26 +44,40 @@ const THEME_SWATCHES: Record<
   rose: { bg: "bg-rose-950", accent: "bg-rose-400" },
 }
 
-function GenomgangDemo() {
+function HelpActionsDemo() {
   return (
     <TipDemoShell>
-      <div
-        aria-hidden
-        className="flex w-full max-w-[16rem] gap-2"
-      >
-        <div className="flex flex-1 flex-col items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-2.5 py-3 text-center dark:border-neutral-700 dark:bg-neutral-900">
-          <Lightbulb className="size-4 text-amber-600" />
-          <span className="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100">
-            Genomgång
+      <div aria-hidden className="flex w-full max-w-[18rem] flex-col gap-2">
+        <div className="flex items-center justify-center gap-1.5">
+          <span className="rounded-md border border-sky-400 bg-sky-50 px-2 py-0.5 text-[9px] font-semibold text-sky-700 dark:border-sky-500 dark:bg-sky-950 dark:text-sky-200">
+            Hela
           </span>
-          <span className="text-[9px] text-neutral-500">Steg för steg</span>
+          <span className="rounded-md border border-neutral-300 bg-white px-2 py-0.5 text-[9px] font-semibold text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+            (a)
+          </span>
+          <span className="rounded-md border border-neutral-300 bg-white px-2 py-0.5 text-[9px] font-semibold text-neutral-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+            (b)
+          </span>
         </div>
-        <div className="flex flex-1 flex-col items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-2.5 py-3 text-center dark:border-neutral-700 dark:bg-neutral-900">
-          <ScanSearch className="size-4 text-neutral-500" />
-          <span className="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100">
-            Skanna
-          </span>
-          <span className="text-[9px] text-neutral-500">Mitt arbete</span>
+        <div className="flex gap-1.5">
+          <div className="flex flex-1 flex-col items-center gap-1 rounded-lg border border-neutral-300 bg-white px-1.5 py-2 text-center dark:border-neutral-700 dark:bg-neutral-900">
+            <Footprints className="size-3.5 text-emerald-600" />
+            <span className="text-[9px] font-semibold text-neutral-900 dark:text-neutral-100">
+              Första steget
+            </span>
+          </div>
+          <div className="flex flex-1 flex-col items-center gap-1 rounded-lg border border-neutral-300 bg-white px-1.5 py-2 text-center dark:border-neutral-700 dark:bg-neutral-900">
+            <Lightbulb className="size-3.5 text-amber-600" />
+            <span className="text-[9px] font-semibold text-neutral-900 dark:text-neutral-100">
+              Genomgång
+            </span>
+          </div>
+          <div className="flex flex-1 flex-col items-center gap-1 rounded-lg border border-neutral-300 bg-white px-1.5 py-2 text-center dark:border-neutral-700 dark:bg-neutral-900">
+            <ScanSearch className="size-3.5 text-neutral-500" />
+            <span className="text-[9px] font-semibold text-neutral-900 dark:text-neutral-100">
+              Skanna
+            </span>
+          </div>
         </div>
       </div>
     </TipDemoShell>
@@ -436,7 +451,7 @@ function ChangeModelDemo() {
             aria-expanded={open}
           >
             <span className="truncate">
-              {current.name} · {current.creditCost}
+              {current.name} {current.creditCost}
             </span>
             <ChevronDown className="size-3.5 shrink-0 text-neutral-400" />
           </button>
@@ -705,8 +720,9 @@ function OccasionsDemo() {
 
 export function TipDemo({ tipId }: { tipId: RoomTipId }) {
   switch (tipId) {
+    case "forsta-steget":
     case "genomgang":
-      return <GenomgangDemo />
+      return <HelpActionsDemo />
     case "phone-scan":
       return <PhoneScanDemo />
     case "math-input":

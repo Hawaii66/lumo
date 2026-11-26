@@ -1,0 +1,19 @@
+{
+  "allowNumberRestart": true,
+  "answerSectionHeading": "Lösningsskisser för TATA41 250326",
+  "examples": [
+    "1.",
+    "2.",
+    "3.",
+    "1a)",
+    "1b)",
+    "3a)",
+    "4b)",
+    "6c)"
+  ],
+  "pgaFormat": "1a)",
+  "prefix": null,
+  "requireTerminator": true,
+  "segmentCount": 1,
+  "titleBlocks": "when_matches"
+}

@@ -30,6 +30,7 @@ import type { DataModel } from "./dataModel.js";
 type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
+  readonly FIXTURE_ADMIN_KEY: string | undefined;
   readonly OPENROUTER_API_KEY: string | undefined;
   readonly POSTHOG_HOST: string | undefined;
   readonly POSTHOG_PERSONAL_API_KEY: string | undefined;

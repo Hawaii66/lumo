@@ -1,5 +1,11 @@
 import { normalizeMineruImagePath } from "./mineruClient";
 import type { MiddleBlock, MiddleContentPart, MiddleJson } from "./mineruSchema";
+import {
+  enrichFormatWithInferredPga,
+  parsePgaFormat,
+  type ProblemNumberFormat,
+  type PgaStyle,
+} from "./problemNumberFormat";
 
 export type FlattenToken =
   | { kind: "text"; text: string; pageIdx: number }
@@ -67,43 +73,26 @@ export function matchSubproblemLetter(line: string): string | null {
 }
 
 /**
- * Label detection is intentionally narrow. A problem start is ONLY allowed when
- * a block lead (`content[0]` text) begins with one of:
- *   1) `P` + number  → `P 3.1`, `P3.10`
- *   2) a number      → `1.`, `1.2`, `1.2.3.`, `2)`, `1a)`, `2(a)`
- * Allowed block types: `text`, and `paragraph_title`/`header` only when the
- * lead looks like a problem marker (3+ dotted parts, or trailing `.`/`)`).
- * Never scan mid-block / mid-string prose.
+ * Label detection is format-guided. A problem start is ONLY allowed when a
+ * block lead (`content[0]` text) matches `ProblemNumberFormat` (prefix,
+ * segmentCount, terminator, optional PGA). Never scan mid-block / mid-string.
  */
 
-/** Case 1: "P 1.2" / "P1.2" / "P 1.2.3" at the very start. */
-const LEAD_P_NUMBER_RE = /^P\s*(\d+(?:\.\d+)+)\b/i;
-/**
- * Case 2a: dotted "1.2" / "1.2.3" / "3.14" at the very start.
- * Greedy so "1.2.3." becomes "1.2.3", not "1.2".
- */
-const LEAD_DOTTED_RE = /^(\d+(?:\.\d+)+)\b/;
-/**
- * Case 2b: major "1." / "2)" / "5. (a)".
- * Requires "." or ")" after the digits so "3 Gränsvärde" does not match.
- */
-const LEAD_MAJOR_RE = /^(\d+)\s*[.)](?:\s|\(|$)/;
-/** Case 2c: PGA "2(a)" / "2 (a)" / "1.2(a)" / "1.2.3(a)". */
+/** PGA "2(a)" / "2 (a)" / "1.2(a)". */
 const LEAD_PGA_PAREN_RE = /^(\d+(?:\.\d+)*)\s*\(([a-z])\)/i;
-/**
- * Case 2d: PGA "2a)" / "1.2a)" — ")" required (not ".") so "2p." is ignored.
- */
+/** PGA "2a)" / "1.2a)" — ")" required so "2p." is ignored. */
 const LEAD_PGA_GLUED_RE = /^(\d+(?:\.\d+)*)([a-z])\s*\)(?=\s|$)/i;
-/** Case 2e: PGA "2 a)" / "1.2 a)". */
+/** PGA "2 a)" / "1.2 a)". */
 const LEAD_PGA_SPACED_RE = /^(\d+(?:\.\d+)*)\s+([a-z])\s*[.)](?=\s|$)/i;
+
+const PGA_STYLE_RE: Record<PgaStyle, RegExp> = {
+  paren: LEAD_PGA_PAREN_RE,
+  glued: LEAD_PGA_GLUED_RE,
+  spaced: LEAD_PGA_SPACED_RE,
+};
 
 /** Block types whose lead may open a problem window. */
 const LABEL_BLOCK_TYPES = new Set(["text", "paragraph_title", "header"]);
-
-/** @deprecated alias kept for rewrite helpers below */
-const ANSWER_PGA_PAREN_RE = LEAD_PGA_PAREN_RE;
-const ANSWER_PGA_GLUED_RE = LEAD_PGA_GLUED_RE;
-const ANSWER_PGA_SPACED_RE = LEAD_PGA_SPACED_RE;
 
 /** Final facit marker inside a worked solution ("Svar: …"). */
 const INLINE_SVAR_RE = /\bSvar\s*[:.]/i;
@@ -258,44 +247,127 @@ export function getTextBlockLead(block: MiddleBlock): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-/**
- * Title/header blocks often carry chapter/section names:
- *   "1. Linjära ekvationsystem", "1.2 Successiv elimination"
- * Only accept true problem markers here — 3+ dotted parts (`1.2.1`) or `P x.y`.
- * Do NOT accept major `1.` / two-part `1.2.` — those are chapters/sections.
- */
-function titleLeadLooksLikeProblem(_lead: string, match: LabelMatch): boolean {
-  if (/^P\s*\d/i.test(_lead)) {
-    return true;
+function normalizeHeadingText(text: string): string {
+  return text.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/** True when a stream item text matches the format's answer-section heading. */
+export function matchesAnswerSectionHeading(
+  text: string,
+  heading: string | null,
+): boolean {
+  if (heading === null) {
+    return false;
   }
-  return match.problemNumber.split(".").length >= 3;
+  const hay = normalizeHeadingText(text);
+  const needle = normalizeHeadingText(heading);
+  if (needle.length === 0) {
+    return false;
+  }
+  return hay === needle || hay.startsWith(needle);
 }
 
 /**
- * Explicit facit/answer-section headings (not inline "Svar:" inside a solution).
+ * Strip the format prefix from a lead. Returns null when a required prefix
+ * is missing (lead is not a candidate).
  */
-const ANSWER_SECTION_HEADING_RE =
-  /^(?:Svar(?:\s+till\b|\s*$|\s+\d)|Lösningsskisser\b|Facit\b|Answers?\b)/i;
+function stripFormatPrefix(
+  line: string,
+  prefix: string | null,
+): { rest: string; consumed: number } | null {
+  const trimmed = line.trimStart();
+  const leadingWs = line.length - trimmed.length;
+  if (prefix === null || prefix.trim().length === 0) {
+    return { rest: trimmed, consumed: leadingWs };
+  }
+  const want = prefix.trim();
+  if (!trimmed.toLowerCase().startsWith(want.toLowerCase())) {
+    return null;
+  }
+  const afterPrefix = trimmed.slice(want.length);
+  // Allow "P3.1" (no space) or "P 3.1" / "Uppgift 1".
+  const rest = afterPrefix.trimStart();
+  if (rest.length === afterPrefix.length && rest.length > 0) {
+    // No whitespace after multi-char word prefixes → reject ("Uppgiftfoo").
+    // Single-letter prefixes like "P" may glue: "P3.1".
+    if (want.length > 1) {
+      return null;
+    }
+  }
+  const consumed = leadingWs + want.length + (afterPrefix.length - rest.length);
+  return { rest, consumed };
+}
+
+function segmentCountOf(number: string): number {
+  return number.split(".").length;
+}
+
+function buildNumberPattern(segmentCount: 1 | 2 | 3): string {
+  if (segmentCount === 1) {
+    return "(\\d+)";
+  }
+  if (segmentCount === 2) {
+    return "(\\d+\\.\\d+)";
+  }
+  return "(\\d+\\.\\d+\\.\\d+)";
+}
 
 /**
- * Detect a problem number at the start of a lead string.
- * Only `P + number` or a bare number form — nothing else.
+ * Match a plain (non-PGA) number at the start of `rest` using the format.
+ * Returns the match plus how many characters of `rest` were consumed.
  */
-export function matchProblemStart(line: string): string | null {
-  const trimmed = line.trimStart();
-  const pMatch = LEAD_P_NUMBER_RE.exec(trimmed);
-  if (pMatch !== null) {
-    return pMatch[1]!;
+function matchPlainNumber(
+  rest: string,
+  format: ProblemNumberFormat,
+): { problemNumber: string; matchedLen: number } | null {
+  const numberPat = buildNumberPattern(format.segmentCount);
+  if (format.requireTerminator) {
+    const re = new RegExp(`^${numberPat}\\s*[.)](?=\\s|\\(|$)`);
+    const match = re.exec(rest);
+    if (match === null) {
+      return null;
+    }
+    return { problemNumber: match[1]!, matchedLen: match[0].length };
   }
-  const dottedMatch = LEAD_DOTTED_RE.exec(trimmed);
-  if (dottedMatch !== null) {
-    return dottedMatch[1]!;
+  // No terminator required: exact segment count + word boundary.
+  // Reject longer dotted numbers (e.g. segmentCount 2 must not eat "1.2.3").
+  const re = new RegExp(`^${numberPat}(?!\\.\\d)\\b`);
+  const match = re.exec(rest);
+  if (match === null) {
+    return null;
   }
-  const majorMatch = LEAD_MAJOR_RE.exec(trimmed);
-  if (majorMatch !== null) {
-    return majorMatch[1]!;
+  return { problemNumber: match[1]!, matchedLen: match[0].length };
+}
+
+function matchPgaNumber(
+  rest: string,
+  style: PgaStyle,
+  expectedSegments: number,
+): { problemNumber: string; letter: string; matchedLen: number } | null {
+  const match = PGA_STYLE_RE[style].exec(rest);
+  if (match === null) {
+    return null;
   }
-  return null;
+  const problemNumber = match[1]!;
+  if (segmentCountOf(problemNumber) !== expectedSegments) {
+    return null;
+  }
+  return {
+    problemNumber,
+    letter: match[2]!.toLowerCase(),
+    matchedLen: match[0].length,
+  };
+}
+
+/**
+ * Detect a problem number at the start of a lead string using `format`.
+ */
+export function matchProblemStart(
+  line: string,
+  format: ProblemNumberFormat,
+): string | null {
+  const match = matchLabelStart(line, format);
+  return match?.problemNumber ?? null;
 }
 
 export type AnswerStartMatch = {
@@ -304,10 +376,13 @@ export type AnswerStartMatch = {
 };
 
 /**
- * Detect a numbered label start, including PGA forms like "2a)" / "2(a)".
+ * Detect a numbered label start, including PGA forms when format.pgaFormat set.
  */
-export function matchAnswerStart(line: string): AnswerStartMatch | null {
-  const match = matchLabelStart(line);
+export function matchAnswerStart(
+  line: string,
+  format: ProblemNumberFormat,
+): AnswerStartMatch | null {
+  const match = matchLabelStart(line, format);
   if (match === null) {
     return null;
   }
@@ -318,71 +393,42 @@ export function matchAnswerStart(line: string): AnswerStartMatch | null {
 }
 
 /**
- * Match a problem label at the start of a lead string.
- * Lead must begin with `P` or a digit — the only two allowed cases.
+ * Match a problem label at the start of a lead string using `format`.
  */
-export function matchLabelStart(line: string): LabelMatch | null {
-  const trimmed = line.trimStart();
-  // Gate: only "P …" or "123…" — never "Uppgift", "Del", "Med …2p.", etc.
-  if (!/^[P\d]/i.test(trimmed)) {
+export function matchLabelStart(
+  line: string,
+  format: ProblemNumberFormat,
+): LabelMatch | null {
+  const stripped = stripFormatPrefix(line, format.prefix);
+  if (stripped === null) {
+    return null;
+  }
+  const { rest } = stripped;
+  if (rest.length === 0) {
     return null;
   }
 
-  const parenMatch = LEAD_PGA_PAREN_RE.exec(trimmed);
-  if (parenMatch !== null) {
-    return rejectCrossRefComma(trimmed, parenMatch[0].length, {
-      problemNumber: parenMatch[1]!,
-      subproblemLetter: parenMatch[2]!.toLowerCase(),
-      fromPga: true,
-    });
+  const pga = parsePgaFormat(format.pgaFormat);
+  if (pga !== null) {
+    const pgaMatch = matchPgaNumber(rest, pga.style, pga.numberSegments);
+    if (pgaMatch !== null) {
+      return rejectCrossRefComma(rest, pgaMatch.matchedLen, {
+        problemNumber: pgaMatch.problemNumber,
+        subproblemLetter: pgaMatch.letter,
+        fromPga: true,
+      });
+    }
   }
 
-  const gluedMatch = LEAD_PGA_GLUED_RE.exec(trimmed);
-  if (gluedMatch !== null) {
-    return rejectCrossRefComma(trimmed, gluedMatch[0].length, {
-      problemNumber: gluedMatch[1]!,
-      subproblemLetter: gluedMatch[2]!.toLowerCase(),
-      fromPga: true,
-    });
+  const plain = matchPlainNumber(rest, format);
+  if (plain === null) {
+    return null;
   }
-
-  const spacedMatch = LEAD_PGA_SPACED_RE.exec(trimmed);
-  if (spacedMatch !== null) {
-    return rejectCrossRefComma(trimmed, spacedMatch[0].length, {
-      problemNumber: spacedMatch[1]!,
-      subproblemLetter: spacedMatch[2]!.toLowerCase(),
-      fromPga: true,
-    });
-  }
-
-  const pMatch = LEAD_P_NUMBER_RE.exec(trimmed);
-  if (pMatch !== null) {
-    return rejectCrossRefComma(trimmed, pMatch[0].length, {
-      problemNumber: pMatch[1]!,
-      subproblemLetter: null,
-      fromPga: false,
-    });
-  }
-
-  const dottedMatch = LEAD_DOTTED_RE.exec(trimmed);
-  if (dottedMatch !== null) {
-    return rejectCrossRefComma(trimmed, dottedMatch[0].length, {
-      problemNumber: dottedMatch[1]!,
-      subproblemLetter: null,
-      fromPga: false,
-    });
-  }
-
-  const majorMatch = LEAD_MAJOR_RE.exec(trimmed);
-  if (majorMatch !== null) {
-    return rejectCrossRefComma(trimmed, majorMatch[0].length, {
-      problemNumber: majorMatch[1]!,
-      subproblemLetter: null,
-      fromPga: false,
-    });
-  }
-
-  return null;
+  return rejectCrossRefComma(rest, plain.matchedLen, {
+    problemNumber: plain.problemNumber,
+    subproblemLetter: null,
+    fromPga: false,
+  });
 }
 
 /** Reject wrapped cross-refs like "P 3.3, kontinuerlig". */
@@ -400,13 +446,23 @@ function rejectCrossRefComma(
 
 /** Rewrite "2a) …" / "2(a) …" to "(a) …" so the convert prompt sees subproblem markers. */
 function rewritePgaAnswerLine(line: string, letter: string): string {
-  const prefix =
-    ANSWER_PGA_PAREN_RE.exec(line) ??
-    ANSWER_PGA_GLUED_RE.exec(line) ??
-    ANSWER_PGA_SPACED_RE.exec(line);
+  const tryMatch = (source: string) =>
+    LEAD_PGA_PAREN_RE.exec(source) ??
+    LEAD_PGA_GLUED_RE.exec(source) ??
+    LEAD_PGA_SPACED_RE.exec(source);
+
+  let source = line.trimStart();
+  let matched = tryMatch(source);
+  if (matched === null) {
+    const withoutWord = source.replace(/^[A-Za-zÅÄÖåäö]+\s*/, "");
+    matched = tryMatch(withoutWord);
+    if (matched !== null) {
+      source = withoutWord;
+    }
+  }
   const rest =
-    prefix !== null
-      ? line.slice(prefix[0].length).trimStart()
+    matched !== null
+      ? source.slice(matched[0].length).trimStart()
       : line.trimStart();
   return rest.length > 0 ? `(${letter}) ${rest}` : `(${letter})`;
 }
@@ -705,9 +761,12 @@ type StreamItem =
 
 /**
  * Pass 1 — walk MinerU blocks and emit a flat stream.
- * Labels come ONLY from `type: "text"` leads (`content[0]`).
+ * Labels come ONLY from leads (`content[0]`) that match `format`.
  */
-function collectStreamItems(middleJson: MiddleJson): StreamItem[] {
+function collectStreamItems(
+  middleJson: MiddleJson,
+  format: ProblemNumberFormat,
+): StreamItem[] {
   const items: StreamItem[] = [];
 
   for (let pageIndex = 0; pageIndex < middleJson.pages.length; pageIndex++) {
@@ -733,11 +792,10 @@ function collectStreamItems(middleJson: MiddleJson): StreamItem[] {
 
       if (LABEL_BLOCK_TYPES.has(type)) {
         const lead = getTextBlockLead(block);
-        const match = lead !== null ? matchLabelStart(lead) : null;
-        const accept =
-          match !== null &&
-          (type === "text" || titleLeadLooksLikeProblem(lead!, match));
-        if (accept && match !== null) {
+        const match = lead !== null ? matchLabelStart(lead, format) : null;
+        const allowTitle =
+          type === "text" || format.titleBlocks === "when_matches";
+        if (match !== null && allowTitle) {
           items.push({
             kind: "label",
             match,
@@ -759,28 +817,40 @@ function collectStreamItems(middleJson: MiddleJson): StreamItem[] {
 
 /**
  * Index where answer/facit mode begins.
- * 1) Prefer an explicit heading ("Svar till…", "Lösningsskisser", "Facit").
- * 2) Else the first label whose number was already seen (numbering restarted),
- *    not only a return to the very first problem — answers may skip early numbers.
+ * 1) Prefer the format's exact `answerSectionHeading` when set.
+ * 2) Else (when `allowNumberRestart`) the first label whose number was
+ *    already seen — answers may skip early numbers.
  * Returns `items.length` when there is no answer pass.
  */
-export function findAnswerRestartIndex(items: StreamItem[]): number {
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!;
-    const text =
-      item.kind === "text"
-        ? item.text
-        : item.kind === "label"
-          ? item.fullText
-          : null;
-    if (text === null || !ANSWER_SECTION_HEADING_RE.test(text.trim())) {
-      continue;
-    }
-    for (let j = i + 1; j < items.length; j++) {
-      if (items[j]!.kind === "label") {
-        return j;
+export function findAnswerRestartIndex(
+  items: StreamItem[],
+  format: ProblemNumberFormat,
+): number {
+  if (format.answerSectionHeading !== null) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]!;
+      const text =
+        item.kind === "text"
+          ? item.text
+          : item.kind === "label"
+            ? item.fullText
+            : null;
+      if (
+        text === null ||
+        !matchesAnswerSectionHeading(text, format.answerSectionHeading)
+      ) {
+        continue;
       }
+      for (let j = i + 1; j < items.length; j++) {
+        if (items[j]!.kind === "label") {
+          return j;
+        }
+      }
+      return items.length;
     }
+  }
+
+  if (!format.allowNumberRestart) {
     return items.length;
   }
 
@@ -805,7 +875,10 @@ export function findAnswerRestartIndex(items: StreamItem[]): number {
  * Items before the first label are ignored. Mode is question until the
  * answer-restart index, then answer.
  */
-function windowsFromStream(items: StreamItem[]): NumberedWindow[] {
+function windowsFromStream(
+  items: StreamItem[],
+  format: ProblemNumberFormat,
+): NumberedWindow[] {
   const labelIndexes: number[] = [];
   for (let i = 0; i < items.length; i++) {
     if (items[i]!.kind === "label") {
@@ -816,7 +889,7 @@ function windowsFromStream(items: StreamItem[]): NumberedWindow[] {
     return [];
   }
 
-  const restartAt = findAnswerRestartIndex(items);
+  const restartAt = findAnswerRestartIndex(items, format);
   const windows: NumberedWindow[] = [];
 
   for (let k = 0; k < labelIndexes.length; k++) {
@@ -847,7 +920,6 @@ function windowsFromStream(items: StreamItem[]): NumberedWindow[] {
         }
         window.texts.push(item.text);
       }
-      // Nested labels cannot appear between start and end by construction.
     }
 
     windows.push(window);
@@ -856,58 +928,78 @@ function windowsFromStream(items: StreamItem[]): NumberedWindow[] {
   return windows;
 }
 
+export type BlockLeadSample = {
+  pageIdx: number;
+  blockType: string;
+  lead: string;
+};
+
 /**
- * Two-pass problem detector:
- * 1) Collect every problem-start lead (`type: "text"` / `content[0]`).
- * 2) For each start, take all following content until the next start;
- *    Q vs A splits when numbering returns to the first problem number.
+ * Sample block leads for the format-detect AI (small payload, not full JSON).
  */
-export function detectProblemChunks(middleJson: MiddleJson): ProblemChunk[] {
-  const items = collectStreamItems(middleJson);
-  const restartAt = findAnswerRestartIndex(items);
-  const windows = windowsFromStream(items);
-  const chunks = windowsToChunks(windows);
-  // #region agent log
-  // Convex-safe sync log (no dangling fetch). Shows in Convex dashboard.
-  const labels = items
-    .filter(
-      (item): item is Extract<StreamItem, { kind: "label" }> =>
-        item.kind === "label",
-    )
-    .map((item) => item.match.problemNumber);
-  const uniqueBases = [...new Set(labels)];
-  const answered = chunks.filter((c) => c.answerText.trim().length > 0).length;
-  console.log(
-    "[debug-54a079] detectProblemChunks",
-    JSON.stringify({
-      hypothesisId: "H5+H6",
-      labelCount: labels.length,
-      uniqueCount: uniqueBases.length,
-      uniqueBases: uniqueBases.slice(0, 40),
-      firstLabels: labels.slice(0, 20),
-      hasMajorOnly: uniqueBases.some((n) => /^\d+$/.test(n)),
-      restartAt,
-      restartLead:
-        restartAt < items.length && items[restartAt]?.kind === "label"
-          ? (
-              items[restartAt] as Extract<StreamItem, { kind: "label" }>
-            ).fullText.slice(0, 60)
-          : null,
-      chunkCount: chunks.length,
-      answeredCount: answered,
-      chunkNumbers: chunks.map((c) => c.problemNumber).slice(0, 40),
-    }),
-  );
-  // #endregion
-  return chunks;
+export function sampleBlockLeads(
+  middleJson: MiddleJson,
+  limit = 100,
+): BlockLeadSample[] {
+  const samples: BlockLeadSample[] = [];
+
+  for (let pageIndex = 0; pageIndex < middleJson.pages.length; pageIndex++) {
+    const page = middleJson.pages[pageIndex]!;
+    const pageIdx = page.page_idx ?? pageIndex;
+    for (const block of page.blocks) {
+      const type = (block.type ?? "").toLowerCase();
+      if (type === "page_number" || type === "footer") {
+        continue;
+      }
+      if (!LABEL_BLOCK_TYPES.has(type)) {
+        continue;
+      }
+      const lead = getTextBlockLead(block);
+      if (lead === null) {
+        continue;
+      }
+      samples.push({
+        pageIdx,
+        blockType: type,
+        lead: lead.slice(0, 200),
+      });
+      if (samples.length >= limit) {
+        return samples;
+      }
+    }
+  }
+
+  return samples;
 }
 
 /**
- * Legacy token-based splitter. Prefer `detectProblemChunks(middleJson)`.
- * Same two-pass idea: labels at token starts, restart on return to first base.
+ * Two-pass problem detector guided by `format`:
+ * 1) Collect every problem-start lead matching the format.
+ * 2) For each start, take all following content until the next start;
+ *    Q vs A splits on answer heading and/or number restart.
+ *
+ * When `format.pgaFormat` is null, PGA labels found in block leads
+ * (e.g. envar facit `1a)`) are inferred so answer pairing still works.
+ */
+export function detectProblemChunks(
+  middleJson: MiddleJson,
+  format: ProblemNumberFormat,
+): ProblemChunk[] {
+  const enriched = enrichFormatWithInferredPga(
+    format,
+    sampleBlockLeads(middleJson).map((sample) => sample.lead),
+  );
+  const items = collectStreamItems(middleJson, enriched);
+  const windows = windowsFromStream(items, enriched);
+  return windowsToChunks(windows);
+}
+
+/**
+ * Legacy token-based splitter. Prefer `detectProblemChunks(middleJson, format)`.
  */
 export function splitIntoProblemChunks(
   problemTokens: FlattenToken[],
+  format: ProblemNumberFormat,
   answerTokens: FlattenToken[] = [],
 ): ProblemChunk[] {
   const items: StreamItem[] = [];
@@ -916,7 +1008,7 @@ export function splitIntoProblemChunks(
       items.push({ kind: "image", path: token.path, pageIdx: token.pageIdx });
       continue;
     }
-    const match = matchLabelStart(token.text);
+    const match = matchLabelStart(token.text, format);
     if (match !== null) {
       items.push({
         kind: "label",
@@ -928,5 +1020,5 @@ export function splitIntoProblemChunks(
     }
     items.push({ kind: "text", text: token.text, pageIdx: token.pageIdx });
   }
-  return windowsToChunks(windowsFromStream(items));
+  return windowsToChunks(windowsFromStream(items, format));
 }

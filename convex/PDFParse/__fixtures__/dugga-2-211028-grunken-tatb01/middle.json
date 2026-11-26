@@ -1,0 +1,2485 @@
+{
+  "pages": [
+    {
+      "page_idx": 0,
+      "blocks": [
+        {
+          "type": "header",
+          "content": [
+            {
+              "type": "text",
+              "content": "Linköpings tekniska högskola Matematiska institutionen Tillämpad matematik"
+            }
+          ],
+          "index": 0,
+          "bbox": [
+            0.076,
+            0.053,
+            0.334,
+            0.105
+          ]
+        },
+        {
+          "type": "header",
+          "content": [
+            {
+              "type": "text",
+              "content": "TATB01 TEN5"
+            }
+          ],
+          "index": 1,
+          "bbox": [
+            0.811,
+            0.053,
+            0.892,
+            0.086
+          ]
+        },
+        {
+          "type": "doc_title",
+          "content": [
+            {
+              "type": "text",
+              "content": "Tentaformulär för Dugga 2 i Matematisk grundkurs"
+            }
+          ],
+          "index": 2,
+          "bbox": [
+            0.133,
+            0.116,
+            0.877,
+            0.14
+          ],
+          "level": 1
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "2021–10–28 kl 8.00–12.00"
+            }
+          ],
+          "index": 3,
+          "bbox": [
+            0.377,
+            0.146,
+            0.635,
+            0.162
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Penna, radergummi, linjal, passare och gradskiva/radianskiva får användas. Formelsamling, räknedosa och andra hjälpmedel är ej tillåtna."
+            }
+          ],
+          "index": 4,
+          "bbox": [
+            0.115,
+            0.179,
+            0.894,
+            0.214
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Lösningarna skall vara fullständiga, välmotiverade, ordentligt skrivna och avslutade med ett svar. Svaren ska förstås ges på så enkel form som möjligt."
+            }
+          ],
+          "index": 5,
+          "bbox": [
+            0.115,
+            0.218,
+            0.895,
+            0.253
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Uppgifterna bedöms med 0–3 poäng. För godkänt betyg (G) räcker 9 poäng. Poängen på godkända duggor summeras och avgör slutbetyget."
+            }
+          ],
+          "index": 6,
+          "bbox": [
+            0.115,
+            0.255,
+            0.895,
+            0.291
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar m m finns att hämta på kurshemsidan efter duggans slut. Resultat meddelas i e-brev."
+            }
+          ],
+          "index": 7,
+          "bbox": [
+            0.115,
+            0.293,
+            0.894,
+            0.311
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "1. (a) Beräkna "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\sum_{k = - 100}^{299} (5k + 2)"
+            }
+          ],
+          "index": 8,
+          "bbox": [
+            0.14,
+            0.32,
+            0.419,
+            0.366
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(1 p)"
+            }
+          ],
+          "index": 9,
+          "bbox": [
+            0.907,
+            0.334,
+            0.951,
+            0.352
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Faktorisera "
+            },
+            {
+              "type": "equation_inline",
+              "content": "p ( z ) = 4 z ^ { 3 } - 3 z - 2 6"
+            },
+            {
+              "type": "text",
+              "content": " så långt som möjligt i komplexa faktorer."
+            }
+          ],
+          "index": 10,
+          "bbox": [
+            0.172,
+            0.372,
+            0.857,
+            0.39
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(2 p)"
+            }
+          ],
+          "index": 11,
+          "bbox": [
+            0.907,
+            0.372,
+            0.95,
+            0.39
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "2. (a) Finn alla lösningar till ekvationen cos "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\left( 3x - \\frac{\\pi}{9} \\right) = \\cos \\left( 2x + \\frac{5\\pi}{6} \\right)"
+            }
+          ],
+          "index": 12,
+          "bbox": [
+            0.14,
+            0.401,
+            0.787,
+            0.436
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(1 p)"
+            }
+          ],
+          "index": 13,
+          "bbox": [
+            0.907,
+            0.41,
+            0.951,
+            0.428
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Beräkna sin "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\left( v + { \\frac { \\pi } { 4 } } \\right)"
+            },
+            {
+              "type": "text",
+              "content": " om "
+            },
+            {
+              "type": "equation_inline",
+              "content": "v \\in [ - \\pi , 0 ] { \\mathrm { ~ o c h ~ } } \\cos v = { \\frac { 1 } { 3 } } ."
+            }
+          ],
+          "index": 14,
+          "bbox": [
+            0.172,
+            0.441,
+            0.654,
+            0.475
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(1 p)"
+            }
+          ],
+          "index": 15,
+          "bbox": [
+            0.907,
+            0.448,
+            0.951,
+            0.466
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(c) Skriv "
+            },
+            {
+              "type": "equation_inline",
+              "content": "z = 3 e ^ { i \\arcsin { \\frac { 2 } { 3 } } }"
+            },
+            {
+              "type": "text",
+              "content": " på formen z = a + ib, a, b ∈ R."
+            }
+          ],
+          "index": 16,
+          "bbox": [
+            0.174,
+            0.479,
+            0.651,
+            0.497
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(1 p)"
+            }
+          ],
+          "index": 17,
+          "bbox": [
+            0.907,
+            0.48,
+            0.951,
+            0.498
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "3. (a) Visa att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f(x) = 6x - x^{2} - 5"
+            },
+            {
+              "type": "text",
+              "content": " , med "
+            },
+            {
+              "type": "equation_inline",
+              "content": "D _ { f } = [ 2 , 5 ]"
+            },
+            {
+              "type": "text",
+              "content": " , saknar invers."
+            }
+          ],
+          "index": 18,
+          "bbox": [
+            0.139,
+            0.508,
+            0.732,
+            0.527
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(1 p)"
+            }
+          ],
+          "index": 19,
+          "bbox": [
+            0.907,
+            0.509,
+            0.95,
+            0.527
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Bestäm "
+            },
+            {
+              "type": "equation_inline",
+              "content": "D _ { f }"
+            },
+            {
+              "type": "text",
+              "content": " samt (om möjligt) ett uttryck för "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ^ { - 1 }"
+            },
+            {
+              "type": "text",
+              "content": " om "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f(x) = e^{\\frac{1}{2 + \\ln x}}"
+            }
+          ],
+          "index": 20,
+          "bbox": [
+            0.172,
+            0.532,
+            0.799,
+            0.553
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(2 p)"
+            }
+          ],
+          "index": 21,
+          "bbox": [
+            0.908,
+            0.535,
+            0.95,
+            0.552
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "4. Lös ekvationen 4 cos x sin 2x cos "
+            },
+            {
+              "type": "equation_inline",
+              "content": "3x = \\sin 4x"
+            }
+          ],
+          "index": 22,
+          "bbox": [
+            0.139,
+            0.564,
+            0.548,
+            0.581
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "5. (a) Finn alla reella lösningar till ekvationen "
+            },
+            {
+              "type": "equation_inline",
+              "content": "2^{x+3}+2^{x+1}-3\\cdot 2^{3-x}=4^x+13."
+            }
+          ],
+          "index": 23,
+          "bbox": [
+            0.138,
+            0.592,
+            0.842,
+            0.61
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(2 p)"
+            }
+          ],
+          "index": 24,
+          "bbox": [
+            0.908,
+            0.593,
+            0.95,
+            0.611
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "(b) $\\mathrm { ~ L \\ddot { o } s ~ e k v a t i o n e n ~ } \\mathrm { l n } ( 1 - x ) + \\mathrm { l n } ( - 1 - x ) = e ^ { 2 } .$\\tag{1 p}",
+          "index": 25,
+          "bbox": [
+            0.172,
+            0.615,
+            0.95,
+            0.634
+          ],
+          "image_path": "images/page_0_equation_25.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "6. (a) Förenkla arcsin "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\left( \\sin \\left( \\arccos \\left( \\cos \\frac{7\\pi}{6} \\right) \\right) \\right)"
+            }
+          ],
+          "index": 26,
+          "bbox": [
+            0.139,
+            0.643,
+            0.581,
+            0.681
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(1 p)"
+            }
+          ],
+          "index": 27,
+          "bbox": [
+            0.908,
+            0.654,
+            0.95,
+            0.671
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Förenkla "
+            },
+            {
+              "type": "equation_inline",
+              "content": "v = \\sum_{k = 1}^{3} \\arctan k."
+            }
+          ],
+          "index": 28,
+          "bbox": [
+            0.173,
+            0.686,
+            0.441,
+            0.731
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(2 p)"
+            }
+          ],
+          "index": 29,
+          "bbox": [
+            0.907,
+            0.699,
+            0.95,
+            0.717
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "7. Låt "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( x ) = A"
+            },
+            {
+              "type": "text",
+              "content": " sinh "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x + B"
+            },
+            {
+              "type": "text",
+              "content": " cosh x där A och B är konstanter sådana att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "A > B > 0"
+            }
+          ],
+          "index": 30,
+          "bbox": [
+            0.14,
+            0.74,
+            0.872,
+            0.758
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Finns det konstanter "
+            },
+            {
+              "type": "equation_inline",
+              "content": "C > 0"
+            },
+            {
+              "type": "text",
+              "content": " och "
+            },
+            {
+              "type": "equation_inline",
+              "content": "a \\in \\mathbf { R }"
+            },
+            {
+              "type": "text",
+              "content": " så att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( x ) = C \\sinh ( x + a ) ?"
+            }
+          ],
+          "index": 31,
+          "bbox": [
+            0.164,
+            0.764,
+            0.756,
+            0.782
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Finns det konstanter "
+            },
+            {
+              "type": "equation_inline",
+              "content": "D > 0"
+            },
+            {
+              "type": "text",
+              "content": " och "
+            },
+            {
+              "type": "equation_inline",
+              "content": "b \\in \\mathbf { R }"
+            },
+            {
+              "type": "text",
+              "content": " så att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( x ) = D \\cosh ( x + b ) ?"
+            }
+          ],
+          "index": 32,
+          "bbox": [
+            0.165,
+            0.787,
+            0.757,
+            0.805
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Motivera dina svar med ett fullständigt bevis eller motbevis."
+            }
+          ],
+          "index": 33,
+          "bbox": [
+            0.165,
+            0.81,
+            0.695,
+            0.827
+          ]
+        }
+      ]
+    },
+    {
+      "page_idx": 1,
+      "blocks": [
+        {
+          "type": "paragraph_title",
+          "content": [
+            {
+              "type": "text",
+              "content": "Lösningsförslag TATB01 2021-10-28 8–12"
+            }
+          ],
+          "index": 0,
+          "bbox": [
+            0.09,
+            0.081,
+            0.684,
+            0.103
+          ],
+          "level": 2
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "1. (a) Summan är aritmetisk och har 400 termer. Första termen är "
+            },
+            {
+              "type": "equation_inline",
+              "content": "-100 \\cdot 5 + 2 = -498"
+            },
+            {
+              "type": "text",
+              "content": " och sista termen är "
+            },
+            {
+              "type": "equation_inline",
+              "content": "5 \\cdot 299 + 2 = 1497"
+            },
+            {
+              "type": "text",
+              "content": " , så summan blir"
+            }
+          ],
+          "index": 1,
+          "bbox": [
+            0.113,
+            0.122,
+            0.908,
+            0.156
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\sum_{k = - 100}^{299}(5k + 2) = \\frac{- 498 + 1497}{2} \\cdot 400 = 999 \\cdot 200 = 199800.",
+          "index": 2,
+          "bbox": [
+            0.291,
+            0.166,
+            0.796,
+            0.212
+          ],
+          "image_path": "images/page_1_equation_2.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Genom att gissa en rot finner vi att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "z \\; = \\; 2"
+            },
+            {
+              "type": "text",
+              "content": " är ett nollställe, så polynomdivision med "
+            },
+            {
+              "type": "equation_inline",
+              "content": "z - 2"
+            },
+            {
+              "type": "text",
+              "content": " visar att"
+            }
+          ],
+          "index": 3,
+          "bbox": [
+            0.146,
+            0.224,
+            0.907,
+            0.258
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "p ( z ) = ( z - 2 ) \\left( 4 z ^ { 2 } + 8 z + 1 3 \\right) .",
+          "index": 4,
+          "bbox": [
+            0.396,
+            0.258,
+            0.674,
+            0.277
+          ],
+          "image_path": "images/page_1_equation_4.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Vi ser att"
+            }
+          ],
+          "index": 5,
+          "bbox": [
+            0.183,
+            0.283,
+            0.274,
+            0.299
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "4z^{2}+8z+13=4\\left((z+1)^{2}+\\frac{9}{4}\\right)=4\\left(z+1+\\frac{3}{2}i\\right)\\left(z+1-\\frac{3}{2}i\\right),",
+          "index": 6,
+          "bbox": [
+            0.25,
+            0.305,
+            0.839,
+            0.344
+          ],
+          "image_path": "images/page_1_equation_6.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så faktoriseringen blir därmed"
+            }
+          ],
+          "index": 7,
+          "bbox": [
+            0.181,
+            0.352,
+            0.45,
+            0.369
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "p ( z ) = 4 ( z - 2 ) \\left( z + 1 + \\frac { 3 } { 2 } i \\right) \\left( z + 1 - \\frac { 3 } { 2 } i \\right) = ( z - 2 ) \\left( 2 z + 2 + 3 i \\right) \\left( 2 z + 2 - 3 i \\right) .",
+          "index": 8,
+          "bbox": [
+            0.189,
+            0.377,
+            0.894,
+            0.415
+          ],
+          "image_path": "images/page_1_equation_8.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: (a) 199800 (b) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "p(z)=\\left(z-2\\right)\\left(2z+2+3i\\right)\\left(2z+2-3i\\right)"
+            }
+          ],
+          "index": 9,
+          "bbox": [
+            0.138,
+            0.429,
+            0.716,
+            0.448
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "2. (a) Vi ser direkt ur enhetscirkeln att"
+            }
+          ],
+          "index": 10,
+          "bbox": [
+            0.113,
+            0.458,
+            0.475,
+            0.475
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\operatorname { c o s } \\left( 3 x - \\frac { \\pi } { 9 } \\right) = \\operatorname { c o s } \\left( 2 x + \\frac { 5 \\pi } { 6 } \\right) \\quad \\Leftrightarrow \\quad 3 x - \\frac { \\pi } { 9 } = \\pm \\left( 2 x + \\frac { 5 \\pi } { 6 } \\right) + 2 \\pi n , \\; n \\in \\mathbf { Z } ,",
+          "index": 11,
+          "bbox": [
+            0.191,
+            0.485,
+            0.879,
+            0.522
+          ],
+          "image_path": "images/page_1_equation_11.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så"
+            }
+          ],
+          "index": 12,
+          "bbox": [
+            0.182,
+            0.531,
+            0.21,
+            0.546
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "x = \\frac{\\pi}{9} + \\frac{5\\pi}{6} + 2\\pi n = \\frac{17\\pi}{18} + 2\\pi n.",
+          "index": 13,
+          "bbox": [
+            0.399,
+            0.541,
+            0.692,
+            0.576
+          ],
+          "image_path": "images/page_1_equation_13.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "eller"
+            }
+          ],
+          "index": 14,
+          "bbox": [
+            0.182,
+            0.579,
+            0.229,
+            0.594
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "5x = \\frac{\\pi}{9} - \\frac{5\\pi}{6} + 2\\pi n = -\\frac{13\\pi}{18} + 2\\pi n \\quad \\Leftrightarrow \\quad x = -\\frac{13\\pi}{90} + \\frac{2\\pi n}{5}.",
+          "index": 15,
+          "bbox": [
+            0.273,
+            0.587,
+            0.815,
+            0.623
+          ],
+          "image_path": "images/page_1_equation_15.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Enligt en additionsformel för sinus är"
+            }
+          ],
+          "index": 16,
+          "bbox": [
+            0.147,
+            0.628,
+            0.514,
+            0.646
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned}\\sin\\left(v + \\frac{\\pi}{4}\\right) &= \\sin v \\cos\\left(\\frac{\\pi}{4}\\right) + \\cos v \\sin\\left(\\frac{\\pi}{4}\\right) = \\frac{\\sqrt{2}}{2} \\cdot \\sin v + \\frac{\\sqrt{2}}{2} \\cdot \\cos v \\\\&= -\\frac{4}{6} + \\frac{\\sqrt{2}}{6} = \\frac{1}{6}\\left(-4 + \\sqrt{2}\\right)\\end{aligned}",
+          "index": 17,
+          "bbox": [
+            0.244,
+            0.655,
+            0.846,
+            0.729
+          ],
+          "image_path": "images/page_1_equation_17.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "eftersom"
+            }
+          ],
+          "index": 18,
+          "bbox": [
+            0.183,
+            0.737,
+            0.264,
+            0.752
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\sin ^{2}v=1-\\cos ^{2}v=1-\\frac{1}{9}=\\frac{8}{9}\\quad \\Rightarrow \\quad \\sin v=-\\frac{2\\sqrt{2}}{3}",
+          "index": 19,
+          "bbox": [
+            0.31,
+            0.749,
+            0.78,
+            0.785
+          ],
+          "image_path": "images/page_1_equation_19.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "ty "
+            },
+            {
+              "type": "equation_inline",
+              "content": "- \\pi \\leq v \\leq 0"
+            },
+            {
+              "type": "text",
+              "content": " så sin "
+            },
+            {
+              "type": "equation_inline",
+              "content": "v \\leq 0"
+            }
+          ],
+          "index": 20,
+          "bbox": [
+            0.182,
+            0.788,
+            0.425,
+            0.804
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(c) Då"
+            }
+          ],
+          "index": 21,
+          "bbox": [
+            0.15,
+            0.809,
+            0.217,
+            0.826
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\cos ^ { 2 } ( \\arcsin ( 2 / 3 ) ) = 1 - \\sin ^ { 2 } ( \\arcsin ( 2 / 3 ) ) = 1 - { \\frac { 4 } { 9 } } = { \\frac { 5 } { 9 } }",
+          "index": 22,
+          "bbox": [
+            0.309,
+            0.824,
+            0.782,
+            0.857
+          ],
+          "image_path": "images/page_1_equation_22.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så följer det att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\cos ( \\arcsin ( 2 / 3 ) ) = \\sqrt { 5 } / 3"
+            },
+            {
+              "type": "text",
+              "content": " eftersom "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\cos ( \\arcsin ( 2 / 3 ) ) > 0"
+            },
+            {
+              "type": "text",
+              "content": " . Från definitionen av "
+            },
+            {
+              "type": "equation_inline",
+              "content": "e ^ { i \\theta }"
+            },
+            {
+              "type": "text",
+              "content": " ser vi nu att"
+            }
+          ],
+          "index": 23,
+          "bbox": [
+            0.181,
+            0.862,
+            0.907,
+            0.897
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "3 e ^ { i \\operatorname { a r c s i n } ( 2 / 3 ) } = 3 \\operatorname { c o s } \\left( \\operatorname { a r c s i n } \\left( \\frac { 2 } { 3 } \\right) \\right) + 3 i \\operatorname { s i n } \\left( \\operatorname { a r c s i n } \\left( \\frac { 2 } { 3 } \\right) \\right) = \\sqrt { 5 } + 2 i .",
+          "index": 24,
+          "bbox": [
+            0.245,
+            0.903,
+            0.843,
+            0.941
+          ],
+          "image_path": "images/page_1_equation_24.jpg"
+        },
+        {
+          "type": "page_number",
+          "content": [
+            {
+              "type": "text",
+              "content": "1"
+            }
+          ],
+          "index": 25,
+          "bbox": [
+            0.493,
+            0.957,
+            0.506,
+            0.97
+          ]
+        }
+      ]
+    },
+    {
+      "page_idx": 2,
+      "blocks": [
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: "
+            },
+            {
+              "type": "equation_inline",
+              "content": "(a)   x = \\frac{17\\pi}{18} + 2\\pi n,   n \\in \\mathbf{Z},"
+            },
+            {
+              "type": "text",
+              "content": " eller "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = - \\frac{13\\pi}{90} + \\frac{2\\pi n}{5},   n \\in \\mathbf{Z}"
+            },
+            {
+              "type": "text",
+              "content": " (b) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\frac{1}{6} \\left( \\sqrt{2} - 4 \\right)"
+            },
+            {
+              "type": "text",
+              "content": " (c) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "{ \\sqrt { 5 } } + 2 i ."
+            }
+          ],
+          "index": 0,
+          "bbox": [
+            0.138,
+            0.08,
+            0.853,
+            0.132
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "3. (a) Vi kvadratkompletterar uttrycket och finner att"
+            }
+          ],
+          "index": 1,
+          "bbox": [
+            0.113,
+            0.143,
+            0.603,
+            0.161
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned} { f ( x ) } & { { } = 6 x - x ^ { 2 } - 5 = - \\left( x ^ { 2 } - 6 x + 5 \\right) = - \\left( \\left( x - 3 \\right) ^ { 2 } - 4 \\right) } \\\\ { } & { { } = 4 - \\left( x - 3 \\right) ^ { 2 } . } \\\\ \\end{aligned}",
+          "index": 2,
+          "bbox": [
+            0.293,
+            0.173,
+            0.794,
+            0.215
+          ],
+          "image_path": "images/page_2_equation_2.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Eftersom (till exempel) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( 2 ) = 3 = f ( 4 )"
+            },
+            {
+              "type": "text",
+              "content": " så är f inte injektiv på [2, 5] och därmed saknas en invers. Rita gärna grafen till "
+            },
+            {
+              "type": "equation_inline",
+              "content": "y = f(x)"
+            },
+            {
+              "type": "text",
+              "content": " . Finns det fler x-värden som ger samma y-värde?"
+            }
+          ],
+          "index": 3,
+          "bbox": [
+            0.181,
+            0.229,
+            0.908,
+            0.281
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Vi börjar med att reda ut största möjliga definitionsmängd. För att exponenten ska vara definierad måste "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x > 0"
+            },
+            {
+              "type": "text",
+              "content": " och så får inte"
+            }
+          ],
+          "index": 4,
+          "bbox": [
+            0.147,
+            0.286,
+            0.908,
+            0.32
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "2 + \\ln x = 0 \\quad \\Leftrightarrow \\quad x = e ^ { - 2 } ,",
+          "index": 5,
+          "bbox": [
+            0.417,
+            0.334,
+            0.671,
+            0.352
+          ],
+          "image_path": "images/page_2_equation_5.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "˚ "
+            },
+            {
+              "type": "equation_inline",
+              "content": "D _ { f } = ] 0 ,   e ^ { - 2 } [ \\cup ] e ^ { - 2 } ,   \\infty [ ."
+            },
+            {
+              "type": "text",
+              "content": " sa"
+            }
+          ],
+          "index": 6,
+          "bbox": [
+            0.181,
+            0.365,
+            0.418,
+            0.385
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "För "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x \\in D _ { f }"
+            },
+            {
+              "type": "text",
+              "content": " gäller att"
+            }
+          ],
+          "index": 7,
+          "bbox": [
+            0.183,
+            0.387,
+            0.375,
+            0.404
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned}y = e^{\\frac{1}{2 + \\ln x}} \\quad & \\Leftrightarrow \\quad \\ln y = \\frac{1}{2 + \\ln x} \\quad \\Leftrightarrow \\quad (2 + \\ln x)\\ln y = 1 \\\\& \\Leftrightarrow \\quad \\ln x = - 2 + \\frac{1}{\\ln y} \\quad \\Leftrightarrow \\quad x = \\exp\\left( - 2 + \\frac{1}{\\ln y} \\right).\\end{aligned}",
+          "index": 8,
+          "bbox": [
+            0.259,
+            0.416,
+            0.828,
+            0.489
+          ],
+          "image_path": "images/page_2_equation_8.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Ett uttryck för inversen ges därmed av "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f^{-1}(y) = \\exp \\left( -2 + \\frac{1}{\\ln y} \\right)"
+            }
+          ],
+          "index": 9,
+          "bbox": [
+            0.181,
+            0.501,
+            0.763,
+            0.538
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: (a) se ovan (b) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "D _ { f } = ] 0 , \\thinspace e ^ { - 2 } [ \\cup ] e ^ { - 2 } , \\thinspace \\infty [ , \\thinspace f ^ { - 1 } ( y ) = \\operatorname { e x p } \\bigg ( \\frac { 1 } { \\operatorname { l n } y } - 2 \\bigg ) ."
+            }
+          ],
+          "index": 10,
+          "bbox": [
+            0.138,
+            0.542,
+            0.819,
+            0.579
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "4. En Euler-omskrivning visar att"
+            }
+          ],
+          "index": 11,
+          "bbox": [
+            0.114,
+            0.588,
+            0.416,
+            0.605
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned} { 4 \\operatorname { c o s } x \\cdot \\operatorname { s i n } 2 x \\cdot \\operatorname { c o s } 3 x } & { { } = 4 \\left( \\frac { e ^ { i x } + e ^ { - i x } } { 2 } \\right) \\left( \\frac { e ^ { i 2 x } - e ^ { - i 2 x } } { 2 i } \\right) \\left( \\frac { e ^ { i 3 x } + e ^ { - i 3 x } } { 2 } \\right) } \\\\ { } & { { } = \\frac { 1 } { 2 i } \\left( e ^ { i 3 x } - e ^ { - i x } + e ^ { i x } - e ^ { - i 3 x } \\right) \\left( e ^ { i 3 x } + e ^ { - i 3 x } \\right) } \\\\ { } & { { } = \\frac { 1 } { 2 i } \\left( e ^ { i 6 x } + 1 - e ^ { i 2 x } - e ^ { - i 4 x } + e ^ { i 4 x } + e ^ { - i 2 x } - 1 - e ^ { - i 6 x } \\right) } \\\\ { } & { { } = \\operatorname { s i n } 6 x + \\operatorname { s i n } 4 x - \\operatorname { s i n } 2 x , } \\\\ \\end{aligned}",
+          "index": 12,
+          "bbox": [
+            0.192,
+            0.615,
+            0.854,
+            0.74
+          ],
+          "image_path": "images/page_2_equation_12.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så ekvationen kan ekvivalent skrivas om enligt"
+            }
+          ],
+          "index": 13,
+          "bbox": [
+            0.138,
+            0.755,
+            0.545,
+            0.771
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned} { 4 \\operatorname { c o s } x \\cdot \\operatorname { s i n } 2 x \\cdot \\operatorname { c o s } 3 x = \\operatorname { s i n } 4 x \\quad } & { { } \\Leftrightarrow \\quad \\operatorname { s i n } 6 x = \\operatorname { s i n } 2 x } \\\\ { } & { { } \\Leftrightarrow \\quad 6 x = 2 x + 2 \\pi n \\quad \\operatorname { e l l e r } \\quad 6 x = \\pi - 2 x + 2 \\pi n , } \\\\ \\end{aligned}",
+          "index": 14,
+          "bbox": [
+            0.169,
+            0.785,
+            0.875,
+            0.822
+          ],
+          "image_path": "images/page_2_equation_14.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "där "
+            },
+            {
+              "type": "equation_inline",
+              "content": "n \\in \\mathbf { Z }"
+            },
+            {
+              "type": "text",
+              "content": " . Alltså kommer lösningarna ges av"
+            }
+          ],
+          "index": 15,
+          "bbox": [
+            0.138,
+            0.836,
+            0.536,
+            0.853
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "4 x = 2 \\pi n \\quad \\Leftrightarrow \\quad x = { \\frac { \\pi n } { 2 } } \\qquad { \\mathrm { e l l e r } } \\qquad 8 x = \\pi + 2 \\pi n \\quad \\Leftrightarrow \\quad x = { \\frac { \\pi } { 8 } } + { \\frac { \\pi n } { 4 } } .",
+          "index": 16,
+          "bbox": [
+            0.203,
+            0.863,
+            0.842,
+            0.895
+          ],
+          "image_path": "images/page_2_equation_16.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = { \\frac { \\pi n } { 2 } } ,   n \\in \\mathbf { Z } ,"
+            },
+            {
+              "type": "text",
+              "content": " eller "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = \\frac{\\pi}{8} + \\frac{\\pi n}{4},   n \\in \\mathbf{Z}."
+            }
+          ],
+          "index": 17,
+          "bbox": [
+            0.138,
+            0.91,
+            0.557,
+            0.941
+          ]
+        },
+        {
+          "type": "page_number",
+          "content": [
+            {
+              "type": "text",
+              "content": "2"
+            }
+          ],
+          "index": 18,
+          "bbox": [
+            0.492,
+            0.957,
+            0.507,
+            0.97
+          ]
+        }
+      ]
+    },
+    {
+      "page_idx": 3,
+      "blocks": [
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "5. (a) Låt "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t = 2 ^ { x }"
+            },
+            {
+              "type": "text",
+              "content": " . Då är "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t > 0"
+            },
+            {
+              "type": "text",
+              "content": " och så gäller att"
+            }
+          ],
+          "index": 0,
+          "bbox": [
+            0.114,
+            0.085,
+            0.536,
+            0.102
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned} { 2 ^ { x + 3 } + 2 ^ { x + 1 } - 3 \\cdot 2 ^ { 3 - x } = 4 ^ { x } + 1 3 \\quad } & { { } \\Leftrightarrow \\quad 8 t + 2 t - 3 \\cdot 8 \\cdot t ^ { - 1 } = t ^ { 2 } + 1 3 } \\\\ { } & { { } \\Leftrightarrow \\quad t ^ { 3 } - 1 0 t ^ { 2 } + 1 3 t + 2 4 = 0 . } \\\\ \\end{aligned}",
+          "index": 1,
+          "bbox": [
+            0.247,
+            0.113,
+            0.843,
+            0.152
+          ],
+          "image_path": "images/page_3_equation_1.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Vi gissar en rot och finner att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t = - 1"
+            },
+            {
+              "type": "text",
+              "content": " löser ekvationen. Polynomdivision visar sedan att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t^{3}-10t^{2}+13t+24=(t+1)(t^{2}-11t+24)"
+            },
+            {
+              "type": "text",
+              "content": " , så de resterande lösningarna finner vi genom kvadratkomplettering:"
+            }
+          ],
+          "index": 2,
+          "bbox": [
+            0.181,
+            0.164,
+            0.908,
+            0.215
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "0 = t ^ { 2 } { - } 1 1 t { + } 2 4 = \\left( t - \\frac { 1 1 } { 2 } \\right) ^ { 2 } { - } \\frac { 1 2 1 } { 4 } { + } \\frac { 9 6 } { 4 } = \\left( t - \\frac { 1 1 } { 2 } \\right) ^ { 2 } { - } \\frac { 2 5 } { 4 } \\quad \\Leftrightarrow \\quad t = 8 { ~ } { \\operatorname { e l l e r } } t = 3 .",
+          "index": 3,
+          "bbox": [
+            0.18,
+            0.225,
+            0.906,
+            0.265
+          ],
+          "image_path": "images/page_3_equation_3.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Eftersom "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t > 0"
+            },
+            {
+              "type": "text",
+              "content": " så ger "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t = - 1"
+            },
+            {
+              "type": "text",
+              "content": " ingen lösning. För "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t = 3"
+            },
+            {
+              "type": "text",
+              "content": " gäller att"
+            }
+          ],
+          "index": 4,
+          "bbox": [
+            0.181,
+            0.274,
+            0.738,
+            0.292
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "2^{x}=3 \\quad \\Leftrightarrow \\quad x=\\frac{\\ln 3}{\\ln 2}",
+          "index": 5,
+          "bbox": [
+            0.441,
+            0.301,
+            0.649,
+            0.336
+          ],
+          "image_path": "images/page_3_equation_5.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "och för "
+            },
+            {
+              "type": "equation_inline",
+              "content": "t = 8"
+            },
+            {
+              "type": "text",
+              "content": " gäller att"
+            }
+          ],
+          "index": 6,
+          "bbox": [
+            0.182,
+            0.344,
+            0.386,
+            0.361
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "2^{x}=8 \\quad \\Leftrightarrow \\quad x=3.",
+          "index": 7,
+          "bbox": [
+            0.45,
+            0.361,
+            0.638,
+            0.377
+          ],
+          "image_path": "images/page_3_equation_7.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Logaritmerna i vänsterledet är definierade då "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x < 1"
+            },
+            {
+              "type": "text",
+              "content": " respektive "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x < - 1"
+            },
+            {
+              "type": "text",
+              "content": " , så låt "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x < - 1"
+            },
+            {
+              "type": "text",
+              "content": " För dessa x gäller att"
+            }
+          ],
+          "index": 8,
+          "bbox": [
+            0.147,
+            0.388,
+            0.906,
+            0.422
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned}\\ln(1 - x) + \\ln(-x - 1) = e^2 \\quad & \\Leftrightarrow \\quad \\ln(x^2 - 1) = e^2 \\\\& \\Leftrightarrow \\quad x^2 - 1 = e^{e^2}\\end{aligned}",
+          "index": 9,
+          "bbox": [
+            0.321,
+            0.431,
+            0.769,
+            0.473
+          ],
+          "image_path": "images/page_3_equation_9.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "ty ln är injektiv. Alltså måste"
+            }
+          ],
+          "index": 10,
+          "bbox": [
+            0.182,
+            0.487,
+            0.447,
+            0.504
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "x ^ { 2 } = 1 + e ^ { e ^ { 2 } } \\quad \\Leftrightarrow \\quad x = \\pm { \\sqrt { 1 + e ^ { e ^ { 2 } } } } .",
+          "index": 11,
+          "bbox": [
+            0.377,
+            0.513,
+            0.695,
+            0.534
+          ],
+          "image_path": "images/page_3_equation_11.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Endast "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = - { \\sqrt { 1 + e ^ { e ^ { 2 } } } }"
+            },
+            {
+              "type": "text",
+              "content": " uppfyller kravet ovan."
+            }
+          ],
+          "index": 12,
+          "bbox": [
+            0.181,
+            0.549,
+            0.583,
+            0.569
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: (a) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = 3"
+            },
+            {
+              "type": "text",
+              "content": " eller "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = { \\frac { \\ln 3 } { \\ln 2 } }"
+            },
+            {
+              "type": "text",
+              "content": " (b) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x = - { \\sqrt { 1 + e ^ { e ^ { 2 } } } } ."
+            }
+          ],
+          "index": 13,
+          "bbox": [
+            0.138,
+            0.573,
+            0.608,
+            0.606
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "6. (a) Eftersom arccos "
+            },
+            {
+              "type": "equation_inline",
+              "content": "( \\cos t ) = t { \\mathrm { ~ d } } { \\stackrel { \\circ } { \\mathrm { a } } } 0 \\leq t \\leq \\pi"
+            },
+            {
+              "type": "text",
+              "content": " och arcsin "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\mathfrak { i } ( \\sin ( t ) ) = t \\mathrm { ~ d \\mathring { a } ~ } { - } \\pi / 2 \\leq t \\leq \\pi / 2"
+            },
+            {
+              "type": "text",
+              "content": " så följer det att"
+            }
+          ],
+          "index": 14,
+          "bbox": [
+            0.113,
+            0.613,
+            0.908,
+            0.648
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned} v & := \\arcsin\\left( \\sin\\left( \\arccos\\left( \\cos\\frac{7\\pi}{6} \\right) \\right) \\right) = \\arcsin\\left( \\sin\\left( \\arccos\\left( \\cos\\left( 2\\pi - \\frac{7\\pi}{6} \\right) \\right) \\right) \\right) \\\\ & = \\arcsin\\left( \\sin\\left( \\arccos\\left( \\cos\\frac{5\\pi}{6} \\right) \\right) \\right) = \\arcsin\\left( \\sin\\frac{5\\pi}{6} \\right) = \\arcsin\\left( \\sin\\left( \\pi - \\frac{5\\pi}{6} \\right) \\right) \\\\ & = \\arcsin\\left( \\sin\\frac{\\pi}{6} \\right) = \\frac{\\pi}{6}. \\end{aligned}",
+          "index": 15,
+          "bbox": [
+            0.186,
+            0.657,
+            0.901,
+            0.766
+          ],
+          "image_path": "images/page_3_equation_15.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "(b) Vi ser att"
+            }
+          ],
+          "index": 16,
+          "bbox": [
+            0.148,
+            0.778,
+            0.274,
+            0.796
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "v = \\sum_{k = 1}^{3} \\arctan k = \\arctan 1 + \\arctan 2 + \\arctan 3 = \\frac{\\pi}{4} + \\arctan 2 + \\arctan 3.",
+          "index": 17,
+          "bbox": [
+            0.215,
+            0.807,
+            0.873,
+            0.853
+          ],
+          "image_path": "images/page_3_equation_17.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Låt "
+            },
+            {
+              "type": "equation_inline",
+              "content": "u   =   \\arctan 2   +   \\arctan 3"
+            },
+            {
+              "type": "text",
+              "content": " . Då är "
+            },
+            {
+              "type": "equation_inline",
+              "content": "u \\in ] 0 , \\pi ["
+            },
+            {
+              "type": "text",
+              "content": " ty "
+            },
+            {
+              "type": "equation_inline",
+              "content": "0 <"
+            },
+            {
+              "type": "text",
+              "content": " arctan "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x \\: < \\: \\pi / 2"
+            },
+            {
+              "type": "text",
+              "content": " för "
+            },
+            {
+              "type": "equation_inline",
+              "content": "x   >   0"
+            },
+            {
+              "type": "text",
+              "content": " Additionsformeln för tangens visar nu att"
+            }
+          ],
+          "index": 18,
+          "bbox": [
+            0.181,
+            0.863,
+            0.906,
+            0.897
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\tan u = \\frac{2 + 3}{1 - 2 \\cdot 3} = - 1,",
+          "index": 19,
+          "bbox": [
+            0.44,
+            0.907,
+            0.649,
+            0.941
+          ],
+          "image_path": "images/page_3_equation_19.jpg"
+        },
+        {
+          "type": "page_number",
+          "content": [
+            {
+              "type": "text",
+              "content": "3"
+            }
+          ],
+          "index": 20,
+          "bbox": [
+            0.492,
+            0.957,
+            0.507,
+            0.97
+          ]
+        }
+      ]
+    },
+    {
+      "page_idx": 4,
+      "blocks": [
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så "
+            },
+            {
+              "type": "equation_inline",
+              "content": "u = - { \\frac { \\pi } { 4 } } + n \\pi"
+            },
+            {
+              "type": "text",
+              "content": " för något heltal n. Eftersom vi vet att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "0 < u < \\pi"
+            },
+            {
+              "type": "text",
+              "content": " , så är "
+            },
+            {
+              "type": "equation_inline",
+              "content": "n = 1"
+            },
+            {
+              "type": "text",
+              "content": " enda möjligheten. Med andra ord är "
+            },
+            {
+              "type": "equation_inline",
+              "content": "u = \\frac { 3 \\pi } { 4 }"
+            },
+            {
+              "type": "text",
+              "content": " och därmed blir"
+            }
+          ],
+          "index": 0,
+          "bbox": [
+            0.181,
+            0.081,
+            0.909,
+            0.142
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "v = \\frac{\\pi}{4} + \\frac{3\\pi}{4} = \\pi.",
+          "index": 1,
+          "bbox": [
+            0.467,
+            0.152,
+            0.622,
+            0.186
+          ],
+          "image_path": "images/page_4_equation_1.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: (a) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "\\frac{\\pi}{6}"
+            },
+            {
+              "type": "text",
+              "content": " (b) "
+            },
+            {
+              "type": "equation_inline",
+              "content": "v = \\pi ."
+            }
+          ],
+          "index": 2,
+          "bbox": [
+            0.138,
+            0.201,
+            0.397,
+            0.232
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "7. Eftersom "
+            },
+            {
+              "type": "equation_inline",
+              "content": "A > B > 0"
+            },
+            {
+              "type": "text",
+              "content": " så kommer "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( x )"
+            },
+            {
+              "type": "text",
+              "content": " att vara negativ när x är ett stort negativt tal. Därför är det omöjligt att skriva "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( x ) = D \\cosh ( x   +   b )"
+            },
+            {
+              "type": "text",
+              "content": " med "
+            },
+            {
+              "type": "equation_inline",
+              "content": "D > 0"
+            },
+            {
+              "type": "text",
+              "content": " eftersom cosh "
+            },
+            {
+              "type": "equation_inline",
+              "content": "( x   +   b ) > 0"
+            },
+            {
+              "type": "text",
+              "content": " Att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f(x) < 0"
+            },
+            {
+              "type": "text",
+              "content": " för stora negativa x följer av att"
+            }
+          ],
+          "index": 3,
+          "bbox": [
+            0.115,
+            0.24,
+            0.904,
+            0.293
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\begin{aligned}A\\sinh x + B\\cosh x = \\frac{A + B}{2} e^{x} - \\frac{A - B}{2} e^{-x} < 0 \\quad & \\Leftrightarrow \\quad \\left(A + B\\right)e^{2x} < A - B \\\\& \\Leftrightarrow \\quad x < \\frac{1}{2}\\ln\\frac{A - B}{A + B}\\end{aligned}",
+          "index": 4,
+          "bbox": [
+            0.183,
+            0.302,
+            0.865,
+            0.372
+          ],
+          "image_path": "images/page_4_equation_4.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "eftersom ln är strängt växande (och "
+            },
+            {
+              "type": "equation_inline",
+              "content": "A > B"
+            },
+            {
+              "type": "text",
+              "content": " så logaritmen är definierad). Detta visar att andra påståendet är falskt."
+            }
+          ],
+          "index": 5,
+          "bbox": [
+            0.138,
+            0.384,
+            0.907,
+            0.419
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Vi kan se att det första påståendet är sant genom att observera följande. Då"
+            }
+          ],
+          "index": 6,
+          "bbox": [
+            0.138,
+            0.431,
+            0.807,
+            0.448
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "f ( x ) = A \\operatorname { s i n h } x + B \\operatorname { c o s h } x = \\cfrac { A + B } { 2 } ~ e ^ { x } - \\cfrac { A - B } { 2 } ~ e ^ { - x }",
+          "index": 7,
+          "bbox": [
+            0.285,
+            0.459,
+            0.745,
+            0.493
+          ],
+          "image_path": "images/page_4_equation_7.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "och"
+            }
+          ],
+          "index": 8,
+          "bbox": [
+            0.139,
+            0.504,
+            0.178,
+            0.519
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "C \\sinh ( x + a ) = { \\frac { C } { 2 } } e ^ { x + a } - { \\frac { C } { 2 } } e ^ { - x - a } = { \\frac { C e ^ { a } } { 2 } }   e ^ { x } - { \\frac { C e ^ { - a } } { 2 } } e ^ { - x } ,",
+          "index": 9,
+          "bbox": [
+            0.278,
+            0.515,
+            0.768,
+            0.551
+          ],
+          "image_path": "images/page_4_equation_9.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så ser vi att om"
+            }
+          ],
+          "index": 10,
+          "bbox": [
+            0.138,
+            0.555,
+            0.287,
+            0.57
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "C   e ^ { a } = A + B \\qquad \\mathrm { o c h } \\qquad C   e ^ { - a } = A - B\\tag{1}",
+          "index": 11,
+          "bbox": [
+            0.342,
+            0.57,
+            0.904,
+            0.588
+          ],
+          "image_path": "images/page_4_equation_11.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "så gäller att "
+            },
+            {
+              "type": "equation_inline",
+              "content": "f ( x ) = C \\sinh ( x + a )"
+            },
+            {
+              "type": "text",
+              "content": " . Genom multiplikation av dessa likheter följer det att"
+            }
+          ],
+          "index": 12,
+          "bbox": [
+            0.137,
+            0.596,
+            0.902,
+            0.614
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "C ^ { 2 } e ^ { a - a } = ( A + B ) ( A - B ) \\quad \\Leftrightarrow \\quad C = \\sqrt { A ^ { 2 } - B ^ { 2 } }",
+          "index": 13,
+          "bbox": [
+            0.305,
+            0.626,
+            0.742,
+            0.644
+          ],
+          "image_path": "images/page_4_equation_13.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "eftersom "
+            },
+            {
+              "type": "equation_inline",
+              "content": "C > 0"
+            },
+            {
+              "type": "text",
+              "content": " . Med detta värde på C kan ekvationerna i (1) ekvivalent formuleras om till"
+            }
+          ],
+          "index": 14,
+          "bbox": [
+            0.137,
+            0.658,
+            0.906,
+            0.691
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "e ^ { a } = \\frac { A + B } { \\sqrt { A ^ { 2 } - B ^ { 2 } } } = \\sqrt { \\frac { A + B } { A - B } } \\quad \\Leftrightarrow \\quad a = \\frac { 1 } { 2 } { \\operatorname { l n } \\frac { A + B } { A - B } } .",
+          "index": 15,
+          "bbox": [
+            0.291,
+            0.689,
+            0.754,
+            0.727
+          ],
+          "image_path": "images/page_4_equation_15.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Svar: se ovan."
+            }
+          ],
+          "index": 16,
+          "bbox": [
+            0.139,
+            0.739,
+            0.269,
+            0.755
+          ]
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "Alternativ: Genom att först bevisa additionsformeln"
+            }
+          ],
+          "index": 17,
+          "bbox": [
+            0.14,
+            0.775,
+            0.611,
+            0.792
+          ]
+        },
+        {
+          "type": "equation",
+          "content": "\\sinh ( x + a ) = \\sinh x \\cosh a + \\cosh x \\sinh a",
+          "index": 18,
+          "bbox": [
+            0.34,
+            0.806,
+            0.706,
+            0.823
+          ],
+          "image_path": "images/page_4_equation_18.jpg"
+        },
+        {
+          "type": "text",
+          "content": [
+            {
+              "type": "text",
+              "content": "går det sedan att bevisa ovanstående med samma resonemang som för en vanlig omskrivning med hjälpvinkel. Fyll själv i detaljerna som övning!"
+            }
+          ],
+          "index": 19,
+          "bbox": [
+            0.137,
+            0.838,
+            0.907,
+            0.873
+          ]
+        },
+        {
+          "type": "page_number",
+          "content": [
+            {
+              "type": "text",
+              "content": "4"
+            }
+          ],
+          "index": 20,
+          "bbox": [
+            0.493,
+            0.957,
+            0.507,
+            0.97
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "file_suffix": "pdf",
+    "producer": {
+      "name": "mineru",
+      "version": "4.1.7"
+    },
+    "document": {
+      "created_at": "2026-11-16T17:26:02Z",
+      "modified_at": "2026-11-16T17:26:02Z",
+      "creator_application": "pdf-lib (https://github.com/Hopding/pdf-lib)",
+      "producer_application": "pdf-lib (https://github.com/Hopding/pdf-lib)",
+      "page_count": 5,
+      "page_count_kind": "physical"
+    }
+  },
+  "extensions": {
+    "mineru": {
+      "tier": "basic",
+      "parse_mode": "txt"
+    },
+    "docvortex_layout": {
+      "version": 1,
+      "pages": [
+        {
+          "page_idx": 0,
+          "width_pt": 595.2760009765625,
+          "height_pt": 841.8900146484375
+        },
+        {
+          "page_idx": 1,
+          "width_pt": 595.2760009765625,
+          "height_pt": 841.8900146484375
+        },
+        {
+          "page_idx": 2,
+          "width_pt": 595.2760009765625,
+          "height_pt": 841.8900146484375
+        },
+        {
+          "page_idx": 3,
+          "width_pt": 595.2760009765625,
+          "height_pt": 841.8900146484375
+        },
+        {
+          "page_idx": 4,
+          "width_pt": 595.2760009765625,
+          "height_pt": 841.8900146484375
+        }
+      ]
+    }
+  },
+  "is_full_document": true,
+  "schema": "docvortex.middle",
+  "schema_version": "2.0"
+}

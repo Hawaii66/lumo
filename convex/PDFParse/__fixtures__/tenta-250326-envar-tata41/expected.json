@@ -1,0 +1,84 @@
+[
+  {
+    "problemNumber": "1",
+    "problemText": "1. Undersök gränsvärdena\n(a) \\lim_{x \\to 0^{+}} \\frac{\\sin \\sqrt{2x}}{e^{\\sqrt{3x}} - 1}\n(b) \\lim_{x \\to 2} \\frac{x^2 + x - 6}{\\ln(5 - 2x)}\n(c) \\lim_{x \\to \\infty} \\frac{\\ln(2x^3 + e^{4x})}{x}.",
+    "answerText": "(a) \\sqrt { \\frac { 2 } { 3 } } (b) -\\frac{5}{2} (c) 4.",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
+  },
+  {
+    "problemNumber": "2",
+    "problemText": "2. Skissa grafen till funktionen f ( x ) = 6 \\ln | x - 2 | - x ^ { 2 } . Ange alla lodräta/vågräta asymptoter samt lokala extrempunkter till f .\nDel A2 - Integralkalkyl",
+    "answerText": "För graf, se ovan. f har lokala maximipunkter i x = - 1 (med det lokala maximivärdet f ( - 1 ) = 6 \\ln 3 - 1 ) och \\mathrm { ~ i ~ } x = 3 (med det lokala maximivärdet f ( 3 ) = - 9 ) . Lokala minimipunkter saknas. Linjen x = 2 är lodrät asymptot och vågräta asymptoter saknas.",
+    "questionImages": [],
+    "answerImages": [
+      {
+        "path": "images/page_2_image_9.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
+  },
+  {
+    "problemNumber": "3",
+    "problemText": "3. (a) Beräkna \\int\\limits_{0}^{2} \\ln(x + 1) dx.\n(b) Beräkna \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } eller visa divergens.",
+    "answerText": "(a) 3 ln 3 − 2 (b) \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } = \\frac { \\ln 2 } { 2 } och är därmed konvergent.",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 3
+  },
+  {
+    "problemNumber": "4",
+    "problemText": "4. Beräkna (a) \\int \\frac{x}{\\sqrt{x - 3}} dx (b) \\int \\frac{\\sin x}{3 - \\sin^2 x} dx (c) \\int \\limits _ { - 1 / 2 } ^ { 1 / 2 } x \\sin ( \\pi x ) dx.\nDel B",
+    "answerText": "(a) 3 (x + 6)√x − 3 + C (b) (c) π2.",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 3
+  },
+  {
+    "problemNumber": "5",
+    "problemText": "5. Låt f(x) \\; = \\; \\frac{2x - 11}{x - 1}e^{x} . Bestäm alla värden på den reella konstanten k sådana att ekvationen f ( x ) = k har exakt 3 olika lösningar.",
+    "answerText": "- e ^ { 4 } < k < - 4 e ^ { 5 / 2 }",
+    "questionImages": [],
+    "answerImages": [
+      {
+        "path": "images/page_4_image_3.jpg",
+        "subproblemLetter": ""
+      },
+      {
+        "path": "images/page_4_table_1.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 4
+  },
+  {
+    "problemNumber": "6",
+    "problemText": "6. (a) Låt f vara definierad för alla x \\in \\mathbf { R } . Ange definitionen av f ^ { \\prime } ( x )\n(b) Derivera f ( x ) = x { \\sqrt { x } } för x > 0 med hjälp av definitionen av derivata.\n(c) Låt x,y \\in \\left[ - \\frac{\\pi}{4}, \\frac{\\pi}{4} \\right] . Visa att | tan |x - \\tan y| \\leq 2|x - y|",
+    "answerText": "(a) Se kursboken eller föreläsningsanteckningarna. (b) Se ovan. (c) Se ovan.",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 4
+  },
+  {
+    "problemNumber": "7",
+    "problemText": "7. Låt a < b . Skissa grafen till funktionen f(x) = \\lim_{\\varepsilon \\to 0^{+}} \\int\\limits_{a}^{b} \\frac{\\varepsilon}{(x - t)^2 + \\varepsilon^2} dt.\nLINKOPINGS UNIVERSITET¨ Matematiska institutionen\nTATA41 TEN1\nLösningsskisser för TATA41 250326",
+    "answerText": "7) Variabelbytet y = \\frac{x - t}{\\varepsilon} så att d t = - \\varepsilon d y ger att\n\\int \\limits _ { a } ^ { b } \\frac { \\varepsilon } { ( x - t ) ^ { 2 } + \\varepsilon ^ { 2 } } dt = \\frac { 1 } { \\varepsilon } \\int \\limits _ { a } ^ { b } \\frac { d t } { ( \\frac { x - t } { \\varepsilon } ) ^ { 2 } + 1 } = \\int \\limits _ { \\frac { x - b } { \\varepsilon } } ^ { \\frac { x - a } { \\varepsilon } } \\frac { d y } { y ^ { 2 } + 1 } = \\arctan \\frac { x - a } { \\varepsilon } - \\arctan \\frac { x - b } { \\varepsilon } .\nObservera att arctan \\frac { x - a } { \\varepsilon } \\rightarrow \\frac { \\pi } { 2 } , \\; \\varepsilon \\rightarrow 0 ^ { + } om x > a och att arctan \\frac { x - a } { \\varepsilon } \\rightarrow - \\frac { \\pi } { 2 } , \\; \\varepsilon \\rightarrow 0 ^ { + } om x < a . Om x = a är förstås arctan \\frac{x - a}{\\varepsilon} = 0 för alla \\varepsilon > 0 så arctan \\frac { \\widetilde { x - a } } { \\varepsilon } \\rightarrow 0 , \\; \\varepsilon \\rightarrow 0 ^ { + } . Genom att hantera andra termen på liknande sätt får vi att f ( x ) = { \\left\\{ \\begin{array} { c l l } { { 0 } } & { { \\mathrm { o m } } } & { { x < a { \\mathrm { ~ e l l e r ~ } } x > b } } \\\\ { { \\pi / 2 } } & { { \\mathrm { o m } } } & { { x = a { \\mathrm { ~ e l l e r ~ } } x = b } } \\\\ { { \\pi } } & { { \\mathrm { o m } } } & { { a < x < b } } \\end{array} \\right. }\nDetta ger grafen\nSvar: Se ovan.",
+    "questionImages": [],
+    "answerImages": [
+      {
+        "path": "images/page_5_image_9.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 5
+  }
+]

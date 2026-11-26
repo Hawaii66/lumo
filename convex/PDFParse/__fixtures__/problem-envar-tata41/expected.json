@@ -1,0 +1,1464 @@
+[
+  {
+    "problemNumber": "3.1",
+    "problemText": "(a) Vilka av pilarna \\Rightarrow , \\Leftarrow , \\Longleftrightarrow är korrekta mellan \\text{\" }x^{2}=4 \\text{\" } och \\text{\" }x = 2 \\text{\" }?\n(b) Ar det så att ¨ x < 1 / 1 0 0 0 \\Rightarrow 1 / x > 1 0 0 0 ?\n(c) Visa att 0 < x < 1 / 1 0 0 0 \\Rightarrow 1 / x > 1 0 0 0 .\n(a) Bara ⇐.\n(b) Nej. Sätt in ett negativt x.\n(c) Om vi har positiva storheter kan vi ta olikheten x < 1 / 1 0 0 0 och dela bägge sidor med x (som är positivt) samt multiplicera bägge sidor med 1000 och fortfarande ha en ekvivalent utsaga. Då står det 1 0 0 0 < 1 / x .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.2",
+    "problemText": "P 3.2 Overtyga dig om att ¨ |x - 4| < 9 \\Longleftrightarrow -5 < x < 13.\nP 3.2 Overtygelsen b ¨ ör bygga på att | x - 4 | < 9 \\Longleftrightarrow - 9 < x - 4 < 9 . Här kan man sedan addera 4 till alla led. (Observera att olikheten | x - 4 | > 9 inte kan uttryckas riktigt lika smidigt på ett motsvarande sätt.)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.3",
+    "problemText": "P 3.3 Ange följande gränsvärden för den funktion g, vars graf ges av nedanstående figur: (a) \\lim_{x \\to 0} g(x) (b) \\operatorname* { l i m } _ { x \\to 1 ^ { - } } g ( x ) (c) \\lim_{x \\to 1^{+}} g(x) (d) \\operatorname* { l i m } _ { x \\to 1 } g ( x ) (e) \\lim_{x \\to 3^{+}} g(x) (f) \\operatorname* { l i m } _ { x \\to 3 } g ( x )\n(a) 0 (b) 1 (c) 0 (d) existerar inte (e) 0 (f) 0",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_0_image_8.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.4",
+    "problemText": "P 3.4 De flesta tycker nog att ^ { \\circ } x ^ { 2 } växer snabbare än 2x för stora positiva x ^ { \\flat } . Tycker du att \\ln(x^{2}) växer snabbare än 2 \\ln ( x ) för stora positiva x ^ { \\prime \\prime } ?\nP 3.4 Begreppet ”växer snabbare än” må vara intuitivt men kan ofta (som här?) leda till felaktiga slutsatser. Svaret är ”nej” eftersom \\ln ( x ^ { 2 } ) = 2 \\ln x för positiva x. Sensmoral: Resonemang baserade på ”växer snabbare än”kan aldrig bevisa något men kan ibland användas för att leda in tankarna på rätt spår.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.5",
+    "problemText": "P 3.5 Skissa grafen och bestäm \\lim_{x \\to \\infty} f(x) då f(x) = \\ln x\nP 3.5 Graf, se boken. \\lim_{x \\to \\infty} f(x) = \\infty",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.6",
+    "problemText": "P 3.6 Beräkna (a) \\lim_{x \\to \\infty} \\frac{x}{x^3 + x^2} (b) \\lim_{x \\to -\\infty} \\left( \\sqrt{x^2 - x + 2} + x + 1 \\right)\n(a) 0 (b) 3/2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.7",
+    "problemText": "P 3.7 Låt f(x)=\\frac{-x^{2}+x+6}{2x^{2}-5x-3} . Beräkna lim f ( x ) då (a) x \\to 7 (b) x \\rightarrow 3 (c) x \\to \\infty\n(a) $- 3 / 5 \\quad \\text { (b) } \\text {-5/7} \\quad \\text { (c) } \\text {-1/2}$",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.8",
+    "problemText": "P 3.8 Vad är (a) \\operatorname* { l i m } _ { n \\to \\infty } 1 (b) \\lim_{n \\to \\infty} \\left( \\lim_{m \\to \\infty} \\frac{n}{n + m} \\right) (c) \\lim_{m \\to \\infty} \\left( \\lim_{n \\to \\infty} \\frac{n}{n + m} \\right) ?\n(a) 1 (b) 0 (c) 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.9",
+    "problemText": "(a) Vad menas med att f ( x ) \\rightarrow 1 då x \\to \\infty ? (b) Bestäm ett tal ω sådant att \\left| \\frac{x}{x - 1} - 1 \\right| < \\frac{1}{10} då x > ω.\n(c) Bestäm för varje \\epsilon > 0 ett ω sådant att påståendet x > \\omega \\Rightarrow \\left| \\frac{\\sqrt{x^2 + 1}}{x} - 1 \\right| < \\epsilon gäller. Vad visar detta?\n(b) t.ex. $\\omega = 1 1 \\quad \\mathrm { ~ ( c ) ~ t . e x . ~ } \\omega = 1 / \\epsilon$",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.10",
+    "problemText": "P 3.10 Visa att om f har ett ändligt gränsvärde A då x \\to \\infty så är detta entydigt bestämt, d.v.s. att om också f ( x ) \\rightarrow B då x \\to \\infty så är A = B .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.11",
+    "problemText": "P 3.11 Undersök gränsvärdena (a) \\lim_{n \\to \\infty} \\frac{(-1)^n n + 1}{(-1)^n n - 1} (b) \\lim_{n \\to \\infty} (-1)^n \\cos \\frac{1}{n}\n(a) 1 (b) saknas",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.12",
+    "problemText": "P 3.12 Undersök följande gränsvärden (a) \\operatorname* { l i m } _ { x \\to 0 + } e ^ { - 1 / x } (b) \\operatorname* { l i m } _ { x \\to 0 - } e ^ { - 1 / x } (c) \\operatorname* { l i m } _ { x \\to 0 } e ^ { - 1 / x } .\n(a) 0 (b) ∞ (c) existerar ej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.13",
+    "problemText": "P 3.13 Räkna ut \\operatorname* { l i m } _ { x \\to \\infty } x ^ { 1 / \\ln x ^ { 2 } }\nP 3.13 \\sqrt { e }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.14",
+    "problemText": "P 3.14 \\ddot { \\mathrm { A r } } funktionen g, vars graf ges i uppgift P 3.3, kontinuerlig (a) i punkten 1? (b) i punkten 2? (c) i punkten 3 ? (d) på intervallet ] 0 , 2 [ ? (e) på intervallet ] 1 , 3 [ ? (f) på intervallet \\left[ 1 , 3 \\right] ?\n(a) nej (b) ja (c) nej (d) nej (e) ja (f) nej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.15",
+    "problemText": "P 3.15 Funktionen f är kontinuerlig på hela R. Den har exakt två nollställen: 0 och 2; dessutom är f ( 1 ) = 1 lim f ( x ) = \\infty och lim f(x) = -3 . För vilka x \\in \\mathbb { R } är f ( x ) positivt respektive x→−∞ x→∞ negativt?\nGränsvärde och kontinuitet\nP 3.15 Positivt på ]−∞, 0[ ∪ ]0, 2[, negativt på ]2, ∞[",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "3.16",
+    "problemText": "(a) Vad menas med att f ( x ) är kontinuerlig i punkten x = 1 ?\n(b) Vad menas med att f är en kontinuerlig funktion?\n(c) Ar ¨ f(x) = \\lim_{n \\to \\infty} \\frac{x^n}{1 + x^n} kontinuerlig för x \\geq 0 ?\n(d) { \\mathrm { \\ddot { A } r } } f ( x ) = \\operatorname* { l i m } _ { n \\to \\infty } { \\frac { x + x ^ { 2 } + \\ldots + x ^ { n } } { 1 + x + \\ldots + x ^ { n } } } kontinuerlig för x \\geq 0 ?\n(c) nej (d) ja",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.17",
+    "problemText": "(a) Formulera och illustrera satsen om mellanliggande värden.\n(b) Kan villkoren mildras?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.18",
+    "problemText": "P 3.18 Funktionen f är kontinuerlig, strängt växande \\mathrm { p \\AA \\left[ - \\infty , 0 \\right] } , strängt avtagande på [ 0 , \\infty [ , och uppfyller f(−1) = −1 samt f ( 1 ) = 1\n(a) Vad kan sägas om antalet nollställen till f ?\n(b) Går det att avgöra om f är udda eller jämn eller ingetdera? Motivera!\nTips: Försök att rita grafen till en eller flera funktioner som uppfyller villkoren.\n(a) f har ett eller två nollställen (b) f är varken jämn eller udda",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.19",
+    "problemText": "P 3.19 Visa att funktionen f(x) = x \\ln x, x \\geq 1 , har en invers funktion f ^ { - 1 } ( x ) , x \\geq 0 , och undersök \\lim_{x \\to \\infty} \\frac{f^{-1}(x) \\ln x}{x}\nP 3.19 Gränsvärdet är 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.20",
+    "problemText": "P 3.20 \\ddot { \\mathrm { A r } } nedanstående påståenden sanna eller falska? Om sant, mot ivera; om falskt, ge ett motexempel. Funktionerna f och g är definierade i någon omgivning till punkten a \\in \\mathbb { R } .\nI ( a ) , ( b ) och (e): ”existerar” betyder här ”existerar som reellt t a l ^ { \\prime \\prime }\n(a) Om inget av gränsvärdena \\operatorname* { l i m } _ { x \\to a } f ( x ) och \\operatorname* { l i m } _ { x \\to a } g ( x ) existerar, så existerar inte heller lim ( f ( x ) + g ( x ) ) x→a\n(b) Om \\operatorname* { l i m } _ { x \\to a } f ( x ) existerar, men \\operatorname* { l i m } _ { x \\to a } g ( x ) inte existerar, så existerar inte \\operatorname* { l i m } _ { x \\to a } ( f ( x ) + g ( x ) )\n(c) Om f är kontinuerlig i a, så är även |f| kontinuerlig i a.\n(d) Om |f| är kontinuerlig i a, så är även f kontinuerlig i a.\n(e) Om f(x) < g(x) för alla x i något öppet intervall runt a, och gränsvärdena \\lim_{x \\to a} f(x) och \\operatorname* { l i m } _ { x \\to a } g ( x ) existerar, så är lim f(x) < \\lim_{x \\to a} g(x) x→a x →a\n(f) Om \\lim_{x \\to a} f(x) < \\lim_{x \\to a} g(x) och \\widetilde{f(a)} < g(a) , så är f(x) < g(x) för alla x i något öppet intervall runt a.\n(a) falskt (b) sant (c) sant (d) falskt (e) falskt (f) sant",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.21",
+    "problemText": "P 3.21 Beräkna gränsvärdena (a) \\lim_{n \\to \\infty} \\frac{1! + 2! + \\ldots + (n - 2)!}{n!} (b) \\lim_{n \\to \\infty} \\frac{1! + 2! + \\ldots + n!}{n!}\n(a) 0 (b) 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.22",
+    "problemText": "P 3.22 Undersök e ^ { - x } ln x då x \\rightarrow 0 + och x \\to \\infty .\nP 3.22 e ^ { - x } \\ln x \\to - \\infty { \\mathrm { ~ r e s p e k t i v e ~ } } 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.23",
+    "problemText": "P 3.23 Beräkna (a) \\lim_{x \\to 0} \\frac{\\sin 2x}{x} (b) \\lim_{x \\to 0} \\frac{\\sin 5x}{\\sin 4x} (c) \\lim_{x \\to 0} \\frac{\\sin 3x}{\\tan 7x} (d) \\lim_{x \\to \\infty} \\frac{\\sin x}{x}.\n(a) 2 (b) 5/4 (c) 3/7 (d) 0 (använd Sats 3.1)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.24",
+    "problemText": "P 3.24 Räkna ut (a) \\lim_{x \\to 0} \\frac{\\ln(1 - x)}{\\ln(1 + 3x)} (b) \\lim_{x \\to 1} \\frac{\\ln x}{x^2 - 1}\n(a) −1/3 (b) 1/2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.25",
+    "problemText": "P 3.25 Räkna ut (a) \\operatorname* { l i m } _ { n \\to \\infty } \\left( 1 + { \\frac { 1 } { n } } \\right) ^ { n } (b) \\lim_{n \\to -\\infty} \\left(1 + \\frac{1}{n}\\right)^n\n(a) e (b) e\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.26",
+    "problemText": "P 3.26 Antag att f(x) = \\sin x \\cdot \\sin \\frac{1}{x} för x \\neq 0 , , men att f(0) (ännu) inte är definierat.\nKan man definera f(0) så att f blir kontinuerlig?\nP 3.26 Ja, genom f(0) = 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.27",
+    "problemText": "P 3.27 Bestäm konstanterna A och B så att \\lim_{x \\to \\infty} (\\sqrt{x^2 + x} - Ax - B) = 0\nP 3.27 A = 1 och B = 1 / 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.28",
+    "problemText": "P 3.28 Undersök (a) \\lim_{x \\to \\infty} x \\big( \\ln(x + 1) - \\ln x \\big) (b) \\lim_{x \\to \\pi} \\frac{\\sin x}{x - \\pi} (c) \\lim_{x \\to 1} \\frac{\\cos(\\pi x / 2)}{\\ln x^2}\n(a) 1 (b) −1 (c) −π/4",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.29",
+    "problemText": "P 3.29 Undersök \\lim_{x \\to 0} \\frac{\\sqrt{1 + x^2} - 1}{x^2 + x^3}\nProblem\nP 3.29 1/2\nDerivator",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "3.30",
+    "problemText": "P 3.30 Visa att \\lim_{x \\to 0} \\frac{e^x - 1}{x} = 1 med hjälp av standardgränsvärdet \\lim_{x \\to 0} \\frac{\\ln(1 + x)}{x} = 1 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "3.31",
+    "problemText": "P 3.31 Visa att \\lim_{x \\to 0} \\frac{\\arcsin x}{x} = 1 (Tips: Variabelbyte)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "3.32",
+    "problemText": "P 3.32 Visa standardgränsvärdet \\operatorname* { l i m } _ { x \\to 0 ^ { + } } x ^ { \\alpha } ln x = 0 om \\alpha > 0 med hjälp av \\operatorname* { l i m } _ { x \\to \\infty } x / e ^ { x } = 0\n4 Derivator",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "4.1",
+    "problemText": "P 4.1 Linus minns att när man deriverar ”blir sinus cosinus och cosinus sinus, men någonstans är det ett minus”. Rita graferna till sin och cos och visa hur man ur dessa (och tolkningen av derivata) ser hur det ligger till.\nP 4.1 Man kan titta på många sätt. Titta till exempel på en omgivning av x = 0 , varför inte intervallet - 1 < x < 1 . Där är sin x växande. Å andra sidan är cos x positiv på samma intervall, så om valet för derivatan av sin x står mellan \\pm \\cos x så är + cos x det enda rimliga.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "4.2",
+    "problemText": "(a) Vad betyder det att en funktion f är växande?\n(b) Vad betyder det att en funktion f är strängt växande?\n(c) Ange en funktion som är både växande och avtagande.\n(d) Kan en funktion vara både strängt växande och strängt avtagande?\nP 4.2 (Titta i läroboken, kapitel 2.)\n(a) Det betyder att x , y \\in D _ { f } och x < y medför att f ( x ) \\leq f ( y )\n(b) Det betyder att x , y \\in D _ { f } och x < y medför att f(x) < f(y)\n(c) Om x , y \\in D _ { f } och x < y så ska det gälla både att f ( x ) \\leq f ( y ) och att f ( x ) \\geq f ( y ) vilket innebär att f ( x ) = f ( y ) . Funktionen f måste alltså vara konstant, till exempel f ( x ) = 7 för alla x \\in D _ { f }\n(d) Ja, men endast om D _ { f } består av högst en punkt. Definitionen kräver nämligen att om x , y \\in D _ { f } och x < y så ska det gälla både att f ( x ) < f ( y ) och att f ( x ) > f ( y ) och det ser svårt ut att uppfylla. Slutsatsen är att om det finns x , y \\in D _ { f } med x < y så är f inte både strängt växande och strängt avtagande. Två sådana x , y finns så fort D _ { f } innehåller minst två punkter. Vad gäller om D _ { f } innehåller högst en punkt? Då blir kravet uppfyllt eftersom det faktiskt är sant att om x , y \\in D _ { f } och x < y (och det kan alltså inte inträffa) så gäller att f ( x ) < f ( y ) och f ( x ) > f ( y ) . Det händer ju aldrig, så vi bryter aldrig mot kravet.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "4.3",
+    "problemText": "P 4.3 Ett objekt, som rör sig längs en rät linje, befinner sig efter t \\geq 0 sekunder på avstånd x ( t ) = t ( t + 2 ) meter från sin utgångspunkt.\n(a) Vad är objektets genomsnittshastighet under de två första sekunderna?\n(b) Vad är objektets genomsnittshastighet mellan t = 1 och t = 2?\n(c) Vad är objektets genomsnittshastighet mellan t = 1 och t = 1 + h , där h är något givet positivt tal?\n(d) Beräkna gränsvärdet då h \\rightarrow 0 för det uttryck du härledde i (c). Vad är den fysikaliska innebörden av detta gränsvärde? Vad är den matematiska innebörden?\n(a) 4 m/s (b) 5 m/s (c) (h + 4) m/s (d) 4 m/s",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "4.4",
+    "problemText": "(a) I vilka punkter är funktionerna f , g , h och k i följande fyra figurer deriverbara?\n(b) I vilka punkter är funktionernas derivator positiva/negativa/noll?\n(c) Skissa graferna till funktionerna f ^ { \\prime } , g ^ { \\prime } , h ^ { \\prime } och k ^ { \\prime } , .\nDerivator\nP 4.4 (a) f är deriverbar överallt utom i −1 och 1;\ng är deriverbar överallt utom \\mathrm { ~ i ~ } { - } 1 , 0 och 1;\nh och k är deriverbara överallt.\n(b) f ^ { \\prime } är positiv på ] - 2 , - 1 [ \\cup ] 1 , 2[ och noll \\mathrm { p \\mathring { a } \\; ] \\mathrm { - } 1 , 1 [ ; }\ng ^ { \\prime } är positiv på ] - 2 , - 1 [ \\cup ] { - 1 , 0 } [ och negativ på ] 0 , 1 [ \\cup ] 1 , 2 [ ;\n\\bar { h } ^ { \\prime } är positiv på ] 0 , 1 [ , negativ \\mathrm { p \\mathring { a } \\; ] \\mathrm { - } 1 , 0 [ \\; \\cup \\; ] 1 , 2 [ } och noll på \\{ 0 , 1 \\} ;\nk ^ { \\prime } är positiv på ] - 1 , 0 [ \\cup ] 1 , 2 [ , negativ på ] - 2 , - 1 [ \\cup ] 0 , 1 [ och noll på \\{ - 1 , 0 , 1 \\}",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_2_image_19.jpg",
+        "subproblemLetter": "c"
+      },
+      {
+        "path": "images/page_2_image_20.jpg",
+        "subproblemLetter": "c"
+      },
+      {
+        "path": "images/page_3_image_2.jpg",
+        "subproblemLetter": "c"
+      },
+      {
+        "path": "images/page_3_image_3.jpg",
+        "subproblemLetter": "c"
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "4.5",
+    "problemText": "(a) Ge ett exempel på en (deriverbar) funktion f som har derivatan 0 på hela sin definitionsmängd D _ { f } men som ändå inte är konstant.\n(b) Varför går det inte att hitta ett sådant exempel där D _ { f } = \\mathbb { R } ?\n(c) Ge ett exempel på en (deriverbar) funktion f som uppfyller f ^ { \\prime } ( x ) \\; < \\; 0 för alla x i definitionsmängden D _ { f } men som ändå inte är avtagande.\n(d) Varför går det inte att hitta ett sådant exempel där D _ { f } = \\mathbb { R } ?\n(e) Finns det någon deriverbar funktion som är strängt växande men som inte uppfyller f ^ { \\prime } ( x ) > 0 för alla x?\n(a) Låt till exempel D _ { f } = ] - \\infty , 0 [ \\cup ] 0 , \\infty [ , alltså alla reella x utom x = 0 . Sätt sedan till exempel f ( x ) = - 5 om x < 0 och f ( x ) = 3 om x > 0\n(b) Därför att om D _ { f } är ett intervall och f ^ { \\prime } ( x ) = 0 så måste f enligt känd sats vara konstant.\n(c) Exempel: f ( x ) = 1 / x som har samma D _ { f } som i (a). Denna funktion är inte avtagande, till exempel är f(-1) < f(1) . Rita grafen!\n(d) Därför att om D _ { f } är ett intervall och f^{\\prime}(x) < 0 så måste f vara avtagande enligt känd sats.\n(e) Ja. Standardexemplet är f ( x ) = x ^ { 3 } som verkligen är strängt växande på R (kontrollera med definitionen!), trots att f^{\\prime}(0) = 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.6",
+    "problemText": "P 4.6 Ar det rimligt att ¨ f(x) = e^{x}(x^{2} - 10x + 4) har en derivata med teckenväxling - 0 + 0 - ?\nP 4.6 Det är orimligt. Vi ser att D _ { f } = \\mathbf { R } . Låt säga att derivatan har nollställen a och b. Tydligen är f^{\\prime}(x) < 0 på intervallet ] b , \\infty [ . Men det går inte ihop med observationen att f ( x ) \\to \\infty då x \\to \\infty\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.7",
+    "problemText": "P 4.7 Linnea försöker köra snålt. Kan hon köra 100 km på en timme men alltid hålla sig under 98 km/h? Det verkar inte rimligt, eller hur? Visa orimligheten med lämplig sats. Linnea kör deriverbart.\nP 4.7 Låt t vara tiden Linnea kört (hon startar alltså vid t = 0 ) och låt f(t) beteckna sträckan hon kört vid tiden t. Medelvärdessatsen för derivator säger, med beteckningar från boken, att f^{\\prime}(\\xi)=\\frac{f(b)-f(a)}{b-a} för minst ett \\xi \\in ] a , b [ . Om vi nu sätter a = 0 (t när Linnea startar, så f ( 0 ) = 0 ) och b = 1 h (tiden när Linnea har kört en timme, då är dessutom f(b) = 100 \\; km ) så måste det tydligen finnas ett ögonblick ξ under denna timme där f^{\\prime}(\\xi)=\\frac{100\\ km }{1\\ h }=100 \\mathrm { k m / h } . Eftersom f ^ { \\prime } är just hastigheten, kan den alltså inte alltid ligga under 98 km/h. En allmän slutsats är att man under en resa minst en gång håller sin medelhastighet. I alla fall om man kör deriverbart.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.8",
+    "problemText": "P 4.8 Definiera begreppet derivata.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.9",
+    "problemText": "P 4.9 Hur lyder kedjeregeln, produktregeln och kvotregeln för derivator?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.10",
+    "problemText": "P 4.10 Derivera (a) x ^ { 5 } + 3 x ^ { 2 } + 8 (b) cos 3x (c) \\frac { 1 } { 5 x ^ { 2 } } (d) arctan(−2x) (e) x sin 2x\n(a) 5 x ^ { 4 } + 6 x (b) −3 sin 3x (c) - { \\frac { 2 } { 5 x ^ { 3 } } } (d) -\\frac{2}{1 + 4x^{2}} (e) sin 2x + 2x\\cos 2x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.11",
+    "problemText": "P 4.11 Derivera (a) { \\sqrt { x } } + { \\frac { 1 } { \\sqrt { x } } } (b) ( x - x ^ { 3 } ) ^ { 1 1 } (c) \\frac { 1 + x ^ { 2 } } { 1 - x ^ { 2 } } (d) \\ln ( - x ) (e) ln |4x| (f) x ^ { 2 } \\ln x (g) e ^ { - 2 / x } (h) \\ln ( 1 + x ^ { 2 } )\n(a) \\frac{1}{2\\sqrt{x}} - \\frac{1}{2x\\sqrt{x}} (b) 11(1 - 3x^{2})(x - x^{3})^{10} (c) \\frac{4x}{(1 - x^{2})^{2}} (d) \\frac{1}{x} (e) \\frac{1}{x} (f) 2 x \\ln x + x (g) \\frac{2}{x^{2}}e^{-2/x} (h) \\frac { 2 x } { 1 + x ^ { 2 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.12",
+    "problemText": "P 4.12 Derivera (a) \\ln { \\frac { 1 + x } { 1 - x } } (b) ( \\ln x ) ^ { 3 } (c) \\ln \\frac{x}{\\sqrt{1 + x^{2}}} (d) \\exp(\\sqrt{1 + \\ln x}) (e) x e ^ { - 1 / { \\sqrt { x } } } (f) \\ln ( x + { \\sqrt { 1 + x ^ { 2 } } } ) (g) e ^ { - x } \\cos x (h) \\tan x - x (i) \\ln \\left| \\tan \\frac{x}{2} \\right| (j) \\left( \\arctan x \\right)^{2} (k) \\arctan { \\frac { 4 } { x } } (l) \\arcsin ( x ^ { 2 } - 1 )\n(a) \\frac { 2 } { 1 - x ^ { 2 } }\n(b) \\frac{3(\\ln x)^{2}}{x}\n(c) \\frac{1}{x(1 + x^{2})}\n(d) \\exp(\\sqrt{1 + \\ln x}) \\cdot \\frac{1}{2\\sqrt{1 + \\ln x}} \\cdot \\frac{1}{x}\n(e) e ^ { - 1 / \\sqrt { x } } ( 1 + \\frac { 1 } { 2 \\sqrt { x } } )\n(f) \\frac{1}{\\sqrt{1 + x^{2}}}\n(g) -e^{-x}(\\cos x+\\sin x)=\\sqrt{2}e^{-x}\\sin(x-3\\pi/4)\n(h) \\tan ^ { 2 } x\n(i) \\frac { 1 } { \\sin x }\n(k) - { \\frac { 4 } { x ^ { 2 } + 1 6 } }\n(j) \\frac{2\\arctan x}{1 + x^{2}}\n(l) \\frac{2x}{\\sqrt{2x^{2}-x^{4}}}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.13",
+    "problemText": "P 4.13 Ange om möjligt en funktion som är (a) kontinuerlig men inte deriverbar för x = 2 (b) deriverbar men ej kontinuerlig för x = 2 .\n(a) T.ex. |x − 2| (b) Finns ingen",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.14",
+    "problemText": "P 4.14 Beräkna (a) \\lim_{h \\to 0} \\frac{\\arctan(2 + h) - \\arctan 2}{h} (b) \\lim_{x \\to 0} \\frac{\\sin(1 - 4x) - \\sin 1}{3x}\nP 4.14 (a) $1 / 5 \\quad \\text { (b) } \\text {-(4/3)}$ cos 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.15",
+    "problemText": "P 4.15 Bestäm ekvationerna för tangenten och normalen till kurvan y = x + { \\sqrt { x } } { \\mathrm { ~ i ~ } } punkten (1, 2).\nProblem\nP 4.15 y = { \\frac { 3 x } { 2 } } + { \\frac { 1 } { 2 } } { \\mathrm { ~ r e s p e k t i v e ~ } } y = - { \\frac { 2 x } { 3 } } + { \\frac { 8 } { 3 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "4.16",
+    "problemText": "P 4.16 Tangentlinjen till grafen y = f(x) i punkten ( a , f ( a ) ) ges av ekvationen y = r(x - a) + s; tangentlinjen till grafen y = g ( x ) \\mathrm { ~ i ~ } punkten \\left( f ( a ) , g ( f ( a ) ) \\right) av y = t ( x - f ( a ) ) + u , där r , s , t , u \\in R är konstanter.\n(a) Ange tangentlinjens lutning för kurvan\n(i) y = f(x) i punkten ( a , f ( a ) )\n(ii) y = g(x) i punkten \\left( f ( a ) , g ( f ( a ) ) \\right)\n(iii) y = (g ◦ f)(x) i punkten ( a , g ( f ( a ) ) )\n(b) Ange en ekvation för tangentlinjen till grafen y = ( g \\circ f ) ( x ) i punkten ( a , ( g \\circ f ) ( a ) ) Kom ihåg att g \\circ f betecknar sammansättningen av f och g \\colon ( g \\circ f ) ( x ) = g ( f ( x ) ) för alla x \\in \\mathcal { D } _ { f } sådana att f ( x ) \\in \\mathcal { D } _ { g }\n(a) ( i ) r \\ ( i i ) t \\ ( i i i ) r t (b) y = r t ( x - a ) + g ( f ( a ) )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.17",
+    "problemText": "P 4.17 En cirkulär oljefläck utbreder sig på en vattenyta. I ett visst ögonblick är radien 200 m och just då ökar den med 5 ~ \\mathrm { m / h } . Med vilken hastighet ökar oljefläckens area i samma ögonblick?\nP 4.17 2000\\pi\\ m ^2/ h",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.18",
+    "problemText": "P 4.18 Räkna ut höger- och vänsterderivatan av \\big ( 2 + | x | \\big ) e ^ { x } \\mathrm { ~ i ~ } x = 0 . Existerar f^{\\prime}(0)?\nP 4.18 f_{+}^{\\prime}(0)=3,\\ f_{-}^{\\prime}(0)=1;\\ f^{\\prime}(0) existerar ej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.19",
+    "problemText": "P 4.19 \\mathrm { ~ \\ddot { A } r ~ } f deriverbar om (a) f(x) = \\left\\{ \\begin{array}{r l} x^{2}, & x \\leq 1 \\\\ 2x - 1, & x > 1 \\end{array} \\right. \\quad (b) f(x) = \\left\\{ \\begin{array}{r l} x^{2}, & x \\leq 1 \\\\ 2x, & x > 1 \\end{array} \\right. ?\n(a) ja (b) nej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.20",
+    "problemText": "P 4.20 Bestäm konstanterna A och B så att f(x)=\\left\\{\\begin{array}{rl}A e^{x}+B x+x^{2}, & x \\leq 0, \\\\ \\sqrt{x+1}, & x>0.\\end{array}\\right. blir deriverbar.\nP 4.20 A = 1 { \\mathrm { ~ o c h ~ } } B = - 1 / 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.21",
+    "problemText": "P 4.21 Formulera och illustrera satsen om derivatan av en invers funktion.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.22",
+    "problemText": "P 4.22 Funktionen f ( x ) = 1 + e ^ { 2 x } har en invers f ^ { - 1 } { \\mathrm { ~ ( v a r f i \\ddot { o } r ? ) } } . Bestäm ( D f ^ { - 1 } ) ( 2 ) (a) genom att bestämma f ^ { - 1 } och derivera (b) utan att först bestämma inversen.\nP 4.22 ( D f ^ { - 1 } ) ( 2 ) = 1 / 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.23",
+    "problemText": "P 4.23 Ett ögonblick en solig eftermiddag står solen 27 grader över horisonten och sjunker just då med hastigheten 7,0 grader i timmen. Hur snabbt växer då skuggan av en 2,0 meter hög lodrät stolpe? Svara i cm/min.\nP 4.23 \\frac { 7 \\pi } { 5 4 \\sin ^ { 2 } 2 7 ^ { \\circ } } \\approx 2 { , } 0 \\mathrm { c m / m i n }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.24",
+    "problemText": "P 4.24 Räkna ut f ^ { \\prime } ( x ) och f ^ { \\prime \\prime } ( x ) där de existerar om f(x) = \\left\\{ \\begin{array}{rl}x\\left( x\\ln\\left| x \\right| - 1 \\right), & x \\neq 0 \\\\0, & x = 0.\\end{array} \\right.\nP 4.24 f^{\\prime}(x) = 2x\\ln|x| + x - 1 on x \\neq 0, f^{\\prime}(0) = -1 f^{\\prime\\prime}(x) = 2\\ln|x| + 3 on x \\neq 0, f^{\\prime\\prime}(0) finns ej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.25",
+    "problemText": "P 4.25 I denna övning ska vi träna in en bra arbetsgång",
+    "answerText": "För graf, se ovan. f har ett lokalt minimum \\mathrm { i } x = - 1 / 2 med det lokala minimivärdet f ( - 1 / 2 ) = 8 och ett lokalt maximum \\mathrm { ~ i ~ } x = 5 / 2 med det lokala maximivärdet f ( 5 / 2 ) = - 1 6 .\n(h) V _ { f } = \\{ y \\in \\mathbb { R } ; \\; y \\leq - 1 6 eller y \\geq 8 \\} = ] - \\infty , - 1 6 ] \\cup [ 8 , \\infty [ . (i) x < 1\n(j) Ingen, en respektive två lösningar. (k) Både största och minsta värde saknas.",
+    "questionImages": [
+      {
+        "path": "images/page_19_image_6.jpg",
+        "subproblemLetter": "d"
+      },
+      {
+        "path": "images/page_19_table_4.jpg",
+        "subproblemLetter": "a"
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "4.26",
+    "problemText": "P 4.26 Låt f(x) = \\frac{x^{2}}{x - 1}\n(a) Rita grafen till f , d.v.s. rita kurvan y = f(x)\n(b) Bestäm f:s värdemängd.\n(c) Visa olikheten \\frac{x^{2}}{x - 1} \\geq 4 då x > 1\n(d) Bestäm antalet skilda rötter till ekvationen \\frac { x ^ { 2 } } { \\underset { 2 } { x } - 1 } = 5\n(e) Bestäm antalet olika rötter till ekvationen { \\frac { x ^ { 2 } } { x - 1 } } = k för alla värden på konstanten k.\n(a) Se figur här intill.\nV _ { f } = ] - \\infty , 0 ] \\cup [ 4 , \\infty [\n(d) 2\n2 om k < 0 eller k > 4 (e) 1 om k = 0 eller k = 4 0 för övriga k",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_19_image_14.jpg",
+        "subproblemLetter": "d"
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.27",
+    "problemText": "P 4.27 Faktorisera derivatan och bestäm med hjälp av teckentabell de intervall där f är strängt avtagande om (a) f(x) = x^{3} - 3x^{2} (b) f(x) = \\frac{\\sqrt{x}}{3(x^2 + 1)}.\n(a) f ^ { \\prime } = 3 x ( x - 2 ) . Strängt avtagande i [0, 2].\n(b) f ^ { \\prime } = - \\frac { ( x - 1 / \\sqrt { 3 } ) ( x + 1 / \\sqrt { 3 } ) } { 2 \\sqrt { x } ( x ^ { 2 } + 1 ) ^ { 2 } } . Strängt avtagande i intervallet x \\geq 1 / { \\sqrt { 3 } } .\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.28",
+    "problemText": "P 4.28 Rita grafen till funktionen f ( x ) = ( 3 - 4 x ) e ^ { - 2 x ^ { 2 } } . Ange alla lokala maxima och minima samt största och minsta värde, om sådana finns.\nP 4.28 Lok max f ( - 1 / 4 ) = 4 e ^ { - 1 / 8 } > 0 , lok min f(1)=-e^{-2}<0 , dessa är även största resp minsta värde",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_20_image_3.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.29",
+    "problemText": "P 4.29 Bestäm alla lokala max- och minpunkter till f och rita kurvan om\n(a) f(x) = (2x + 1)e^{-|x|} \\quad (b) f(x) = |x^2 - 8x + 15|.\n(a) Lok max f ( 1 / 2 ) = 2 e ^ { - 1 / 2 } , lok min f ( - 3 / 2 ) = - 2 e ^ { - 3 / 2 }\n(b) Lok max f ( 4 ) = 1 , lok min f(3) = 0 och f(5) = 0.",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_20_image_6.jpg",
+        "subproblemLetter": "b"
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.30",
+    "problemText": "P 4.30 Ange största och minsta värde till f ( x ) = x \\operatorname { l n } x - \\frac { ( \\operatorname { l n } x ) ^ { 2 } } { 4 } - x , \\frac { 1 } { 2 } \\leq x \\leq e ^ { 2 } .\nP 4.30 f ( 1 ) = - 1 är minst och f ( e ^ { 2 } ) = e ^ { 2 } - 1 är störst",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.31",
+    "problemText": "P 4.31 En rektangulär affischtavla ska tillverkas med följande specifikationer: Den användbara ytan ska vara \\tilde { 5 0 } \\mathrm { m } ^ { 2 } , därutöver ska det finnas marginaler om 2 m vardera på de båda sidorna, samt 1 m vardera ovan- och undertill. Vilken är den minsta totala area en sådan affischtavla kan ha?\nP 4.31 9 8 ~ \\mathrm { m } ^ { 2 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.32",
+    "problemText": "P 4.32 Ett tält utan botten har väggar som utgörs av en cirkulär cylinder och tak bestående av en halvsfär. Bestäm största möjliga volym hos tältet, då tältdukens area A är given. Motivera noga varför det blir ett största värde.\nP 4.32 \\frac { A ^ { 3 / 2 } } { \\sqrt { 1 8 \\pi } } (hur ser tältet ut?)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.33",
+    "problemText": "P 4.33 Funktionen y = f(x), x > 0 , är strängt växande och deriverbar, och f(1) = 2, f(2) = 10 f^{\\prime}(1) = 3 och f^{\\prime}(2) = 5. Ar inversen ¨ f ^ { - 1 } deriverbar i punkten 2? Ange i så fall derivatan.\nP 4.33 \\left( f^{- 1} \\right)^{\\prime}(2) = \\frac{1}{f^{\\prime}(1)} = \\frac{1}{3}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.34",
+    "problemText": "P 4.34 En likbent triangel är inskriven i en cirkel med radie R. Bestäm eventuellt största och minsta värde triangelarean kan ha. Motivera noga, som alltid!\nProblem\nP 4.34 Största värdet är \\frac { 3 \\sqrt { 3 } } { 4 } R ^ { 2 } (då triangeln är liksidig), minsta värde saknas",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "4.35",
+    "problemText": "P 4.35 I denna uppgift ska vi bekanta oss med medelvärdessatsen.\n(a) Formulera och illustrera medelvärdessatsen.\n(b) Sätt f(x) = \\arctan x. Vad säger medelvärdessatsen om\n\\operatorname { a r c t a n } x _ { 2 } - \\operatorname { a r c t a n } x _ { 1 }\ndå x _ { 1 } < x _ { 2 } ?\n(c) Vilka värden kan f ^ { \\prime } ( \\xi ) anta? Formulera ditt svar som en olikhet för f ^ { \\prime } ( \\xi )\n(d) Sätt in olikheten från (c) i ditt svar på (b). Vad ger detta?\n(e) Upprepa (b), (c), (d) i fallet 0 \\leq x _ { 1 } < x _ { 2 } \\leq 1 . Vilken olikhet leder detta fram till?\n(b) arctan x2 − arctan x _ { 1 } = f ^ { \\prime } ( \\xi ) ( x _ { 2 } - x _ { 1 } ) = \\frac { 1 } { 1 + \\xi ^ { 2 } } ( x _ { 2 } - x _ { 1 } ) för något ξ med x _ { 1 } < \\xi < x _ { 2 }\n(c) 0 < f^{\\prime}(\\xi) \\leq 1 , d.v.s. 0 < \\frac { 1 } { 1 + \\xi ^ { 2 } } \\leq 1\n(d) 0 < \\operatorname { a r c t a n } x _ { 2 } - \\operatorname { a r c t a n } x _ { 1 } \\leq x _ { 2 } - x _ { 1 } { ~ } { \\operatorname { f i r } } { ~ } x _ { 1 } < x _ { 2 } .\n(e) \\frac { 1 } { 2 } ( x _ { 2 } - x _ { 1 } ) < \\operatorname { a r c t a n } x _ { 2 } - \\operatorname { a r c t a n } x _ { 1 } < x _ { 2 } - x _ { 1 } { ~ \\tilde { t o r } ~ } 0 \\leq x _ { 1 } < x _ { 2 } \\leq 1 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.36",
+    "problemText": "(a) Definiera vad som menas med att funktionen f är strängt avtagande på mängden M.\n(b) Ar det sant att ¨ f ^ { \\prime } < 0 på ett intervall I medför att f är strängt avtagande på I?\n(c) Ar det sant att ¨ f ^ { \\prime } < 0 på hela D _ { f } medför att f är strängt avtagande?\n(d) Ar funktionen ¨ f(x) = \\left| x \\right| - 2x strängt avtagande?\n(a) För varje x _ { 1 } , x _ { 2 } \\in M med x _ { 1 } < x _ { 2 } gäller f ( x _ { 1 } ) > f ( x _ { 2 } )\n(b) Ja (c) Nej. Exempel f(x)=1/x \\quad (d) Ja",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.37",
+    "problemText": "P 4.37 Visa eller ge ett motexempel till följande påståenden:\n(a) f \\geq g \\Rightarrow f ^ { \\prime } \\geq g ^ { \\prime } (b) f ^ { \\prime } \\geq g ^ { \\prime } \\Rightarrow f \\geq g .\n(a) falskt (b) falskt",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.38",
+    "problemText": "P 4.38 För vilka reella tal gäller följande olikheter?\n(a) \\frac{x}{1 + x^{2}} - \\arctan x \\geq 0 (b) \\ln x > \\frac{x - 1}{x} (c) e ^ { x } - 1 < x e ^ { x } .\n(a) x \\leq 0 (b) x > 0, x \\neq 1 (c) x \\neq 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.39",
+    "problemText": "P 4.39 I ett motell blir alla 80 rummen uthyrda varje natt om priset är 450 \\mathrm { k r / d y g n } . En undersökning visade att för varje femtiolapp som lades på priset blev 4 rum tomma. Varje uthyrt rum kostar ägaren 50 \\mathrm { k r / d y g n , } , varje outhyrt 20 \\mathrm { k r / d y g n } . Vilket bör priset vara för att vinsten ska bli så stor som möjligt? Priset måste vara delbart med 50.\nP 4.39 750 kr/dygn",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.40",
+    "problemText": "P 4.40 Visa att x \\mapsto \\cos x + x ^ { 2 } / 2 är strängt växande på intervallet [ 0 , \\infty [",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.41",
+    "problemText": "P 4.41 \\ddot { \\mathrm { A r } } funktionen f(x)=\\sin x+\\cos x+\\tan x+\\cot x monoton på intervallet ] 0 , \\pi / 4 [ \\; ?\nP 4.41 \\mathrm { J a } , f är strängt avtagande",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.42",
+    "problemText": "P 4.42 Låt f vara en deriverbar funktion på R sådan att lim f ( x ) = A och \\lim_{x \\to \\infty} f'(x) = B gäller, x→∞ där A och B är ändliga. Visa att B = 0 . Ge också exempel på en sådan funktion.\nP 4.42 f(x) = \\arctan x.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.43",
+    "problemText": "P 4.43 \\ddot { \\mathrm { A r } } någon av funktionerna |x| sin x och |x| cos x kontinuerligt deriverbar?\nP 4.43 |x| sin x är kontinuerligt deriverbar men ej |x| cos x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.44",
+    "problemText": "(a) (Cauchys medelvärdessats). Antag att f och g är kontinuerliga på intervallet [ a , b ] och deriverbara \\mathrm { i } ] a , b [ . Visa att det finns något \\xi \\in ] a , b [ sådant att\n\\big ( f ( b ) - f ( a ) \\big ) g ^ { \\prime } ( \\xi ) = \\big ( g ( b ) - g ( a ) \\big ) f ^ { \\prime } ( \\xi ) .\nLedning: Använd medelvärdessatsen på h ( x ) = \\big ( f ( b ) - f ( a ) \\big ) g ( x ) - \\big ( g ( b ) - g ( a ) \\big ) f ( x )\n(b) (l’Hospitals regel). Om f och g är definierade och deriverbara med g ^ { \\prime } ( x ) \\neq 0 \\mathrm { ~ i ~ } e n punkterad omgivning till x = 0 samt om\n\\lim_{x \\to 0} f(x) = 0 = \\lim_{x \\to 0} g(x)\nså gäller att\n\\lim_{x \\to 0} \\frac{f(x)}{g(x)} = \\lim_{x \\to 0} \\frac{f'(x)}{g'(x)}\nförutsatt att det sista gränsvärdet existerar.\nLedning: Definiera f ( 0 ) och g ( 0 ) på lämpligt sätt och använd (a).\n(c) Bestäm \\lim_{x \\to 0} \\frac{\\arctan x}{x} (d) Bestäm \\lim_{x \\to 0} \\frac{x^2 + 2x + 3}{x^3 + 2x + 1}.\n(c) 1 (d) 3\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.45",
+    "problemText": "P 4.45 Rita följande kurvor (a) y = \\frac{x}{\\sqrt{1 - x^{2}}} (b) y = { \\frac { 1 } { x } } + 2 arctan x + \\ln { \\frac { | x | } { 1 + x ^ { 2 } } } .\nPrimitiva funktioner\n(a) Asymptoter x = \\pm 1 , funktionen definierad för | x | < 1\n(b) Asymptot x = 0, y → −∞ då x \\to \\pm \\infty , lok max f ( - 1 ) = - ( 1 + \\pi / 2 + \\ln 2 )",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_21_image_3.jpg",
+        "subproblemLetter": "a"
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "4.46",
+    "problemText": "P 4.46 Visa att arctan(x + 1) − arctan x = arctan \\frac{1}{x^{2}+x+1} för alla reella x.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.47",
+    "problemText": "P 4.47 Visa att f har lokalt minimum \\mathrm{i} x = 0 \\mathrm{om} f(x) = \\left\\{ \\begin{array}{rl} x^{2} \\sin \\dfrac{1}{x} + 2x^{2}, & x \\neq 0, \\\\ 0, & x = 0. \\end{array} \\right.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.48",
+    "problemText": "P 4.48 I en punkt på kurvan y = x ^ { 4 } , x > 0 , dras kurvans tangent och normal. Dessa avgränsar tillsammans med y-axeln en triangel. Bestäm alla värden som triangelns area kan anta.\nP 4.48 Alla värden större eller lika med \\frac { 3 ( 8 0 ) ^ { 1 / 6 } } { 2 0 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.49",
+    "problemText": "P 4.49 Två gator med bredd a respektive b korsar varandra under rät vinkel. Hur lång är den längsta stång som i horisontellt läge kan föras från den ena gatan till den andra?\nP 4.49 ( a ^ { 2 / 3 } + b ^ { 2 / 3 } ) ^ { 3 / 2 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.50",
+    "problemText": "P 4.50 Bestäm antalet skilda reella rötter till följande ekvationer: (a) $x ^ { 3 } = x ^ { 2 } - 5$ (b) x = 3 \\ln x (c) arctan x = ln(1 + x) (d) 2\\ln(1 - x^{2}) = 1 + 4\\arcsin x\n(a) 1 (b) 2 (c) 2 (d) 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.51",
+    "problemText": "P 4.51 Bestäm värdemängden till funktionen f ( x ) = x ^ { 3 } - 1 8 x ^ { 2 } + 9 6 x - 1 0 0 , 1 \\leq x < 9 .\nP 4.51 [−21, 60]",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.52",
+    "problemText": "P 4.52 Låt f vara en funktion på formen f ( x ) = p ( x ) \\ln x + q ( x ) för alla x > 0 , där p och q är polynomfunktioner. Bestäm nödvändiga och tillräckliga villkor på p och q för att f ^ { \\prime } ska vara på samma form, det vill säga f ^ { \\prime } ( x ) = a ( x ) \\ln x + b ( x ) för alla x > 0 . där a och b är polynomfunktioner.\nP 4.52 p ( 0 ) = 0 (det vill säga, polynomet p saknar konstantterm)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.53",
+    "problemText": "P 4.53 Visa att ln x \\leq { \\sqrt { x } } - { \\frac { 1 } { \\sqrt { x } } } { \\mathrm { ~ f i r ~ } } x \\geq 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.54",
+    "problemText": "P 4.54 Funktionen f är deriverbar i ett intervall I och f ^ { \\prime } ( x ) \\geq 1 för alla x \\in I . Visa att\nf ( x _ { 2 } ) - f ( x _ { 1 } ) \\geq x _ { 2 } - x _ { 1 }\nom x _ { 1 } \\in I , x _ { 2 } \\in I och x _ { 2 } \\geq x _ { 1 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.55",
+    "problemText": "P 4.55 Rita kurvan y = arcsin x + 2\\sqrt{1 - x^{2}} och ange värdemängden.\nP 4.55 Lok max f(1/2)=\\frac{\\pi}{6}+\\sqrt{3}, V_{f}=\\left[-\\frac{\\pi}{2},\\frac{\\pi}{6}+\\sqrt{3}\\right]",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_21_image_11.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.56",
+    "problemText": "P 4.56 Bestäm alla tal B sådana att x ^ { 4 } + 4 x + B \\geq 0 för alla reella tal x.\nP 4.56 B \\geq 3",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.57",
+    "problemText": "P 4.57 Avgör för vilka reella värden på a och b som ekvationen e ^ { x } = a x + b har ingen rot, en rot eller två reella rötter. Ledning: tangent.\nP 4.57 Ingen rot om $a > 0 ,$ $b < a { \\big ( } 1 - \\ln a { \\big ) }$ eller a = 0, b \\leq 0 En rot om a < 0 eller a = 0, b > 0 eller a > 0, b = a(1 - \\ln a) Två rötter om $a > 0 ,$ $b > a { \\big ( } 1 - \\ln a { \\big ) }$",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.58",
+    "problemText": "P 4.58 För vilka konstanter a är f ( x ) = e ^ { - x } + c ln x monoton?\nP 4.58 För a \\leq 0 eller a \\geq 1 / e",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.59",
+    "problemText": "P 4.59 Derivera f(x)=\\frac{e^{x^{2}}(\\arcsin x)^{2}x\\sqrt{\\left | \\cos x \\right | }}{(\\ln x)^{6}\\sin^{2}x} . Ledning: D ln |f(x)| = \\frac{f^{\\prime}(x)}{f(x)}\nP 4.59 f ^ { \\prime } ( x ) = f ( x ) \\left( 2 x + \\frac { 2 } { \\sqrt { 1 - x ^ { 2 } } \\operatorname { a r c s i n } x } + \\frac { 1 } { x } - \\frac { \\operatorname { t a n } x } { 2 } - \\frac { 6 } { x \\operatorname { l n } x } - 2 \\operatorname { c o t } x \\right)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.60",
+    "problemText": "P 4.60 Vilken är den minsta sektor i komplexa talplanet som rymmer alla tal 3 + \\omega ^ { 2 } - 2 i \\omega , \\omega \\in \\mathbb { R } och som utgår från origo?\nP 4.60 Alla z = r e ^ { i \\phi } med | \\phi | \\leq \\pi / 6",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "4.61",
+    "problemText": "P 4.61 Skriv summan 1 + 2 x + 3 x ^ { 2 } + \\ldots + n x ^ { n - 1 } i sluten form.\n5 Primitiva funktioner\nP 4.61 D \\left( \\frac { 1 - x ^ { n + 1 } } { 1 - x } \\right) = \\frac { n x ^ { n + 1 } - ( n + 1 ) x ^ { n } + 1 } { ( x - 1 ) ^ { 2 } } { ~ } { \\operatorname { o m } } { ~ } x \\neq 1 { , } { ~ } \\frac { n ( n + 1 ) } { 2 } { ~ } { \\operatorname { o m } } { ~ } x = 1\nPrimitiva funktioner",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "5.1",
+    "problemText": "P 5.1 Linnea kommer ihåg att sin2v antingen är \\frac{1+\\cos2v}{2} eller \\frac{1-\\cos2v}{2} men har glömt vilket. Föreslå ett enkelt v som reder ut vilket det ska vara.\nP 5.1 Det bygger alltså på att man vet att ett alternativ är korrekt. Här räcker det ju att sätta v = 0 . , så ska man jämföra 0 med 1 respektive 0. Det blir den andra formeln sålunda.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "5.2",
+    "problemText": "P 5.2 Linus kommer ihåg att cos(a+ b) antingen är cos a cos b + sin a sin b eller cos a cos b − sin a sin b men har glömt bort vilket. Föreslå enkla a, b som reder ut vilket det ska vara.\nP 5.2 Väljer man (till att börja med) a = 0 så står det att cos b antingen är cos b eller cos b, och det kan vi hålla med om, men det hjälper oss inte. Samma med b = 0 . Däremot, sätter vi a = b = \\pi / 2 så blir \\cos ( a + b ) = \\cos \\pi = - 1 , vilket stämmer med cos a cos b − sin a sin b som blir 0 - 1 = - 1 . Vi måste dock också kontrollera om den första varianten sållas bort. Det gör den: cos a cos b + sin a sin b blir 1 med värdena på a och b insatta.\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "5.3",
+    "problemText": "P 5.3 Räkna ut följande obestämda integraler:\n(a) \\int { \\sqrt { x } } d x (b) \\int \\left( x ^ { 3 } + x - 2 \\right) d x (c) \\int \\left( { \\frac { 1 } { x } } - { \\frac { 1 } { x ^ { 2 } } } + { \\frac { 1 } { x ^ { 3 } } } \\right) d x (d) \\int \\frac{dx}{(x + 2)^2} (e) \\int (x - 2) \\sqrt{x} dx (f) \\int e ^ { - x } d x (g) \\int { \\frac { d x } { 1 + 4 x ^ { 2 } } } (h) \\int \\sin 2 x d x .\nProblem\n(a) \\frac{2}{3}x^{3/2}+C (b) \\frac{x^{4}}{4}+\\frac{x^{2}}{2}-2x+C (c) \\ln |x| + \\frac{1}{x} - \\frac{1}{2x^2} + C. (d) - { \\frac { 1 } { x + 2 } } + C (e) \\frac{2}{5}x^{5/2}-\\frac{4}{3}x^{3/2}+C. (f) - e ^ { - x } + C (g) \\frac{1}{2}\\arctan 2x + C (h) -\\frac{1}{2}\\cos 2x + C\n1 1 P 5.4 f(x) = då x < 0 men f(x) = 1 − då x > 0 x x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "5.4",
+    "problemText": "P 5.4 Bestäm en funktion f som uppfyller f ^ { \\prime } ( x ) = { \\frac { 1 } { x ^ { 2 } } } för alla x \\neq 0 , samt \\operatorname* { l i m } _ { x \\to - \\infty } f ( x ) = 0 och \\operatorname* { l i m } _ { x \\to \\infty } f ( x ) = 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "5.5",
+    "problemText": "P 5.5 Denna uppgift är tänkt att illustrera och öva på den viktiga tekniken att känna igen derivator vid primitivberäkning.\n(a) Betrakta integranden (d.v.s. funktionen innanför integraltecknet) \\mathrm{i} \\int \\frac{3x^2}{(1 + x^3)^2} dx Kan du hitta en faktor i integranden som är derivata av något annat uttryck som också ingår i integranden?\n(b) Föreslå en lämplig ny variabel t att byta till som utnyttjar upptäckten du gjorde i (a). Beräkna \\frac { d t } { d x } . Lös ut dt ur detta samband och utför variabelbytet.\n(c) Använd ovanstående till att beräkna \\int \\frac{3x^{2}}{(1 + x^{3})^{2}}dx.\n(d) I \\int x ^ { 4 } \\cos ( x ^ { 5 } ) dx är ingen faktor en derivata av något annat uttryck i integranden. Vi kan dock ändå beräkna denna med samma teknik som i (b) och (c) tack vare att en faktor i integranden ’nästan’ är en derivata till ett annat uttryck i integranden (med’nästan’ menas här att faktorn är en konstant gånger derivatan). Vilken faktor är detta?\n(e) Bryt ut lämplig konstant ur \\int x ^ { 4 } \\cos ( x ^ { 5 } ) dx så att din faktor verkligen är derivatan av uttrycket du hittade i (d). Vilket variabelbyte vill du göra sedan?\n(f) Utför variabelbytet och beräkna \\int x ^ { 4 } \\cos ( x ^ { 5 } ) d x\n(g) Beräkna \\int e ^ { \\sin x } cos x dx med samma teknik som ovan.\nP 5.6 Beräkna följande obestämda integraler:\n(a) \\int x \\left( 1 + x ^ { 2 } \\right) ^ { 5 } dx (b) \\int x e ^ { x ^ { 2 } } d x (c) \\int { \\frac { \\ln x } { x } } d x . (d) \\int { \\frac { e ^ { x } } { 2 + e ^ { x } } } d x\nP 5.7 Bestäm f(x) så att\n(a) f ^ { \\prime } ( x ) = e ^ { 2 x } + x ^ { 2 } - x { \\mathrm { ~ o c h ~ } } f ( 0 ) = 0 (b) f^{\\prime}(x) = \\frac{x}{\\left( 2 + 3x^{2} \\right)^{3}} och f ( x ) \\rightarrow 1 då x \\to \\infty\nP 5.8 Beräkna\n(a) \\int x e ^ { - x } d x (b) \\int x^{2} \\sin 2x dx (c) \\int x \\ln | x | d x\n\\int ( \\ln x ) ^ { 2 } d x\n(e) \\int x \\left( e^{x} + \\ln x \\right) dx\n(f) \\int \\arctan x dx\n(g) \\int \\arcsin x dx (h) \\int \\frac{\\sin x \\cos x}{1 + \\sin^2 x} dx (i) \\int \\tan x dx\n(a) 3 x ^ { 2 } är derivatan av 1 + x ^ { 3 } (och även till x ^ { 3 } )\n(b) t = 1 + x^{3} (t = x^{3} fungerar också och ger liknande räkningar) ger\n{ \\frac { d t } { d x } } = 3 x ^ { 2 } \\Leftrightarrow d t = 3 x ^ { 2 } d x \\quad { \\mathrm { ~ o c h ~ } } \\quad \\int { \\frac { 3 x ^ { 2 } } { ( 1 + x ^ { 3 } ) ^ { 2 } } } d x = \\int { \\frac { d t } { t ^ { 2 } } } .\n(c) - { \\frac { 1 } { 1 + x ^ { 3 } } } + C .\n(d) x ^ { 4 } { \\mathrm { ~ { \\ddot { a } } r ~ ' n { \\ddot { a } } s t a n ' } } derivatan av x ^ { 5 } då derivatan av x ^ { 5 } är en konstant gånger x ^ { 4 }\n(e) \\int x ^ { 4 } \\cos ( x ^ { 5 } ) d x = { \\frac { 1 } { 5 } } \\int 5 x ^ { 4 } \\cos ( x ^ { 5 } ) dx. Sätt sedan t = x ^ { 5 }\n(f) \\int x^{4} \\cos(x^{5}) dx = \\frac{1}{5} \\int \\cos t dt = \\frac{1}{5} \\sin(x^{5}) + C. (g) e ^ { \\sin x } + C .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "5.6",
+    "problemText": "(a) \\frac{1}{12}\\left(1+x^{2}\\right)^{6}+C (b) { \\frac { 1 } { 2 } } e ^ { x ^ { 2 } } + C (c) \\frac{1}{2}(\\ln x)^{2}+C (d) \\ln ( 2 + e ^ { x } ) + C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 22
+  },
+  {
+    "problemNumber": "5.7",
+    "problemText": "(a) f(x)=\\frac{1}{2}e^{2x}+\\frac{x^{3}}{3}-\\frac{x^{2}}{2}-\\frac{1}{2} (b) f(x)=-\\frac{1}{12\\left ( 2+3x^{2} \\right ) ^{2} } +1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 22
+  },
+  {
+    "problemNumber": "5.8",
+    "problemText": "(a) -(x + 1)e^{-x} + C\n(b) \\frac{x}{2}\\sin 2x+\\left(\\frac{1}{4}-\\frac{x^{2}}{2}\\right)\\cos 2x+C\n(c) \\frac{x^{2}\\ln\\left | x \\right | }{2}-\\frac{x^{2}}{4}+C\n(d) x \\left( \\left( \\ln x \\right)^{2} - 2\\ln x + 2 \\right) + C\n(e) ( x - 1 ) e ^ { x } + \\frac { x ^ { 2 } } { 4 } ( 2 \\operatorname { l n } x - 1 ) + C .\n(f) x\\arctan x-\\frac{\\ln\\left ( 1+x^{2} \\right ) }{2} +C\n(g) x\\arcsin x+\\sqrt{1-x^{2}}+C\n(h) \\frac{\\ln \\left( 1 + \\sin^{2}x \\right)}{2} + C\n(i) - \\ln \\left| \\cos x \\right| + C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 22
+  },
+  {
+    "problemNumber": "5.9",
+    "problemText": "P 5.9 Beräkna \\int ( 4 x ^ { 2 } - 4 x + 6 ) e ^ { - 2 x } dx genom att först göra variabelbytet - 2 x = t .\nP 5.9 \\left( - 2x^{2} - 3 \\right)e^{- 2x} + C\n{ \\frac { x ^ { 2 } e ^ { x ^ { 2 } } } { 2 } } + C\n(b) \\frac{x^{3}\\sin x^{3}+\\cos x^{3}}{3}+C\n(c) \\frac{4}{15}(1+\\sqrt{x})^{3/2}(3\\sqrt{x}-2)+C. (d) (2\\sqrt{x} - 2)e^{\\sqrt{x}} + C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "5.10",
+    "problemText": "P 5.10 Räkna ut\n(a) \\int \\left( x^{3} + x \\right) e^{x^{2}} dx (b) \\int x ^ { 5 } \\cos x ^ { 3 } d x (c) \\int \\sqrt{1 + \\sqrt{x}} dx (d) \\int e ^ { { \\sqrt { x } } } d x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "5.11",
+    "problemText": "P 5.11 Antag att f är definierad på ett intervall. Visa att om F och G är två primitiva funktioner till f så är F(x) = G(x) \\bar{} + C för någon konstant C.\nPrimitiva funktioner",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "5.12",
+    "problemText": "P 5.12 Linnéa gör följande kalkyl:\n\\begin{aligned} \\int \\cos x \\sin x dx \\quad &= \\quad \\left/ P.I. \\right/ = \\sin x \\sin x - \\int \\sin x \\cos x dx \\\\&\\quad = \\quad \\left/ P.I. \\right/ = \\sin x \\sin x - \\left( \\left( - \\cos x \\right) \\cos x - \\int \\left( - \\cos x \\right) \\left( - \\sin x \\right) dx \\right) \\\\&\\quad = \\quad \\sin^2 x + \\cos^2 x + \\int \\cos x \\sin x dx \\\\&\\quad = \\quad 1 + \\int \\cos x \\sin x dx.\\\\ \\end{aligned}\nUr detta drar hon slutsatsen att \\int \\cos x \\sin x dx = 1 + \\int cos x sin x dx, d.v.s. 0 = 1. Förklara var Linnéa tänkt fel!\nP 5.12 Vad betyder cos x sin x dx?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.13",
+    "problemText": "P 5.13 Bestäm f(x) så att f ^ { \\prime } ( x ) = x e ^ { { \\sqrt { x } } } för x > 0 och f ( 1 ) = 0\nP 5.13 f(x) = \\big(2x\\sqrt{x} - 6x + 12\\sqrt{x} - 12\\big)e^{\\sqrt{x}} + 4e",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.14",
+    "problemText": "P 5.14 Följande uttryck ska partialbråksuppdelas. Ange hur en korrekt ansats ska se ut. (a) \\frac{1}{(x - 1)(x + 1)} (b) \\frac{3x - 1}{x^{2}(x^{2} + 1)} (c) \\frac{2x + 3}{(x + 4)^{2}} (d) \\frac{3}{(x + 4)^{2}} (e) \\frac{x^{2}-2x+1}{(x+2)^{3}(x-3)^{2}} (f) \\frac{2x - 4}{(x^2 + x + 5)^2(x - 4)}\n(a) \\frac{A}{x - 1} + \\frac{B}{x + 1} (b) \\frac{A}{x} + \\frac{B}{x^2} + \\frac{Cx + D}{\\left( x^2 + 1 \\right)}\n(c) \\frac{A}{x + 4} + \\frac{B}{(x + 4)^2}\n(d) Detta uttryck är redan partialbråksuppdelat så långt det är möjligt\n\\frac{A}{x + 2} + \\frac{B}{(x + 2)^2} + \\frac{C}{(x + 2)^3} + \\frac{D}{x - 3} + \\frac{E}{(x - 3)^2}\n(f) \\frac{Ax + B}{x^{2} + x + 5} + \\frac{Cx + D}{(x^{2} + x + 5)^{2}} + \\frac{E}{x - 4}\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.15",
+    "problemText": "P 5.15 Partialbråksuppdela \\frac { x + 2 } { x ^ { 3 } - 1 }\nP 5.15 \\frac{1}{x - 1} - \\frac{x + 1}{x^{2} + x + 1}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.16",
+    "problemText": "P 5.16 Linus har just lärt sig handpåläggning och kommer fram till att\n\\frac{x^{2}-x-3}{(x-1)(x+2)}=-\\frac{1}{x-1}-\\frac{1}{x+2}.\nLinnéa hävdar dock att svaret inte stämmer. Vem har rätt?\nP 5.16 Linnéa har rätt, men varför blev det fel i Linus kalkyl?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.17",
+    "problemText": "P 5.17 Bestäm alla primitiva funktioner till (a) \\frac { x ^ { 4 } } { x ^ { 2 } + 1 } (b) \\frac{1 - x^{2}}{4 + x^{2}} (c) \\frac{x^{3}+5x^{2}+2x-1}{x+3} (d) \\frac{2x - 3}{x^{2} + 4x + 13} (e) \\frac { 1 } { x ^ { 2 } - 1 } (f) \\frac{x^{3}}{x^{2}-x-2}\n(a) \\frac{x^{3}}{3}-x+\\arctan x+C (b) -x+\\frac{5}{2}\\arctan\\frac{x}{2}+C.\n(c) \\frac{x^{3}}{3}+x^{2}-4x+11\\ln\\left | x+3 \\right | +C\n(d) \\ln \\left( x ^ { 2 } + 4 x + 1 3 \\right) - \\frac { 7 } { 3 } \\arctan \\frac { x + 2 } { 3 } + C\n(e) \\frac{\\ln \\left | x - 1\\right | }{2} - \\frac{\\ln \\left | x + 1\\right | }{2} + C\n(f) \\frac{x^{2}}{2}+x+\\frac{\\ln \\left | x+1\\right | }{3}+\\frac{8\\ln \\left | x-2\\right | }{3}+C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.18",
+    "problemText": "P 5.18 Bestäm den primitiva funktion f på ] 1 , \\infty [ till \\frac{1}{1 + x} + \\frac{1}{1 - x} + \\frac{1}{1 + x^{2}} som uppfyller villkoret f ( x ) \\rightarrow 0 då x \\to \\infty\nP 5.18 f(x)=\\ln\\frac{1+x}{x-1}+\\arctan x-\\frac{\\pi}{2} , x > 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.19",
+    "problemText": "P 5.19 Beräkna\n(a) \\int \\frac{x}{(x + 1)^3} dx\n(b) \\int \\frac{x^{2}}{x^{4} - 8x^{2} + 16} dx\n(c) \\int \\frac{dx}{\\left( x^{2} - 1 \\right)^{2}}\n(d) \\int \\frac{dx}{(x + 1)(x + 2)^2(x + 3)^3}\n(e) \\int \\frac{dx}{x^{3} + 2x^{2} + 5x}\n(f) \\int \\frac{2x}{(x^2 + 4)(x^2 + 2x + 4)} dx.\n(g) \\int \\frac{x^{5} + x^{3} - 5x^{2} - 3x + 12}{x^{3} + x - 10} dx\n(h) \\int \\frac{dx}{\\left( x^{2} + 2 \\right)^{2}}\n(i) \\int \\frac{3 - x^{2}}{\\left( x^{2} + 2x + 3 \\right)^{2}} dx\n(a) \\frac{1}{2(x + 1)^{2}} - \\frac{1}{x + 1} + C\n- \\frac { 1 } { 4 ( x - 2 ) } - \\frac { 1 } { 4 ( x + 2 ) } + \\frac { \\operatorname { l n } | x - 2 | } { 8 } - \\frac { \\operatorname { l n } | x + 2 | } { 8 } + C .\n- \\frac { 1 } { 4 ( x + 1 ) } - \\frac { 1 } { 4 ( x - 1 ) } + \\frac { \\operatorname { l n } | x + 1 | } { 4 } - \\frac { \\operatorname { l n } | x - 1 | } { 4 } + C .\n\\frac { \\operatorname { l n } | x + 1 | } { 8 } + 2 \\operatorname { l n } | x + 2 | - \\frac { 1 7 \\operatorname { l n } | x + 3 | } { 8 } + \\frac { 1 } { x + 2 } + \\frac { 1 } { 4 ( x + 3 ) ^ { 2 } } + \\frac { 5 } { 4 ( x + 3 ) } + C .\n\\frac{\\ln \\left | x\\right | }{5}-\\frac{\\ln \\left ( x^{2}+2x+5 \\right ) }{10}-\\frac{1}{10}\\arctan \\frac{x+1}{2}+C\n\\frac{1}{2}\\arctan\\frac{x}{2}-\\frac{1}{\\sqrt{3}}\\arctan\\frac{x+1}{\\sqrt{3}}+C.\n\\frac { x ^ { 3 } } { 3 } + 2 \\operatorname { l n } | x - 2 | + \\frac { 3 } { 2 } \\operatorname { l n } \\left( x ^ { 2 } + 2 x + 5 \\right) - 2 \\operatorname { a r c t a n } \\frac { x + 1 } { 2 } + C .\n(h) \\frac{x}{4\\left ( x^{2} + 2 \\right ) } + \\frac{\\sqrt{2}}{8}\\arctan\\frac{x}{\\sqrt{2}} + C.\n(i) \\frac{x}{x^{2} + 2x + 3} + C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.20",
+    "problemText": "P 5.20 Bestäm f(x) för x > 1 så att f^{\\prime}(x)=\\frac{x^{2}+x-1}{x^{3}(x-1)^{2}}\\ \\mathrm{och}\\ f(2)=0\nP 5.20 f(x)=\\frac{1}{x}-\\frac{1}{x-1}+\\frac{1}{2x^{2}}+\\frac{3}{8}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.21",
+    "problemText": "P 5.21 Bestäm alla primitiva funktioner till (a) \\frac{1}{x^{3}+2x^{2}+x} (b) { \\frac { 1 } { \\left( x ^ { 2 } + 1 \\right) ^ { 3 } } } .\nProblem\n(a) \\frac{1}{x + 1} - \\ln |x + 1| + \\ln |x| + C (b) \\frac{x}{4\\left(x^{2}+1\\right)^{2}}+\\frac{3x}{8\\left(x^{2}+1\\right)}+\\frac{3}{8}\\arctan x+C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "5.22",
+    "problemText": "P 5.22 Funktionerna A, B, C, D, E nedan är primitiva funktioner till funktionerna f, g, h, k, l. Matcha rätt funktion med rätt primitiv. Ge argument som visar att din matchning är korrekt.\nDu bör kunna lösa uppgiften utan att genomföra några explicita beräkningar, givet informationen att varje funktion i den högra kolumnen är primitiv till en av funktionerna i den vänstra.\nf(x) = (x^2 - 2)^6\nA(x)=\\frac{3x^{4}+5x^{2}}{(x^{2}+1)^{2}}+3\\arctan x\ng ( x ) = ( x ^ { 2 } + 2 ) ^ { 6 } \\quad B ( x ) = \\frac { 3 x ^ { 3 } + 5 x } { ( x ^ { 2 } + 1 ) ^ { 2 } } + 3 \\arctan x\nh ( x ) = \\frac { 8 } { ( 1 + x ^ { 2 } ) ^ { 3 } } \\quad C ( x ) = \\frac { \\overset { \\cdot } { x } ^ { 1 3 } } { 1 3 } - \\frac { \\overset { \\cdot } { 1 } 2 x ^ { 1 1 } } { 1 1 } + \\frac { 2 0 x ^ { 9 } } { 3 } - \\frac { 1 6 0 x ^ { 7 } } { 7 } + 4 8 x ^ { 5 } - 6 4 x ^ { 3 } + 6 4 x\nk ( x ) = \\frac { \\overset { \\cdot } { 8 } x ^ { 2 } - \\overset { \\cdot } { 4 } } { ( x ^ { 2 } - 1 ) ^ { 2 } } \\quad D ( x ) = \\frac { x ^ { 1 3 } } { 1 3 } + \\frac { 1 2 x ^ { 1 1 } } { 1 1 } + \\frac { 2 0 x ^ { 9 } } { 3 } + \\frac { 1 6 0 x ^ { 7 } } { 7 } + 4 8 x ^ { 5 } + 6 4 x ^ { 3 } + 6 4 x\nl ( x ) = \\frac { 3 \\dot { x } ^ { 4 } + 2 \\dot { x } ^ { 3 } + 6 x ^ { 2 } + 1 0 x + 3 } { ( x ^ { 2 } + 1 ) ^ { 3 } } \\ E ( x ) = 3 \\operatorname { l n } | x - 1 | - 3 \\operatorname { l n } | x + 1 | - \\frac { 2 x } { x ^ { 2 } - 1 }\nTips: Derivatan av en udda funktion är jämn; derivatan av en jämn funktion är udda ( f u n - dera själv över varför det är så).\nP 5.22 f – C, g – D, h – B, k – E, l – A.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.23",
+    "problemText": "P 5.23 Räkna ut (a) \\int \\frac{\\ln \\left( 1 + x^{2} \\right)}{x^{3}} dx (b) \\int \\frac{x \\arctan x}{\\left( x^{2} + 2 \\right)^{2}} dx.\n(a) \\ln \\left | x \\right | - \\frac{1 + x^{2}}{2x^{2}}\\ln \\left ( 1 + x^{2} \\right ) + C (b) \\frac{x^{2}+1}{2\\left ( x^{2}+2 \\right ) }\\arctan x-\\frac{1}{2\\sqrt{2} }\\arctan \\frac{x}{\\sqrt{2} }+C.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.24",
+    "problemText": "P 5.24 Räkna ut\n(a) \\int { \\frac { d x } { e ^ { x } + e ^ { - x } } }\n\\text { (b) } \\int \\frac{dx}{x\\left(1+x^{n}\\right)} \\text { f ì r } x>0\n(c) \\int x \\big ( ( \\operatorname { l n } x ) ^ { 2 } + e ^ { - 2 x } \\big ) { \\mathop { } { d } } x\n\\left( \\mathrm{d} \\right) \\int x \\left( \\ln(x^2 + 1) - x^2 \\right) dx\nP 5.24 (a) \\arctan e ^ { x } + C\n\\ln x-\\frac{1}{n}\\ln\\left(1+x^{n}\\right)+C \\text { on } n \\neq 0, \\frac{1}{2}\\ln x \\text { on } n=0\n\\frac { x ^ { 2 } } { 4 } \\left( 2 ( \\operatorname { l n } ( x ) ) ^ { 2 } - 2 \\operatorname { l n } x + 1 \\right) - \\frac { 2 x + 1 } { 4 } e ^ { - 2 x } + C .\n(d) \\frac{x^{2}+1}{2}\\ln\\left(x^{2}+1\\right)-\\frac{x^{4}}{4}-\\frac{x^{2}}{2}+C.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.25",
+    "problemText": "P 5.25 Bestäm f(x) för x > 1 så att f^{\\prime}(x) = \\frac{3x^{2} - 6x + 1}{(x - 1)^{2}(x^{2} + 1)} och \\operatorname* { l i m } _ { x \\to \\infty } f ( x ) = 0\nP 5.25 f(x)=\\frac{1}{x-1}+\\ln(x-1)-\\frac{1}{2}\\ln\\left(x^{2}+1\\right)+3\\arctan x-\\frac{3\\pi}{2}\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.26",
+    "problemText": "P 5.26 Beräkna\n(a) \\int \\frac{\\sin x \\cos x}{2 - \\sin^2 x} dx (b) \\int \\sin ^ { 4 } x d x (c) \\int \\sin ^ { 5 } x d x (d) \\int { \\frac { d x } { \\cos x } }\n(e) \\int e^{\\sin x} \\sin 2x dx (f) \\int \\sin ^ { 3 } x \\cos ^ { 4 } x d x (g) \\int \\frac{\\sin 3x}{\\sin 2x} dx (h) \\int { \\frac { d x } { \\sin ^ { 3 } x } }\n(i) \\int \\sin x \\sin 2x \\sin 3x dx (j) \\int \\frac{dx}{\\left( 1 + \\cos x \\right)^{2}} (k) \\int { \\frac { d x } { 1 + \\sin x } } (l) \\int { \\frac { d x } { 2 + \\sin x } }\n(a) -\\frac{\\ln\\left(2-\\sin^{2}x\\right)}{2}+C.\n\\begin{aligned} (b) \\frac{3x}{8} - \\frac{\\sin 2x}{4} + \\frac{\\sin 4x}{32} + C.\\end{aligned}\n\\left( c \\right) \\: - \\operatorname { c o s } x + \\frac { 2 } { 3 } \\operatorname { c o s } ^ { 3 } x - \\frac { 1 } { 5 } \\operatorname { c o s } ^ { 5 } x + C \\nonumber \\operatorname { e l l e r } \\: - \\frac { \\operatorname { c o s } 5 x } { 8 0 } + \\frac { 5 \\operatorname { c o s } 3 x } { 4 8 } - \\frac { 5 \\operatorname { c o s } x } { 8 } + C\n\\begin{aligned} (d) \\frac{1}{2}\\ln(1 + \\sin x) - \\frac{1}{2}\\ln(1 - \\sin x) + C either \\ln\\left|1 + \\tan\\frac{x}{2}\\right| - \\ln\\left|1 - \\tan\\frac{x}{2}\\right| + C.\\end{aligned}\n(e) $2 ( \\sin x - 1 ) e ^ { \\sin x } + C$\n\\left( f \\right) \\; \\frac{\\cos^{7}x}{7} - \\frac{\\cos^{5}x}{5} + C \\; either \\; \\frac{\\cos 7x}{448} + \\frac{\\cos 5x}{320} - \\frac{\\cos 3x}{64} - \\frac{3\\cos x}{64} + C.\n\\begin{aligned} (g) 2\\sin x + \\frac{1}{4}\\ln(1 - \\sin x) - \\frac{1}{4}\\ln(1 + \\sin x) + C.\\end{aligned}\n(h) -\\frac{\\cos x}{2\\sin^{2}x} + \\frac{1}{4}\\ln(1 - \\cos x) - \\frac{1}{4}\\ln(1 + \\cos) + C.\n\\left( i \\right) \\frac{3\\sin^{4}x}{2}-\\frac{4\\sin^{6}x}{3}+C \\text { either } \\frac{\\cos 6x}{24}-\\frac{\\cos 4x}{16}-\\frac{\\cos 2x}{8}+C.\n\\left( j \\right) \\frac{\\sin x}{3(1 + \\cos x)^2} + \\frac{\\sin x}{3(1 + \\cos x)} + C \\text { either } \\frac{1}{6} \\tan^3 \\frac{x}{2} + \\frac{1}{2} \\tan \\frac{x}{2} + C.\n(k) -\\frac{2}{1+\\tan\\frac{x}{2}}+C\n\\left( l \\right) \\frac{2}{\\sqrt{3}}\\arctan\\frac{\\overline{2\\tan\\frac{x}{2}+1}}{\\sqrt{3}}+C.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.27",
+    "problemText": "P 5.27 Bestäm f(x) då f^{\\prime}(x) = \\frac{\\sin^{3}x}{\\cos^{5}x} , f(0) = 0.\nP 5.27 f(x)=\\frac{1}{4\\cos^{4}x}-\\frac{1}{2\\cos^{2}x}+\\frac{1}{4}=\\frac{\\tan^{4}x}{4}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.28",
+    "problemText": "P 5.28 Använd t.ex. Eulers formler eller partiell integration för att räkna ut\n(a) Z sin 3x sin 4x dx (b) \\int e ^ { x } \\sin x d x (c) \\int x e ^ { - x } cos x dx\nP 5.28 (a) { \\frac { 3 } { 7 } } \\cos 3 x \\sin 4 x - { \\frac { 4 } { 7 } } \\sin 3 x \\cos 4 x + C { \\mathrm { ~ e l l e r ~ } } { \\frac { \\sin x } { 2 } } - { \\frac { \\sin 7 x } { 1 4 } } + C .\n\\begin{aligned} (b) \\frac{1}{2}(\\sin x - \\cos x)e^{x} + C.\\end{aligned}\n\\begin{aligned} (c) \\frac{1}{2} \\left( (x + 1) \\sin x - x \\cos x \\right) e^{-x} + C.\\end{aligned}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.29",
+    "problemText": "P 5.29 Beräkna \\int e ^ { a x } sin bx dx då a och b är positiva konstanter.\nP 5.29 \\left( \\frac{a}{a^{2} + b^{2}}\\sin bx - \\frac{b}{a^{2} + b^{2}}\\cos bx \\right)e^{ax} + C. om a ^ { 2 } + b ^ { 2 } \\neq 0 . Hur blir det om a = b = 0 ?\n\\begin{aligned}\\text { P } \\mathbf { 5 . 3 0 } \\left( a \\right) & 4 x + 3 \\ln \\left| \\tan \\frac { x } { 2 } - 2 \\right| + 3 \\ln \\left| \\tan \\frac { x } { 2 } + \\frac { 1 } { 2 } \\right| - 3 \\ln \\left( 1 + \\tan ^ { 2 } \\frac { x } { 2 } \\right) + C \\\\& = 4 x + 3 \\ln \\left| 4 \\cos x + 3 \\sin x \\right| + D\\end{aligned}\n\\begin{aligned} (b) \\frac{x}{12} \\left( \\cos 3x - 9 \\cos x \\right) + \\frac{1}{36} \\left( 27 \\sin x - \\sin 3x \\right) + C.\\end{aligned}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.30",
+    "problemText": "P 5.30 Beräkna (a) \\int \\frac{25\\cos x}{4\\cos x + 3\\sin x} dx (b) \\int x \\sin ^ { 3 } x d x .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.31",
+    "problemText": "P 5.31 Beräkna \\int \\sqrt{1 - x^{2}} dx genom att\n(a) göra variabelbytet x = \\sin t \\mathrm { d \\ddot { a } r } - \\pi / 2 \\leq t \\leq \\pi / 2 (b) partialintegrera.\nPrimitiva funktioner\nP 5.31 \\frac{x\\sqrt{1 - x^{2}} + \\arcsin x}{2} + C\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 10
+  },
+  {
+    "problemNumber": "5.32",
+    "problemText": "P 5.32 Beräkna\n(a) \\int { \\frac { \\sqrt { x - 2 } } { x - 1 } } d x\n(b) \\int { \\frac { { \\sqrt [ 3 ] { x } } } { x - 1 } } d x .\n(c) \\int \\frac{dx}{\\sqrt{2x - x^{2}}}\n(d) \\int { \\sqrt { \\frac { x - 1 } { x + 2 } } } d x { \\mathrm { ~ f i r ~ } } x > 1\n(e) \\int { \\sqrt { \\frac { 1 + x } { 1 - x } } } d x { \\mathrm { ~ f i \\ddot { o } r ~ } } - 1 < x < 1 .\n(f) \\int \\frac{dx}{\\sqrt{x^{2} + 2x + 2}}\n(g) \\int \\sqrt{x^{2} + 2x + 2} dx\n(h) \\int \\frac{x}{\\sqrt{x^2 + 2x + 2}} dx\n(i) \\int \\sqrt{2x - x^{2}} dx\n(j) \\int \\frac{x - 4x^{2}}{\\sqrt{1 + x - x^{2}}} dx\n(k) \\int \\frac{dx}{x^{2}\\sqrt{x^{2} + 4}}\n(l) \\int \\frac{dx}{x\\sqrt{x^2 + 1}} dx\n(a) 2\\sqrt{x - 2} - 2\\arctan\\sqrt{x - 2} + C\n1 \u0010 √3x2 +√3 x + 1 \u0011−√3 a r c ta n2√3 x + 1 (b) 3 √3 x + ln√3 x − 1 − + C √3\n(c) \\arcsin ( x - 1 ) + C\n(d) \\sqrt{x^{2}+x-2}-3\\ln\\left(\\sqrt{x-1}+\\sqrt{x+2}\\right)+C\n(e) \\operatorname { a r c s i n } x - \\sqrt { 1 - x ^ { 2 } } + C { ~ } { \\operatorname { e l l e r } } { ~ } 2 \\operatorname { a r c t a n } \\sqrt { \\frac { 1 + x } { 1 - x } } - \\sqrt { 1 - x ^ { 2 } } + C .\n(f) ln \\left(x+1+\\sqrt{x^{2}+2x+2}\\right)+C\n\\frac{1}{2}(x + 1)\\sqrt{x^{2} + 2x + 2} + \\frac{1}{2}\\ln\\left( x + 1 + \\sqrt{x^{2} + 2x + 2} \\right) + C.\n(h) \\sqrt{x^{2}+2x+2}-\\ln\\left(x+1+\\sqrt{x^{2}+2x+2}\\right)+C.\n\\left( i \\right) \\frac{1}{2}(x - 1)\\sqrt{2x - x^{2}} + \\frac{1}{2}\\arcsin(x - 1) + C.\n\\begin{aligned}& (j) \\overset{2}{2}(x + 1)\\sqrt{1 + x - x^{2}} - 3\\arcsin\\frac{2x - 1}{\\sqrt{5}} + C.\\end{aligned}\n(k) -\\frac{\\sqrt{x^2 + 4}}{4x} + C\n(l) \\ln \\left| x \\right| \\stackrel{\\mathrm{i}x}{-\\ln \\left( 1+\\sqrt{x^{2}+1} \\right)} +C",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.33",
+    "problemText": "P 5.33 Räkna ut (a) \\int x \\sqrt{x^4 + 2x^2 + 3} dx (b) \\int \\cos x \\sqrt{\\cos 2x} dx.\n(a) \\frac{x^{2}+1}{4}\\sqrt{x^{4}+2x^{2}+3}+\\frac{1}{2}\\ln\\left(x^{2}+1+\\sqrt{x^{4}+2x^{2}+3}\\right)+C\n\\begin{aligned} (b) \\frac{1}{2}\\sin x\\sqrt{\\cos 2x} + \\frac{1}{2\\sqrt{2}}\\arcsin\\left( \\sqrt{2}\\sin x \\right) + C.\\end{aligned}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.34",
+    "problemText": "P 5.34 Bestäm f(x) så att f^{\\prime}(x) = (x + 1)\\sqrt{2x - x^{2}} och f ( 1 ) = 0 .\nP 5.34 f ( x ) = \\operatorname { a r c s i n } ( x - 1 ) + \\left( \\frac { x ^ { 2 } } { 3 } + \\frac { x } { 3 } - 1 \\right) \\sqrt { 2 x - x ^ { 2 } } + \\frac { 1 } { 3 } { ~ \\tilde { \\operatorname { f o r } } ~ } 0 < x < 2 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.35",
+    "problemText": "P 5.35 Bestäm f(x) för x > 0 så att f^{\\prime}(x)=\\sqrt{1+\\frac{1}{x}}\\ \\mathrm{och}\\ \\lim_{x \\to 0^{+}}f(x)=0.\nP 5.35 f(x)=\\sqrt{x^{2}+x}+\\frac{1}{2}\\ln\\left(x+\\frac{1}{2}+\\sqrt{x^{2}+x}\\right)+\\frac{\\ln2}{2}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.36",
+    "problemText": "P 5.36 Räkna ut\n(a) \\int \\frac{\\sin x}{\\sin x + \\cos x + 1} dx (b) \\int \\frac{dx}{\\sin x + \\cos x} (c) \\int \\frac{1 + \\sqrt{x + 1}}{1 - \\sqrt{x + 1}} dx.\n(d) \\int { \\frac { d x } { 1 + { \\sqrt [ 3 ] { x } } + { \\sqrt [ 6 ] { x } } } }\n\\int \\frac{dx}{\\left( 1 - x^{2} \\right)\\sqrt{1 + x^{2}}}\n(f) \\int \\frac{dx}{\\left( 1 + x^{2} \\right)\\sqrt{1 - x^{2}}}\n(a) \\frac{x}{2}-\\frac{\\ln(1+\\sin x)}{2}+C\n\\mathrm{(b)} \\frac{1}{\\sqrt{2}} \\ln \\left| \\tan \\left( \\frac{x}{2} + \\frac{\\pi}{8} \\right) \\right| + C.\n(c) $\\stackrel { \\triangledown } { - x } - 4 \\sqrt { x + 1 } - 4 \\ln \\left| \\sqrt { x + 1 } - 1 \\right| + C$\n\\begin{aligned} (d) \\frac{3}{2}x^{2/3} - 2x^{1/2} + 6x^{\\overset{\\cdot}{1/6}} - 3\\ln\\left( x^{1/3} + x^{1/6} + 1 \\right) - 2\\sqrt{3}\\arctan\\left( \\frac{2x^{1/6} + 1}{\\sqrt{3}} \\right) + C.\\end{aligned}\n\\left( \\mathrm{e} \\right) \\frac{1}{2\\sqrt{2}}\\ln\\left| \\frac{x\\sqrt{2} + \\sqrt{1 + x^{2}}}{x\\sqrt{2} - \\sqrt{1 + x^{2}}} \\right| + C.\n\\left( f \\right) \\; \\frac{1}{\\sqrt{2}} \\arctan \\left( \\frac{x \\sqrt{2}}{\\sqrt{1 - x^{2}}} \\right) + C.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.37",
+    "problemText": "P 5.37 Låt f vara den primitiva funktion till |sin x| som uppfyller villkoret f(-\\pi) = 0\n(a) Bestäm f(x) då x \\in [ - \\pi , \\pi ] . Var noga med att visa att f är en primitiv funktion. (b) Bestäm f(π).\n(a) f ( x ) = \\left\\{ \\begin{array} { l l } { 1 + \\cos x \\quad \\mathrm { o m } \\quad - \\pi \\leq x \\leq 0 } \\\\ { 3 - \\cos x \\quad \\mathrm { o m } \\quad 0 \\leq x \\leq \\pi } \\end{array} \\right. (b) f ( \\pi ) = 4",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.38",
+    "problemText": "P 5.38 För vilka konstanter a, b och c är \\int \\frac{ax^{2} + bx + c}{x^{3}(x - 1)^{2}} dx en rationell funktion?\nP 5.38 Precis då a, b och c uppfyller villkoret a + 2b + 3c = 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.39",
+    "problemText": "P 5.39 Antag att f^{\\prime}(x) = \\frac{2x - 1}{x^{2} - 3x + 2} för x < 1 och att f(x) där har minsta värdet 5.\nVisa att ekvationen f ( x ) = 9 har exakt två olika reella rötter x < 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.40",
+    "problemText": "P 5.40 Funktionen f är en primitiv funktion till ( 1 - x ^ { 2 } ) e ^ { - x } \\; , \\; x \\geq 0 , och \\lim_{x \\to \\infty} f(x) = 1 . Bestäm f _ { \\mathrm { m i n } } och f _ { \\mathrm { m a x } } om dessa existerar.\nP 5.40 f _ { \\mathrm { m i n } } saknas, f _ { \\operatorname* { m a x } } = f ( 1 ) = 1 + 4 / e",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.41",
+    "problemText": "P 5.41 Låt f vara den primitiva funktion till x ^ { 4 } \\sin ^ { 2 } x vars graf går genom punkten (1, 7). Ar ¨ f monoton?\nP 5.41 Ja",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.42",
+    "problemText": "P 5.42 Härled en primitiv funktion till \\frac{1}{\\sqrt{1 + x^{2}}} genom att göra variabelbytet x = \\sinh t = { \\frac { e ^ { t } - e ^ { - t } } { 2 } }\nP 5.42 \\ln \\left( x + { \\sqrt { 1 + x ^ { 2 } } } \\right)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.43",
+    "problemText": "P 5.43 Bestäm den primitiva funktion f till \\frac{1}{\\sqrt{x + \\sqrt[3]{x^{2}}}} som är sådan att \\lim_{x \\to 0} \\frac{f(x)}{\\sqrt[6]{x}} existerar (ändligt). Vad blir gränsvärdet?\nP 5.43 f ( x ) = 3 { \\sqrt [ 3 ] { x } } - 6 { \\sqrt [ 6 ] { x } } + 6 \\ln \\left( 1 + { \\sqrt [ 6 ] { x } } \\right) \\mathrm { ~ g e r ~ } \\operatorname* { l i m } _ { x \\to 0 } { \\frac { f ( x ) } { \\sqrt [ 6 ] { x } } } = 0 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "5.44",
+    "problemText": "P 5.44 Härled rekursionsformeln\n\\int \\sin ^ { n } x d x = - { \\frac { \\cos x \\sin ^ { n - 1 } x } { n } } + { \\frac { n - 1 } { n } } \\int \\sin ^ { n - 2 } x d x .\nför n = 2 , 3 , \\ldots . genom att partialintegrera \\int \\sin ^ { n } x d x = \\int \\sin x \\sin ^ { n - 1 } x d x\nHärled också motsvarande formel för \\int \\cos^{n} x dx.\nProblem\n6 Bestämda integraler\nP 5.44 \\int \\cos ^ { n } x d x = { \\frac { \\sin x \\cos ^ { n - 1 } x } { n } } + { \\frac { n - 1 } { n } } \\int \\cos ^ { n - 2 } x d x .\nSvar\nBestämda integraler",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 11
+  },
+  {
+    "problemNumber": "6.1",
+    "problemText": "P 6.1 Hur ser man lättast att påståendet \\int _ { 0 } ^ { 5 } e ^ { - x } \\operatorname { c o s } ( x ^ { 3 } ) d x = 1 måste vara falskt? Fundera över en figur!\nP 6.1 Kanske genom att använda att f ( x ) \\: \\leq \\: g ( x ) \\: \\Rightarrow \\: \\int _ { 0 } ^ { 5 } f ( x ) d x \\: \\leq \\: \\int _ { 0 } ^ { 5 } g ( x ) d x . Med hjälp av olikheten e ^ { - x } \\cos ( x ^ { 3 } ) \\leq e ^ { - x } (utöver \\cos ( x ^ { 3 } ) \\leq 1 använder vi också att e ^ { - x } > 0 ) finner vi att \\intop _ { 0 } ^ { 5 } e ^ { - x } \\operatorname { c o s } ( x ^ { 3 } ) d x \\leq \\intop _ { 0 } ^ { 5 } e ^ { - x } d x = 1 - e ^ { - 5 } < 1 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 12
+  },
+  {
+    "problemNumber": "6.2",
+    "problemText": "P 6.2 Kan du ange någon begränsad funktion på intervallet [0, 1] som inte är integrerbar (i Riemanns mening)?\nP 6.2 Det finns många. Standardexemplet brukar vara i stil med funktionen f som tar värdet f ( x ) = 1 om x är rationellt och f ( x ) = 0 om x är irrationellt. Då är varje undertrappa högst 0 och varje övertrappa minst 1 i varje punkt på [0, 1]. Tänk efter vad detta betyder i definitionen av integrerbarhet.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 12
+  },
+  {
+    "problemNumber": "6.3",
+    "problemText": "P 6.3 Vi ska beräkna \\int_{0}^{1} \\left( 1 + e^{-x} \\right)^{-1} dx med hjälp av ett variabelbyte.\n(a) Använd omskrivningar för att visa att \\int_{0}^{1} \\left( 1 + e^{-x} \\right)^{-1} dx = \\int_{0}^{1} \\frac{e^{x}}{e^{x} + 1} dx.\n(b) Observera att faktorn e ^ { x } \\mathrm { ~ i ~ } täljaren är derivatan av uttrycket e ^ { x } \\mathrm { ~ i ~ } nämnaren. Vilken ny variabel t kan det alltså löna sig att byta till? Hur ser sambandet mellan dt och dx ut om du gör detta byte?\n(c) När vi jobbar med bestämda integraler måste vi komma ihåg att gränserna ändras vid variabelbyten. Beräkna alltså de t-värden som svarar mot x-värdena 0 resp. 1 om t är variabeln från (b).\n(d) Hur ser \\int_{0}^{1} \\left( 1 + e^{-x} \\right)^{-1} dx ut efter att du gjort bytet i (b)? Räkna inte ut integralen ännu!\n(e) Vilken integral får du om du istället gör bytet s = 1 + e ^ { x } ?\n(f) Beräkna integralerna från (d) och (e). Observera att de måste bli lika eftersom båda är lika med vår sökta integral \\int _ { 0 } ^ { 1 } \\left( 1 + e ^ { - x } \\right) ^ { - 1 } d x .\n(b) t = e ^ { x } och d t = e ^ { x } d x (c) t = e ^ { 0 } = 1 när x = 0 och t = e ^ { 1 } = e då x = 1 (d) \\int _ { 0 } ^ { 1 } \\left( 1 + e ^ { - x } \\right) ^ { - 1 } d x = \\int _ { 1 } ^ { e } \\frac { d t } { 1 + t } . (e) \\int _ { 0 } ^ { 1 } \\left( 1 + e ^ { - x } \\right) ^ { - 1 } d x = \\int _ { 2 } ^ { e + 1 } \\frac { d s } { s } . (f) ln \\frac { e + 1 } { 2 } P 6.4 (a) \\frac { e ^ { 2 } - 1 } { 2 } (b) \\frac { 2 7 } { 1 0 } (c) ln 2 (d) \\frac{(\\ln 3)^{2}}{2} (e) \\frac{94\\sqrt{2}-56}{15} (f) \\frac{48\\sqrt{3}-4\\sqrt{2}}{15} (g) \\frac { 5 ^ { 1 8 } - 3 ^ { 1 8 } } { 3 6 } (h) \\ln { \\frac { 1 + { \\sqrt { 5 } } } { 2 } } (i) 0 (j) { \\frac { 1 } { 3 } } \\ln { \\frac { 5 } { 2 } } (k) \\frac{\\pi}{2} (l) \\frac{2}{3}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 12
+  },
+  {
+    "problemNumber": "6.4",
+    "problemText": "P 6.4 Räkna ut följande integraler.\n(a) \\int _ { 0 } ^ { 1 } e ^ { 2 x } d x (b) \\int_{1}^{2} \\left( x^{4} - 3x + 1 \\right) dx (c) \\int_{0}^{1} \\frac{2x}{x^2 + 1} dx (d) \\int _ { 1 } ^ { 3 } { \\frac { \\ln x } { x } } d x\n(e) \\int_{1}^{2} \\frac{(x + 1)^2}{\\sqrt{x}} dx (f) \\int_{0}^{2} \\sqrt{5x + 2} dx (g) \\int_{1}^{2} (1 + 2x)^{17} dx (h) \\int_{0}^{1}\\frac{dx}{\\sqrt{x^{2}+4}}\n(i) \\int_{0}^{\\sqrt{\\pi}} x \\cos x^2 dx (j) \\int_{0}^{\\pi / 2} \\frac{\\cos x}{2 + 3\\sin x} dx (k) \\int_{0}^{\\pi} \\sin^{2} x dx (l) \\int_{0}^{\\pi / 2} \\cos^3 x dx",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 12
+  },
+  {
+    "problemNumber": "6.5",
+    "problemText": "P 6.5 För n \\geq 2 och k \\in \\{ 1 , \\ldots , n \\} , låt R _ { k } ^ { n } beteckna rektangeln med hörn i punkterna\n\\left( \\frac{k - 1}{n}, 0 \\right), \\quad \\left( \\frac{k}{n}, 0 \\right), \\quad \\left( \\frac{k - 1}{n}, \\frac{k}{n} \\right) \\quad \\mathrm{och} \\quad \\left( \\frac{k}{n}, \\frac{k}{n} \\right)\ni xy-planet.\n(a) För vardera n = 2 , 3 , 4 , rita rektanglarna R _ { k } ^ { n } , k = 1 , \\ldots , n \\vdots samma figur. Tre figurer totalt, alltså.\n(b) Vad är arean a ( n , k ) av rektangeln R _ { k } ^ { n } ?\n(c) Beräkna \\sum _ { k = 1 } ^ { 3 } a ( 3 , k )\n(d) Beräkna \\sum _ { k = 1 } ^ { n } a ( n , k )\nTips: Påminn dig, vid behov, om formeln för aritmetisk summa från grundkursen.\n(e) Bestäm \\lim_{n \\to \\infty} \\sum_{k=1}^{n} a(n,k) . Vad är den geometriska betydelsen av ditt resultat? Hur kan du se att ditt svar är rimligt, utan att kontrollera facit?\nBestämda integraler\n(a) n = 2 ;\n(b) \\frac { k } { n ^ { 2 } } (c) \\frac{2}{3} (d) \\frac { n + 1 } { 2 n } (e) \\frac { 1 } { 2 }",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_26_image_7.jpg",
+        "subproblemLetter": "a"
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 12
+  },
+  {
+    "problemNumber": "6.6",
+    "problemText": "P 6.6 Visa, genom att skatta uppåt och nedåt med lämpliga trappfunktioner, att\n\\frac{1}{3} \\leq \\int_{0}^{1} \\sqrt{\\frac{3}{3 + 16x + 8x^3}} dx \\leq \\frac{3}{4}.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.7",
+    "problemText": "P 6.7 Tack vare monotonitetsegenskapen (vad säger den?) behöver vi inte alltid skatta med trappfunktioner. Vi kan också skatta integraler med andra integraler.\n(a) Antag att 0 \\leq x \\leq 1 . Ordna uttrycken 0 , x ^ { 2 } och x ^ { 4 } efter storlek.\n(b) Vilken olikhetskedja ger detta för funktionerna 1, { \\frac { 1 } { 1 + x ^ { 2 } } } { \\mathrm { ~ o c h ~ } } { \\frac { 1 } { 1 + x ^ { 4 } } } då 0 \\leq x \\leq 1 ?\n(c) Vad säger detta om \\int_{0}^{1}\\frac{dx}{1 + x^{4}} ?\n(d) Visa på liknande sätt att 1 \\leq \\int_{0}^{1} \\sqrt{1 + \\sin x} dx \\leq \\frac{4\\sqrt{2} - 2}{3} (\\approx 1 , 219) .\n(e) Visa att skattningen nedåt kan skärpas till \\int_{0}^{1} \\sqrt{1 + \\sin x} dx \\geq \\sqrt{6} - \\frac{4}{3} (\\approx 1,116)\n(a) 0 \\leq x ^ { 4 } \\leq x ^ { 2 } (b) \\frac{1}{1 + x^{2}} \\leq \\frac{1}{1 + x^{4}} \\leq 1 (c) \\frac{\\pi}{4} \\leq \\int_{0}^{1} \\frac{dx}{1 + x^4} \\leq 1\n(d) Ledning: sin x \\leq x för x \\geq 0 (e) Ledning: tan x \\geq x för 0 \\leq x < \\frac{\\pi}{2} . Hur stor är 1 radian?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.8",
+    "problemText": "P 6.8 Vilket av talen - \\pi / 6 , \\; 0 , \\; 2 / 5 , \\; \\sqrt { \\pi } är en rimlig approximation av \\int_{0}^{\\sqrt{2\\pi}} \\sin(x^2) dx ?\nTips 1: Skissa (något sånär noggrant) funktionen, och gissa utifrån detta ett",
+    "answerText": "Försök sedan att finna skäl till varför de övriga alternativen är orimliga. Tips 2: Gör skissen för hand, det är en bra övning!\nP 6.8 2/5",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.9",
+    "problemText": "P 6.9 Formulera integralkalkylens medelvärdessats. Rita också en figur som illustrerar innehållet i satsen.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.10",
+    "problemText": "P 6.10 Bestäm f ^ { \\prime } ( x ) då (a) f(x) = \\int_{0}^{x} t^{2} \\ln(t + 1) dt , x > -1 (b) f(x) = \\int_{x}^{1} \\frac{t^4}{t^2 + 1} dt ( \\mathrm { c } ) f ( x ) = \\int _ { 0 } ^ { 1 } e ^ { t ^ { 2 } } d t , x \\in \\mathbb { R } . (d) f(x) = \\int_{x}^{x^{2}} \\frac{e^{t}}{t} dt , x > 0\n(a) x ^ { 2 } \\ln ( x + 1 ) (b) - { \\frac { x ^ { 4 } } { x ^ { 2 } + 1 } } (c) 0 (d) \\frac{2e^{x^{2}}-e^{x}}{x}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.11",
+    "problemText": "P 6.11 Skissa grafen y \\; = \\; \\int_{-1}^{x} f(t) dt, \\; \\; x \\; \\in \\; [-1,1] \\; . , då funktionen f \\quad \\mathrm { g e s } \\quad \\mathrm { a v } , i tur och ordning, nedanstående figurer:",
+    "answerText": "",
+    "questionImages": [
+      {
+        "path": "images/page_13_image_15.jpg",
+        "subproblemLetter": ""
+      },
+      {
+        "path": "images/page_13_image_16.jpg",
+        "subproblemLetter": ""
+      }
+    ],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.12",
+    "problemText": "P 6.12 Beräkna lim \\int _ { \\epsilon } ^ { 2 \\epsilon } \\frac { d x } { \\ln ( 1 + x ) } ǫ→0\nProblem\nP 6.12 ln 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "6.13",
+    "problemText": "P 6.13 Beräkna\n(a) \\int_{0}^{2\\pi} \\left| \\sin x \\right| dx\n(b) \\int_{0}^{2} \\left| x^{3} - 1 \\right| dx\n(c) \\int_{0}^{\\pi}\\sin x\\left|\\cos x\\right| dx\n(d) \\int_{-1}^{2} \\left( \\left| x \\right|^{3} + \\left| x \\right|^{2} \\right) dx (e) \\int_{0}^{10} \\left( |x| + |x - 1| + |x - 2| \\right) dx\n(a) 4 (b) 7 / 2 (c) 1 (d) 2 9 / 4 (e) 125 P 6.14 (a) -\\frac{2}{\\pi^{2}} (b) \\frac { 5 e ^ { 3 } - 2 } { 2 7 } (c) 2\\sqrt{2}\\ln 2-4\\sqrt{2}+4 (d) 9 9 \\ln 3 - 3 4 (e) \\frac{2}{\\pi} - \\frac{8}{\\pi^{3}} (f) 3e^{5}-2e^{3}+6e^{2}-7e (g) 1 (h) 2 \\ln { \\frac { 1 + { \\sqrt { 2 } } } { 2 } } (i) 2\\sqrt{3}-\\frac{2\\pi}{3} (j) 6 \\cos 1 - 3 \\sin 1 (k) 0 (l) \\frac { 1 } { 4 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.14",
+    "problemText": "P 6.14 Räkna ut\n(a) \\int_{0}^{1} x^{2} \\cos \\pi x dx (b) \\int _ { 0 } ^ { 1 } x ^ { 2 } e ^ { 3 x } d x . (c) \\int_{1}^{2} \\frac{\\ln x}{\\sqrt{x}} dx\n(d) \\int_{1}^{3} \\left( 9x^{2} + 4x \\right) \\ln x dx\n(e) \\int_{0}^{2} \\left( x^{2} - x \\right) \\left| \\sin \\pi x \\right| dx\n(f) \\int_{1}^{5} \\left| x^{2} - 5x + 6 \\right| e^{x} dx\n(g) \\int_{0}^{\\sqrt{\\pi}} x \\sin x^{2} dx\n(h) \\int_{1}^{2}\\frac{dx}{x + \\sqrt{x}}\n(i) \\int_{0}^{3} \\frac{\\sqrt{x}}{x + 1} dx\n(j) \\int_{0}^{1} \\cos \\sqrt[3]{x} dx\n(k) \\int_{0}^{\\pi} \\cos^{5} x dx\n(l) \\int_{0}^{\\pi / 4} \\frac{\\sin^3 x}{\\cos^5 x} dx.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.15",
+    "problemText": "P 6.15 Beräkna följande integraler:\n(a) \\int_{1}^{e} \\frac{(\\ln x)^2}{x} dx (b) \\int_{-2}^{0} \\frac{10}{16 - 2x^2 - x^3} dx (c) \\int_{1}^{3} \\left| 1 - \\ln x \\right| dx.\n(a) \\frac{1}{3} (b) \\frac { \\pi + 3 \\ln 2 } { 4 } (c) 2e + 3\\ln 3 - 8\n60\nSvar\n8 + \\ln 3\n(b) \\frac{\\ln 5}{4} - \\frac{\\arctan 2}{2}\n(c) \\frac{5\\ln 2}{2}-\\frac{3\\ln 3}{2}\n(d) \\frac { \\ln 3 7 5 } { 2 }\n(e) \\frac{\\sqrt{2}}{3}\\arctan\\sqrt{2}-\\frac{1}{3}\\ln\\frac{9}{8}-\\frac{\\pi}{6\\sqrt{2}}\n(f) \\frac{\\pi \\sqrt{3}}{36} - \\frac{1}{4}\n(g) { \\frac { \\ln 2 } { 3 } } + { \\frac { \\pi } { 3 { \\sqrt { 3 } } } }\n(h) \\frac{1}{4}\\ln\\frac{3}{2}-\\frac{1}{2}\\left(\\arctan3-\\arctan2\\right)\n(j) 1 + 2 \\ln { \\frac { 4 } { 3 } }\n(i) \\frac{\\pi}{4}\n(k) { \\frac { \\pi } { 1 2 } } + { \\frac { 1 } { 2 } } - { \\frac { \\sqrt { 3 } } { 4 } }\n(l) 2\\arctan e - 2\\arctan \\frac{1}{e}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.16",
+    "problemText": "P 6.16 Beräkna följande integraler:\n(a) \\int _ { 2 } ^ { 4 } { \\frac { x ^ { 2 } } { x - 1 } } d x .\n(b) \\int_{-1}^{0} \\frac{8x^3 + 4x^2}{1 + 4x^2} dx\n(c) \\int_{1}^{2}\\frac{dx}{x^{3}+3x^{2}+2x}\n(d) \\int_{2}^{6} \\frac{2x + 5}{x^{2} + 2x - 3} dx\n(e) \\int_{1}^{2} \\frac{x - 1}{x^{3} + x^{2} + 2x + 2} dx\n(f) \\int_{0}^{1} \\frac{x - 1}{(x + 1)^{2} \\left( x^{2} + 3 \\right)} dx\n(g) \\int _ { 0 } ^ { 1 } { \\frac { d x } { x ^ { 3 } + 1 } }\n(h) \\int _ { 2 } ^ { 3 } { \\frac { d x } { x ^ { 4 } - 1 } }\n(i) \\int_{-2}^{1} \\frac{dx}{x^2 + 2\\left| x \\right| + 2} dx\n(j) \\int_{0}^{3} \\frac{|x - 1|}{1 + |x - 2|} dx.\n(k) \\int_{1}^{3} \\frac{\\sqrt{x}}{(1 + x)^2} dx\n(l) \\int _ { - 1 } ^ { 1 } { \\frac { d x } { \\cosh x } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.17",
+    "problemText": "P 6.17 Beräkna\n(a) \\int_{0}^{1/2} \\frac{\\arctan 2x}{(1 - x)^2} dx\n(b) \\int_{1}^{3} x^{2} \\ln \\sqrt{1 + x^{2}} dx\n(c) \\int_{0}^{\\pi} \\sin^{6} x dx\n(d) \\int_{0}^{\\pi / 4} \\tan^{2} x dx\n(e) \\int_{0}^{\\pi} \\frac{\\sin x}{2 - \\sin^2 x} dx\n(f) \\int_{0}^{\\pi/3} \\frac{\\sin 2x}{(1 + \\cos x)^3} dx\n(g) \\int_{0}^{\\pi / 2} \\frac{\\sin x}{1 + \\sin x} dx\n(h) \\int _ { \\pi / 3 } ^ { 7 \\pi / 3 } \\frac { d x } { 5 - 4 \\operatorname { c o s } x }\n(i) \\int_{0}^{\\pi} x \\sin^2 x dx\n(j) \\int_{0}^{\\pi / 4} \\frac{x}{\\cos^2 x} dx\n(k) \\int_{1}^{3} \\frac{1 + \\sqrt{x + 1}}{1 - \\sqrt{x + 1}} dx\n(l) \\int_{8}^{27} \\frac{dx}{\\sqrt{x}\\left( \\sqrt[3]{x} + 1 \\right)}\n(m) \\int_{-1}^{0} \\frac{x}{\\sqrt{x^2 + 2x + 2}} dx\n(n) \\int_{0}^{2} \\sqrt{2 + 2x - x^{2}} dx\n(o) \\int_{2}^{5} \\sqrt{\\frac{x}{x - 1}} dx\nP 6.17 (a) \\frac{3\\pi}{10}-\\frac{3\\ln 2}{5} (b) \\frac{\\pi}{12}-\\frac{20}{9}+\\frac{9\\ln 5}{2}+\\frac{13\\ln 2}{3}-\\frac{\\arctan 3}{3}\n(c) \\frac{5\\pi}{16}\n(e) \\frac{\\pi}{2}\n(d) 1 - \\frac{\\pi}{4}\n(g) { \\frac { \\pi } { 2 } } - 1\n(f) \\frac { 5 } { 3 6 }\n(h) \\frac { 2 \\pi } { 3 }\n(i) \\frac { \\pi ^ { 2 } } { 4 }\n(j) \\frac{\\pi}{4} - \\frac{\\ln 2}{2}\n(k) 4\\ln\\left(\\sqrt{2}-1\\right)-10+4\\sqrt{2}\n(l) 6\\left(\\sqrt{3}-\\sqrt{2}-\\frac{\\pi}{3}+\\arctan\\sqrt{2}\\right)\n(m) \\sqrt{2}-1-\\ln(1+\\sqrt{2})\n(n) \\sqrt{2}+3\\arcsin\\frac{1}{\\sqrt{3}}\n(o) 2\\sqrt{5}-\\sqrt{2}+\\frac{1}{2}\\ln\\frac{9+4\\sqrt{5}}{3+2\\sqrt{2}}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.18",
+    "problemText": "P 6.18 Visa att om f är kontinuerlig för alla x och om \\int_{-a}^{a} f(x) dx = 0 för alla a > 0 så är f udda.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.19",
+    "problemText": "P 6.19 Beräkna \\int_{1/2}^{2} \\frac{x \\ln x}{(1 + x^2)^2} dx\nP 6.19 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.20",
+    "problemText": "P 6.20 Vanlig trefasspänning består av tre sinusformade spänningar, fasförskjutna 2 \\pi / 3 , samt en nollnivå. Effektivvärdet för spänningsskillnaden mellan en fas och nollan är 230 V. Beräkna effektivvärdet av spänningsskillnaden mellan två faser.\nBestämda integraler\nP 6.20 2 3 0 \\sqrt { 3 } \\approx 4 0 0 ~ V",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 14
+  },
+  {
+    "problemNumber": "6.21",
+    "problemText": "P 6.21 Beräkna följande generaliserade integraler, om de är konvergenta: (a) \\int_{0}^{\\infty} \\frac{\\sin x}{2 - \\cos x} dx (b) \\int_{e}^{\\infty} \\frac{dx}{x(\\ln x)^2} (c) \\int_{0}^{1} \\frac{\\ln x}{\\sqrt{1 - x}} dx\n(a) divergent (b) 1 (c) 4(\\ln 2 - 1)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.22",
+    "problemText": "P 6.22 Beräkna integralerna, om de är konvergenta. (a) \\int_{0}^{1}\\frac{dx}{x + x^{2}} (b) \\int_{1}^{\\infty}\\frac{dx}{x + x^{2}} (c) \\int_{0}^{\\infty}\\frac{dx}{x + x^{2}} (d) \\int _ { 0 } ^ { \\infty } { \\frac { d x } { 1 + x ^ { 3 } } }\n(a) divergent (b) ln 2 (c) divergent (d) \\frac{2\\pi}{3\\sqrt{3}}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.23",
+    "problemText": "P 6.23 Visa att \\sum_{k = 1}^{n}\\frac{1}{\\sqrt{k}(1 + \\sqrt{k})} \\geq \\ln\\frac{n}{4} för alla heltal n \\geq 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.24",
+    "problemText": "P 6.24 Visa att \\int_{0}^{x} \\sqrt{1 + t^{3}} dt < x + \\frac{x^{4}}{8} då x > 0 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.25",
+    "problemText": "P 6.25 Man vill stänga in \\int _ { 0 } ^ { 2 } x ^ { 2 } d x mellan över- och undersummor genom att dela intervallet [0, 2] vid punkten x = t . Hur ska t väljas, om man vill få\n(a) undersumman så stor som möjligt?\n(b) översumman så liten som möjligt?\n(c) skillnaden mellan översumman och undersumman så liten som möjligt?\n(a) t = \\frac { 4 } { 3 } (b) t = { \\frac { 2 } { \\sqrt { 3 } } } (c) t = { \\frac { 1 + { \\sqrt { 7 } } } { 3 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.26",
+    "problemText": "P 6.26 Visa att \\sum_{k = 1}^{n}\\frac{1}{\\sqrt{k}} > 2\\sqrt{n} - 2 för varje heltal n \\geq 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.27",
+    "problemText": "P 6.27 Beräkna \\operatorname* { l i m } _ { n \\to \\infty } \\left( \\frac { n + 1 } { n } \\cdot \\frac { n + 2 } { n } \\cdot \\ldots \\cdot \\frac { n + n } { n } \\right) ^ { 1 / n } (använd Riemannsummor).\nP 6.27 4 / e",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.28",
+    "problemText": "P 6.28 Man kan visa att \\sum _ { n = 1 } ^ { N } { \\frac { 1 } { n 2 ^ { n } } } \\to \\ln 2 då N \\to \\infty . Bestäm, utgående från detta, något tal N sådant att 0 < \\ln 2 - \\sum_{n = 1}^{N} \\frac{1}{n2^n} < 10^{-4}\nP 6.28 N = 10 räcker",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.29",
+    "problemText": "P 6.29 Visa att \\sum_{k = 1}^{n}\\left( \\frac{1}{k} - \\arctan\\frac{1}{k} \\right) \\leq \\frac{1}{2} för alla heltal n \\geq 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.30",
+    "problemText": "P 6.30 Bestäm lim { \\frac { 1 } { \\ln n } } \\sum _ { k = 1 } ^ { n } { \\frac { k } { p ^ { 2 } + k ^ { 2 } } } för varje heltal p \\geq 1 n→∞\nP 6.30 1\nTillämpningar av integraler",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "6.31",
+    "problemText": "P 6.31 Man kan definiera de trigonometriska funktionerna utgående från integraler. Låt v vara längden av bågen på cirkeln x ^ { 2 } + y ^ { 2 } = 1 från punkten (1, 0) till en punkt (x, y), där x > 0 , y > 0\n(a) Visa att v = \\int _ { 0 } ^ { y } { \\frac { d t } { \\sqrt { 1 - t ^ { 2 } } } } .\n(b) Definiera cos v = x , sin v = y och tan v = { \\frac { \\sin v } { \\cos v } } för dessa x , y och v. Visa att sin v < v < tan v.\nSvar\nFör övriga gäller (n står för ett godtyckligt heltal):\nx ^ { 2 } = y ^ { 2 } \\quad \\Leftrightarrow \\quad x = \\pm y\n| x | = | y | \\Leftrightarrow x = \\pm y\n\\cos x = \\cos y \\quad \\Leftrightarrow \\quad x = \\pm y + 2 \\pi n\n\\begin{array} { r c l } { \\sin x = \\sin y } & { \\Leftrightarrow } & { x = y + 2 \\pi n \\mathrm { ~ e l l e r ~ } x = \\pi - y + 2 \\pi n } \\end{array}\n\\tan x = \\tan y \\quad \\Leftrightarrow \\quad x = y + \\pi n\nGränsvärde och kontinuitet",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 15
+  },
+  {
+    "problemNumber": "7.1",
+    "problemText": "P 7.1 4 ln 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 27
+  },
+  {
+    "problemNumber": "7.2",
+    "problemText": "P 7.2 Vad blir arean av en kvadrat som omsluter cirkeln? Vad får uttrycken för dimension?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 27
+  },
+  {
+    "problemNumber": "7.3",
+    "problemText": "P 7.3 \\int _ { R / 2 } ^ { R } { \\frac { R } { \\sqrt { R ^ { 2 } - x ^ { 2 } } } } d x = { \\frac { \\pi } { 3 } } R",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 27
+  },
+  {
+    "problemNumber": "7.4",
+    "problemText": "P 7.4 \\frac { \\pi L } { 2 } + \\int _ { 0 } ^ { L / R } ( L - R \\varphi ) d \\varphi = \\frac { \\pi L } { 2 } + \\frac { L ^ { 2 } } { 2 R }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 27
+  },
+  {
+    "problemNumber": "7.5",
+    "problemText": "P 7.5 \\frac{\\pi}{2}(3e^{2}-27+48\\ln 2)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 27
+  },
+  {
+    "problemNumber": "7.6",
+    "problemText": "P 7.6 \\pi ( 2 - \\ln 2 - \\pi / 4 )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 27
+  }
+]

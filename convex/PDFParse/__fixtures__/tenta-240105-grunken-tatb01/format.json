@@ -1,0 +1,18 @@
+{
+  "allowNumberRestart": true,
+  "answerSectionHeading": null,
+  "examples": [
+    "1. (a)",
+    "2. (a)",
+    "3. (a)",
+    "4.",
+    "5.",
+    "6.",
+    "7."
+  ],
+  "pgaFormat": "1. (a)",
+  "prefix": null,
+  "requireTerminator": true,
+  "segmentCount": 1,
+  "titleBlocks": "never"
+}
