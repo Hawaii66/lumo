@@ -124,6 +124,22 @@ x_1 + x_2 = 0
   })
 })
 
+describe("normalizeMarkdownMathDelimiters multi-env $$", () => {
+  it("keeps chained pmatrices inside one $$ block", () => {
+    const raw = String.raw`$$\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} = \begin{pmatrix} -5t \\ 3t \\ t \end{pmatrix} = t \begin{pmatrix} -5 \\ 3 \\ 1 \end{pmatrix}, \quad t \in \mathbb{R}$$`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toBe(raw)
+    expect(normalized).not.toContain(String.raw`\end{pmatrix}$$ =`)
+    expect(splitMarkdownMath(normalized)).toEqual([
+      {
+        kind: "math",
+        latex: String.raw`\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} = \begin{pmatrix} -5t \\ 3t \\ t \end{pmatrix} = t \begin{pmatrix} -5 \\ 3 \\ 1 \end{pmatrix}, \quad t \in \mathbb{R}`,
+        display: "block",
+      },
+    ])
+  })
+})
+
 describe("prepareLatexForMathLive", () => {
   it("rewrites augmented array to matrix + \\middle|", () => {
     const raw = String.raw`\left(\begin{array}{cccc|c}

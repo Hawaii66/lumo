@@ -162,20 +162,21 @@ export function prepareLatexForMathLive(latex: string): string {
 export function normalizeMarkdownMathDelimiters(input: string): string {
   return input.replace(
     BLOCK_ENV_WITH_DOLLARS_RE,
-    (match, _open, preWs, envBody, _envName, postWs, _close, offset) => {
+    (match, open, preWs, envBody, _envName, postWs, _close, offset) => {
       const cleaned = String(envBody)
         .replace(/\n[ \t]*\n+/g, "\n")
         .trim()
       const lead = preWs?.includes("\n") ? "\n\n" : preWs || ""
       const trail = postWs?.includes("\n") ? "\n\n" : postWs || ""
 
-      // Already inside `$$...$$` with surrounding TeX (e.g. `\left(` / `\right)`):
-      // only scrub blank lines inside the env; keep outer delimiters intact.
-      if (isInsideDisplayMath(input, offset)) {
+      // Already a display-math block, or sitting inside one that continues past
+      // this env (e.g. `$$\begin{pmatrix}...\end{pmatrix} = ...$$`). Only scrub
+      // blank lines — never insert a premature closing `$$` after the first env.
+      if (open === "$$" || isInsideDisplayMath(input, offset)) {
         return match.replace(String(envBody), cleaned)
       }
 
-      // Adjacent `$`/`$$` (or bare env): normalize to a single `$$...$$` block.
+      // Bare env or single `$...$` around a multi-line env → `$$...$$`.
       return `${lead}$$${cleaned}$$${trail}`
     },
   )
