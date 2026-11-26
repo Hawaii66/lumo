@@ -1,0 +1,17 @@
+{
+  "allowNumberRestart": true,
+  "answerSectionHeading": null,
+  "examples": [
+    "1.2.3.",
+    "1.2.4.",
+    "1.2.10.",
+    "2.2.1.",
+    "2.3.6.",
+    "2.5.9."
+  ],
+  "pgaFormat": null,
+  "prefix": null,
+  "requireTerminator": true,
+  "segmentCount": 3,
+  "titleBlocks": "when_matches"
+}

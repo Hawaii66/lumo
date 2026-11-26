@@ -1,0 +1,65 @@
+[
+  {
+    "answerImages": [],
+    "answerText": "(a) 199800 (b) p(z)=\\left(z-2\\right)\\left(2z+2+3i\\right)\\left(2z+2-3i\\right)",
+    "problemNumber": "1",
+    "problemText": "1. (a) Beräkna \\sum_{k = - 100}^{299} (5k + 2)\n(1 p)\n(b) Faktorisera p ( z ) = 4 z ^ { 3 } - 3 z - 2 6 så långt som möjligt i komplexa faktorer.\n(2 p)",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 1,
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "answerImages": [],
+    "answerText": "(a) x = \\frac{17\\pi}{18} + 2\\pi n, n \\in \\mathbf{Z}, eller x = - \\frac{13\\pi}{90} + \\frac{2\\pi n}{5}, n \\in \\mathbf{Z} (b) \\frac{1}{6} \\left( \\sqrt{2} - 4 \\right) (c) { \\sqrt { 5 } } + 2 i .",
+    "problemNumber": "2",
+    "problemText": "2. (a) Finn alla lösningar till ekvationen cos \\left( 3x - \\frac{\\pi}{9} \\right) = \\cos \\left( 2x + \\frac{5\\pi}{6} \\right)\n(1 p)\n(b) Beräkna sin \\left( v + { \\frac { \\pi } { 4 } } \\right) om v \\in [ - \\pi , 0 ] { \\mathrm { ~ o c h ~ } } \\cos v = { \\frac { 1 } { 3 } } .\n(1 p)\n(c) Skriv z = 3 e ^ { i \\arcsin { \\frac { 2 } { 3 } } } på formen z = a + ib, a, b ∈ R.\n(1 p)",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 1,
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "answerImages": [],
+    "answerText": "(a) se ovan (b) D _ { f } = ] 0 , \\thinspace e ^ { - 2 } [ \\cup ] e ^ { - 2 } , \\thinspace \\infty [ , \\thinspace f ^ { - 1 } ( y ) = \\operatorname { e x p } \\bigg ( \\frac { 1 } { \\operatorname { l n } y } - 2 \\bigg ) .",
+    "problemNumber": "3",
+    "problemText": "3. (a) Visa att f(x) = 6x - x^{2} - 5 , med D _ { f } = [ 2 , 5 ] , saknar invers.\n(1 p)\n(b) Bestäm D _ { f } samt (om möjligt) ett uttryck för f ^ { - 1 } om f(x) = e^{\\frac{1}{2 + \\ln x}}\n(2 p)",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 2,
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "answerImages": [],
+    "answerText": "x = { \\frac { \\pi n } { 2 } } , n \\in \\mathbf { Z } , eller x = \\frac{\\pi}{8} + \\frac{\\pi n}{4}, n \\in \\mathbf{Z}.",
+    "problemNumber": "4",
+    "problemText": "4. Lös ekvationen 4 cos x sin 2x cos 3x = \\sin 4x",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 2,
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "answerImages": [],
+    "answerText": "(a) x = 3 eller x = { \\frac { \\ln 3 } { \\ln 2 } } (b) x = - { \\sqrt { 1 + e ^ { e ^ { 2 } } } } .",
+    "problemNumber": "5",
+    "problemText": "5. (a) Finn alla reella lösningar till ekvationen 2^{x+3}+2^{x+1}-3\\cdot 2^{3-x}=4^x+13.\n(2 p)\n(b) $\\mathrm { ~ L \\ddot { o } s ~ e k v a t i o n e n ~ } \\mathrm { l n } ( 1 - x ) + \\mathrm { l n } ( - 1 - x ) = e ^ { 2 } .$\\tag{1 p}",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 3,
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "answerImages": [],
+    "answerText": "(a) \\frac{\\pi}{6} (b) v = \\pi .",
+    "problemNumber": "6",
+    "problemText": "6. (a) Förenkla arcsin \\left( \\sin \\left( \\arccos \\left( \\cos \\frac{7\\pi}{6} \\right) \\right) \\right)\n(1 p)\n(b) Förenkla v = \\sum_{k = 1}^{3} \\arctan k.\n(2 p)",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 3,
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "answerImages": [],
+    "answerText": "se ovan.\nAlternativ: Genom att först bevisa additionsformeln\n\\sinh ( x + a ) = \\sinh x \\cosh a + \\cosh x \\sinh a\ngår det sedan att bevisa ovanstående med samma resonemang som för en vanlig omskrivning med hjälpvinkel. Fyll själv i detaljerna som övning!",
+    "problemNumber": "7",
+    "problemText": "7. Låt f ( x ) = A sinh x + B cosh x där A och B är konstanter sådana att A > B > 0\nFinns det konstanter C > 0 och a \\in \\mathbf { R } så att f ( x ) = C \\sinh ( x + a ) ?\nFinns det konstanter D > 0 och b \\in \\mathbf { R } så att f ( x ) = D \\cosh ( x + b ) ?\nMotivera dina svar med ett fullständigt bevis eller motbevis.\nLösningsförslag TATB01 2021-10-28 8–12",
+    "questionImages": [],
+    "sourceAnswerPageIdx": 4,
+    "sourceQuestionPageIdx": 0
+  }
+]
