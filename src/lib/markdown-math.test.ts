@@ -6,6 +6,7 @@ import {
   isMarkdownTableStart,
   isSubproblemHeading,
   normalizeMarkdownMathDelimiters,
+  prepareLatexForMathLive,
   splitMarkdownMath,
   splitMarkdownTableRow,
   subproblemAnchorId,
@@ -97,6 +98,66 @@ x_1 + x_2 = 0
   it("is idempotent for already-correct $$ blocks", () => {
     const raw = String.raw`$$\begin{cases} x=1 \\ y=2 \end{cases}$$`
     expect(normalizeMarkdownMathDelimiters(raw)).toBe(raw)
+  })
+
+  it("does not re-wrap array already inside $$\\left(...\\right)$$", () => {
+    const raw = String.raw`$$\left(\begin{array}{cccc|c}
+1 & -2 & 4 & -1 & -3 \\
+2 & 1 & -1 & 3 & 7 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)$$`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toBe(raw)
+    expect(normalized).not.toContain(String.raw`$$\left($$`)
+    const segs = splitMarkdownMath(normalized)
+    expect(segs).toEqual([
+      {
+        kind: "math",
+        latex: String.raw`\left(\begin{array}{cccc|c}
+1 & -2 & 4 & -1 & -3 \\
+2 & 1 & -1 & 3 & 7 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)`,
+        display: "block",
+      },
+    ])
+  })
+})
+
+describe("normalizeMarkdownMathDelimiters multi-env $$", () => {
+  it("keeps chained pmatrices inside one $$ block", () => {
+    const raw = String.raw`$$\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} = \begin{pmatrix} -5t \\ 3t \\ t \end{pmatrix} = t \begin{pmatrix} -5 \\ 3 \\ 1 \end{pmatrix}, \quad t \in \mathbb{R}$$`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toBe(raw)
+    expect(normalized).not.toContain(String.raw`\end{pmatrix}$$ =`)
+    expect(splitMarkdownMath(normalized)).toEqual([
+      {
+        kind: "math",
+        latex: String.raw`\begin{pmatrix} x_1 \\ x_2 \\ x_3 \end{pmatrix} = \begin{pmatrix} -5t \\ 3t \\ t \end{pmatrix} = t \begin{pmatrix} -5 \\ 3 \\ 1 \end{pmatrix}, \quad t \in \mathbb{R}`,
+        display: "block",
+      },
+    ])
+  })
+})
+
+describe("prepareLatexForMathLive", () => {
+  it("rewrites augmented array to matrix + \\middle|", () => {
+    const raw = String.raw`\left(\begin{array}{cccc|c}
+2 & 1 & -1 & 3 & 7 \\
+1 & -2 & 4 & -1 & -3 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)`
+    expect(prepareLatexForMathLive(raw)).toBe(
+      String.raw`\left(\begin{matrix}2 & 1 & -1 & 3 \\ 1 & -2 & 4 & -1 \\ 3 & 1 & 2 & 1\end{matrix}\middle|\begin{matrix}7 \\ -3 \\ 5\end{matrix}\right)`,
+    )
+  })
+
+  it("rewrites plain array to matrix", () => {
+    expect(
+      prepareLatexForMathLive(
+        String.raw`\begin{array}{cc}1 & 2 \\ 3 & 4\end{array}`,
+      ),
+    ).toBe(String.raw`\begin{matrix}1 & 2 \\ 3 & 4\end{matrix}`)
   })
 })
 

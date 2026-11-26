@@ -11,6 +11,8 @@ MARKDOWN + LATEX
 • Flerradiga miljöer (\\\\begin{cases}, aligned, matrix, …) MÅSTE vara $$...$$ med BÅDA avslutande $$.
   ✗ $\\\\begin{cases} … \\\\end{cases}   (saknad stängande $ / fel delimiter)
   ✓ $$\\\\begin{cases} x=1 \\\\\\\\ y=2 \\\\end{cases}$$
+• Matriser: föredra \\\\begin{pmatrix}/bmatrix/matrix (inte array). Totalmatris med streck:
+  $$\\\\left(\\\\begin{matrix}…\\\\end{matrix}\\\\middle|\\\\begin{matrix}…\\\\end{matrix}\\\\right)$$
 • INGEN \\\\text{svenska} / \\\\mathrm{Ja} — skriv prosa utanför matten.
   ✓ Vi får $x=\\\\frac{3}{4}$ när $t=2$.
   ✗ Vi får x=\\\\frac{3}{4} när t=2
