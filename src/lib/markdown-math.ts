@@ -214,7 +214,10 @@ export type MarkdownTable = {
   rows: Array<Array<string>>
 }
 
-/** Split a GFM table row into cells (`\|` → literal `|`). */
+/**
+ * Split a GFM table row into cells.
+ * Only `\|` is an escape (literal `|`). Other backslashes (LaTeX) are kept.
+ */
 export function splitMarkdownTableRow(line: string): Array<string> {
   const t = line.trim()
   const cells: Array<string> = []
@@ -222,8 +225,9 @@ export function splitMarkdownTableRow(line: string): Array<string> {
   let i = t.startsWith("|") ? 1 : 0
 
   while (i < t.length) {
-    if (t[i] === "\\" && i + 1 < t.length) {
-      cur += t[i + 1]
+    // GFM-style escaped pipe only — do not strip LaTeX `\command`s.
+    if (t[i] === "\\" && t[i + 1] === "|") {
+      cur += "|"
       i += 2
       continue
     }

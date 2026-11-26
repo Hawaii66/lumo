@@ -131,13 +131,18 @@ describe("heading helpers", () => {
 })
 
 describe("markdown tables", () => {
-  it("splits rows and unescapes pipes", () => {
+  it("splits rows and unescapes pipes without stripping LaTeX backslashes", () => {
     expect(splitMarkdownTableRow("| a | b | c |")).toEqual(["a", "b", "c"])
     expect(splitMarkdownTableRow("a | b | c")).toEqual(["a", "b", "c"])
     expect(splitMarkdownTableRow(String.raw`| a \| b | c |`)).toEqual([
       "a | b",
       "c",
     ])
+    expect(
+      splitMarkdownTableRow(
+        String.raw`| $\searrow$ | MIN | $\nearrow$ |`,
+      ),
+    ).toEqual([String.raw`$\searrow$`, "MIN", String.raw`$\nearrow$`])
   })
 
   it("detects separator rows and alignments", () => {
