@@ -10,6 +10,11 @@ const app = defineApp({
     STRIPE_SECRET_KEY: v.optional(v.string()),
     STRIPE_WEBHOOK_SECRET: v.optional(v.string()),
     SITE_URL: v.optional(v.string()),
+    /**
+     * Bearer token for local fixture HTTP API (`/fixtures/split/*`).
+     * Set with `npx convex env set FIXTURE_ADMIN_KEY …` and mirror in `.env.local`.
+     */
+    FIXTURE_ADMIN_KEY: v.optional(v.string()),
     /** Required by @posthog/convex — set with `npx convex env set POSTHOG_PROJECT_TOKEN …`. */
     POSTHOG_PROJECT_TOKEN: v.string(),
     POSTHOG_HOST: v.optional(v.string()),

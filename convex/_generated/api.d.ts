@@ -11,6 +11,7 @@
 import type * as PDFParse_adminParse from "../PDFParse/adminParse.js";
 import type * as PDFParse_adminParseRunner from "../PDFParse/adminParseRunner.js";
 import type * as PDFParse_adminReparse from "../PDFParse/adminReparse.js";
+import type * as PDFParse_fixtureHttp from "../PDFParse/fixtureHttp.js";
 import type * as PDFParse_getOrFetchMiddleJson from "../PDFParse/getOrFetchMiddleJson.js";
 import type * as PDFParse_jobs from "../PDFParse/jobs.js";
 import type * as PDFParse_lumoFormatAgent from "../PDFParse/lumoFormatAgent.js";
@@ -89,6 +90,7 @@ declare const fullApi: ApiFromModules<{
   "PDFParse/adminParse": typeof PDFParse_adminParse;
   "PDFParse/adminParseRunner": typeof PDFParse_adminParseRunner;
   "PDFParse/adminReparse": typeof PDFParse_adminReparse;
+  "PDFParse/fixtureHttp": typeof PDFParse_fixtureHttp;
   "PDFParse/getOrFetchMiddleJson": typeof PDFParse_getOrFetchMiddleJson;
   "PDFParse/jobs": typeof PDFParse_jobs;
   "PDFParse/lumoFormatAgent": typeof PDFParse_lumoFormatAgent;
