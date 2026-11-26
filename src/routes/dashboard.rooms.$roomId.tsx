@@ -935,6 +935,7 @@ function RoomPage() {
                 pending={problemChatPending}
                 error={problemChatError}
                 placeholder="Lägg till en anteckning… eller skicka direkt"
+                captureTyping
                 onSubmit={(payload) =>
                   handleProblemChatSubmit(
                     selectedProblem.problem.problemNumber,
