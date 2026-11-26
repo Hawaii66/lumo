@@ -118,6 +118,137 @@ export function parsePgaFormat(
   return null;
 }
 
+/**
+ * Lead-start PGA patterns used to recover pgaFormat when the AI leaves it null.
+ * Paren form requires a tight `2(a)` (no space) so booklet leads like
+ * `P 3.1 (a)` are not mistaken for PGA facit labels.
+ */
+const INFER_PGA_GLUED_RE = /^(\d+(?:\.\d+)*)([a-z])\s*\)(?=\s|$)/i;
+const INFER_PGA_PAREN_RE = /^(\d+(?:\.\d+)*)\(([a-z])\)/i;
+const INFER_PGA_SPACED_RE = /^(\d+(?:\.\d+)*)\s+([a-z])\s*[.)](?=\s|$)/i;
+
+type InferredPgaHit = {
+  style: PgaStyle;
+  example: string;
+  numberSegments: number;
+};
+
+function stripOptionalPrefix(lead: string, prefix: string | null): string {
+  const trimmed = lead.trimStart();
+  if (prefix === null || prefix.length === 0) {
+    return trimmed;
+  }
+  if (!trimmed.toLowerCase().startsWith(prefix.toLowerCase())) {
+    return trimmed;
+  }
+  const rest = trimmed.slice(prefix.length).trimStart();
+  return rest.length > 0 ? rest : trimmed;
+}
+
+function matchInferredPga(rest: string): InferredPgaHit | null {
+  const glued = INFER_PGA_GLUED_RE.exec(rest);
+  if (glued !== null) {
+    const number = glued[1]!;
+    const letter = glued[2]!.toLowerCase();
+    return {
+      style: "glued",
+      example: `${number}${letter})`,
+      numberSegments: number.split(".").length,
+    };
+  }
+  const paren = INFER_PGA_PAREN_RE.exec(rest);
+  if (paren !== null) {
+    const number = paren[1]!;
+    const letter = paren[2]!.toLowerCase();
+    return {
+      style: "paren",
+      example: `${number}(${letter})`,
+      numberSegments: number.split(".").length,
+    };
+  }
+  const spaced = INFER_PGA_SPACED_RE.exec(rest);
+  if (spaced !== null) {
+    const number = spaced[1]!;
+    const letter = spaced[2]!.toLowerCase();
+    return {
+      style: "spaced",
+      example: `${number} ${letter})`,
+      numberSegments: number.split(".").length,
+    };
+  }
+  return null;
+}
+
+/**
+ * Scan block leads for PGA answer labels (e.g. "1a)", "2(a)").
+ * Returns the majority style's first example, or null if none found.
+ * Prefer matches whose number segment count equals `segmentCount` when given.
+ */
+export function inferPgaFormatFromLeads(
+  leads: string[],
+  options?: {
+    prefix?: string | null;
+    segmentCount?: 1 | 2 | 3;
+  },
+): string | null {
+  const prefix = options?.prefix ?? null;
+  const segmentCount = options?.segmentCount;
+  const hits: InferredPgaHit[] = [];
+
+  for (const lead of leads) {
+    const rest = stripOptionalPrefix(lead, prefix);
+    const hit = matchInferredPga(rest);
+    if (hit === null) {
+      continue;
+    }
+    if (segmentCount !== undefined && hit.numberSegments !== segmentCount) {
+      continue;
+    }
+    hits.push(hit);
+  }
+
+  if (hits.length === 0) {
+    return null;
+  }
+
+  const styleCounts: Record<PgaStyle, number> = {
+    glued: 0,
+    paren: 0,
+    spaced: 0,
+  };
+  for (const hit of hits) {
+    styleCounts[hit.style] += 1;
+  }
+  const preferredStyle = (
+    ["glued", "paren", "spaced"] as const
+  ).reduce((best, style) =>
+    styleCounts[style] > styleCounts[best] ? style : best,
+  );
+  const first = hits.find((hit) => hit.style === preferredStyle);
+  return first?.example ?? null;
+}
+
+/**
+ * Fill `pgaFormat` from leads when the AI left it null but facit uses PGA labels.
+ * Does not override an explicit non-null pgaFormat.
+ */
+export function enrichFormatWithInferredPga(
+  format: ProblemNumberFormat,
+  leads: string[],
+): ProblemNumberFormat {
+  if (format.pgaFormat !== null) {
+    return format;
+  }
+  const inferred = inferPgaFormatFromLeads(leads, {
+    prefix: format.prefix,
+    segmentCount: format.segmentCount,
+  });
+  if (inferred === null) {
+    return format;
+  }
+  return { ...format, pgaFormat: inferred };
+}
+
 /** Normalize / validate model output; fall back on failure. */
 export function normalizeProblemNumberFormat(
   raw: unknown,

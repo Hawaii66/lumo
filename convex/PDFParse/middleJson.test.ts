@@ -247,6 +247,44 @@ describe("detectProblemChunks", () => {
     expect(second!.answerText.toLowerCase()).toContain("grafen")
   })
 
+  it("infers pgaFormat from leads when format.pgaFormat is null", () => {
+    const middleJson: MiddleJson = {
+      pages: [
+        {
+          page_idx: 0,
+          blocks: [
+            { type: "text", content: "1. Undersök gränsvärdena (a) lim A" },
+            { type: "text", content: "2. Skissa kurvan y = f(x)." },
+          ],
+        },
+        {
+          page_idx: 1,
+          blocks: [
+            {
+              type: "paragraph_title",
+              content: "Lösningsskisser för TATA41 250326",
+            },
+            { type: "text", content: "1a) Svar: 1/2." },
+            { type: "text", content: "1b) Svar: 0." },
+            { type: "text", content: "2) Svar: se grafen." },
+          ],
+        },
+      ],
+    }
+
+    const chunks = detectProblemChunks(middleJson, {
+      ...FORMAT_MAJOR_PGA,
+      pgaFormat: null,
+    })
+    expect(chunks.map((c) => c.problemNumber)).toEqual(["1", "2"])
+    expect(chunks.find((c) => c.problemNumber === "1")!.answerText).toMatch(
+      /1\s*\/\s*2/,
+    )
+    expect(
+      chunks.find((c) => c.problemNumber === "2")!.answerText.toLowerCase(),
+    ).toContain("grafen")
+  })
+
   it("does not treat mid-prose 2p. / 3p as labels", () => {
     const middleJson: MiddleJson = {
       pages: [

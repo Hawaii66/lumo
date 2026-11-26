@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   FALLBACK_PROBLEM_NUMBER_FORMAT,
+  enrichFormatWithInferredPga,
+  inferPgaFormatFromLeads,
   normalizeProblemNumberFormat,
   parsePgaFormat,
+  FORMAT_MAJOR_RESTART,
 } from "./problemNumberFormat";
 
 describe("parsePgaFormat", () => {
@@ -21,6 +24,59 @@ describe("parsePgaFormat", () => {
     });
     expect(parsePgaFormat(null)).toBeNull();
     expect(parsePgaFormat("nope")).toBeNull();
+  });
+});
+
+describe("inferPgaFormatFromLeads", () => {
+  it("infers glued 1a) from envar-style facit leads", () => {
+    expect(
+      inferPgaFormatFromLeads(
+        [
+          "1. Undersök gränsvärdena",
+          "2. Skissa grafen",
+          "1a) lim = …",
+          "1b) lim = …",
+          "1c) lim = …",
+          "3a) Partialintegration",
+        ],
+        { segmentCount: 1 },
+      ),
+    ).toBe("1a)");
+  });
+
+  it("prefers majority style and respects segmentCount", () => {
+    expect(
+      inferPgaFormatFromLeads(["1.2(a) text", "1.2(b) more", "3a) noise"], {
+        segmentCount: 2,
+      }),
+    ).toBe("1.2(a)");
+    expect(inferPgaFormatFromLeads(["no labels here"])).toBeNull();
+  });
+
+  it("does not treat booklet '3.1 (a)' spaced-paren leads as PGA", () => {
+    expect(
+      inferPgaFormatFromLeads(
+        ["P 3.1 (a) visa", "P 3.2", "P 4.1 (a) beräkna"],
+        { prefix: "P", segmentCount: 2 },
+      ),
+    ).toBeNull();
+  });
+});
+
+describe("enrichFormatWithInferredPga", () => {
+  it("fills null pgaFormat but does not override an explicit value", () => {
+    const filled = enrichFormatWithInferredPga(FORMAT_MAJOR_RESTART, [
+      "1.",
+      "1a) Svar",
+      "2) Svar",
+    ]);
+    expect(filled.pgaFormat).toBe("1a)");
+
+    const kept = enrichFormatWithInferredPga(
+      { ...FORMAT_MAJOR_RESTART, pgaFormat: "2(a)" },
+      ["1a) Svar"],
+    );
+    expect(kept.pgaFormat).toBe("2(a)");
   });
 });
 

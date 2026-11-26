@@ -2,14 +2,16 @@
   "allowNumberRestart": true,
   "answerSectionHeading": null,
   "examples": [
+    "1.2.1.",
+    "1.2.2.",
     "1.2.3.",
     "1.2.4.",
-    "1.2.10.",
-    "2.2.1.",
-    "2.3.6.",
-    "2.5.9."
+    "1.2.5.",
+    "1.2.6.",
+    "1.2.7.",
+    "2.3.10."
   ],
-  "pgaFormat": null,
+  "pgaFormat": "1.2.1.",
   "prefix": null,
   "requireTerminator": true,
   "segmentCount": 3,

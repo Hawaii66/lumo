@@ -1,6 +1,7 @@
 import { normalizeMineruImagePath } from "./mineruClient";
 import type { MiddleBlock, MiddleContentPart, MiddleJson } from "./mineruSchema";
 import {
+  enrichFormatWithInferredPga,
   parsePgaFormat,
   type ProblemNumberFormat,
   type PgaStyle,
@@ -976,13 +977,20 @@ export function sampleBlockLeads(
  * 1) Collect every problem-start lead matching the format.
  * 2) For each start, take all following content until the next start;
  *    Q vs A splits on answer heading and/or number restart.
+ *
+ * When `format.pgaFormat` is null, PGA labels found in block leads
+ * (e.g. envar facit `1a)`) are inferred so answer pairing still works.
  */
 export function detectProblemChunks(
   middleJson: MiddleJson,
   format: ProblemNumberFormat,
 ): ProblemChunk[] {
-  const items = collectStreamItems(middleJson, format);
-  const windows = windowsFromStream(items, format);
+  const enriched = enrichFormatWithInferredPga(
+    format,
+    sampleBlockLeads(middleJson).map((sample) => sample.lead),
+  );
+  const items = collectStreamItems(middleJson, enriched);
+  const windows = windowsFromStream(items, enriched);
   return windowsToChunks(windows);
 }
 
