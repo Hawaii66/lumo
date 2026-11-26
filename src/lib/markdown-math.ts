@@ -27,19 +27,51 @@ const BLOCK_ENV_WITH_DOLLARS_RE = new RegExp(
 )
 
 /**
+ * True when `offset` sits inside an already-open `$$...$$` block.
+ * Used so we do not re-wrap `\begin{array}` that lives inside
+ * `$$\left(...\begin{array}...\end{array}\right)$$` (that would split the
+ * delimiters and leave the matrix as raw text).
+ */
+function isInsideDisplayMath(input: string, offset: number): boolean {
+  let open = false
+  for (let i = 0; i < offset; i++) {
+    if (input[i] === "\\" && input[i + 1] === "$") {
+      i += 1
+      continue
+    }
+    if (input[i] === "$" && input[i + 1] === "$") {
+      open = !open
+      i += 1
+    }
+  }
+  return open
+}
+
+/**
  * Repair AI/OCR markdown so multi-line TeX envs become closed `$$...$$`
  * blocks without internal blank lines (blank lines would split paragraphs
  * before math parsing runs).
+ *
+ * Does not insert new `$$` when the env is already inside a display-math
+ * block (e.g. augmented matrices wrapped as `$$\left(\begin{array}...\end{array}\right)$$`).
  */
 export function normalizeMarkdownMathDelimiters(input: string): string {
   return input.replace(
     BLOCK_ENV_WITH_DOLLARS_RE,
-    (_match, _open, preWs, envBody, _envName, postWs) => {
+    (match, _open, preWs, envBody, _envName, postWs, _close, offset) => {
       const cleaned = String(envBody)
         .replace(/\n[ \t]*\n+/g, "\n")
         .trim()
       const lead = preWs?.includes("\n") ? "\n\n" : preWs || ""
       const trail = postWs?.includes("\n") ? "\n\n" : postWs || ""
+
+      // Already inside `$$...$$` with surrounding TeX (e.g. `\left(` / `\right)`):
+      // only scrub blank lines inside the env; keep outer delimiters intact.
+      if (isInsideDisplayMath(input, offset)) {
+        return match.replace(String(envBody), cleaned)
+      }
+
+      // Adjacent `$`/`$$` (or bare env): normalize to a single `$$...$$` block.
       return `${lead}$$${cleaned}$$${trail}`
     },
   )

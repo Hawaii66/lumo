@@ -98,6 +98,29 @@ x_1 + x_2 = 0
     const raw = String.raw`$$\begin{cases} x=1 \\ y=2 \end{cases}$$`
     expect(normalizeMarkdownMathDelimiters(raw)).toBe(raw)
   })
+
+  it("does not re-wrap array already inside $$\\left(...\\right)$$", () => {
+    const raw = String.raw`$$\left(\begin{array}{cccc|c}
+1 & -2 & 4 & -1 & -3 \\
+2 & 1 & -1 & 3 & 7 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)$$`
+    const normalized = normalizeMarkdownMathDelimiters(raw)
+    expect(normalized).toBe(raw)
+    expect(normalized).not.toContain(String.raw`$$\left($$`)
+    const segs = splitMarkdownMath(normalized)
+    expect(segs).toEqual([
+      {
+        kind: "math",
+        latex: String.raw`\left(\begin{array}{cccc|c}
+1 & -2 & 4 & -1 & -3 \\
+2 & 1 & -1 & 3 & 7 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)`,
+        display: "block",
+      },
+    ])
+  })
 })
 
 describe("heading helpers", () => {
