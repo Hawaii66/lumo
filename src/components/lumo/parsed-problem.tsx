@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { LumoParsedProblem, ProblemFlag, ProblemImage } from "~/lib/lumo-content"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import { ImageViewerSheet } from "~/components/rooms/image-viewer-sheet"
@@ -8,6 +8,11 @@ import {
   ProblemCompletionControl,
   type ProblemCompletionEntry,
 } from "~/components/rooms/problem-completion"
+import {
+  ProblemFacitJumpControl,
+  problemSectionId,
+  scrollToProblemSection,
+} from "~/components/rooms/problem-facit-jump"
 import {
   occasionIdForLetter,
   occasionLabelForLetter,
@@ -179,6 +184,41 @@ export function ParsedProblemView({
     (flag) =>
       !(flag.kind === "needs_pdf" && questionImages.length > 0),
   )
+  const questionSectionDomId = problemSectionId(
+    problem.problemNumber,
+    "question",
+  )
+  const answerSectionDomId = problemSectionId(problem.problemNumber, "answer")
+  const canRevealFacit = onShowAnswerChange !== undefined
+  const showJumpToFacit = showAnswer || canRevealFacit
+  const pendingFacitJumpLetterRef = useRef<string | null>(null)
+
+  const jumpToFacit = (letter: string) => {
+    if (showAnswer) {
+      scrollToProblemSection(answerSectionDomId, letter)
+      return
+    }
+    if (!canRevealFacit) return
+    pendingFacitJumpLetterRef.current = letter
+    onShowAnswerChange?.(true)
+  }
+
+  const jumpToQuestion = (letter: string) => {
+    scrollToProblemSection(questionSectionDomId, letter)
+  }
+
+  useEffect(() => {
+    if (!showAnswer || pendingFacitJumpLetterRef.current === null) return
+    const letter = pendingFacitJumpLetterRef.current
+    pendingFacitJumpLetterRef.current = null
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToProblemSection(answerSectionDomId, letter)
+      })
+    })
+  }, [showAnswer, answerSectionDomId])
+
+  const showWholeProblemJump = !hasSubproblems && showJumpToFacit
 
   return (
     <article className={cn("space-y-4", className)}>
@@ -210,7 +250,9 @@ export function ParsedProblemView({
               <ProblemStarsReadonly stars={starsForLetter(starEntries, "")} />
             )
           ) : null}
-          {showWholeProblemReason || showWholeProblemCompletion ? (
+          {showWholeProblemReason ||
+          showWholeProblemCompletion ||
+          showWholeProblemJump ? (
             <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
               {showWholeProblemReason ? (
                 <ProblemReasonControl
@@ -223,6 +265,14 @@ export function ParsedProblemView({
                 <ProblemCompletionControl
                   completed={isCompletedForLetter(completionEntries, "")}
                   onChange={(completed) => onCompletedChange("", completed)}
+                />
+              ) : null}
+              {showWholeProblemJump ? (
+                <ProblemFacitJumpControl
+                  direction="to-facit"
+                  targetSectionId={answerSectionDomId}
+                  targetAvailable={showAnswer}
+                  onJump={() => jumpToFacit("")}
                 />
               ) : null}
             </span>
@@ -264,7 +314,10 @@ export function ParsedProblemView({
         </ul>
       ) : null}
 
-      <section className="space-y-3">
+      <section
+        id={questionSectionDomId}
+        className="scroll-mt-3 space-y-3"
+      >
         <MarkdownWithMath
           markdown={problem.question}
           scopeKey={`q-${problem.problemNumber}`}
@@ -320,16 +373,31 @@ export function ParsedProblemView({
                   }
               : undefined
           }
+          subproblemJump={
+            hasSubproblems && showJumpToFacit
+              ? {
+                  direction: "to-facit",
+                  targetSectionId: answerSectionDomId,
+                  targetAvailable: showAnswer,
+                  onJump: jumpToFacit,
+                }
+              : undefined
+          }
         />
       </section>
 
       {showAnswer ? (
-        <section className="space-y-3 border-t border-border/60 pt-4">
+        <section
+          id={answerSectionDomId}
+          className="scroll-mt-3 space-y-3 border-t border-border/60 pt-4"
+        >
           <div className="flex items-center gap-1.5">
             <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Svar
             </h3>
-            {showWholeProblemReason || showWholeProblemCompletion ? (
+            {showWholeProblemReason ||
+            showWholeProblemCompletion ||
+            showWholeProblemJump ? (
               <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
                 {showWholeProblemReason ? (
                   <ProblemReasonControl
@@ -342,6 +410,13 @@ export function ParsedProblemView({
                   <ProblemCompletionControl
                     completed={isCompletedForLetter(completionEntries, "")}
                     onChange={(completed) => onCompletedChange("", completed)}
+                  />
+                ) : null}
+                {showWholeProblemJump ? (
+                  <ProblemFacitJumpControl
+                    direction="to-question"
+                    targetSectionId={questionSectionDomId}
+                    onJump={() => jumpToQuestion("")}
                   />
                 ) : null}
               </span>
@@ -380,6 +455,15 @@ export function ParsedProblemView({
                         reasonForLetter(reasonEntries, letter),
                       onSave: onReasonSave,
                       onClear: onReasonClear,
+                    }
+                  : undefined
+              }
+              subproblemJump={
+                hasSubproblems
+                  ? {
+                      direction: "to-question",
+                      targetSectionId: questionSectionDomId,
+                      onJump: jumpToQuestion,
                     }
                   : undefined
               }
