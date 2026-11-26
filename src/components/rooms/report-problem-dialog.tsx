@@ -48,6 +48,9 @@ export function ReportProblemDialog({
   const [details, setDetails] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const selectedReasonLabel = PROBLEM_REPORT_REASON_OPTIONS.find(
+    (option) => option.value === reason,
+  )?.label
 
   function resetForm() {
     setReason(null)
@@ -113,14 +116,17 @@ export function ReportProblemDialog({
             <div className="space-y-2">
               <Label htmlFor="report-reason">Anledning</Label>
               <Select
+                items={PROBLEM_REPORT_REASON_OPTIONS}
                 value={reason ?? undefined}
                 onValueChange={(next) => {
                   if (next == null) return
-                  setReason(next as ProblemReportReason)
+                  setReason(next)
                 }}
               >
                 <SelectTrigger id="report-reason" className="w-full">
-                  <SelectValue placeholder="Välj anledning" />
+                  <SelectValue placeholder="Välj anledning">
+                    {selectedReasonLabel}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {PROBLEM_REPORT_REASON_OPTIONS.map((option) => (

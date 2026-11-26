@@ -113,9 +113,6 @@ function AdminProblemBrowser({
 
   const selected =
     problems.find((problem) => problem.id === selectedId) ?? null
-  const needsPdf =
-    selected?.problem.flags?.some((flag) => flag.kind === "needs_pdf") ===
-      true && (selected.problem.questionImages?.length ?? 0) === 0
   const questionPageIdx = selected?.problem.sourceQuestionPageIdx
   const answerPageIdx = selected?.problem.sourceAnswerPageIdx
 
@@ -176,11 +173,7 @@ function AdminProblemBrowser({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={
-                    needsPdf
-                      ? "gap-1.5 border-amber-500/40 bg-amber-500/5 text-amber-950 hover:bg-amber-500/10 dark:text-amber-100"
-                      : "gap-1.5"
-                  }
+                  className="gap-1.5"
                   disabled={pdfUrl === null}
                 />
               }

@@ -3,7 +3,9 @@ import { v } from "convex/values";
 export const PROBLEM_REPORT_REASONS = [
   "wrong_problem",
   "wrong_answer",
+  "missing_answer",
   "missing_figure",
+  "missing_image",
   "wrong_formatting",
   "other",
 ] as const;
@@ -14,7 +16,9 @@ export const PROBLEM_REPORT_REASON_LABELS: Record<ProblemReportReason, string> =
   {
     wrong_problem: "Fel i uppgiften",
     wrong_answer: "Fel i facit",
+    missing_answer: "Saknat svar",
     missing_figure: "Saknad figur/bild",
+    missing_image: "Saknad bild",
     wrong_formatting: "Fel formatering",
     other: "Annat",
   };
@@ -37,7 +41,9 @@ export const PROBLEM_REPORT_STATUS_LABELS: Record<ProblemReportStatus, string> =
 export const problemReportReasonValidator = v.union(
   v.literal("wrong_problem"),
   v.literal("wrong_answer"),
+  v.literal("missing_answer"),
   v.literal("missing_figure"),
+  v.literal("missing_image"),
   v.literal("wrong_formatting"),
   v.literal("other"),
 );

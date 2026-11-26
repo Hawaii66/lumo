@@ -436,7 +436,7 @@ function ChangeModelDemo() {
             aria-expanded={open}
           >
             <span className="truncate">
-              {current.name} · {current.creditCost}
+              {current.name} {current.creditCost}
             </span>
             <ChevronDown className="size-3.5 shrink-0 text-neutral-400" />
           </button>

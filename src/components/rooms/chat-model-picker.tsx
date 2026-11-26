@@ -96,7 +96,7 @@ export function ChatModelPicker({
                     {entry.name}
                     <span className="text-muted-foreground">
                       {" "}
-                      · {entry.creditCost}
+                      {entry.creditCost}
                     </span>
                   </span>
                 </DropdownMenuItem>

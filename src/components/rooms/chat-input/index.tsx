@@ -52,6 +52,8 @@ type ChatInputProps = {
    * a new chat). Values `undefined` / `0` are ignored.
    */
   focusSignal?: number
+  /** When true, typing anywhere in the window focuses this composer. */
+  captureTyping?: boolean
 }
 
 export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
@@ -70,6 +72,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       modelLevel,
       onModelLevelChange,
       focusSignal,
+      captureTyping,
     },
     ref,
   ) {
@@ -84,6 +87,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(
       modelLevel,
       onModelLevelChange,
       focusSignal,
+      captureTyping,
     })
 
     useImperativeHandle(ref, () => composer.handle)
