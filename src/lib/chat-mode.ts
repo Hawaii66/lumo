@@ -7,6 +7,12 @@ export const CHAT_MODES = [
     description: "Vanlig hjälp — ställ frågor och välj väg",
   },
   {
+    value: "forsta_steget",
+    label: "Första steget",
+    description:
+      "Kom igång med nästa grepp — en liten puff, inte hela lösningen",
+  },
+  {
     value: "genomgang",
     label: "Genomgång",
     description: "Gå igenom uppgiften steg för steg",
@@ -41,6 +47,10 @@ export function buildModeStartPrompt(
   const scoped = normalizeSubproblemLetter(subproblemLetter)
   const body = (() => {
     switch (mode) {
+      case "forsta_steget":
+        return scoped !== null
+          ? `Ge mig det första steget för deluppgift (${scoped}) — en liten ledtråd så jag kommer igång, inte hela lösningen. Hoppa över övriga deluppgifter.`
+          : "Ge mig det första steget för den här uppgiften — en liten ledtråd så jag kommer igång, inte hela lösningen."
       case "genomgang":
         return scoped !== null
           ? `Gå igenom endast deluppgift (${scoped}) steg för steg och förklara hur man tänker. Hoppa över övriga deluppgifter.`

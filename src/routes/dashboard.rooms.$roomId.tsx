@@ -838,112 +838,113 @@ function RoomPage() {
               ) : null}
               <div className="-mx-6 mt-4 min-h-0 flex-1 overflow-y-auto px-6">
                 <div className="mx-auto w-full max-w-4xl">
-                <ParsedProblemView
-                  problem={selectedProblem.problem}
-                  showAnswer={showFacit}
-                  showFacitToggle
-                  onShowAnswerChange={setShowFacit}
-                  subproblemLetters={
-                    selectedProblem.isShadow ? [] : subproblemLetters
-                  }
-                  starEntries={
-                    selectedProblem.isShadow
-                      ? []
-                      : selectedProblemStarEntries
-                  }
-                  completionEntries={
-                    selectedProblem.isShadow
-                      ? []
-                      : selectedProblemCompletionEntries
-                  }
-                  onCompletedChange={
-                    selectedProblem.isShadow
-                      ? undefined
-                      : (letter, completed) => {
-                          void setProblemCompleted({
-                            roomId: typedRoomId,
-                            problemId: selectedProblem.id,
-                            completed,
-                            subproblemLetter:
-                              letter === "" ? undefined : letter,
-                          })
-                        }
-                  }
-                  reasonEntries={
-                    selectedProblem.isShadow
-                      ? []
-                      : selectedProblemReasonEntries
-                  }
-                  onReasonSave={
-                    selectedProblem.isShadow
-                      ? undefined
-                      : (letter, reason, note) => {
-                          void setProblemReason({
-                            roomId: typedRoomId,
-                            problemId: selectedProblem.id,
-                            reason,
-                            note,
-                            subproblemLetter:
-                              letter === "" ? undefined : letter,
-                          })
-                        }
-                  }
-                  onReasonClear={
-                    selectedProblem.isShadow
-                      ? undefined
-                      : (letter) => {
-                          void setProblemReason({
-                            roomId: typedRoomId,
-                            problemId: selectedProblem.id,
-                            reason: null,
-                            subproblemLetter:
-                              letter === "" ? undefined : letter,
-                          })
-                        }
-                  }
-                  occasionEntries={
-                    selectedProblem.isShadow
-                      ? []
-                      : (selectedProblemOccasionEntries ?? [])
-                  }
-                />
-                <div className="flex justify-center py-6">
-                  <ProblemHelpActions
-                    roomId={typedRoomId}
-                    problemNumber={selectedProblem.problem.problemNumber}
-                    fileName={selectedProblem.fileName}
-                    subproblemLetters={subproblemLetters}
-                    pending={problemChatPending}
-                    onSelect={async (draft: ProblemHelpStartDraft) => {
-                      await problemChatInputRef.current?.submitStartDraft({
-                        prompt: draft.prompt,
-                        mode: draft.mode,
-                        storageImages: draft.images,
-                        subproblemLetter: draft.subproblemLetter,
-                      })
-                    }}
+                  <ParsedProblemView
+                    problem={selectedProblem.problem}
+                    showAnswer={showFacit}
+                    showFacitToggle
+                    onShowAnswerChange={setShowFacit}
+                    subproblemLetters={
+                      selectedProblem.isShadow ? [] : subproblemLetters
+                    }
+                    starEntries={
+                      selectedProblem.isShadow
+                        ? []
+                        : selectedProblemStarEntries
+                    }
+                    completionEntries={
+                      selectedProblem.isShadow
+                        ? []
+                        : selectedProblemCompletionEntries
+                    }
+                    onCompletedChange={
+                      selectedProblem.isShadow
+                        ? undefined
+                        : (letter, completed) => {
+                            void setProblemCompleted({
+                              roomId: typedRoomId,
+                              problemId: selectedProblem.id,
+                              completed,
+                              subproblemLetter:
+                                letter === "" ? undefined : letter,
+                            })
+                          }
+                    }
+                    reasonEntries={
+                      selectedProblem.isShadow
+                        ? []
+                        : selectedProblemReasonEntries
+                    }
+                    onReasonSave={
+                      selectedProblem.isShadow
+                        ? undefined
+                        : (letter, reason, note) => {
+                            void setProblemReason({
+                              roomId: typedRoomId,
+                              problemId: selectedProblem.id,
+                              reason,
+                              note,
+                              subproblemLetter:
+                                letter === "" ? undefined : letter,
+                            })
+                          }
+                    }
+                    onReasonClear={
+                      selectedProblem.isShadow
+                        ? undefined
+                        : (letter) => {
+                            void setProblemReason({
+                              roomId: typedRoomId,
+                              problemId: selectedProblem.id,
+                              reason: null,
+                              subproblemLetter:
+                                letter === "" ? undefined : letter,
+                            })
+                          }
+                    }
+                    occasionEntries={
+                      selectedProblem.isShadow
+                        ? []
+                        : (selectedProblemOccasionEntries ?? [])
+                    }
                   />
                 </div>
-                </div>
               </div>
-              <ChatInput
-                ref={problemChatInputRef}
-                roomId={typedRoomId}
-                problemGroups={problemGroups?.groups}
-                defaultProblemId={selectedProblem.id}
-                className="mx-auto w-full max-w-4xl shrink-0"
-                pending={problemChatPending}
-                error={problemChatError}
-                placeholder="Lägg till en anteckning… eller skicka direkt"
-                captureTyping
-                onSubmit={(payload) =>
-                  handleProblemChatSubmit(
-                    selectedProblem.problem.problemNumber,
-                    selectedProblem.fileName,
-                    payload,
-                  )
-                }
-              />
+              <div className="shrink-0 border-t border-border bg-background pt-3">
+                <ProblemHelpActions
+                  roomId={typedRoomId}
+                  problemNumber={selectedProblem.problem.problemNumber}
+                  fileName={selectedProblem.fileName}
+                  subproblemLetters={subproblemLetters}
+                  pending={problemChatPending}
+                  className="pb-2"
+                  onSelect={async (draft: ProblemHelpStartDraft) => {
+                    await problemChatInputRef.current?.submitStartDraft({
+                      prompt: draft.prompt,
+                      mode: draft.mode,
+                      storageImages: draft.images,
+                      subproblemLetter: draft.subproblemLetter,
+                    })
+                  }}
+                />
+                <ChatInput
+                  ref={problemChatInputRef}
+                  roomId={typedRoomId}
+                  problemGroups={problemGroups?.groups}
+                  defaultProblemId={selectedProblem.id}
+                  className="border-t-0 pt-2"
+                  pending={problemChatPending}
+                  error={problemChatError}
+                  placeholder="Lägg till en anteckning… eller skicka direkt"
+                  captureTyping
+                  onSubmit={(payload) =>
+                    handleProblemChatSubmit(
+                      selectedProblem.problem.problemNumber,
+                      selectedProblem.fileName,
+                      payload,
+                    )
+                  }
+                />
+              </div>
             </div>
           )
         ) : isDraftChat || selectedThreadId === null ? (

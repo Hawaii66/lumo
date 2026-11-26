@@ -2,6 +2,7 @@ import { Fragment, type ReactNode } from "react"
 import { Highlighter } from "lucide-react"
 import { StaticMath } from "~/components/lumo/static-math"
 import { ProblemCompletionControl } from "~/components/rooms/problem-completion"
+import { ProblemFacitJumpControl } from "~/components/rooms/problem-facit-jump"
 import {
   ProblemOccasionControl,
   ProblemOccasionReadonly,
@@ -55,6 +56,14 @@ type MarkdownWithMathProps = {
     getOccasionId?: (letter: string) => string | null
     getOccasionLabel?: (letter: string) => string | null
     onChange?: (letter: string, occasionId: string | null) => void
+  }
+  /** When set, jump controls appear outside each deluppgift row. */
+  subproblemJump?: {
+    direction: "to-facit" | "to-question"
+    targetSectionId: string
+    /** False while the jump target is not mounted (e.g. facit hidden). */
+    targetAvailable?: boolean
+    onJump: (letter: string) => void
   }
   /**
    * Images keyed by deluppgift letter (`""` = shared stem before first
@@ -315,6 +324,7 @@ export function MarkdownWithMath({
   subproblemCompletion,
   subproblemReason,
   subproblemOccasion,
+  subproblemJump,
   imagesByLetter,
   renderImages,
 }: MarkdownWithMathProps) {
@@ -363,74 +373,89 @@ export function MarkdownWithMath({
               : undefined
           }
           data-lumo-subproblem={block.label}
-          className={cn(
-            "scroll-mt-3 flex w-full items-center gap-1.5",
-            (subproblemCompletion || subproblemReason) &&
-              "rounded-md border border-border/70 bg-muted/40 px-2 py-1",
-          )}
+          className="scroll-mt-3 flex w-full items-center gap-1.5"
         >
-          <p className="text-sm font-semibold text-muted-foreground">
-            ({block.label})
-          </p>
-          {subproblemOccasion ? (
-            subproblemOccasion.onChange ? (
-              <ProblemOccasionControl
-                letter={letter}
-                occasionId={
-                  subproblemOccasion.getOccasionId?.(letter) ?? null
-                }
-                options={subproblemOccasion.options ?? []}
-                onChange={(occasionId) =>
-                  subproblemOccasion.onChange?.(letter, occasionId)
-                }
-              />
-            ) : (
-              <ProblemOccasionReadonly
-                letter={letter}
-                label={
-                  subproblemOccasion.getOccasionLabel?.(letter) ?? null
-                }
-              />
-            )
-          ) : null}
-          {subproblemStars ? (
-            subproblemStars.onChange ? (
-              <ProblemStarsControl
-                letter={letter}
-                hideLetter
-                stars={subproblemStars.getStars(letter)}
-                onChange={(stars) => subproblemStars.onChange?.(letter, stars)}
-              />
-            ) : (
-              <ProblemStarsReadonly
-                letter={letter}
-                hideLetter
-                stars={subproblemStars.getStars(letter)}
-              />
-            )
-          ) : null}
-          {subproblemReason || subproblemCompletion ? (
-            <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
-              {subproblemReason ? (
-                <ProblemReasonControl
+          <div
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-1.5",
+              (subproblemCompletion || subproblemReason) &&
+                "rounded-md border border-border/70 bg-muted/40 px-2 py-1",
+            )}
+          >
+            <p className="text-sm font-semibold text-muted-foreground">
+              ({block.label})
+            </p>
+            {subproblemOccasion ? (
+              subproblemOccasion.onChange ? (
+                <ProblemOccasionControl
                   letter={letter}
-                  entry={subproblemReason.getEntry(letter)}
-                  onSave={(reason, note) =>
-                    subproblemReason.onSave(letter, reason, note)
+                  occasionId={
+                    subproblemOccasion.getOccasionId?.(letter) ?? null
                   }
-                  onClear={() => subproblemReason.onClear(letter)}
-                />
-              ) : null}
-              {subproblemCompletion ? (
-                <ProblemCompletionControl
-                  letter={letter}
-                  completed={subproblemCompletion.isCompleted(letter)}
-                  onChange={(completed) =>
-                    subproblemCompletion.onChange(letter, completed)
+                  options={subproblemOccasion.options ?? []}
+                  onChange={(occasionId) =>
+                    subproblemOccasion.onChange?.(letter, occasionId)
                   }
                 />
-              ) : null}
-            </span>
+              ) : (
+                <ProblemOccasionReadonly
+                  letter={letter}
+                  label={
+                    subproblemOccasion.getOccasionLabel?.(letter) ?? null
+                  }
+                />
+              )
+            ) : null}
+            {subproblemStars ? (
+              subproblemStars.onChange ? (
+                <ProblemStarsControl
+                  letter={letter}
+                  hideLetter
+                  stars={subproblemStars.getStars(letter)}
+                  onChange={(stars) =>
+                    subproblemStars.onChange?.(letter, stars)
+                  }
+                />
+              ) : (
+                <ProblemStarsReadonly
+                  letter={letter}
+                  hideLetter
+                  stars={subproblemStars.getStars(letter)}
+                />
+              )
+            ) : null}
+            {subproblemReason || subproblemCompletion ? (
+              <span className="ml-auto inline-flex shrink-0 items-center gap-1.5">
+                {subproblemReason ? (
+                  <ProblemReasonControl
+                    letter={letter}
+                    entry={subproblemReason.getEntry(letter)}
+                    onSave={(reason, note) =>
+                      subproblemReason.onSave(letter, reason, note)
+                    }
+                    onClear={() => subproblemReason.onClear(letter)}
+                  />
+                ) : null}
+                {subproblemCompletion ? (
+                  <ProblemCompletionControl
+                    letter={letter}
+                    completed={subproblemCompletion.isCompleted(letter)}
+                    onChange={(completed) =>
+                      subproblemCompletion.onChange(letter, completed)
+                    }
+                  />
+                ) : null}
+              </span>
+            ) : null}
+          </div>
+          {subproblemJump ? (
+            <ProblemFacitJumpControl
+              direction={subproblemJump.direction}
+              targetSectionId={subproblemJump.targetSectionId}
+              letter={letter}
+              targetAvailable={subproblemJump.targetAvailable}
+              onJump={() => subproblemJump.onJump(letter)}
+            />
           ) : null}
         </div>,
       )

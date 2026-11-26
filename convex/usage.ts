@@ -29,6 +29,7 @@ const chatUsageBucketValidator = v.object({
   byMode: v.object({
     normal: usageBucketValidator,
     genomgang: usageBucketValidator,
+    forsta_steget: usageBucketValidator,
   }),
 });
 
@@ -48,6 +49,7 @@ function emptyChatBucket() {
     byMode: {
       normal: emptyBucket(),
       genomgang: emptyBucket(),
+      forsta_steget: emptyBucket(),
     },
   };
 }

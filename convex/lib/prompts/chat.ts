@@ -66,6 +66,11 @@ export function chatModeHint(mode: ChatMode): string {
       return `Chattläge: genomgang
 • Förklara HUR man tänker, steg för steg; använd ### (a) när flera deluppgifter ingår.
 • Avsluta med quickReplies om just det steget ("Varför …?", "Hur … härnäst?").`;
+    case "forsta_steget":
+      return `Chattläge: forsta_steget
+• Ge ENDAST en liten puff / första grepp: vad man tittar på först, vilken ansats, eller en nyckelobservation.
+• Dumpa INTE flera steg och absolut inte hela lösningen — stanna tidigt så studenten kan fortsätta själva.
+• Avsluta med 1–3 quickReplies som frågar vidare försiktigt ("Vad blir nästa steg?", "Varför just den ansatsen?").`;
   }
 }
 
