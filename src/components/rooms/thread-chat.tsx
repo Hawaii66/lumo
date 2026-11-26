@@ -4,7 +4,8 @@ import {
 } from "@convex-dev/agent/react"
 import { useMutation, useQuery } from "convex/react"
 import { ArrowLeft, ChevronsDown, ChevronsUp } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import {
@@ -119,21 +120,26 @@ export function ThreadChat({
   const [error, setError] = useState<string | null>(null)
   const [canJumpStart, setCanJumpStart] = useState(false)
   const [canJumpEnd, setCanJumpEnd] = useState(false)
+  /** Extra space under the thread so the last user message can sit at the top. */
+  const [bottomSpacerPx, setBottomSpacerPx] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollContentRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<ChatInputHandle>(null)
-  const scrolledToReplyKeyRef = useRef<string | null>(null)
   const scrolledToUserKeyRef = useRef<string | null>(null)
+  /** One-shot re-pin of the last question when a given reply starts streaming. */
+  const pinnedUserForReplyKeyRef = useRef<string | null>(null)
   const seededScrollRef = useRef(false)
   /** Pin to bottom while true; cleared when the user scrolls away. */
   const stickToBottomRef = useRef(false)
   /**
-   * After send / while aligning to a new reply’s top, block stick-to-bottom
-   * from re-arming just because the viewport is still near the chat end.
+   * After send / while the last question is pinned at the top, block
+   * stick-to-bottom from re-arming just because the viewport is still near
+   * the chat end (short threads + spacer).
    */
   const suppressStickToBottomRef = useRef(false)
   /** Mirrors streamingReplyKey for scroll handlers outside React render. */
   const streamingReplyKeyRef = useRef<string | null>(null)
+  const lastUserMessageKeyRef = useRef<string | null>(null)
   const wasStreamingRef = useRef(false)
 
   const messages = results
@@ -207,6 +213,7 @@ export function ThreadChat({
     }
     return null
   }, [messages])
+  lastUserMessageKeyRef.current = lastUserMessageKey
 
   // Stable identity for the in-flight assistant reply — not its growing text.
   const streamingReplyKey = useMemo(() => {
@@ -249,6 +256,39 @@ export function ThreadChat({
     container.scrollTo({ top: Math.max(0, nextTop), behavior })
   }
 
+  function updateBottomSpacer() {
+    const container = scrollRef.current
+    const userKey = lastUserMessageKeyRef.current
+    if (!container || !userKey) {
+      setBottomSpacerPx(0)
+      return
+    }
+    const userEl = container.querySelector(
+      `[data-message-key="${CSS.escape(userKey)}"]`,
+    )
+    if (!(userEl instanceof HTMLElement)) {
+      setBottomSpacerPx(0)
+      return
+    }
+
+    // How much content already sits below the last user message (assistant
+    // reply, gaps). Shrink the spacer as the answer grows so jump-to-end
+    // still lands on the real end of the reply.
+    const list = userEl.parentElement
+    const afterUserPx = list
+      ? Math.max(
+          0,
+          list.getBoundingClientRect().bottom -
+            userEl.getBoundingClientRect().bottom,
+        )
+      : 0
+    const next = Math.max(
+      0,
+      Math.round(container.clientHeight - userEl.offsetHeight - afterUserPx - 16),
+    )
+    setBottomSpacerPx((prev) => (prev === next ? prev : next))
+  }
+
   function updateJumpButtons() {
     const container = scrollRef.current
     if (!container) {
@@ -280,8 +320,8 @@ export function ThreadChat({
     if (!container) return
 
     const onScroll = () => {
-      // Don’t re-arm stick-to-bottom while aligning to a new reply — scrolling
-      // that message to the top often still counts as “near bottom” in a short
+      // Don’t re-arm stick-to-bottom while the last question is pinned at the
+      // top — that scroll often still counts as “near bottom” in a short
       // thread, which would yank the viewport to the growing end again.
       if (suppressStickToBottomRef.current || streamingReplyKeyRef.current) {
         stickToBottomRef.current = false
@@ -292,8 +332,9 @@ export function ThreadChat({
     }
 
     const onContentResize = () => {
+      updateBottomSpacer()
       // While stick-to-bottom is on (e.g. jump-to-end), keep chasing the end.
-      // During a new reply we leave the viewport at the message top so growing
+      // During a new reply we leave the last question at the top so growing
       // tokens don’t pull you to the bottom.
       if (
         seededScrollRef.current &&
@@ -306,6 +347,7 @@ export function ThreadChat({
       updateJumpButtons()
     }
 
+    updateBottomSpacer()
     updateJumpButtons()
     container.addEventListener("scroll", onScroll, { passive: true })
     const resizeObserver = new ResizeObserver(onContentResize)
@@ -327,20 +369,31 @@ export function ThreadChat({
     suppressStickToBottomRef.current = false
     wasStreamingRef.current = false
     scrolledToUserKeyRef.current = null
-    scrolledToReplyKeyRef.current = null
+    pinnedUserForReplyKeyRef.current = null
+    setBottomSpacerPx(0)
   }, [threadId])
 
   // Treat the first loaded history as already seen so opening a thread
-  // doesn’t jump. Still allow a one-time scroll to a live streaming reply.
+  // doesn’t jump. Still allow a one-time scroll when a new message is sent.
   useEffect(() => {
     if (seededScrollRef.current || status === "LoadingFirstPage") return
     seededScrollRef.current = true
     scrolledToUserKeyRef.current = lastUserMessageKey
   }, [status, lastUserMessageKey, threadId])
 
-  // On send: scroll the new user message to the top of the viewport (not the
-  // chat bottom) so you can read the reply from its start as it streams.
-  useEffect(() => {
+  function pinLastUserMessageToTop(messageKey: string) {
+    suppressStickToBottomRef.current = true
+    stickToBottomRef.current = false
+    // Apply spacer before measuring so the question can actually reach the top.
+    flushSync(() => {
+      updateBottomSpacer()
+    })
+    scrollToMessageTop(messageKey, "smooth")
+  }
+
+  // On send: pin the new user message to the top of the viewport so the
+  // question stays visible and as much of the answer as possible fits below.
+  useLayoutEffect(() => {
     if (!seededScrollRef.current) return
     if (
       !lastUserMessageKey ||
@@ -349,28 +402,20 @@ export function ThreadChat({
       return
     }
 
-    suppressStickToBottomRef.current = true
-    stickToBottomRef.current = false
     scrolledToUserKeyRef.current = lastUserMessageKey
-    scrollToMessageTop(lastUserMessageKey, "smooth")
+    pinLastUserMessageToTop(lastUserMessageKey)
   }, [lastUserMessageKey, pending])
 
-  // When the assistant reply appears, align its top once. Growing tokens only
-  // extend below — we intentionally do not keep sticking to the bottom.
-  useEffect(() => {
-    if (!seededScrollRef.current) return
-    if (
-      !streamingReplyKey ||
-      scrolledToReplyKeyRef.current === streamingReplyKey
-    ) {
-      return
-    }
+  // When streaming starts, re-pin the last question once (DOM may have
+  // settled after the optimistic send). Growing tokens only extend below.
+  useLayoutEffect(() => {
+    if (!seededScrollRef.current || !streamingReplyKey) return
+    if (!lastUserMessageKey || !suppressStickToBottomRef.current) return
+    if (pinnedUserForReplyKeyRef.current === streamingReplyKey) return
 
-    scrolledToReplyKeyRef.current = streamingReplyKey
-    suppressStickToBottomRef.current = true
-    stickToBottomRef.current = false
-    scrollToMessageTop(streamingReplyKey, "smooth")
-  }, [streamingReplyKey])
+    pinnedUserForReplyKeyRef.current = streamingReplyKey
+    pinLastUserMessageToTop(lastUserMessageKey)
+  }, [streamingReplyKey, lastUserMessageKey])
 
   // Allow stick-to-bottom again only after a live reply finishes — not in the
   // gap between send and the first streaming token.
@@ -619,6 +664,11 @@ export function ThreadChat({
                 })}
               </ul>
             )}
+            <div
+              aria-hidden
+              data-chat-scroll-spacer
+              style={{ height: bottomSpacerPx }}
+            />
           </div>
           <SelectionCitePopup
             containerRef={scrollRef}
