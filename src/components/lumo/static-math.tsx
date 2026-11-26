@@ -1,5 +1,6 @@
 import { createElement, useEffect, useRef } from "react"
 import type { MathfieldElement } from "mathlive"
+import { prepareLatexForMathLive } from "~/lib/markdown-math"
 import { cn } from "~/lib/utils"
 
 type StaticMathProps = {
@@ -17,11 +18,12 @@ export function StaticMath({
 
   useEffect(() => {
     let cancelled = false
+    const prepared = prepareLatexForMathLive(latex)
     void import("mathlive").then(() => {
       const el = ref.current
       if (cancelled || !el) return
       el.readOnly = true
-      el.value = latex
+      el.value = prepared
     })
     return () => {
       cancelled = true

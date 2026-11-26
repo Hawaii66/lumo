@@ -6,6 +6,7 @@ import {
   isMarkdownTableStart,
   isSubproblemHeading,
   normalizeMarkdownMathDelimiters,
+  prepareLatexForMathLive,
   splitMarkdownMath,
   splitMarkdownTableRow,
   subproblemAnchorId,
@@ -120,6 +121,27 @@ x_1 + x_2 = 0
         display: "block",
       },
     ])
+  })
+})
+
+describe("prepareLatexForMathLive", () => {
+  it("rewrites augmented array to matrix + \\middle|", () => {
+    const raw = String.raw`\left(\begin{array}{cccc|c}
+2 & 1 & -1 & 3 & 7 \\
+1 & -2 & 4 & -1 & -3 \\
+3 & 1 & 2 & 1 & 5
+\end{array}\right)`
+    expect(prepareLatexForMathLive(raw)).toBe(
+      String.raw`\left(\begin{matrix}2 & 1 & -1 & 3 \\ 1 & -2 & 4 & -1 \\ 3 & 1 & 2 & 1\end{matrix}\middle|\begin{matrix}7 \\ -3 \\ 5\end{matrix}\right)`,
+    )
+  })
+
+  it("rewrites plain array to matrix", () => {
+    expect(
+      prepareLatexForMathLive(
+        String.raw`\begin{array}{cc}1 & 2 \\ 3 & 4\end{array}`,
+      ),
+    ).toBe(String.raw`\begin{matrix}1 & 2 \\ 3 & 4\end{matrix}`)
   })
 })
 

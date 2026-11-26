@@ -48,6 +48,110 @@ function isInsideDisplayMath(input: string, offset: number): boolean {
 }
 
 /**
+ * Split one array/matrix row on cell separators (`&`), respecting braces and `\&`.
+ */
+function splitLatexRowCells(row: string): Array<string> {
+  const cells: Array<string> = []
+  let cur = ""
+  let depth = 0
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i]!
+    if (ch === "{") {
+      depth += 1
+      cur += ch
+      continue
+    }
+    if (ch === "}") {
+      depth = Math.max(0, depth - 1)
+      cur += ch
+      continue
+    }
+    if (ch === "&" && depth === 0 && row[i - 1] !== "\\") {
+      cells.push(cur.trim())
+      cur = ""
+      continue
+    }
+    cur += ch
+  }
+  cells.push(cur.trim())
+  return cells
+}
+
+/**
+ * Split an array/matrix body into non-empty rows on `\\`.
+ */
+function splitLatexEnvRows(body: string): Array<string> {
+  const rows: Array<string> = []
+  let cur = ""
+  let depth = 0
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i]!
+    if (ch === "{") {
+      depth += 1
+      cur += ch
+      continue
+    }
+    if (ch === "}") {
+      depth = Math.max(0, depth - 1)
+      cur += ch
+      continue
+    }
+    if (ch === "\\" && body[i + 1] === "\\" && depth === 0) {
+      const trimmed = cur.replace(/\s+/g, " ").trim()
+      if (trimmed.length > 0) rows.push(trimmed)
+      cur = ""
+      i += 1
+      continue
+    }
+    cur += ch
+  }
+  const trimmed = cur.replace(/\s+/g, " ").trim()
+  if (trimmed.length > 0) rows.push(trimmed)
+  return rows
+}
+
+/**
+ * MathLive metrics non-multiline `array` using only the first row's height, so
+ * `\left(\begin{array}...\end{array}\right)` shows a blank gap above the
+ * entries. Rewrite to centered `matrix` (and `\middle|` for augmented bars).
+ */
+export function prepareLatexForMathLive(latex: string): string {
+  return latex.replace(
+    /\\begin\{array\}\{([^}]*)\}([\s\S]*?)\\end\{array\}/g,
+    (_match, colspec: string, body: string) => {
+      const groupWidths = colspec
+        .split("|")
+        .map((group) => (group.match(/[clr]/gi) ?? []).length)
+      const rows = splitLatexEnvRows(body)
+      if (rows.length === 0) {
+        return "\\begin{matrix}\\end{matrix}"
+      }
+
+      if (groupWidths.length <= 1) {
+        return `\\begin{matrix}${rows.join(" \\\\ ")}\\end{matrix}`
+      }
+
+      const segments: Array<Array<string>> = groupWidths.map(() => [])
+      for (const row of rows) {
+        const cells = splitLatexRowCells(row)
+        let offset = 0
+        for (let g = 0; g < groupWidths.length; g++) {
+          const width = groupWidths[g]!
+          const slice = cells.slice(offset, offset + width)
+          while (slice.length < width) slice.push("")
+          segments[g]!.push(slice.join(" & "))
+          offset += width
+        }
+      }
+
+      return segments
+        .map((segRows) => `\\begin{matrix}${segRows.join(" \\\\ ")}\\end{matrix}`)
+        .join("\\middle|")
+    },
+  )
+}
+
+/**
  * Repair AI/OCR markdown so multi-line TeX envs become closed `$$...$$`
  * blocks without internal blank lines (blank lines would split paragraphs
  * before math parsing runs).
