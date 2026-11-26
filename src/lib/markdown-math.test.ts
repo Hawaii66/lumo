@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest"
 import {
   chaptersFromMarkdown,
   isFallHeading,
+  isMarkdownTableSeparator,
+  isMarkdownTableStart,
   isSubproblemHeading,
   normalizeMarkdownMathDelimiters,
   splitMarkdownMath,
+  splitMarkdownTableRow,
   subproblemAnchorId,
+  tryParseMarkdownTableAt,
 } from "./markdown-math"
 
 describe("splitMarkdownMath", () => {
@@ -123,5 +127,55 @@ describe("heading helpers", () => {
     expect(subproblemAnchorId("msg/key:1!", 2)).toBe(
       "lumo-subproblem-msg_key_1_-2",
     )
+  })
+})
+
+describe("markdown tables", () => {
+  it("splits rows and unescapes pipes without stripping LaTeX backslashes", () => {
+    expect(splitMarkdownTableRow("| a | b | c |")).toEqual(["a", "b", "c"])
+    expect(splitMarkdownTableRow("a | b | c")).toEqual(["a", "b", "c"])
+    expect(splitMarkdownTableRow(String.raw`| a \| b | c |`)).toEqual([
+      "a | b",
+      "c",
+    ])
+    expect(
+      splitMarkdownTableRow(
+        String.raw`| $\searrow$ | MIN | $\nearrow$ |`,
+      ),
+    ).toEqual([String.raw`$\searrow$`, "MIN", String.raw`$\nearrow$`])
+  })
+
+  it("detects separator rows and alignments", () => {
+    expect(isMarkdownTableSeparator("| --- | :---: | ---: |")).toBe(true)
+    expect(isMarkdownTableSeparator("| foo | bar |")).toBe(false)
+  })
+
+  it("parses a full GFM table with alignment", () => {
+    const lines = [
+      "| Namn | Värde | Diff |",
+      "| :--- | :---: | ---: |",
+      "| $x$ | **2** | 3 |",
+      "| y | 4 | 5 |",
+      "",
+      "Efter tabellen",
+    ]
+    expect(isMarkdownTableStart(lines, 0)).toBe(true)
+    expect(tryParseMarkdownTableAt(lines, 0)).toEqual({
+      table: {
+        headers: ["Namn", "Värde", "Diff"],
+        alignments: ["left", "center", "right"],
+        rows: [
+          ["$x$", "**2**", "3"],
+          ["y", "4", "5"],
+        ],
+      },
+      end: 4,
+    })
+  })
+
+  it("rejects a pipe line without a separator", () => {
+    const lines = ["| not | a | table |", "bara text"]
+    expect(isMarkdownTableStart(lines, 0)).toBe(false)
+    expect(tryParseMarkdownTableAt(lines, 0)).toBeNull()
   })
 })

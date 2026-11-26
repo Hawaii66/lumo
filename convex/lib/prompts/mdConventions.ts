@@ -4,7 +4,7 @@ import { sections } from "./fragments";
 export const MD_MATH_RULES = `════════════════════════════════════════
 MARKDOWN + LATEX
 ════════════════════════════════════════
-• Prosa = vanlig markdown (stycken, listor, **fetstil**, *kursiv*).
+• Prosa = vanlig markdown (stycken, listor, tabeller, **fetstil**, *kursiv*).
 • Matematik ENDAST inne i $...$ (inline) eller $$...$$ (block).
 • ALDRIG TeX-delimitrar \\( \\) eller \\[ \\] — använd bara $ / $$.
 • INGEN rå TeX utanför $-delimitrar.

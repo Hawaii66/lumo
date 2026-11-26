@@ -205,3 +205,127 @@ export function isFallHeading(
   if (!match) return null
   return { number: match[2]!, rest: (match[3] ?? "").replace(/^:\s*/, "").trim() }
 }
+
+export type MarkdownTableAlignment = "left" | "center" | "right"
+
+export type MarkdownTable = {
+  headers: Array<string>
+  alignments: Array<MarkdownTableAlignment>
+  rows: Array<Array<string>>
+}
+
+/**
+ * Split a GFM table row into cells.
+ * Only `\|` is an escape (literal `|`). Other backslashes (LaTeX) are kept.
+ */
+export function splitMarkdownTableRow(line: string): Array<string> {
+  const t = line.trim()
+  const cells: Array<string> = []
+  let cur = ""
+  let i = t.startsWith("|") ? 1 : 0
+
+  while (i < t.length) {
+    // GFM-style escaped pipe only — do not strip LaTeX `\command`s.
+    if (t[i] === "\\" && t[i + 1] === "|") {
+      cur += "|"
+      i += 2
+      continue
+    }
+    if (t[i] === "|") {
+      cells.push(cur.trim())
+      cur = ""
+      i += 1
+      continue
+    }
+    cur += t[i]
+    i += 1
+  }
+
+  if (cur.length > 0 || !t.endsWith("|")) {
+    cells.push(cur.trim())
+  }
+  return cells
+}
+
+const TABLE_SEPARATOR_CELL_RE = /^:?-{3,}:?$/
+
+export function isMarkdownTableSeparator(line: string): boolean {
+  const cells = splitMarkdownTableRow(line)
+  return (
+    cells.length > 0 &&
+    cells.every((cell) => TABLE_SEPARATOR_CELL_RE.test(cell.trim()))
+  )
+}
+
+function alignmentFromSeparatorCell(cell: string): MarkdownTableAlignment {
+  const t = cell.trim()
+  const left = t.startsWith(":")
+  const right = t.endsWith(":")
+  if (left && right) return "center"
+  if (right) return "right"
+  return "left"
+}
+
+/** True when `lines[index]` is a header row followed by a GFM separator. */
+export function isMarkdownTableStart(
+  lines: Array<string>,
+  index: number,
+): boolean {
+  if (index + 1 >= lines.length) return false
+  const header = lines[index]!.trim()
+  const separator = lines[index + 1]!.trim()
+  if (!header.includes("|")) return false
+  if (!isMarkdownTableSeparator(separator)) return false
+  return splitMarkdownTableRow(header).length > 0
+}
+
+/**
+ * Parse a GFM pipe table starting at `start`.
+ * Returns null if the lines are not a table.
+ */
+export function tryParseMarkdownTableAt(
+  lines: Array<string>,
+  start: number,
+): { table: MarkdownTable; end: number } | null {
+  if (!isMarkdownTableStart(lines, start)) return null
+
+  const headers = splitMarkdownTableRow(lines[start]!.trim())
+  const sepCells = splitMarkdownTableRow(lines[start + 1]!.trim())
+  const colCount = Math.max(headers.length, sepCells.length, 1)
+
+  const alignments: Array<MarkdownTableAlignment> = []
+  for (let c = 0; c < colCount; c++) {
+    const cell = sepCells[c]
+    alignments.push(cell ? alignmentFromSeparatorCell(cell) : "left")
+  }
+
+  while (headers.length < colCount) headers.push("")
+
+  const rows: Array<Array<string>> = []
+  let i = start + 2
+  while (i < lines.length) {
+    const trimmed = lines[i]!.trim()
+    if (
+      trimmed.length === 0 ||
+      !trimmed.includes("|") ||
+      isSubproblemHeading(trimmed) ||
+      isFallHeading(trimmed) ||
+      /^(#{1,4})\s+/.test(trimmed)
+    ) {
+      break
+    }
+    const cells = splitMarkdownTableRow(trimmed)
+    while (cells.length < colCount) cells.push("")
+    rows.push(cells.slice(0, colCount))
+    i += 1
+  }
+
+  return {
+    table: {
+      headers: headers.slice(0, colCount),
+      alignments,
+      rows,
+    },
+    end: i,
+  }
+}
