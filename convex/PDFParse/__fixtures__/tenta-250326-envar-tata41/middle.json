@@ -1,0 +1,1902 @@
+{
+  "extensions": {
+    "docvortex_layout": {
+      "pages": [
+        {
+          "height_pt": 792,
+          "page_idx": 0,
+          "width_pt": 612
+        },
+        {
+          "height_pt": 792,
+          "page_idx": 1,
+          "width_pt": 612
+        },
+        {
+          "height_pt": 792,
+          "page_idx": 2,
+          "width_pt": 612
+        },
+        {
+          "height_pt": 792,
+          "page_idx": 3,
+          "width_pt": 612
+        },
+        {
+          "height_pt": 792,
+          "page_idx": 4,
+          "width_pt": 612
+        },
+        {
+          "height_pt": 792,
+          "page_idx": 5,
+          "width_pt": 612
+        }
+      ],
+      "version": 1
+    },
+    "mineru": {
+      "parse_mode": "txt",
+      "tier": "basic"
+    }
+  },
+  "is_full_document": true,
+  "metadata": {
+    "document": {
+      "created_at": "2026-11-16T15:43:58Z",
+      "creator_application": "pdf-lib (https://github.com/Hopding/pdf-lib)",
+      "modified_at": "2026-11-16T15:43:58Z",
+      "page_count": 6,
+      "page_count_kind": "physical",
+      "producer_application": "pdf-lib (https://github.com/Hopding/pdf-lib)"
+    },
+    "file_suffix": "pdf",
+    "producer": {
+      "name": "mineru",
+      "version": "4.1.7"
+    }
+  },
+  "pages": [
+    {
+      "blocks": [
+        {
+          "bbox": [
+            0.09,
+            0.065,
+            0.361,
+            0.103
+          ],
+          "content": [
+            {
+              "content": "LINKOPINGS UNIVERSITET¨ Matematiska institutionen",
+              "type": "text"
+            }
+          ],
+          "index": 0,
+          "type": "header"
+        },
+        {
+          "bbox": [
+            0.785,
+            0.067,
+            0.86,
+            0.102
+          ],
+          "content": [
+            {
+              "content": "TATA41 TEN1",
+              "type": "text"
+            }
+          ],
+          "index": 1,
+          "type": "header"
+        },
+        {
+          "bbox": [
+            0.261,
+            0.143,
+            0.69,
+            0.189
+          ],
+          "content": [
+            {
+              "content": "Tentamen i Envariabelanalys 1 2025-03-26 kl. 8.00-13.00",
+              "type": "text"
+            }
+          ],
+          "index": 2,
+          "level": 1,
+          "type": "doc_title"
+        },
+        {
+          "bbox": [
+            0.088,
+            0.211,
+            0.862,
+            0.285
+          ],
+          "content": [
+            {
+              "content": "Penna, radergummi, linjal, passare och grad-/radianskiva utan formler på får användas. Inga andra hjälpmedel är tillåtna. Lösningarna skall vara fullständiga, välmotiverade, ordentligt skrivna och innehålla ett tydligt utskrivet svar till varje uppgift. Svaren ska förstås ges på så enkel form som möjligt.",
+              "type": "text"
+            }
+          ],
+          "index": 3,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.09,
+            0.292,
+            0.471,
+            0.31
+          ],
+          "content": [
+            {
+              "content": "Tentamen består av tre delar: A1, A2 och B.",
+              "type": "text"
+            }
+          ],
+          "index": 4,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.118,
+            0.323,
+            0.684,
+            0.342
+          ],
+          "content": [
+            {
+              "content": "• Del A1 består av 2 uppgifter, numrerade 1 och 2, värda 3p var.",
+              "type": "text"
+            }
+          ],
+          "index": 5,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.118,
+            0.353,
+            0.685,
+            0.372
+          ],
+          "content": [
+            {
+              "content": "• Del A2 består av 2 uppgifter, numrerade 3 och 4, värda 3p var.",
+              "type": "text"
+            }
+          ],
+          "index": 6,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.118,
+            0.384,
+            0.641,
+            0.403
+          ],
+          "content": [
+            {
+              "content": "• Del B består av 3 uppgifter, numrerade 5–7, värda 3p var.",
+              "type": "text"
+            }
+          ],
+          "index": 7,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.089,
+            0.415,
+            0.697,
+            0.453
+          ],
+          "content": [
+            {
+              "content": "Med godkänd uppgift menas en uppgift som bedömts med minst 2p. För godkänd tentamen (betyg ",
+              "type": "text"
+            },
+            {
+              "content": "\\mathbf { 3 } / 4 / 5 )",
+              "type": "equation_inline"
+            },
+            {
+              "content": " räcker krav K1, K2 och K3, där",
+              "type": "text"
+            }
+          ],
+          "index": 8,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.118,
+            0.464,
+            0.398,
+            0.483
+          ],
+          "content": [
+            {
+              "content": "• K1: Minst 2 poäng på del A1.",
+              "type": "text"
+            }
+          ],
+          "index": 9,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.118,
+            0.495,
+            0.399,
+            0.514
+          ],
+          "content": [
+            {
+              "content": "• K2: Minst 2 poäng på del A2.",
+              "type": "text"
+            }
+          ],
+          "index": 10,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.118,
+            0.525,
+            0.733,
+            0.546
+          ],
+          "content": [
+            {
+              "content": "• K3: Minst ",
+              "type": "text"
+            },
+            {
+              "content": "3 / 4 / 5",
+              "type": "equation_inline"
+            },
+            {
+              "content": " godkända uppgifter och minst ",
+              "type": "text"
+            },
+            {
+              "content": "8 / 1 2 / 1 6",
+              "type": "equation_inline"
+            },
+            {
+              "content": " poäng totalt.",
+              "type": "text"
+            }
+          ],
+          "index": 11,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.09,
+            0.589,
+            0.402,
+            0.61
+          ],
+          "content": [
+            {
+              "content": "Del A1 - Differentialkalkyl",
+              "type": "text"
+            }
+          ],
+          "index": 12,
+          "level": 2,
+          "type": "paragraph_title"
+        },
+        {
+          "bbox": [
+            0.114,
+            0.619,
+            0.342,
+            0.638
+          ],
+          "content": [
+            {
+              "content": "1. Undersök gränsvärdena",
+              "type": "text"
+            }
+          ],
+          "index": 13,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.164,
+            0.642,
+            0.315,
+            0.682
+          ],
+          "content": [
+            {
+              "content": "(a) ",
+              "type": "text"
+            },
+            {
+              "content": "\\lim_{x \\to 0^{+}} \\frac{\\sin \\sqrt{2x}}{e^{\\sqrt{3x}} - 1}",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 14,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.356,
+            0.642,
+            0.514,
+            0.683
+          ],
+          "content": [
+            {
+              "content": "(b) ",
+              "type": "text"
+            },
+            {
+              "content": "\\lim_{x \\to 2} \\frac{x^2 + x - 6}{\\ln(5 - 2x)}",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 15,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.555,
+            0.641,
+            0.741,
+            0.681
+          ],
+          "content": [
+            {
+              "content": "(c) ",
+              "type": "text"
+            },
+            {
+              "content": "\\lim_{x \\to \\infty} \\frac{\\ln(2x^3 + e^{4x})}{x}.",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 16,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.112,
+            0.694,
+            0.86,
+            0.732
+          ],
+          "content": [
+            {
+              "content": "2. Skissa grafen till funktionen ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x ) = 6 \\ln | x - 2 | - x ^ { 2 }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Ange alla lodräta/vågräta asymptoter samt lokala extrempunkter till ",
+              "type": "text"
+            },
+            {
+              "content": "f .",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 17,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.719,
+            0.911,
+            0.861,
+            0.929
+          ],
+          "content": [
+            {
+              "content": "Var god vänd!",
+              "type": "text"
+            }
+          ],
+          "index": 18,
+          "type": "footer"
+        }
+      ],
+      "page_idx": 0
+    },
+    {
+      "blocks": [
+        {
+          "bbox": [
+            0.091,
+            0.065,
+            0.362,
+            0.085
+          ],
+          "content": [
+            {
+              "content": "Del A2 - Integralkalkyl",
+              "type": "text"
+            }
+          ],
+          "index": 0,
+          "level": 2,
+          "type": "paragraph_title"
+        },
+        {
+          "bbox": [
+            0.113,
+            0.093,
+            0.389,
+            0.151
+          ],
+          "content": [
+            {
+              "content": "3. (a) Beräkna ",
+              "type": "text"
+            },
+            {
+              "content": "\\int\\limits_{0}^{2} \\ln(x + 1)   dx.",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 1,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.145,
+            0.157,
+            0.515,
+            0.212
+          ],
+          "content": [
+            {
+              "content": "(b) Beräkna ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " eller visa divergens.",
+              "type": "text"
+            }
+          ],
+          "index": 2,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.112,
+            0.22,
+            0.731,
+            0.303
+          ],
+          "content": [
+            {
+              "content": "4. Beräkna (a) ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\frac{x}{\\sqrt{x - 3}}   dx",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (b) ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\frac{\\sin x}{3 - \\sin^2 x}   dx",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (c) ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\limits _ { - 1 / 2 } ^ { 1 / 2 } x \\sin ( \\pi x )   dx.",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 3,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.09,
+            0.353,
+            0.165,
+            0.372
+          ],
+          "content": [
+            {
+              "content": "Del B",
+              "type": "text"
+            }
+          ],
+          "index": 4,
+          "level": 2,
+          "type": "paragraph_title"
+        },
+        {
+          "bbox": [
+            0.112,
+            0.377,
+            0.86,
+            0.43
+          ],
+          "content": [
+            {
+              "content": "5. Låt ",
+              "type": "text"
+            },
+            {
+              "content": "f(x) \\; = \\; \\frac{2x - 11}{x - 1}e^{x}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Bestäm alla värden på den reella konstanten k sådana att ekvationen ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x ) = k",
+              "type": "equation_inline"
+            },
+            {
+              "content": " har exakt 3 olika lösningar.",
+              "type": "text"
+            }
+          ],
+          "index": 5,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.112,
+            0.441,
+            0.722,
+            0.461
+          ],
+          "content": [
+            {
+              "content": "6. (a) Låt f vara definierad för alla ",
+              "type": "text"
+            },
+            {
+              "content": "x \\in \\mathbf { R }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Ange definitionen av ",
+              "type": "text"
+            },
+            {
+              "content": "f ^ { \\prime } ( x )",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 6,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.145,
+            0.465,
+            0.769,
+            0.485
+          ],
+          "content": [
+            {
+              "content": "(b) Derivera ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x ) = x { \\sqrt { x } }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " för ",
+              "type": "text"
+            },
+            {
+              "content": "x > 0",
+              "type": "equation_inline"
+            },
+            {
+              "content": " med hjälp av definitionen av derivata.",
+              "type": "text"
+            }
+          ],
+          "index": 7,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.147,
+            0.489,
+            0.65,
+            0.522
+          ],
+          "content": [
+            {
+              "content": "(c) Låt ",
+              "type": "text"
+            },
+            {
+              "content": "x,y \\in \\left[ - \\frac{\\pi}{4}, \\frac{\\pi}{4} \\right]",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Visa att | tan ",
+              "type": "text"
+            },
+            {
+              "content": "|x - \\tan y| \\leq 2|x - y|",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 8,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.112,
+            0.531,
+            0.735,
+            0.59
+          ],
+          "content": [
+            {
+              "content": "7. Låt ",
+              "type": "text"
+            },
+            {
+              "content": "a < b",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Skissa grafen till funktionen ",
+              "type": "text"
+            },
+            {
+              "content": "f(x) = \\lim_{\\varepsilon \\to 0^{+}} \\int\\limits_{a}^{b} \\frac{\\varepsilon}{(x - t)^2 + \\varepsilon^2}   dt.",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 9,
+          "type": "text"
+        }
+      ],
+      "page_idx": 1
+    },
+    {
+      "blocks": [
+        {
+          "bbox": [
+            0.091,
+            0.065,
+            0.343,
+            0.1
+          ],
+          "content": [
+            {
+              "content": "LINKOPINGS UNIVERSITET¨ Matematiska institutionen",
+              "type": "text"
+            }
+          ],
+          "index": 0,
+          "type": "header"
+        },
+        {
+          "bbox": [
+            0.79,
+            0.067,
+            0.86,
+            0.1
+          ],
+          "content": [
+            {
+              "content": "TATA41 TEN1",
+              "type": "text"
+            }
+          ],
+          "index": 1,
+          "type": "header"
+        },
+        {
+          "bbox": [
+            0.268,
+            0.141,
+            0.683,
+            0.162
+          ],
+          "content": [
+            {
+              "content": "Lösningsskisser för TATA41 250326",
+              "type": "text"
+            }
+          ],
+          "index": 2,
+          "level": 2,
+          "type": "paragraph_title"
+        },
+        {
+          "bbox": [
+            0.102,
+            0.181,
+            0.849,
+            0.231
+          ],
+          "content": [
+            {
+              "content": "1a) ",
+              "type": "text"
+            },
+            {
+              "content": "\\lim_{x \\to 0} \\frac{\\sin \\sqrt{2x}}{e^{\\sqrt{3x}} - 1} = \\lim_{x \\to 0} \\frac{\\sin \\sqrt{2x}}{\\sqrt{2x}} \\cdot \\frac{\\sqrt{2}}{\\sqrt{3}} \\cdot \\frac{1}{\\frac{e^{\\sqrt{3x}} - 1}{\\sqrt{3x}}} = 1 \\cdot \\sqrt{\\frac{2}{3}} \\cdot \\frac{1}{1} = \\sqrt{\\frac{2}{3}}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " enligt standardgränsvärden.",
+              "type": "text"
+            }
+          ],
+          "index": 3,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.101,
+            0.239,
+            0.844,
+            0.297
+          ],
+          "content": [
+            {
+              "content": "1b) ",
+              "type": "text"
+            },
+            {
+              "content": "\\frac { x ^ { 2 } + x - 6 } { \\operatorname { l n } ( 5 - 2 x ) } = \\frac { ( x - 2 ) ( x + 3 ) } { \\operatorname { l n } ( 1 - 2 ( x - 2 ) ) } = / t = x - 2 / = \\frac { t ( t + 5 ) } { \\operatorname { l n } ( 1 - 2 t ) } = \\frac { t + 5 } { \\frac { \\operatorname { l n } ( 1 - 2 t ) } { - 2 t } \\cdot ( - 2 ) } \\to - \\frac { 5 } { 2 } , \\; t \\to 0 ,",
+              "type": "equation_inline"
+            },
+            {
+              "content": " 2t d v s då ",
+              "type": "text"
+            },
+            {
+              "content": "x \\to 2",
+              "type": "equation_inline"
+            },
+            {
+              "content": " , enligt ett standardgränsvärde.",
+              "type": "text"
+            }
+          ],
+          "index": 4,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.103,
+            0.305,
+            0.852,
+            0.407
+          ],
+          "content": [
+            {
+              "content": "1c) ",
+              "type": "text"
+            },
+            {
+              "content": "\\begin{aligned} &\\frac{\\ln(2x^{3}+e^{4x})}{x}=\\frac{\\ln e^{4x}+\\ln\\left(1+\\frac{2x^{3}}{e^{4x}}\\right)}{x}=4+\\frac{1}{x}\\ln\\left(1+\\frac{2}{4^{3}}\\cdot\\frac{(4x)^{3}}{e^{4x}}\\right)\\rightarrow4+0\\cdot\\ln\\left(1+\\frac{2}{4^{3}}\\cdot0\\right)\\\\ &=4,\\ x\\rightarrow\\infty\\ \\mathrm{enlight}\\ \\mathrm{et}\\ \\mathrm{standardgirnsv}\\mathrm{i}\\mathrm{r}\\mathrm{d}\\mathrm{e}.\\\\ \\end{aligned}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " Svar: (a) ",
+              "type": "text"
+            },
+            {
+              "content": "\\sqrt { \\frac { 2 } { 3 } }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (b) ",
+              "type": "text"
+            },
+            {
+              "content": "-\\frac{5}{2}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (c) 4.",
+              "type": "text"
+            }
+          ],
+          "index": 5,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.109,
+            0.416,
+            0.812,
+            0.46
+          ],
+          "content": [
+            {
+              "content": "2) ",
+              "type": "text"
+            },
+            {
+              "content": "f",
+              "type": "equation_inline"
+            },
+            {
+              "content": " är definierad då ",
+              "type": "text"
+            },
+            {
+              "content": "x \\neq 2",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Standardräkningar (Gör dessa!) ger ",
+              "type": "text"
+            },
+            {
+              "content": "f^{\\prime}(x) = \\frac{2(x + 1)(3 - x)}{x - 2}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " Teckentabell:",
+              "type": "text"
+            }
+          ],
+          "index": 6,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.321,
+            0.458,
+            0.675,
+            0.585
+          ],
+          "content": "\\begin{array}{c|ccccc}x &  & -1 & 2 & 3 &  \\\\\\hline2(x + 1) & - & 0 & + & + & + \\\\3 - x & + & + & + & 0 & - \\\\\\hline x - 2 & - & - & 0 & + & + \\\\\\hline f^{\\prime}(x) & + & 0 & - & \\mathrm{ej} & + & 0 & - \\\\\\hline f(x) & \\nearrow & \\mathrm{lok.} & \\searrow & \\mathrm{ej} & \\nearrow & \\mathrm{lok.} & \\searrow \\\\\\hline f(x) & \\nearrow & \\mathrm{max.} & \\searrow & \\mathrm{def.} & \\nearrow & \\mathrm{max.} & \\searrow \\\\\\end{array}",
+          "image_path": "images/page_2_equation_7.jpg",
+          "index": 7,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.133,
+            0.595,
+            0.862,
+            0.689
+          ],
+          "content": [
+            {
+              "content": "Vi ser att ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x )   =   6 \\ln | x - 2 | - x ^ { 2 } \\to - \\infty   , ~ x \\to 2",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (ty första termen → −∞ och den andra har ändligt gränsvärde) och ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x )   =   x ^ { 2 } \\left( 6 \\frac { \\ln | x | } { x ^ { 2 } } + 6 \\frac { \\ln \\left| 1 - \\frac { 2 } { x } \\right| } { x ^ { 2 } } - 1 \\right)   \\to   - \\infty   , \\quad x   \\to   \\pm \\infty .",
+              "type": "equation_inline"
+            },
+            {
+              "content": " då uttrycket inom parentes går mot -1 enligt standardgränsvärde. Vidare är ",
+              "type": "text"
+            },
+            {
+              "content": "f(-1)=6\\ln 3-1",
+              "type": "equation_inline"
+            },
+            {
+              "content": " och ",
+              "type": "text"
+            },
+            {
+              "content": "f(3) = -9",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Detta ger grafen",
+              "type": "text"
+            }
+          ],
+          "index": 8,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.285,
+            0.71,
+            0.704,
+            0.917
+          ],
+          "content": [
+            {
+              "bbox": [
+                0.285,
+                0.71,
+                0.704,
+                0.917
+              ],
+              "content": "",
+              "image_path": "images/page_2_image_9.jpg",
+              "index": 9,
+              "type": "image_body"
+            }
+          ],
+          "index": 9,
+          "type": "image"
+        }
+      ],
+      "page_idx": 2
+    },
+    {
+      "blocks": [
+        {
+          "bbox": [
+            0.133,
+            0.067,
+            0.861,
+            0.119
+          ],
+          "content": [
+            {
+              "content": "Svar: För graf, se ovan. ",
+              "type": "text"
+            },
+            {
+              "content": "f",
+              "type": "equation_inline"
+            },
+            {
+              "content": " har lokala maximipunkter i ",
+              "type": "text"
+            },
+            {
+              "content": "x = - 1",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (med det lokala maximivärdet ",
+              "type": "text"
+            },
+            {
+              "content": "f ( - 1 ) = 6 \\ln 3 - 1 )",
+              "type": "equation_inline"
+            },
+            {
+              "content": " och ",
+              "type": "text"
+            },
+            {
+              "content": "\\mathrm { ~ i ~ } x = 3",
+              "type": "equation_inline"
+            },
+            {
+              "content": " (med det lokala maximivärdet ",
+              "type": "text"
+            },
+            {
+              "content": "f ( 3 ) = - 9 )",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Lokala minimipunkter saknas. Linjen ",
+              "type": "text"
+            },
+            {
+              "content": "x = 2",
+              "type": "equation_inline"
+            },
+            {
+              "content": " är lodrät asymptot och vågräta asymptoter saknas.",
+              "type": "text"
+            }
+          ],
+          "index": 0,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.101,
+            0.13,
+            0.394,
+            0.146
+          ],
+          "content": [
+            {
+              "content": "3a) Partialintegration av en etta ger",
+              "type": "text"
+            }
+          ],
+          "index": 1,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.159,
+            0.157,
+            0.833,
+            0.213
+          ],
+          "content": "\\int_{0}^{2} \\ln(x + 1)   dx = \\left[ (x + 1)\\ln(x + 1) \\right]_{0}^{2} - \\int_{0}^{2} (x + 1) \\cdot \\frac{1}{x + 1}   dx = 3\\ln 3 - \\left[ x \\right]_{0}^{2} = 3\\ln 3 - 2.",
+          "image_path": "images/page_3_equation_2.jpg",
+          "index": 2,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.134,
+            0.224,
+            0.861,
+            0.258
+          ],
+          "content": [
+            {
+              "content": "Anmärkning: Att använda x som primitiv till 1 istället för ",
+              "type": "text"
+            },
+            {
+              "content": "x + 1",
+              "type": "equation_inline"
+            },
+            {
+              "content": " funkar förstås också, men ger lite längre räkningar.",
+              "type": "text"
+            }
+          ],
+          "index": 3,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.099,
+            0.266,
+            0.798,
+            0.301
+          ],
+          "content": [
+            {
+              "content": "3b) Bytet ",
+              "type": "text"
+            },
+            {
+              "content": "t = e^{2x} \\Rightarrow dt = 2e^{2x}   dx = 2t   dx \\Leftrightarrow dx = \\frac{dt}{2t}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " följt av partialbråksuppdelning ger",
+              "type": "text"
+            }
+          ],
+          "index": 4,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.185,
+            0.31,
+            0.805,
+            0.403
+          ],
+          "content": "\\begin{aligned} { \\int \\displaylimits _ { 0 } ^ { a } \\frac { d x } { e ^ { 2 x } + 1 } = } & { { } / b = e ^ { 2 a } / = \\int \\displaylimits _ { 1 } ^ { b } \\frac { d t } { 2 t ( t + 1 ) } = \\frac { 1 } { 2 } \\int \\displaylimits _ { 1 } ^ { b } \\left( \\frac { 1 } { t } - \\frac { 1 } { t + 1 } \\right) \\: d t = \\frac { 1 } { 2 } \\left[ \\operatorname { l n } \\left| \\frac { t } { t + 1 } \\right| \\right] _ { 1 } ^ { b } } \\\\ { = } & { { } \\frac { 1 } { 2 } \\left( \\operatorname { l n } \\frac { b } { b + 1 } - \\operatorname { l n } \\frac { 1 } { 2 } \\right) = \\frac { 1 } { 2 } \\left( \\operatorname { l n } 2 - \\operatorname { l n } \\left( 1 + \\frac { 1 } { b } \\right) \\right) \\to \\frac { \\operatorname { l n } 2 } { 2 } , \\; b \\to \\infty , } \\\\ \\end{aligned}",
+          "image_path": "images/page_3_equation_5.jpg",
+          "index": 5,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.133,
+            0.415,
+            0.798,
+            0.468
+          ],
+          "content": [
+            {
+              "content": "så ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\limits _ { 0 } ^ { a } \\frac { d x } { e ^ { 2 x } + 1 } \\rightarrow \\frac { \\ln 2 } { 2 }   , \\; a \\rightarrow \\infty . \\; \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " är alltså konvergent och ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } = \\frac { \\ln 2 } { 2 } .",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 6,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.135,
+            0.472,
+            0.774,
+            0.49
+          ],
+          "content": [
+            {
+              "content": "Anmärkning: Bytet ",
+              "type": "text"
+            },
+            {
+              "content": "t = e ^ { - 2 x }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " fungerar också och ger aningen kortare räkningar.",
+              "type": "text"
+            }
+          ],
+          "index": 7,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.134,
+            0.495,
+            0.691,
+            0.545
+          ],
+          "content": [
+            {
+              "content": "Svar: (a) 3 ln 3 − 2 (b) ",
+              "type": "text"
+            },
+            {
+              "content": "\\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } = \\frac { \\ln 2 } { 2 }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " och är därmed konvergent.",
+              "type": "text"
+            }
+          ],
+          "index": 8,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.101,
+            0.556,
+            0.662,
+            0.574
+          ],
+          "content": [
+            {
+              "content": "4a) Variabelbytet ",
+              "type": "text"
+            },
+            {
+              "content": "t = \\sqrt{x - 3} \\Leftrightarrow x = t^{2} + 3   , \\; t \\geq 0 \\Rightarrow dx = 2tdt",
+              "type": "equation_inline"
+            },
+            {
+              "content": " ger att",
+              "type": "text"
+            }
+          ],
+          "index": 9,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.217,
+            0.586,
+            0.778,
+            0.623
+          ],
+          "content": "\\int \\frac{x}{\\sqrt{x - 3}}   dx = \\int \\frac{t^2 + 3}{t} \\cdot 2t   dt = \\frac{2t^3}{3} + 6t + C = \\frac{2}{3}(x + 6)\\sqrt{x - 3} + C,",
+          "image_path": "images/page_3_equation_10.jpg",
+          "index": 10,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.134,
+            0.634,
+            0.395,
+            0.651
+          ],
+          "content": [
+            {
+              "content": "där C är en godtycklig konstant.",
+              "type": "text"
+            }
+          ],
+          "index": 11,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.1,
+            0.662,
+            0.859,
+            0.68
+          ],
+          "content": [
+            {
+              "content": "4b) Trigonometriska ettan samt bytet t = cos x, dt = − sin x dx ger (C är en godtycklig konstant):",
+              "type": "text"
+            }
+          ],
+          "index": 12,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.163,
+            0.691,
+            0.832,
+            0.779
+          ],
+          "content": "\\begin{aligned}\\int \\frac{\\sin x}{3 - \\sin^2 x}   dx &= \\int \\frac{\\sin x}{2 + \\cos^2 x}   dx = - \\frac{1}{2} \\int \\frac{dt}{1 + \\left( \\frac{t}{\\sqrt{2}} \\right)^2} = - \\frac{1}{2} \\cdot \\sqrt{2} \\arctan \\left( \\frac{t}{\\sqrt{2}} \\right) + C \\\\&= - \\frac{1}{\\sqrt{2}} \\arctan \\left( \\frac{1}{\\sqrt{2}} \\cos x \\right) + C.\\end{aligned}",
+          "image_path": "images/page_3_equation_13.jpg",
+          "index": 13,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.101,
+            0.795,
+            0.618,
+            0.813
+          ],
+          "content": [
+            {
+              "content": "4c) Jämn funktion, symmetriskt intervall ger (I = sökt integral):",
+              "type": "text"
+            }
+          ],
+          "index": 14,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.168,
+            0.825,
+            0.826,
+            0.882
+          ],
+          "content": "I = 2 \\int \\limits _ { 0 } ^ { 1 / 2 } x \\sin ( \\pi x )   dx = \\frac { 2 } { \\pi } \\left[ - x \\cos ( \\pi x ) \\right] _ { 0 } ^ { 1 / 2 } + \\frac { 2 } { \\pi } \\int \\limits _ { 0 } ^ { 1 / 2 } \\cos ( \\pi x )   dx = \\frac { 2 } { \\pi ^ { 2 } } \\left[ \\sin ( \\pi x ) \\right] _ { 0 } ^ { 1 / 2 } = \\frac { 2 } { \\pi ^ { 2 } } .",
+          "image_path": "images/page_3_equation_15.jpg",
+          "index": 15,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.134,
+            0.899,
+            0.739,
+            0.936
+          ],
+          "content": [
+            {
+              "content": "2 ",
+              "type": "text"
+            },
+            {
+              "content": "-\\frac{1}{\\sqrt{2}}\\arctan\\left(\\frac{1}{\\sqrt{2}}\\cos x\\right)+C",
+              "type": "equation_inline"
+            },
+            {
+              "content": " 2 Svar: (a) 3 (x + 6)√x − 3 + C (b) (c) π2.",
+              "type": "text"
+            }
+          ],
+          "index": 16,
+          "type": "text"
+        }
+      ],
+      "page_idx": 3
+    },
+    {
+      "blocks": [
+        {
+          "bbox": [
+            0.109,
+            0.064,
+            0.786,
+            0.111
+          ],
+          "content": [
+            {
+              "content": "5) f är definierad för ",
+              "type": "text"
+            },
+            {
+              "content": "x \\neq 1",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Standardräkningar (Gör!) ger ",
+              "type": "text"
+            },
+            {
+              "content": "f^{\\prime}(x) = \\frac{(2x - 5)(x - 4)}{(x - 1)^{2}}e^{x}.",
+              "type": "equation_inline"
+            },
+            {
+              "content": " Teckentabell:",
+              "type": "text"
+            }
+          ],
+          "index": 0,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.324,
+            0.108,
+            0.674,
+            0.253
+          ],
+          "content": [
+            {
+              "bbox": [
+                0.324,
+                0.108,
+                0.674,
+                0.253
+              ],
+              "content": "<table><tbody><tr><td>x</td><td></td><td>1</td><td>5/2</td><td>4</td><td></td></tr><tr><td>e<sup>x</sup></td><td>+</td><td>+</td><td></td><td>+</td><td>+</td></tr><tr><td>2x - 5</td><td>-</td><td>-</td><td>0</td><td>+</td><td>+</td></tr><tr><td>x - 4</td><td>-</td><td>-</td><td></td><td>- 0</td><td>+</td></tr><tr><td>(x - 1)<sup>2</sup></td><td>+</td><td>0 +</td><td></td><td>+</td><td>+</td></tr><tr><td>f<sup>0</sup>(x)</td><td>+</td><td>deejf. +</td><td>0</td><td>- 0</td><td>+</td></tr><tr><td>f(x)</td><td>%</td><td>deejf. %</td><td>mloakx..</td><td>&amp; mloikn..</td><td>%</td></tr></tbody></table>",
+              "image_path": "images/page_4_table_1.jpg",
+              "index": 1,
+              "type": "table_body"
+            }
+          ],
+          "index": 1,
+          "type": "table"
+        },
+        {
+          "bbox": [
+            0.132,
+            0.26,
+            0.861,
+            0.322
+          ],
+          "content": [
+            {
+              "content": "Vi ser att ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x )   \\to   \\mp \\infty   , ~ x   \\to   1 ^ { \\pm } \\mathrm { ~ o c h ~ }   f ( x )   =   \\frac { 2 - \\frac { 1 1 } { x } } { 1 - \\frac { 1 } { x } } e ^ { x }   \\to \\infty   , ~ x \\to \\infty .",
+              "type": "equation_inline"
+            },
+            {
+              "content": " och på samma sätt ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x ) \\to 0   , \\; x \\to - \\infty",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Vidare är ",
+              "type": "text"
+            },
+            {
+              "content": "f ( 5 / 2 ) = - 4 e ^ { 5 / 2 } \\mathrm { ~ o c h ~ } \\tilde { f } ( 4 ) = - e ^ { 4 }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Detta ger grafen",
+              "type": "text"
+            }
+          ],
+          "index": 2,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.314,
+            0.339,
+            0.675,
+            0.605
+          ],
+          "content": [
+            {
+              "bbox": [
+                0.314,
+                0.339,
+                0.675,
+                0.605
+              ],
+              "content": "",
+              "image_path": "images/page_4_image_3.jpg",
+              "index": 3,
+              "type": "image_body"
+            }
+          ],
+          "index": 3,
+          "type": "image"
+        },
+        {
+          "bbox": [
+            0.133,
+            0.619,
+            0.861,
+            0.672
+          ],
+          "content": [
+            {
+              "content": "Direkt avläsning i grafen ger att ekvationen ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x ) \\; = \\; { \\frac { 2 x - 1 1 } { x - 1 } } e ^ { x } \\; = \\; k",
+              "type": "equation_inline"
+            },
+            {
+              "content": " har exakt tre olika lösningar precis då ",
+              "type": "text"
+            },
+            {
+              "content": "- e ^ { 4 } < k < - 4 e ^ { 5 / 2 }",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 4,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.135,
+            0.674,
+            0.334,
+            0.692
+          ],
+          "content": [
+            {
+              "content": "Svar: ",
+              "type": "text"
+            },
+            {
+              "content": "- e ^ { 4 } < k < - 4 e ^ { 5 / 2 }",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 5,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.1,
+            0.704,
+            0.504,
+            0.722
+          ],
+          "content": [
+            {
+              "content": "6a) Se kursboken eller föreläsningsanteckningarna.",
+              "type": "text"
+            }
+          ],
+          "index": 6,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.099,
+            0.733,
+            0.572,
+            0.751
+          ],
+          "content": [
+            {
+              "content": "6b) Omflyttning av termer följt av konjugatförlängning ger",
+              "type": "text"
+            }
+          ],
+          "index": 7,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.207,
+            0.762,
+            0.789,
+            0.871
+          ],
+          "content": "\\begin{aligned} { \\frac { f ( x + h ) - f ( x ) } { h } \\: = \\: } & { { } \\frac { ( x + h ) \\sqrt { x + h } - x \\sqrt { x } } { h } = \\sqrt { x + h } + x \\cdot \\frac { \\sqrt { x + h } - \\sqrt { x } } { h } } \\\\ { \\: = \\: } & { { } \\sqrt { x + h } + \\frac { x ( x + h - x ) } { h ( \\sqrt { x + h } + \\sqrt { x } ) } = \\sqrt { x + h } + \\frac { x } { \\sqrt { x + h } + \\sqrt { x } } } \\\\ { \\: \\to \\: } & { { } \\sqrt { x } + \\frac { x } { \\sqrt { x } + \\sqrt { x } } = \\frac { 3 } { 2 } \\sqrt { x } \\: , \\: h \\to 0 } \\\\ \\end{aligned}",
+          "image_path": "images/page_4_equation_8.jpg",
+          "index": 8,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.133,
+            0.881,
+            0.698,
+            0.916
+          ],
+          "content": [
+            {
+              "content": "ty ",
+              "type": "text"
+            },
+            {
+              "content": "\\sqrt { x }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " är kontinuerlig för ",
+              "type": "text"
+            },
+            {
+              "content": "x > 0",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Detta visar att ",
+              "type": "text"
+            },
+            {
+              "content": "f^{\\prime}(x) = \\frac{3}{2}\\sqrt{x}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " för ",
+              "type": "text"
+            },
+            {
+              "content": "x > 0",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 9,
+          "type": "text"
+        }
+      ],
+      "page_idx": 4
+    },
+    {
+      "blocks": [
+        {
+          "bbox": [
+            0.134,
+            0.067,
+            0.861,
+            0.101
+          ],
+          "content": [
+            {
+              "content": "Anmärkning: Konjugatförlängning direkt (alltså utan att först dela upp i två termer) funkar också och ger något kortare räkningar.",
+              "type": "text"
+            }
+          ],
+          "index": 0,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.102,
+            0.113,
+            0.805,
+            0.13
+          ],
+          "content": [
+            {
+              "content": "6c) Sätt ",
+              "type": "text"
+            },
+            {
+              "content": "f(x) = \\tan x",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Enligt medelvärdessatsen finns ett tal ",
+              "type": "text"
+            },
+            {
+              "content": "\\xi",
+              "type": "equation_inline"
+            },
+            {
+              "content": " mellan x och y sådant att",
+              "type": "text"
+            }
+          ],
+          "index": 1,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.264,
+            0.141,
+            0.731,
+            0.175
+          ],
+          "content": "\\operatorname { t a n } x - \\operatorname { t a n } y = f ( x ) - f ( y ) = f ^ { \\prime } ( \\xi ) ( x - y ) = \\frac { 1 } { \\operatorname { c o s } ^ { 2 } \\xi } ( x - y ) .",
+          "image_path": "images/page_5_equation_2.jpg",
+          "index": 2,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.135,
+            0.186,
+            0.859,
+            0.255
+          ],
+          "content": [
+            {
+              "content": "Ta belopp av båda led och notera att − ",
+              "type": "text"
+            },
+            {
+              "content": "\\cdot \\frac{\\pi}{4} \\leq \\xi \\leq \\frac{\\pi}{4} \\text { (ty } \\xi",
+              "type": "equation_inline"
+            },
+            {
+              "content": " mellan x och y) så att cos ",
+              "type": "text"
+            },
+            {
+              "content": "\\xi \\geq \\frac { 1 } { \\sqrt { 2 } } \\Rightarrow",
+              "type": "equation_inline"
+            },
+            {
+              "content": " ",
+              "type": "text"
+            },
+            {
+              "content": "\\frac { 1 } { \\cos ^ { 2 } \\xi } \\leq 2",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Detta ger att ",
+              "type": "text"
+            },
+            {
+              "content": "| \\tan x - \\tan y | = \\frac{1}{\\cos^2 \\xi} | x - y | \\leq 2 | x - y |",
+              "type": "equation_inline"
+            },
+            {
+              "content": " vilket skulle visas.",
+              "type": "text"
+            }
+          ],
+          "index": 3,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.135,
+            0.256,
+            0.828,
+            0.273
+          ],
+          "content": [
+            {
+              "content": "Svar: (a) Se kursboken eller föreläsningsanteckningarna. (b) Se ovan. (c) Se ovan.",
+              "type": "text"
+            }
+          ],
+          "index": 4,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.109,
+            0.282,
+            0.528,
+            0.315
+          ],
+          "content": [
+            {
+              "content": "7) Variabelbytet ",
+              "type": "text"
+            },
+            {
+              "content": "y = \\frac{x - t}{\\varepsilon}",
+              "type": "equation_inline"
+            },
+            {
+              "content": " så att ",
+              "type": "text"
+            },
+            {
+              "content": "d t = - \\varepsilon   d y",
+              "type": "equation_inline"
+            },
+            {
+              "content": " ger att",
+              "type": "text"
+            }
+          ],
+          "index": 5,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.176,
+            0.327,
+            0.816,
+            0.39
+          ],
+          "content": "\\int \\limits _ { a } ^ { b } \\frac { \\varepsilon } { ( x - t ) ^ { 2 } + \\varepsilon ^ { 2 } }   dt = \\frac { 1 } { \\varepsilon } \\int \\limits _ { a } ^ { b } \\frac { d t } { ( \\frac { x - t } { \\varepsilon } ) ^ { 2 } + 1 } = \\int \\limits _ { \\frac { x - b } { \\varepsilon } } ^ { \\frac { x - a } { \\varepsilon } } \\frac { d y } { y ^ { 2 } + 1 } = \\arctan \\frac { x - a } { \\varepsilon } - \\arctan \\frac { x - b } { \\varepsilon } .",
+          "image_path": "images/page_5_equation_6.jpg",
+          "index": 6,
+          "type": "equation"
+        },
+        {
+          "bbox": [
+            0.134,
+            0.403,
+            0.874,
+            0.515
+          ],
+          "content": [
+            {
+              "content": "Observera att arctan ",
+              "type": "text"
+            },
+            {
+              "content": "\\frac { x - a } { \\varepsilon } \\rightarrow \\frac { \\pi } { 2 }   , \\; \\varepsilon \\rightarrow 0 ^ { + }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " om ",
+              "type": "text"
+            },
+            {
+              "content": "x > a",
+              "type": "equation_inline"
+            },
+            {
+              "content": " och att arctan ",
+              "type": "text"
+            },
+            {
+              "content": "\\frac { x - a } { \\varepsilon } \\rightarrow - \\frac { \\pi } { 2 }   , \\; \\varepsilon \\rightarrow 0 ^ { + }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " om ",
+              "type": "text"
+            },
+            {
+              "content": "x < a",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Om ",
+              "type": "text"
+            },
+            {
+              "content": "x = a",
+              "type": "equation_inline"
+            },
+            {
+              "content": " är förstås arctan ",
+              "type": "text"
+            },
+            {
+              "content": "\\frac{x - a}{\\varepsilon} = 0",
+              "type": "equation_inline"
+            },
+            {
+              "content": " för alla ",
+              "type": "text"
+            },
+            {
+              "content": "\\varepsilon > 0",
+              "type": "equation_inline"
+            },
+            {
+              "content": " så arctan ",
+              "type": "text"
+            },
+            {
+              "content": "\\frac { \\widetilde { x - a } } { \\varepsilon } \\rightarrow 0   , \\; \\varepsilon \\rightarrow 0 ^ { + }",
+              "type": "equation_inline"
+            },
+            {
+              "content": " . Genom att hantera andra termen på liknande sätt får vi att ",
+              "type": "text"
+            },
+            {
+              "content": "f ( x ) = { \\left\\{ \\begin{array} { c l l } { { 0 } } & { { \\mathrm { o m } } } & { { x < a { \\mathrm { ~ e l l e r ~ } } x > b } } \\\\ { { \\pi / 2 } } & { { \\mathrm { o m } } } & { { x = a { \\mathrm { ~ e l l e r ~ } } x = b } } \\\\ { { \\pi } } & { { \\mathrm { o m } } } & { { a < x < b } } \\end{array} \\right. }",
+              "type": "equation_inline"
+            }
+          ],
+          "index": 7,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.135,
+            0.518,
+            0.27,
+            0.534
+          ],
+          "content": [
+            {
+              "content": "Detta ger grafen",
+              "type": "text"
+            }
+          ],
+          "index": 8,
+          "type": "text"
+        },
+        {
+          "bbox": [
+            0.305,
+            0.551,
+            0.685,
+            0.704
+          ],
+          "content": [
+            {
+              "bbox": [
+                0.305,
+                0.551,
+                0.685,
+                0.704
+              ],
+              "content": "",
+              "image_path": "images/page_5_image_9.jpg",
+              "index": 9,
+              "type": "image_body"
+            }
+          ],
+          "index": 9,
+          "type": "image"
+        },
+        {
+          "bbox": [
+            0.135,
+            0.725,
+            0.256,
+            0.74
+          ],
+          "content": [
+            {
+              "content": "Svar: Se ovan.",
+              "type": "text"
+            }
+          ],
+          "index": 10,
+          "type": "text"
+        }
+      ],
+      "page_idx": 5
+    }
+  ],
+  "schema": "docvortex.middle",
+  "schema_version": "2.0"
+}

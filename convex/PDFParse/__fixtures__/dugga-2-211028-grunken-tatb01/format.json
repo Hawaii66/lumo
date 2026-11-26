@@ -1,0 +1,18 @@
+{
+  "allowNumberRestart": true,
+  "answerSectionHeading": "Lösningsförslag TATB01 2021-10-28 8–12",
+  "examples": [
+    "1.",
+    "2.",
+    "3.",
+    "4.",
+    "5.",
+    "6.",
+    "7."
+  ],
+  "pgaFormat": null,
+  "prefix": null,
+  "requireTerminator": true,
+  "segmentCount": 1,
+  "titleBlocks": "never"
+}

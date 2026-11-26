@@ -12,6 +12,7 @@ import {
   ChevronDown,
   FileText,
   Loader2,
+  Package,
   RefreshCw,
   Trash2,
   Upload,
@@ -20,6 +21,7 @@ import { useEffect, useState } from "react"
 import { api } from "../../../convex/_generated/api"
 import type { Id } from "../../../convex/_generated/dataModel"
 import { PdfReparseDiffDialog } from "~/components/admin/pdf-reparse-diff-dialog"
+import { SplitFixtureDialog } from "~/components/admin/split-fixture-dialog"
 import { MarkdownWithMath } from "~/components/lumo/markdown-with-math"
 import { ParsedProblemView } from "~/components/lumo/parsed-problem"
 import { PdfViewerSheet } from "~/components/rooms/pdf-viewer-sheet"
@@ -71,7 +73,19 @@ type SplitChunk = {
   answerImageCount: number
 }
 
+type ProblemNumberFormatPreview = {
+  prefix: string | null
+  segmentCount: 1 | 2 | 3
+  requireTerminator: boolean
+  pgaFormat: string | null
+  titleBlocks: "never" | "when_matches"
+  answerSectionHeading: string | null
+  allowNumberRestart: boolean
+  examples: Array<string>
+}
+
 type SplitPreview = {
+  format: ProblemNumberFormatPreview
   chunkCount: number
   chunks: Array<SplitChunk>
 }
@@ -505,6 +519,7 @@ function LabBody() {
   const [splitPreview, setSplitPreview] = useState<SplitPreview | null>(null)
   const [splitLoading, setSplitLoading] = useState(false)
   const [splitError, setSplitError] = useState<string | null>(null)
+  const [fixtureDialogOpen, setFixtureDialogOpen] = useState(false)
   const [selectedSplitNumber, setSelectedSplitNumber] = useState<string | null>(
     null,
   )
@@ -679,6 +694,21 @@ function LabBody() {
 
   return (
     <div className="mt-8 space-y-6">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setFixtureDialogOpen(true)}
+        >
+          <Package className="size-3.5" />
+          Dry-run fixture
+        </Button>
+      </div>
+      <SplitFixtureDialog
+        open={fixtureDialogOpen}
+        onOpenChange={setFixtureDialogOpen}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Ny körning</CardTitle>
@@ -1083,23 +1113,28 @@ function LabBody() {
                           Inga uppgifter hittades i split
                         </p>
                       ) : (
-                        <SplitChunkBrowser
-                          chunks={splitPreview.chunks}
-                          selectedNumber={selectedSplitNumber}
-                          onSelect={setSelectedSplitNumber}
-                          pdfFileName={detail.run.name}
-                          pdfUrl={detail.pdfUrl}
-                          onViewPdf={(pageNumber) => {
-                            if (detail.pdfUrl === null) return
-                            setViewingPdf({
-                              name: detail.run.name,
-                              url: detail.pdfUrl,
-                              ...(pageNumber !== undefined
-                                ? { pageNumber }
-                                : {}),
-                            })
-                          }}
-                        />
+                        <div className="space-y-3">
+                          <pre className="max-h-40 overflow-auto rounded-md border bg-muted/40 p-2 text-xs">
+                            {JSON.stringify(splitPreview.format, null, 2)}
+                          </pre>
+                          <SplitChunkBrowser
+                            chunks={splitPreview.chunks}
+                            selectedNumber={selectedSplitNumber}
+                            onSelect={setSelectedSplitNumber}
+                            pdfFileName={detail.run.name}
+                            pdfUrl={detail.pdfUrl}
+                            onViewPdf={(pageNumber) => {
+                              if (detail.pdfUrl === null) return
+                              setViewingPdf({
+                                name: detail.run.name,
+                                url: detail.pdfUrl,
+                                ...(pageNumber !== undefined
+                                  ? { pageNumber }
+                                  : {}),
+                              })
+                            }}
+                          />
+                        </div>
                       )}
                     </TabsContent>
                     <TabsContent value="mineru">

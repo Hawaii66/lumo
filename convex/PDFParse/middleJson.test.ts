@@ -5,6 +5,13 @@ import {
   getTextBlockLead,
   matchLabelStart,
 } from "./middleJson"
+import {
+  FORMAT_DOTTED_2,
+  FORMAT_MAJOR_PGA,
+  FORMAT_MAJOR_RESTART,
+  FORMAT_P_BOOKLET,
+  FORMAT_THREE_PART,
+} from "./problemNumberFormat"
 
 describe("detectProblemChunks", () => {
   it("keeps first question and answer page indices only", () => {
@@ -61,7 +68,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_DOTTED_2)
     expect(chunks).toHaveLength(2)
 
     const first = chunks.find((c) => c.problemNumber === "1.2")
@@ -92,7 +99,10 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, {
+      ...FORMAT_MAJOR_RESTART,
+      answerSectionHeading: "Svar",
+    })
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.problemNumber).toBe("3")
     expect(chunks[0]!.sourceQuestionPageIdx).toBe(0)
@@ -121,7 +131,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_DOTTED_2)
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.questionImages).toEqual([
       { path: "images/page_0_image_1.jpg", subproblemLetter: "" },
@@ -157,7 +167,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_DOTTED_2)
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.questionImages).toEqual([
       { path: "images/stem.jpg", subproblemLetter: "" },
@@ -178,7 +188,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_MAJOR_RESTART)
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.sourceQuestionPageIdx).toBe(0)
     expect(chunks[0]!.sourceAnswerPageIdx).toBe(1)
@@ -224,7 +234,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_MAJOR_PGA)
     expect(chunks.map((c) => c.problemNumber)).toEqual(["1", "2"])
 
     const first = chunks.find((c) => c.problemNumber === "1")
@@ -284,7 +294,10 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, {
+      ...FORMAT_MAJOR_PGA,
+      answerSectionHeading: null,
+    })
     expect(chunks.map((c) => c.problemNumber)).toEqual(["1", "2", "3"])
     expect(chunks.find((c) => c.problemNumber === "2")!.problemText).toContain(
       "Skissa",
@@ -323,7 +336,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_P_BOOKLET)
     expect(chunks.map((c) => c.problemNumber)).toEqual(["3.1", "3.2", "4.1"])
     expect(chunks.find((c) => c.problemNumber === "3.1")!.answerText).toContain(
       "Bara",
@@ -331,18 +344,21 @@ describe("detectProblemChunks", () => {
   })
 
   it("does not treat chapter titles like '3 Gränsvärde' as problems", () => {
-    const chunks = detectProblemChunks({
-      pages: [
-        {
-          page_idx: 0,
-          blocks: [
-            { type: "text", content: "3 Gränsvärde och kontinuitet" },
-            { type: "text", content: "P 3.1 First real problem." },
-            { type: "text", content: "P 3.1 First facit." },
-          ],
-        },
-      ],
-    })
+    const chunks = detectProblemChunks(
+      {
+        pages: [
+          {
+            page_idx: 0,
+            blocks: [
+              { type: "text", content: "3 Gränsvärde och kontinuitet" },
+              { type: "text", content: "P 3.1 First real problem." },
+              { type: "text", content: "P 3.1 First facit." },
+            ],
+          },
+        ],
+      },
+      { ...FORMAT_P_BOOKLET, answerSectionHeading: null },
+    )
     expect(chunks).toHaveLength(1)
     expect(chunks[0]!.problemNumber).toBe("3.1")
   })
@@ -368,12 +384,14 @@ describe("detectProblemChunks", () => {
       }),
     ).toBeNull()
 
-    expect(matchLabelStart("2p. För godkänd")).toBeNull()
-    expect(matchLabelStart("1a) lim")).toMatchObject({
+    expect(matchLabelStart("2p. För godkänd", FORMAT_MAJOR_PGA)).toBeNull()
+    expect(matchLabelStart("1a) lim", FORMAT_MAJOR_PGA)).toMatchObject({
       problemNumber: "1",
       subproblemLetter: "a",
     })
-    expect(matchLabelStart("P 3.3, kontinuerlig")).toBeNull()
+    expect(
+      matchLabelStart("P 3.3, kontinuerlig", FORMAT_P_BOOKLET),
+    ).toBeNull()
   })
 
   it("does not false-restart on wrapped cross-ref 'P 3.3,' inside a later problem", () => {
@@ -411,7 +429,10 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, {
+      ...FORMAT_P_BOOKLET,
+      answerSectionHeading: null,
+    })
     expect(chunks.map((c) => c.problemNumber)).toEqual([
       "3.1",
       "3.2",
@@ -459,7 +480,7 @@ describe("detectProblemChunks", () => {
       ],
     }
 
-    const chunks = detectProblemChunks(middleJson)
+    const chunks = detectProblemChunks(middleJson, FORMAT_MAJOR_RESTART)
     const six = chunks.find((c) => c.problemNumber === "6")
     expect(six!.answerText).toContain("induktion")
     expect(six!.answerText.toLowerCase()).toContain("se ovan")
@@ -470,86 +491,89 @@ describe("detectProblemChunks", () => {
   })
 
   it("keeps three-part booklet numbers and title-block stems (TATA31 style)", () => {
-    const chunks = detectProblemChunks({
-      pages: [
-        {
-          page_idx: 0,
-          blocks: [
-            {
-              type: "paragraph_title",
-              content: [
-                { type: "text", content: "1. Linjära ekvationsystem" },
-              ],
-            },
-            {
-              type: "paragraph_title",
-              content: [{ type: "text", content: "1.2 Successiv elimination" }],
-            },
-            {
-              type: "paragraph_title",
-              content: [
-                { type: "text", content: "1.2.1. Verifiera att (sätt in)" },
-              ],
-            },
-            {
-              type: "text",
-              content: [{ type: "text", content: "(a) är en lösning" }],
-            },
-            {
-              type: "paragraph_title",
-              content: [{ type: "text", content: "1.2.2. Verifiera att" }],
-            },
-            {
-              type: "text",
-              content: [
-                {
-                  type: "text",
-                  content: "1.2.3. Uttryck på parameterform",
-                },
-              ],
-            },
-            {
-              type: "text",
-              content: [
-                { type: "text", content: "1.2.10. Lös ekvationssystemen:" },
-              ],
-            },
-          ],
-        },
-        {
-          page_idx: 1,
-          blocks: [
-            {
-              type: "text",
-              content: [{ type: "text", content: "Svar till övningarna" }],
-            },
-          ],
-        },
-        {
-          page_idx: 2,
-          blocks: [
-            {
-              type: "text",
-              content: [
-                {
-                  type: "text",
-                  content: "1.2.3. (a) T ex x = t, y = 4 − 2t",
-                },
-              ],
-            },
-            {
-              type: "text",
-              content: [
-                {
-                  type: "text",
-                  content: "1.2.10. (a) x = 1",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    })
+    const chunks = detectProblemChunks(
+      {
+        pages: [
+          {
+            page_idx: 0,
+            blocks: [
+              {
+                type: "paragraph_title",
+                content: [
+                  { type: "text", content: "1. Linjära ekvationsystem" },
+                ],
+              },
+              {
+                type: "paragraph_title",
+                content: [{ type: "text", content: "1.2 Successiv elimination" }],
+              },
+              {
+                type: "paragraph_title",
+                content: [
+                  { type: "text", content: "1.2.1. Verifiera att (sätt in)" },
+                ],
+              },
+              {
+                type: "text",
+                content: [{ type: "text", content: "(a) är en lösning" }],
+              },
+              {
+                type: "paragraph_title",
+                content: [{ type: "text", content: "1.2.2. Verifiera att" }],
+              },
+              {
+                type: "text",
+                content: [
+                  {
+                    type: "text",
+                    content: "1.2.3. Uttryck på parameterform",
+                  },
+                ],
+              },
+              {
+                type: "text",
+                content: [
+                  { type: "text", content: "1.2.10. Lös ekvationssystemen:" },
+                ],
+              },
+            ],
+          },
+          {
+            page_idx: 1,
+            blocks: [
+              {
+                type: "text",
+                content: [{ type: "text", content: "Svar till övningarna" }],
+              },
+            ],
+          },
+          {
+            page_idx: 2,
+            blocks: [
+              {
+                type: "text",
+                content: [
+                  {
+                    type: "text",
+                    content: "1.2.3. (a) T ex x = t, y = 4 − 2t",
+                  },
+                ],
+              },
+              {
+                type: "text",
+                content: [
+                  {
+                    type: "text",
+                    content: "1.2.10. (a) x = 1",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      FORMAT_THREE_PART,
+    )
 
     expect(chunks.map((c) => c.problemNumber)).toEqual([
       "1.2.1",

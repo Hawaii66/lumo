@@ -20,12 +20,14 @@ import type { MineruWaiter } from "./mineruCache";
 import {
   flattenFullDocument,
   detectProblemChunks,
+  sampleBlockLeads,
   type ProblemChunk,
 } from "./middleJson";
 import {
   blobFromMineruImage,
   normalizeMineruImagePath,
 } from "./mineruClient";
+import type { ProblemNumberFormat } from "./problemNumberFormat";
 
 export type ParsePipelineResult<T> =
   | { status: "done"; value: T }
@@ -359,8 +361,13 @@ export async function parsePdfToProblems(
   }
 
   const { middleJson, imageBytes, imageAssets } = ensured.parse;
+  await onStatus?.("Identifierar uppgiftsformat…");
+  const format: ProblemNumberFormat = await ctx.runAction(
+    internal.PDFParse.lumoFormatAgent.detectProblemNumberFormat,
+    { userId, leads: sampleBlockLeads(middleJson) },
+  );
   await onStatus?.("Delar upp uppgifter…");
-  const chunks = detectProblemChunks(middleJson);
+  const chunks = detectProblemChunks(middleJson, format);
 
   const uploadedAssets = await uploadReferencedImages(
     ctx,
@@ -434,8 +441,13 @@ export async function parseCachedMiddleJsonToProblems(
   onStatus?: StatusReporter,
 ): Promise<LumoParsedProblemWithImages[]> {
   const cached = await requireCachedMiddleJson(ctx, contentHash);
+  await onStatus?.("Identifierar uppgiftsformat…");
+  const format: ProblemNumberFormat = await ctx.runAction(
+    internal.PDFParse.lumoFormatAgent.detectProblemNumberFormat,
+    { userId, leads: sampleBlockLeads(cached.middleJson) },
+  );
   await onStatus?.("Delar upp uppgifter…");
-  const chunks = detectProblemChunks(cached.middleJson);
+  const chunks = detectProblemChunks(cached.middleJson, format);
   const uploadedAssets = await uploadReferencedImages(
     ctx,
     contentHash,

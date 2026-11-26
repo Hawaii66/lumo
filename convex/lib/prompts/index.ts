@@ -17,6 +17,10 @@ export {
   buildInfoConvertPrompt,
 } from "./info";
 export {
+  LUMO_FORMAT_INSTRUCTIONS,
+  buildFormatDetectPrompt,
+} from "./format";
+export {
   LUMO_PROBLEM_INSTRUCTIONS,
   buildConvertPrompt,
 } from "./problem";
