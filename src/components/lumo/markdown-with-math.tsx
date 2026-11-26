@@ -20,10 +20,13 @@ import type { ProblemReasonId } from "~/lib/problem-reasons"
 import { Button } from "~/components/ui/button"
 import {
   isFallHeading,
+  isMarkdownTableStart,
   isSubproblemHeading,
   normalizeMarkdownMathDelimiters,
   splitMarkdownMath,
   subproblemAnchorId,
+  tryParseMarkdownTableAt,
+  type MarkdownTableAlignment,
 } from "~/lib/markdown-math"
 import { cn } from "~/lib/utils"
 
@@ -192,7 +195,26 @@ type Block =
   | { type: "subproblem"; label: string; chapterIndex: number }
   | { type: "fall"; n: string; condition: string }
   | { type: "list"; ordered: boolean; items: Array<string> }
+  | {
+      type: "table"
+      headers: Array<string>
+      alignments: Array<MarkdownTableAlignment>
+      rows: Array<Array<string>>
+    }
   | { type: "blank" }
+
+function shouldBreakParagraph(lines: Array<string>, index: number): boolean {
+  const nt = lines[index]!.trim()
+  return (
+    nt.length === 0 ||
+    isSubproblemHeading(nt) !== null ||
+    isFallHeading(nt) !== null ||
+    /^(#{1,4})\s+/.test(nt) ||
+    /^[-*]\s+/.test(nt) ||
+    /^\d+\.\s+/.test(nt) ||
+    isMarkdownTableStart(lines, index)
+  )
+}
 
 function parseBlocks(markdown: string): Array<Block> {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n")
@@ -239,6 +261,18 @@ function parseBlocks(markdown: string): Array<Block> {
       continue
     }
 
+    const table = tryParseMarkdownTableAt(lines, i)
+    if (table) {
+      blocks.push({
+        type: "table",
+        headers: table.table.headers,
+        alignments: table.table.alignments,
+        rows: table.table.rows,
+      })
+      i = table.end
+      continue
+    }
+
     const unordered = trimmed.match(/^[-*]\s+(.+)$/)
     const ordered = trimmed.match(/^\d+\.\s+(.+)$/)
     if (unordered || ordered) {
@@ -259,25 +293,20 @@ function parseBlocks(markdown: string): Array<Block> {
     const para: Array<string> = [line]
     i += 1
     while (i < lines.length) {
-      const next = lines[i]!
-      const nt = next.trim()
-      if (
-        nt.length === 0 ||
-        isSubproblemHeading(nt) ||
-        isFallHeading(nt) ||
-        /^(#{1,4})\s+/.test(nt) ||
-        /^[-*]\s+/.test(nt) ||
-        /^\d+\.\s+/.test(nt)
-      ) {
-        break
-      }
-      para.push(next)
+      if (shouldBreakParagraph(lines, i)) break
+      para.push(lines[i]!)
       i += 1
     }
     blocks.push({ type: "paragraph", text: para.join("\n") })
   }
 
   return blocks
+}
+
+const TABLE_ALIGN_CLASS: Record<MarkdownTableAlignment, string> = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
 }
 
 function DefaultSectionImages({
@@ -482,6 +511,50 @@ export function MarkdownWithMath({
             <li key={j}>{renderRichInline(item, onCiteMath)}</li>
           ))}
         </ListTag>,
+      )
+      return
+    }
+    if (block.type === "table") {
+      nodes.push(
+        <div key={index} className="my-1 w-full overflow-x-auto">
+          <table className="w-full min-w-[12rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                {block.headers.map((header, j) => (
+                  <th
+                    key={j}
+                    className={cn(
+                      "px-2.5 py-1.5 font-semibold text-foreground",
+                      TABLE_ALIGN_CLASS[block.alignments[j] ?? "left"],
+                    )}
+                  >
+                    {renderRichInline(header, onCiteMath)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {block.rows.map((row, r) => (
+                <tr
+                  key={r}
+                  className="border-b border-border/70 last:border-b-0"
+                >
+                  {row.map((cell, c) => (
+                    <td
+                      key={c}
+                      className={cn(
+                        "px-2.5 py-1.5 align-top text-foreground",
+                        TABLE_ALIGN_CLASS[block.alignments[c] ?? "left"],
+                      )}
+                    >
+                      {renderRichInline(cell, onCiteMath)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
       )
       return
     }
