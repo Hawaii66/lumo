@@ -1,1572 +1,1450 @@
 [
   {
-    "answerImages": [],
-    "answerText": "P 1.1 (a) a^{2}+a-b-1 (b) 4x^{2}-7x+6",
     "problemNumber": "1.1",
-    "problemText": "P 1.1 Förenkla (a) a ^ { 2 } + b - c \\quad { \\mathrm { d { \\ddot { a } } r } } \\quad c = 1 - a + 2 b\n(b) 3x^{2}-2x+1-y \\quad dr \\quad y=5x-7-z \\quad each \\quad z=-2+x^{2}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.2 { \\frac { 3 } { 2 6 } } { \\mathrm { ~ r e s p e k t i v e ~ } } { \\frac { 9 6 } { 1 3 } }",
-    "problemNumber": "1.2",
-    "problemText": "P 1.2 Skriv bråken \\frac{\\frac{12}{13}}{8} och \\frac{12}{\\frac{13}{8}} i enklast möjliga form.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.3 (a) \\mathrm { M g n } = 4 2 0 \\mathrm { s u m m a } = \\frac { 2 } { 1 5 } (b) \\operatorname { M g n } = ( x ^ { 2 } + 1 ) ( x + 1 ) ( x - 1 ) ), su \\mathrm { u m m a } = { \\frac { 2 x } { ( x + 1 ) ( x ^ { 2 } + 1 ) } }",
-    "problemNumber": "1.3",
-    "problemText": "P 1.3 Ange den minsta gemensamma nämnaren till följande bråk. Beräkna sedan summan av dem.\n(a) \\frac{1}{20}, \\frac{1}{28}, \\frac{1}{21} (b) \\frac{x + 1}{x^{2} + 1}, \\frac{2x + 4}{x^{2} - 1}, \\frac{-3}{x - 1}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.4 0",
-    "problemNumber": "1.4",
-    "problemText": "P 1.4 Skriv uttrycket - { \\frac { 1 } { x - 2 y } } + { \\frac { x - y } { x ^ { 2 } - 4 x y + 4 y ^ { 2 } } } - { \\frac { y } { ( x - 2 y ) ^ { 2 } } } på så enkel form som möjligt.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.5 a^{2}-4ab+6ac+4b^{2}-12bc+9c^{2}",
-    "problemNumber": "1.5",
-    "problemText": "P 1.5 Utveckla (a - 2b + 3c)^{2} till en summa av produkter.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.6 (a) x(x - 1)(x + 1) (b) 3 x y ^ { 2 } ( x - 2 y ^ { 2 } ) ( x + 2 y ^ { 2 } ) ( x ^ { 2 } + 4 y ^ { 4 } )",
-    "problemNumber": "1.6",
-    "problemText": "P 1.6 Dela upp följande uttryck i faktorer så långt det går: (a) x ^ { 3 } - x (b) 3 x ^ { 5 } y ^ { 2 } - 4 8 x y ^ { 1 0 }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
+    "problemText": "P 1.1 Förenkla (a) a ^ { 2 } + b - c \\quad { \\mathrm { d { \\ddot { a } } r } } \\quad c = 1 - a + 2 b\n(b) 3x^{2}-2x+1-y \\quad dr \\quad y=5x-7-z \\quad each \\quad z=-2+x^{2}\nP 1.1 (a) a^{2}+a-b-1 (b) 4x^{2}-7x+6",
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.2",
+    "problemText": "P 1.2 Skriv bråken \\frac{\\frac{12}{13}}{8} och \\frac{12}{\\frac{13}{8}} i enklast möjliga form.\nP 1.2 { \\frac { 3 } { 2 6 } } { \\mathrm { ~ r e s p e k t i v e ~ } } { \\frac { 9 6 } { 1 3 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.3",
+    "problemText": "P 1.3 Ange den minsta gemensamma nämnaren till följande bråk. Beräkna sedan summan av dem.\n(a) \\frac{1}{20}, \\frac{1}{28}, \\frac{1}{21} (b) \\frac{x + 1}{x^{2} + 1}, \\frac{2x + 4}{x^{2} - 1}, \\frac{-3}{x - 1}.\nP 1.3 (a) \\mathrm { M g n } = 4 2 0 \\mathrm { s u m m a } = \\frac { 2 } { 1 5 } (b) \\operatorname { M g n } = ( x ^ { 2 } + 1 ) ( x + 1 ) ( x - 1 ) ), su \\mathrm { u m m a } = { \\frac { 2 x } { ( x + 1 ) ( x ^ { 2 } + 1 ) } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.4",
+    "problemText": "P 1.4 Skriv uttrycket - { \\frac { 1 } { x - 2 y } } + { \\frac { x - y } { x ^ { 2 } - 4 x y + 4 y ^ { 2 } } } - { \\frac { y } { ( x - 2 y ) ^ { 2 } } } på så enkel form som möjligt.\nP 1.4 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.5",
+    "problemText": "P 1.5 Utveckla (a - 2b + 3c)^{2} till en summa av produkter.\nP 1.5 a^{2}-4ab+6ac+4b^{2}-12bc+9c^{2}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.6",
+    "problemText": "P 1.6 Dela upp följande uttryck i faktorer så långt det går: (a) x ^ { 3 } - x (b) 3 x ^ { 5 } y ^ { 2 } - 4 8 x y ^ { 1 0 }\nP 1.6 (a) x(x - 1)(x + 1) (b) 3 x y ^ { 2 } ( x - 2 y ^ { 2 } ) ( x + 2 y ^ { 2 } ) ( x ^ { 2 } + 4 y ^ { 4 } )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
     "problemNumber": "1.7",
     "problemText": "P 1.7 Bevisa formlerna\nx ^ { p } x ^ { q } = x ^ { p + q } , \\quad { \\frac { x ^ { p } } { x ^ { q } } } = x ^ { p - q } \\quad { \\mathrm { o c h } } \\quad x ^ { p } y ^ { p } = ( x y ) ^ { p }\nför alla reella tal x > 0, y > 0 och alla heltal p och q.",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.8 (a) \\left(x + \\frac{5}{2}\\right)^{2} + \\frac{3}{4}, minsta värde = \\frac{3}{4} antas för x = - { \\frac { 5 } { 2 } } . Största värde saknas.\n(b) \\frac{15}{2}-2\\left(x-\\frac{3}{2}\\right)^{2} , största { \\mathrm { v { \\ddot { a } } r d e } } = { \\frac { 1 5 } { 2 } } antas för x = { \\frac { 3 } { 2 } } . Minsta värde saknas.",
-    "problemNumber": "1.8",
-    "problemText": "P 1.8 Kvadratkomplettera uttrycken (a) x ^ { 2 } + 5 x + 7 (b) 3 + 6x - 2x^{2} Ange också (om möjligt) största och minsta värde för dessa uttryck samt för vilka x dessa värden antas.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.9 a = 2, b = 1/2 : alla x \\neq 1 / 2 är lösningar; a = 2, b \\neq 1/2; lösning saknas;\na \\neq 0, a \\neq 2, b = 1/a ; lösning saknas; a \\neq 0, a \\neq 2, b \\neq 1/a \\text{: } x = (1 - 2b)/(a - 2) \\text{: } a = 0, b \\in \\mathbb{R} \\colon x = b - 1/2.",
-    "problemNumber": "1.9",
-    "problemText": "P 1.9 Lös ekvationen { \\frac { a x - 1 } { x - b } } = 2 för alla värden på de reella konstanterna a och b.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.10 (a) $x = - 1 \\quad \\mathrm { ( b ) } \\quad x = 0 \\mathrm { , } \\quad x = 1$",
-    "problemNumber": "1.10",
-    "problemText": "P 1.10 Bestäm alla lösningar x till (a) x^{2}-1=(x+1)^{2} \\qquad ( b ) x^{3}=2x^{2}-x.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.11 x = { \\frac { a + 1 } { a - 3 } } om a 6= 3 och a \\neq 1 , ingen lösning om a = 3 eller a = 1",
-    "problemNumber": "1.11",
-    "problemText": "P 1.11 Bestäm alla lösningar x till \\frac{x - 1}{x + 1} = \\frac{x + 1}{x + a} för alla reella värden på konstanten a.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.12 x = \\pm { \\frac { \\sqrt { 1 4 } } { 4 } }",
-    "problemNumber": "1.12",
-    "problemText": "P 1.12 Bestäm alla lösningar till \\frac{1}{2x + 2} + \\frac{5}{4x + 3} = 1",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.13 a < \\frac { 8 1 } { 4 }",
-    "problemNumber": "1.13",
-    "problemText": "P 1.13 För vilka reella konstanter a har ekvationen x^{2} + 9x + a = 0 två olika reella lösningar?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.14 (a) x = a, x = b\n(b) x = a / b , x = b / a on a \\neq 0 och b \\neq 0 ; x = 0 { \\mathrm { ~ o m ~ } } a \\neq 0 och b = 0 eller a = 0 och b \\neq 0 ; alla reella tal x om a = b = 0",
-    "problemNumber": "1.14",
-    "problemText": "P 1.14 Bestäm alla lösningar till (a) x^{2}-(a+b)x+ab=0 (b) abx^{2}+ab=a^{2}x+b^{2}x för alla olika reella värden på konstanterna a och b.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.15 16",
-    "problemNumber": "1.15",
-    "problemText": "P 1.15 30 studenter läste en kurs där det krävdes godkänt på två deltentamina för att få godkänt på hela kursen. 25 klarade tentamen I, 18 tentamen II och 3 ingen tentamen. Hur många var godkända på kursen efter dessa tentamina?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.16 (a) Ja, på linjen y = - \\frac{3x}{2} + \\frac{5}{2} (b) Nej",
-    "problemNumber": "1.16",
-    "problemText": "P 1.16 Undersök om punkterna P _ { 1 } , P _ { 2 } och P _ { 3 } alla ligger på samma räta linje då\n(a) P_{1} = (1,1), P_{2} = (5,-5) och P_{3} = (-5,10)\n(b) P_{1} = (2,1), P_{2} = (10,11) och P _ { 3 } = ( 2 0 , 2 1 )",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.17 En cirkel med medelpunkt (2, 0) och radie 2",
-    "problemNumber": "1.17",
-    "problemText": "P 1.17 Vad betyder ekvationen x ^ { 2 } + y ^ { 2 } = 4 x ?\nProblem",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 0
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.18 Medelpunkt \\left( - \\frac{a}{2}, - \\frac{b}{2} \\right) , radie \\frac{\\sqrt{a^{2}+b^{2}-4c}}{2}, om a^{2}+b^{2}-4c>0\nPunkten \\left( - \\frac{a}{2}, - \\frac{b}{2} \\right) om a ^ { 2 } + b ^ { 2 } - 4 c = 0 . ingenting om a^{2}+b^{2}-4c<0",
-    "problemNumber": "1.18",
-    "problemText": "P 1.18 Visa att\nx^{2}+y^{2}+ax+by+c=0\när en ekvation för en cirkel om och endast om a ^ { 2 } + b ^ { 2 } > 4 c . Bestäm cirkelns medelpunkt och radie i så fall. Vad betyder ekvationen om a^{2}+b^{2}=4c? Om a ^ { 2 } + b ^ { 2 } < 4 c ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.19 (a) x = −1 (b) x = 0 och x = −2 (c) Lösning saknas",
-    "problemNumber": "1.19",
-    "problemText": "P 1.19 Bestäm alla reella x som uppfyller\n(a) \\sqrt{2x + 6} = 1 - x \\qquad (b) x + \\sqrt{1 - 4x} = 1 (c) \\sqrt{5 - 8x} + 2 = 2x",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.20 (a) x = 1 (b) ingen lösning (c) x = −1, x = 3\nSvar",
-    "problemNumber": "1.20",
-    "problemText": "P 1.20 Bestäm alla lösningar till\n(a) { \\sqrt { x ^ { 2 } + 6 x + 9 } } = 2 x + 2 (b) √x + 2 + √2x − 1 = 1 (c) { \\sqrt { x + 1 } } + { \\sqrt { 9 x + 9 } } = 2 x + 2 .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 11,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.21 (a) Ingen reell lösning (b) x = - 3 \\pm { \\sqrt { 6 5 } }",
-    "problemNumber": "1.21",
-    "problemText": "P 1.21 Bestäm alla reella lösningar till följande ekvationer:\n(a) \\sqrt{x + 1} - \\sqrt{x - 7} = \\sqrt{2x} (b) x^{2}+6x+\\sqrt{x^{2}+6x+8}=64.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.22 1 \\leq x \\leq 2",
-    "problemNumber": "1.22",
-    "problemText": "P 1.22 För vilka reella tal x är uttrycket \\sqrt{1 - \\sqrt{2 - x}} definierat (som ett reellt tal)?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.23 (a) 1 - { \\frac { 2 } { x ^ { 2 } + 1 } } (b) x ^ { 3 } + x ^ { 2 } + x + 1 (c) \\frac{-3x+5}{x^{2}-7} (d) x^{2}-2x+3+\\frac{-2x+10}{x^{2}+4x+5}",
-    "problemNumber": "1.23",
-    "problemText": "P 1.23 Dividera (a) \\frac{x^{2}-1}{x^{2}+1} (b) \\frac { x ^ { 4 } - 1 } { x - 1 } (c) \\frac{-3x+5}{x^{2}-7} (d) \\frac{x^{4}+2x^{3}+25}{x^{2}+4x+5}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.24 (a) x^{2}+4x-5-\\frac{7}{x-3} (b) x - 5 + \\frac{5 - 3x}{x^{2} - 3x + 1}",
-    "problemNumber": "1.24",
-    "problemText": "P 1.24 Använd polynomdivision för att skriva om följande uttryck på en form där man tydligt kan läsa av kvot och rest: (a) \\frac{x^{3}+x^{2}-17x+8}{x-3} (b) \\frac{x^{3}-8x^{2}+13x}{x^{2}-3x+1}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.25 (a) 0 (b) 2^{100}-2^{67}-2^{32}+2^{10}+1 (c) 1 - x",
-    "problemNumber": "1.25",
-    "problemText": "P 1.25 Bestäm resten då polynomet x^{100}+x^{67}-x^{32}-2x^{9}+1 divideras med (a) x − 1 (b) x + 2 (c) x ^ { 2 } - x .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.26 (a) (x - 7)(x + 9) (b) (x - 1)(x - 3)^{2}",
-    "problemNumber": "1.26",
-    "problemText": "P 1.26 Dela upp följande polynom fullständigt som produkter av förstagradspolynom: (a) x^{2} + 2x - 63 (b) x^{3}-7x^{2}+15x-9.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.27 (a) Ja (b) Nej",
-    "problemNumber": "1.27",
-    "problemText": "P 1.27 Ar ¨ x = 6 lösning till (a) x^{3}-5x^{2}-12x+36=0 (b) x^{3}-4x^{2}-17x+36=0?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.28 (a) x = 1, x = 2, x = -3 (b) x = 2, x = \\frac{1 \\pm \\sqrt{17}}{4}\n(c) x = 2, x = 3, x = −5 (d) x = −1, x = 2, x = −1 ±√6",
-    "problemNumber": "1.28",
-    "problemText": "P 1.28 Bestäm alla lösningar till (a) x^{3}-7x+6=0 (b) 2x^{3}-5x^{2}+4=0 (c) x^{3}-8=19(x-2) (d) x^{4}+x^{3}-9x^{2}+x+10=0.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.8",
+    "problemText": "P 1.8 Kvadratkomplettera uttrycken (a) x ^ { 2 } + 5 x + 7 (b) 3 + 6x - 2x^{2} Ange också (om möjligt) största och minsta värde för dessa uttryck samt för vilka x dessa värden antas.\nP 1.8 (a) \\left(x + \\frac{5}{2}\\right)^{2} + \\frac{3}{4}, minsta värde = \\frac{3}{4} antas för x = - { \\frac { 5 } { 2 } } . Största värde saknas.\n(b) \\frac{15}{2}-2\\left(x-\\frac{3}{2}\\right)^{2} , största { \\mathrm { v { \\ddot { a } } r d e } } = { \\frac { 1 5 } { 2 } } antas för x = { \\frac { 3 } { 2 } } . Minsta värde saknas.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.9",
+    "problemText": "P 1.9 Lös ekvationen { \\frac { a x - 1 } { x - b } } = 2 för alla värden på de reella konstanterna a och b.\nP 1.9 a = 2, b = 1/2 : alla x \\neq 1 / 2 är lösningar; a = 2, b \\neq 1/2; lösning saknas;\na \\neq 0, a \\neq 2, b = 1/a ; lösning saknas; a \\neq 0, a \\neq 2, b \\neq 1/a \\text{: } x = (1 - 2b)/(a - 2) \\text{: } a = 0, b \\in \\mathbb{R} \\colon x = b - 1/2.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.10",
+    "problemText": "P 1.10 Bestäm alla lösningar x till (a) x^{2}-1=(x+1)^{2} \\qquad ( b ) x^{3}=2x^{2}-x.\nP 1.10 (a) $x = - 1 \\quad \\mathrm { ( b ) } \\quad x = 0 \\mathrm { , } \\quad x = 1$",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.11",
+    "problemText": "P 1.11 Bestäm alla lösningar x till \\frac{x - 1}{x + 1} = \\frac{x + 1}{x + a} för alla reella värden på konstanten a.\nP 1.11 x = { \\frac { a + 1 } { a - 3 } } om a 6= 3 och a \\neq 1 , ingen lösning om a = 3 eller a = 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.12",
+    "problemText": "P 1.12 Bestäm alla lösningar till \\frac{1}{2x + 2} + \\frac{5}{4x + 3} = 1\nP 1.12 x = \\pm { \\frac { \\sqrt { 1 4 } } { 4 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.13",
+    "problemText": "P 1.13 För vilka reella konstanter a har ekvationen x^{2} + 9x + a = 0 två olika reella lösningar?\nP 1.13 a < \\frac { 8 1 } { 4 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.14",
+    "problemText": "P 1.14 Bestäm alla lösningar till (a) x^{2}-(a+b)x+ab=0 (b) abx^{2}+ab=a^{2}x+b^{2}x för alla olika reella värden på konstanterna a och b.\nP 1.14 (a) x = a, x = b\n(b) x = a / b , x = b / a on a \\neq 0 och b \\neq 0 ; x = 0 { \\mathrm { ~ o m ~ } } a \\neq 0 och b = 0 eller a = 0 och b \\neq 0 ; alla reella tal x om a = b = 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.15",
+    "problemText": "P 1.15 30 studenter läste en kurs där det krävdes godkänt på två deltentamina för att få godkänt på hela kursen. 25 klarade tentamen I, 18 tentamen II och 3 ingen tentamen. Hur många var godkända på kursen efter dessa tentamina?\nP 1.15 16",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.16",
+    "problemText": "P 1.16 Undersök om punkterna P _ { 1 } , P _ { 2 } och P _ { 3 } alla ligger på samma räta linje då\n(a) P_{1} = (1,1), P_{2} = (5,-5) och P_{3} = (-5,10)\n(b) P_{1} = (2,1), P_{2} = (10,11) och P _ { 3 } = ( 2 0 , 2 1 )\nP 1.16 (a) Ja, på linjen y = - \\frac{3x}{2} + \\frac{5}{2} (b) Nej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.17",
+    "problemText": "P 1.17 Vad betyder ekvationen x ^ { 2 } + y ^ { 2 } = 4 x ?\nProblem\nP 1.17 En cirkel med medelpunkt (2, 0) och radie 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0
+  },
+  {
+    "problemNumber": "1.18",
+    "problemText": "P 1.18 Visa att\nx^{2}+y^{2}+ax+by+c=0\när en ekvation för en cirkel om och endast om a ^ { 2 } + b ^ { 2 } > 4 c . Bestäm cirkelns medelpunkt och radie i så fall. Vad betyder ekvationen om a^{2}+b^{2}=4c? Om a ^ { 2 } + b ^ { 2 } < 4 c ?\nP 1.18 Medelpunkt \\left( - \\frac{a}{2}, - \\frac{b}{2} \\right) , radie \\frac{\\sqrt{a^{2}+b^{2}-4c}}{2}, om a^{2}+b^{2}-4c>0\nPunkten \\left( - \\frac{a}{2}, - \\frac{b}{2} \\right) om a ^ { 2 } + b ^ { 2 } - 4 c = 0 . ingenting om a^{2}+b^{2}-4c<0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.19",
+    "problemText": "P 1.19 Bestäm alla reella x som uppfyller\n(a) \\sqrt{2x + 6} = 1 - x \\qquad (b) x + \\sqrt{1 - 4x} = 1 (c) \\sqrt{5 - 8x} + 2 = 2x\nP 1.19 (a) x = −1 (b) x = 0 och x = −2 (c) Lösning saknas",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.20",
+    "problemText": "P 1.20 Bestäm alla lösningar till\n(a) { \\sqrt { x ^ { 2 } + 6 x + 9 } } = 2 x + 2 (b) √x + 2 + √2x − 1 = 1 (c) { \\sqrt { x + 1 } } + { \\sqrt { 9 x + 9 } } = 2 x + 2 .\nP 1.20 (a) x = 1 (b) ingen lösning (c) x = −1, x = 3\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.21",
+    "problemText": "P 1.21 Bestäm alla reella lösningar till följande ekvationer:\n(a) \\sqrt{x + 1} - \\sqrt{x - 7} = \\sqrt{2x} (b) x^{2}+6x+\\sqrt{x^{2}+6x+8}=64.\nP 1.21 (a) Ingen reell lösning (b) x = - 3 \\pm { \\sqrt { 6 5 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.22",
+    "problemText": "P 1.22 För vilka reella tal x är uttrycket \\sqrt{1 - \\sqrt{2 - x}} definierat (som ett reellt tal)?\nP 1.22 1 \\leq x \\leq 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.23",
+    "problemText": "P 1.23 Dividera (a) \\frac{x^{2}-1}{x^{2}+1} (b) \\frac { x ^ { 4 } - 1 } { x - 1 } (c) \\frac{-3x+5}{x^{2}-7} (d) \\frac{x^{4}+2x^{3}+25}{x^{2}+4x+5}.\nP 1.23 (a) 1 - { \\frac { 2 } { x ^ { 2 } + 1 } } (b) x ^ { 3 } + x ^ { 2 } + x + 1 (c) \\frac{-3x+5}{x^{2}-7} (d) x^{2}-2x+3+\\frac{-2x+10}{x^{2}+4x+5}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.24",
+    "problemText": "P 1.24 Använd polynomdivision för att skriva om följande uttryck på en form där man tydligt kan läsa av kvot och rest: (a) \\frac{x^{3}+x^{2}-17x+8}{x-3} (b) \\frac{x^{3}-8x^{2}+13x}{x^{2}-3x+1}.\nP 1.24 (a) x^{2}+4x-5-\\frac{7}{x-3} (b) x - 5 + \\frac{5 - 3x}{x^{2} - 3x + 1}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.25",
+    "problemText": "P 1.25 Bestäm resten då polynomet x^{100}+x^{67}-x^{32}-2x^{9}+1 divideras med (a) x − 1 (b) x + 2 (c) x ^ { 2 } - x .\nP 1.25 (a) 0 (b) 2^{100}-2^{67}-2^{32}+2^{10}+1 (c) 1 - x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.26",
+    "problemText": "P 1.26 Dela upp följande polynom fullständigt som produkter av förstagradspolynom: (a) x^{2} + 2x - 63 (b) x^{3}-7x^{2}+15x-9.\nP 1.26 (a) (x - 7)(x + 9) (b) (x - 1)(x - 3)^{2}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.27",
+    "problemText": "P 1.27 Ar ¨ x = 6 lösning till (a) x^{3}-5x^{2}-12x+36=0 (b) x^{3}-4x^{2}-17x+36=0?\nP 1.27 (a) Ja (b) Nej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.28",
+    "problemText": "P 1.28 Bestäm alla lösningar till (a) x^{3}-7x+6=0 (b) 2x^{3}-5x^{2}+4=0 (c) x^{3}-8=19(x-2) (d) x^{4}+x^{3}-9x^{2}+x+10=0.\nP 1.28 (a) x = 1, x = 2, x = -3 (b) x = 2, x = \\frac{1 \\pm \\sqrt{17}}{4}\n(c) x = 2, x = 3, x = −5 (d) x = −1, x = 2, x = −1 ±√6",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
     "problemNumber": "1.29",
     "problemText": "P 1.29 Visa följande samband mellan rötterna x \\; = \\; \\alpha _ { 1 } och x \\; = \\; \\alpha _ { 2 } till en andragradsekvation x^{2}+ax+b=0 och ekvationens koefficienter a och b:\n\\alpha _ { 1 } + \\alpha _ { 2 } = - a \\quad \\mathrm { o c h } \\quad \\alpha _ { 1 } \\alpha _ { 2 } = b\n(med \\alpha _ { 2 } = \\alpha _ { 1 } om α1 är en dubbelrot).",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.30 \\begin{array} { c c c } { \\alpha _ { 1 } + \\alpha _ { 2 } + \\alpha _ { 3 } = - a , } & { \\alpha _ { 1 } \\alpha _ { 2 } + \\alpha _ { 1 } \\alpha _ { 3 } + \\alpha _ { 2 } \\alpha _ { 3 } = b , } & { \\alpha _ { 1 } \\alpha _ { 2 } \\alpha _ { 3 } = - c } \\\\ \\end{array}",
-    "problemNumber": "1.30",
-    "problemText": "P 1.30 Härled ett samband mellan rötterna x = \\alpha_{1}, x = \\alpha_{2} och x = \\alpha _ { 3 } till en tredjegradsekvation x^{3}+ax^{2}+bx+c=0 och ekvationens koefficienter a, b och c.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.31 (a) x = - 4, x = \\frac{1 \\pm i\\sqrt{3}}{2} (b) x = { \\frac { 3 } { 4 } }",
-    "problemNumber": "1.31",
-    "problemText": "P 1.31 Lös följande ekvationer: (a) (x - 3)^{3} - (2x + 1)^{3} = 0 (b) \\frac{4x - 3}{x^{3} - 1} + \\frac{3x - 4}{x^{2} - 1} = \\frac{3}{x}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.32 x = y = \\pm \\frac{1}{\\sqrt{2}} ; \\quad x = \\frac{3}{\\sqrt{13}} , \\quad y = - \\frac{2}{\\sqrt{13}} ; \\quad x = - \\frac{3}{\\sqrt{13}} , \\quad y = \\frac{2}{\\sqrt{13}}",
-    "problemNumber": "1.32",
-    "problemText": "P 1.32 Bestäm alla lösningar till ekvationssystemet \\left\\{ \\begin{array} { r c l } { ( x - y ) ( 2 x + 3 y ) } & { = } & { 0 } \\\\ { x ^ { 2 } + y ^ { 2 } } & { = } & { 1 . } \\\\ \\end{array} \\right.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.33 (a) \\begin{array} { l } x < 3 / 2 \\\\ - \\sqrt { 3 } < x < \\sqrt { 3 } \\end{array} (b) x < 4 (c) x \\geq 1 eller x < - 1 (d) (e) x \\geq { \\sqrt { 5 } } eller x ≤ −√5 (f) 1 \\leq x \\leq 3",
-    "problemNumber": "1.33",
-    "problemText": "P 1.33 För vilka x gäller följande olikheter? (a) 2x - 3 < 0 (b) x + 3 > 2x - 1 (c) \\frac{x - 1}{x + 1} \\geq 0 (d) x ^ { 2 } < 3 (e) x ^ { 2 } \\geq 5 (f) (x - 2)^{2} \\leq 1",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.34 Minsta värdet är -\\frac{5}{4} för x = 3 2",
-    "problemNumber": "1.34",
-    "problemText": "P 1.34 Bestäm det minsta värde som x ^ { 2 } - 3 x + 1 kan ha för reella tal x. (Ledning: Kvadratkomplettering).\nReella och komplexa tal",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 1
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.35 (a) Likhet då x = 1 (b) Likhet då x = y",
-    "problemNumber": "1.35",
-    "problemText": "P 1.35 Visa att (a) x(x - 2) \\geq -1 för alla reella tal x (b) { \\frac { x } { y } } + { \\frac { y } { x } } \\geq 2 för alla x > 0 och y > 0 När gäller likhet i (a) resp (b)?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.36 Största värdet är 25 då båda talen är 5 (kvadratkomplettering)",
-    "problemNumber": "1.36",
-    "problemText": "P 1.36 Bestäm det största möjliga värde som produkten av två reella tal x och y kan ha då deras summa är 10.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.37 (a) t.ex. 1+(x-1)^{2}=x^{2}-2x+2 (b) \\mathrm{t.ex.~} 3 - (x + 2)^2 = -x^2 - 4x - 1",
-    "problemNumber": "1.37",
-    "problemText": "P 1.37 Bestäm ett andragradspolynom som har (a) minsta värdet 1 i x = 1 (b) största värdet 3 \\mathrm { ~ i ~ } x = - 2",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.38 (a) x \\neq 5 (b) x > 3 / 2 , 0 < x < 1 eller x < - 2 (c) x \\geq 2 eller x < 0\n(d) x ≥ 2 eller x = −1 (e) x ≤ 4\n(f) x > 1 eller x < 0",
-    "problemNumber": "1.38",
-    "problemText": "P 1.38 För vilka x gäller följande olikheter? (a) x^{2}-10x+25>0 (b) 2x^{4}+6x>x^{3}+7x^{2} (c) x ^ { 2 } \\geq { \\frac { 3 x + 2 } { x } } (d) x ^ { 3 } \\geq 3 x + 2 (e) x \\geq 2(x - 2) (f) \\frac{x + 1}{x} < 2",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.39 (a) $x < - 2$ eller $- 1 / 2 < x < 1 \\quad \\mathrm { ( b ) } \\quad - 3 < x \\leq - 1$ either $- 1 / 2 < x \\leq 7$\n(c) $x < - 4 , \\thinspace - 2 \\leq x < - 1$ either $x \\geq 2$ ′ (d) $- 1 / 3 \\leq x < 1 / 2$eller $1 \\leq x < 2$",
-    "problemNumber": "1.39",
-    "problemText": "P 1.39 För vilka reella tal x gäller olikheterna\n(a) \\frac{1}{x + 2} < \\frac{1}{1 - x} (b) \\frac{x - 1}{x + 3} \\leq \\frac{x + 2}{2x + 1} (c) \\frac{x}{x + 4} + \\frac{x}{x + 1} \\geq 1 (d) \\frac{1 + 2x - 3x^{2}}{2x^{2} - 5x + 2} \\geq 0 ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.40 (a) a = 2, b = 1 (b) a = 1, b = 2 (c) a = b = 1 (d) Inga värden på a , b duger",
-    "problemNumber": "1.40",
-    "problemText": "P 1.40 Bestäm de reella konstanterna a och b så att olikheten \\frac{x - a}{x - b} \\geq 0 har lösningsmängden (a) ] - \\infty , 1 [ \\cup [ 2 , + \\infty [ (b) ] - \\infty , 1 ] \\cup ] 2 , + \\infty [ (c) ] - \\infty , 1 [ \\cup ] 1 , + \\infty [ (d) ] - \\infty , + \\infty [ .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.41 (a) T.ex. ω = 10. (Alla ω > 10 duger också.)\n(b) T.ex. $\\omega = 1 / \\sqrt { \\epsilon } .$ (Alla $\\omega > 1 / \\sqrt { \\epsilon }$ degree ocks á .)",
-    "problemNumber": "1.41",
-    "problemText": "P 1.41 (a) Bestäm ett tal ω sådant att x > \\omega \\Rightarrow 1 / x ^ { 2 } < 1 / 1 0 0 . Ar ¨ ω entydigt bestämt?\n(b) Bestäm för varje tal \\epsilon > 0 ett tal ω (som får bero på ǫ) sådant att x > \\omega \\Rightarrow 1 / x ^ { 2 } < \\epsilon .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.42 0 \\leq x \\leq 1 / { \\sqrt { 8 } }",
-    "problemNumber": "1.42",
-    "problemText": "P 1.42 För vilka reella tal x gäller olikheten \\sqrt{1 - 8x^{2}} \\geq 1 - 4x ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.43 (a) 1 \\quad (b) 17 \\quad (c) \\frac{1}{72} \\quad (d) \\frac{81}{64} \\quad (e) \\frac{81}{64}",
-    "problemNumber": "1.43",
-    "problemText": "P 1.43 Räkna ut\n(a) \\left[ ( - 3)^{2} + ( - 2)^{3} \\right] (b) \\left| ( - 3)^{2} \\right| + \\left| ( - 2)^{3} \\right| (c) \\left| 3^{-2} - 2^{-3} \\right| (d) \\left| \\frac{(-3)^4}{(-4)^3} \\right| (e) \\frac{\\left| ( - 3)^{4} \\right|}{\\left| ( - 4)^{3} \\right|}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.44 (a) x = - 5 { \\mathrm { ~ o c h ~ } } x = 1 / 3 (b) x = 4 (c) x = −3 och x = 5/2",
-    "problemNumber": "1.44",
-    "problemText": "P 1.44 Bestäm alla reella x som uppfyller\n(a) $2 | x + 1 | - | x - 1 | = 2 \\quad ( \\mathrm { b } )$ $| x + 2 | + | 3 - 4 x | = 6 x - 5 \\quad ( \\mathrm { c } )$ $| x + 1 | + | 2 x - 3 | - | x - 3 | = 5 .$",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.45 (a) x = -1, x = -7/3 (b) x = - 2, x = 0, x = 1 \\pm \\sqrt{3}",
-    "problemNumber": "1.45",
-    "problemText": "P 1.45 Bestäm alla lösningar till följande ekvationer: (a) \\left| \\frac{x - 1}{2x + 3} \\right| = 2 (b) \\left| x^{2} - 1 \\right| = \\left| 2x + 1 \\right|",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.46 (a) -2 < x < 4 \\mathrm{~mod~} x \\neq 1 (b) x \\leq 1 med x 6= −1\n(c) { \\sqrt { 2 } } < x < { \\sqrt { 6 } } { \\mathrm { ~ e l l e r ~ } } { - { \\sqrt { 6 } } } < x < - { \\sqrt { 2 } } (d) x < - 1 eller x > 1",
-    "problemNumber": "1.46",
-    "problemText": "P 1.46 För vilka x gäller följande olikheter? (a) 0 < \\left| x - 1 \\right| < 3 (b) \\left| \\frac{x - 3}{x + 1} \\right| \\geq 1 (c) \\left| x^{2} - 4 \\right| < 2 (d) \\frac { | x - 1 | } { | x | - 1 } \\geq 1",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.47 Ledning: | x - a | < d \\iff a - d < x < a + d . Rita en tallinje för att se detta.",
-    "problemNumber": "1.47",
-    "problemText": "P 1.47 Visa att |x - 2| < 3 \\implies |x + 1| < 6",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.48 (a) ( | x | \\leq 1 \\iff x ^ { 2 } \\leq 1 ) (b) ( | x | \\leq 1 \\Rightarrow \\left| x ^ { 3 } \\right| \\leq x ^ { 2 } )\nSvar",
-    "problemNumber": "1.48",
-    "problemText": "P 1.48 Visa att för reella tal x och y gäller att\n(a) x^{2}+y^{2} \\leq 1 \\Longrightarrow |x| \\leq 1 och |y| \\leq 1 \\qquad (b) x^{2}+y^{2} \\leq 1 \\Longrightarrow \\left|x^{3}+y^{3}\\right| \\leq 1",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 12,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.49 (a) x = - 2 + \\sqrt{7}, x = - 1, x = - 3\n(b) Ingen lösning om a > 0 . alla x \\geq 0 om a = 0, x = −a/2 om a < 0",
-    "problemNumber": "1.49",
-    "problemText": "P 1.49 Lös följande ekvationer: (a) \\left| x \\right| \\left( x + 4 \\right) = 3 \\qquad ( \\mathrm { b } ) | x + a | = x för varje reellt tal a",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.50 c = 2 ger lösningarna −1/2, 0 och 1.",
-    "problemNumber": "1.50",
-    "problemText": "P 1.50 Bestäm konstanten c så att x = 0 är en lösning till ekvationen\n| 1 - 4 x ^ { 2 } | = 3 - c | x - 1 | .\nBestäm därefter alla reella lösningar till ekvationen, för detta värde på c.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.51 (a) 2 \\cdot 2^{2}+3 \\cdot 2^{3}+4 \\cdot 2^{4}+5 \\cdot 2^{5}=256 (b) 1 + 1 + 1 + \\cdots + 1 + 1 = k (k termer)",
-    "problemNumber": "1.51",
-    "problemText": "P 1.51 Räkna ut summorna (a) \\sum _ { j = 2 } ^ { 5 } j 2 ^ { j } (b) \\sum _ { i = 0 } ^ { k - 1 } 1\nProblem",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 2
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.52 (a) \\mathrm{T.ex.} \\sum_{k = 1}^{7} k^{3} (b) T.ex. \\sum _ { k = 3 } ^ { 4 9 } { \\frac { 1 } { 2 k + 1 } } (c) T.ex. s _ { n } = \\sum _ { k = 0 } ^ { n } k ^ { 2 } , \\quad n = 0 , 1 , 2 , \\ldots .",
-    "problemNumber": "1.52",
-    "problemText": "P 1.52 Skriv med summatecken (a) 1+8+27+64+125+216+343 (b) { \\frac { 1 } { 7 } } + { \\frac { 1 } { 9 } } + { \\frac { 1 } { 1 1 } } + \\cdots + { \\frac { 1 } { 9 7 } } + { \\frac { 1 } { 9 9 } }\n(c) sn, om s0 = 0 och s _ { n } = s _ { n - 1 } + n ^ { 2 } för n = 1, 2, . . ..",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.53 Ledning: Skriv ut termerna i summorna.",
-    "problemNumber": "1.53",
-    "problemText": "P 1.53 Visa att \\sum_{k = 1}^{100}\\frac{1}{k + 1} = \\sum_{k = 2}^{101}\\frac{1}{k}. P 1.54 Räkna ut (a) \\sum _ { k = 2 } ^ { n } { \\frac { k - 1 } { 2 } } (b) \\sum _ { j = m } ^ { n } ( 3 j + 1 ) (c) \\sum _ { k = 0 } ^ { 2 n } ( n - k ) P 1.55 Räkna ut (a) \\sum _ { k = 0 } ^ { n } { \\frac { 2 } { 3 ^ { k } } } (b) \\sum_{k = 2}^{100} (-1)^{k} 2^{k}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.56 n > \\frac { \\ln 1 1 } { \\ln 1 { , } 1 } - 1 \\approx 2 4 ,16 \\left( \\frac{(1{,}1)^{n+1}-1}{1{,}1-1} > 100 \\right)",
-    "problemNumber": "1.56",
-    "problemText": "P 1.56 Hur stort måste heltalet n > 0 vara för att följande olikhet ska gälla?\n1 + 1 { , } 1 + ( 1 { , } 1 ) ^ { 2 } + ( 1 { , } 1 ) ^ { 3 } + \\cdots + ( 1 { , } 1 ) ^ { n } > 1 0 0",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.30",
+    "problemText": "P 1.30 Härled ett samband mellan rötterna x = \\alpha_{1}, x = \\alpha_{2} och x = \\alpha _ { 3 } till en tredjegradsekvation x^{3}+ax^{2}+bx+c=0 och ekvationens koefficienter a, b och c.\nP 1.30 \\begin{array} { c c c } { \\alpha _ { 1 } + \\alpha _ { 2 } + \\alpha _ { 3 } = - a , } & { \\alpha _ { 1 } \\alpha _ { 2 } + \\alpha _ { 1 } \\alpha _ { 3 } + \\alpha _ { 2 } \\alpha _ { 3 } = b , } & { \\alpha _ { 1 } \\alpha _ { 2 } \\alpha _ { 3 } = - c } \\\\ \\end{array}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.31",
+    "problemText": "P 1.31 Lös följande ekvationer: (a) (x - 3)^{3} - (2x + 1)^{3} = 0 (b) \\frac{4x - 3}{x^{3} - 1} + \\frac{3x - 4}{x^{2} - 1} = \\frac{3}{x}\nP 1.31 (a) x = - 4, x = \\frac{1 \\pm i\\sqrt{3}}{2} (b) x = { \\frac { 3 } { 4 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.32",
+    "problemText": "P 1.32 Bestäm alla lösningar till ekvationssystemet \\left\\{ \\begin{array} { r c l } { ( x - y ) ( 2 x + 3 y ) } & { = } & { 0 } \\\\ { x ^ { 2 } + y ^ { 2 } } & { = } & { 1 . } \\\\ \\end{array} \\right.\nP 1.32 x = y = \\pm \\frac{1}{\\sqrt{2}} ; \\quad x = \\frac{3}{\\sqrt{13}} , \\quad y = - \\frac{2}{\\sqrt{13}} ; \\quad x = - \\frac{3}{\\sqrt{13}} , \\quad y = \\frac{2}{\\sqrt{13}}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.33",
+    "problemText": "P 1.33 För vilka x gäller följande olikheter? (a) 2x - 3 < 0 (b) x + 3 > 2x - 1 (c) \\frac{x - 1}{x + 1} \\geq 0 (d) x ^ { 2 } < 3 (e) x ^ { 2 } \\geq 5 (f) (x - 2)^{2} \\leq 1\nP 1.33 (a) \\begin{array} { l } x < 3 / 2 \\\\ - \\sqrt { 3 } < x < \\sqrt { 3 } \\end{array} (b) x < 4 (c) x \\geq 1 eller x < - 1 (d) (e) x \\geq { \\sqrt { 5 } } eller x ≤ −√5 (f) 1 \\leq x \\leq 3",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.34",
+    "problemText": "P 1.34 Bestäm det minsta värde som x ^ { 2 } - 3 x + 1 kan ha för reella tal x. (Ledning: Kvadratkomplettering).\nReella och komplexa tal\nP 1.34 Minsta värdet är -\\frac{5}{4} för x = 3 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1
+  },
+  {
+    "problemNumber": "1.35",
+    "problemText": "P 1.35 Visa att (a) x(x - 2) \\geq -1 för alla reella tal x (b) { \\frac { x } { y } } + { \\frac { y } { x } } \\geq 2 för alla x > 0 och y > 0 När gäller likhet i (a) resp (b)?\nP 1.35 (a) Likhet då x = 1 (b) Likhet då x = y",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.36",
+    "problemText": "P 1.36 Bestäm det största möjliga värde som produkten av två reella tal x och y kan ha då deras summa är 10.\nP 1.36 Största värdet är 25 då båda talen är 5 (kvadratkomplettering)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.37",
+    "problemText": "P 1.37 Bestäm ett andragradspolynom som har (a) minsta värdet 1 i x = 1 (b) största värdet 3 \\mathrm { ~ i ~ } x = - 2\nP 1.37 (a) t.ex. 1+(x-1)^{2}=x^{2}-2x+2 (b) \\mathrm{t.ex.~} 3 - (x + 2)^2 = -x^2 - 4x - 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.38",
+    "problemText": "P 1.38 För vilka x gäller följande olikheter? (a) x^{2}-10x+25>0 (b) 2x^{4}+6x>x^{3}+7x^{2} (c) x ^ { 2 } \\geq { \\frac { 3 x + 2 } { x } } (d) x ^ { 3 } \\geq 3 x + 2 (e) x \\geq 2(x - 2) (f) \\frac{x + 1}{x} < 2\nP 1.38 (a) x \\neq 5 (b) x > 3 / 2 , 0 < x < 1 eller x < - 2 (c) x \\geq 2 eller x < 0\n(d) x ≥ 2 eller x = −1 (e) x ≤ 4\n(f) x > 1 eller x < 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.39",
+    "problemText": "P 1.39 För vilka reella tal x gäller olikheterna\n(a) \\frac{1}{x + 2} < \\frac{1}{1 - x} (b) \\frac{x - 1}{x + 3} \\leq \\frac{x + 2}{2x + 1} (c) \\frac{x}{x + 4} + \\frac{x}{x + 1} \\geq 1 (d) \\frac{1 + 2x - 3x^{2}}{2x^{2} - 5x + 2} \\geq 0 ?\nP 1.39 (a) $x < - 2$ eller $- 1 / 2 < x < 1 \\quad \\mathrm { ( b ) } \\quad - 3 < x \\leq - 1$ either $- 1 / 2 < x \\leq 7$\n(c) $x < - 4 , \\thinspace - 2 \\leq x < - 1$ either $x \\geq 2$ ′ (d) $- 1 / 3 \\leq x < 1 / 2$eller $1 \\leq x < 2$",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.40",
+    "problemText": "P 1.40 Bestäm de reella konstanterna a och b så att olikheten \\frac{x - a}{x - b} \\geq 0 har lösningsmängden (a) ] - \\infty , 1 [ \\cup [ 2 , + \\infty [ (b) ] - \\infty , 1 ] \\cup ] 2 , + \\infty [ (c) ] - \\infty , 1 [ \\cup ] 1 , + \\infty [ (d) ] - \\infty , + \\infty [ .\nP 1.40 (a) a = 2, b = 1 (b) a = 1, b = 2 (c) a = b = 1 (d) Inga värden på a , b duger",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.41",
+    "problemText": "P 1.41 (a) Bestäm ett tal ω sådant att x > \\omega \\Rightarrow 1 / x ^ { 2 } < 1 / 1 0 0 . Ar ¨ ω entydigt bestämt?\n(b) Bestäm för varje tal \\epsilon > 0 ett tal ω (som får bero på ǫ) sådant att x > \\omega \\Rightarrow 1 / x ^ { 2 } < \\epsilon .\nP 1.41 (a) T.ex. ω = 10. (Alla ω > 10 duger också.)\n(b) T.ex. $\\omega = 1 / \\sqrt { \\epsilon } .$ (Alla $\\omega > 1 / \\sqrt { \\epsilon }$ degree ocks á .)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.42",
+    "problemText": "P 1.42 För vilka reella tal x gäller olikheten \\sqrt{1 - 8x^{2}} \\geq 1 - 4x ?\nP 1.42 0 \\leq x \\leq 1 / { \\sqrt { 8 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.43",
+    "problemText": "P 1.43 Räkna ut\n(a) \\left[ ( - 3)^{2} + ( - 2)^{3} \\right] (b) \\left| ( - 3)^{2} \\right| + \\left| ( - 2)^{3} \\right| (c) \\left| 3^{-2} - 2^{-3} \\right| (d) \\left| \\frac{(-3)^4}{(-4)^3} \\right| (e) \\frac{\\left| ( - 3)^{4} \\right|}{\\left| ( - 4)^{3} \\right|}\nP 1.43 (a) 1 \\quad (b) 17 \\quad (c) \\frac{1}{72} \\quad (d) \\frac{81}{64} \\quad (e) \\frac{81}{64}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.44",
+    "problemText": "P 1.44 Bestäm alla reella x som uppfyller\n(a) $2 | x + 1 | - | x - 1 | = 2 \\quad ( \\mathrm { b } )$ $| x + 2 | + | 3 - 4 x | = 6 x - 5 \\quad ( \\mathrm { c } )$ $| x + 1 | + | 2 x - 3 | - | x - 3 | = 5 .$\nP 1.44 (a) x = - 5 { \\mathrm { ~ o c h ~ } } x = 1 / 3 (b) x = 4 (c) x = −3 och x = 5/2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.45",
+    "problemText": "P 1.45 Bestäm alla lösningar till följande ekvationer: (a) \\left| \\frac{x - 1}{2x + 3} \\right| = 2 (b) \\left| x^{2} - 1 \\right| = \\left| 2x + 1 \\right|\nP 1.45 (a) x = -1, x = -7/3 (b) x = - 2, x = 0, x = 1 \\pm \\sqrt{3}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.46",
+    "problemText": "P 1.46 För vilka x gäller följande olikheter? (a) 0 < \\left| x - 1 \\right| < 3 (b) \\left| \\frac{x - 3}{x + 1} \\right| \\geq 1 (c) \\left| x^{2} - 4 \\right| < 2 (d) \\frac { | x - 1 | } { | x | - 1 } \\geq 1\nP 1.46 (a) -2 < x < 4 \\mathrm{~mod~} x \\neq 1 (b) x \\leq 1 med x 6= −1\n(c) { \\sqrt { 2 } } < x < { \\sqrt { 6 } } { \\mathrm { ~ e l l e r ~ } } { - { \\sqrt { 6 } } } < x < - { \\sqrt { 2 } } (d) x < - 1 eller x > 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.47",
+    "problemText": "P 1.47 Visa att |x - 2| < 3 \\implies |x + 1| < 6\nP 1.47 Ledning: | x - a | < d \\iff a - d < x < a + d . Rita en tallinje för att se detta.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.48",
+    "problemText": "P 1.48 Visa att för reella tal x och y gäller att\n(a) x^{2}+y^{2} \\leq 1 \\Longrightarrow |x| \\leq 1 och |y| \\leq 1 \\qquad (b) x^{2}+y^{2} \\leq 1 \\Longrightarrow \\left|x^{3}+y^{3}\\right| \\leq 1\nP 1.48 (a) ( | x | \\leq 1 \\iff x ^ { 2 } \\leq 1 ) (b) ( | x | \\leq 1 \\Rightarrow \\left| x ^ { 3 } \\right| \\leq x ^ { 2 } )\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.49",
+    "problemText": "P 1.49 Lös följande ekvationer: (a) \\left| x \\right| \\left( x + 4 \\right) = 3 \\qquad ( \\mathrm { b } ) | x + a | = x för varje reellt tal a\nP 1.49 (a) x = - 2 + \\sqrt{7}, x = - 1, x = - 3\n(b) Ingen lösning om a > 0 . alla x \\geq 0 om a = 0, x = −a/2 om a < 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.50",
+    "problemText": "P 1.50 Bestäm konstanten c så att x = 0 är en lösning till ekvationen\n| 1 - 4 x ^ { 2 } | = 3 - c | x - 1 | .\nBestäm därefter alla reella lösningar till ekvationen, för detta värde på c.\nP 1.50 c = 2 ger lösningarna −1/2, 0 och 1.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.51",
+    "problemText": "P 1.51 Räkna ut summorna (a) \\sum _ { j = 2 } ^ { 5 } j 2 ^ { j } (b) \\sum _ { i = 0 } ^ { k - 1 } 1\nProblem\nP 1.51 (a) 2 \\cdot 2^{2}+3 \\cdot 2^{3}+4 \\cdot 2^{4}+5 \\cdot 2^{5}=256 (b) 1 + 1 + 1 + \\cdots + 1 + 1 = k (k termer)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 2
+  },
+  {
+    "problemNumber": "1.52",
+    "problemText": "P 1.52 Skriv med summatecken (a) 1+8+27+64+125+216+343 (b) { \\frac { 1 } { 7 } } + { \\frac { 1 } { 9 } } + { \\frac { 1 } { 1 1 } } + \\cdots + { \\frac { 1 } { 9 7 } } + { \\frac { 1 } { 9 9 } }\n(c) sn, om s0 = 0 och s _ { n } = s _ { n - 1 } + n ^ { 2 } för n = 1, 2, . . ..\nP 1.52 (a) \\mathrm{T.ex.} \\sum_{k = 1}^{7} k^{3} (b) T.ex. \\sum _ { k = 3 } ^ { 4 9 } { \\frac { 1 } { 2 k + 1 } } (c) T.ex. s _ { n } = \\sum _ { k = 0 } ^ { n } k ^ { 2 } , \\quad n = 0 , 1 , 2 , \\ldots .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.53",
+    "problemText": "P 1.53 Visa att \\sum_{k = 1}^{100}\\frac{1}{k + 1} = \\sum_{k = 2}^{101}\\frac{1}{k}. P 1.54 Räkna ut (a) \\sum _ { k = 2 } ^ { n } { \\frac { k - 1 } { 2 } } (b) \\sum _ { j = m } ^ { n } ( 3 j + 1 ) (c) \\sum _ { k = 0 } ^ { 2 n } ( n - k ) P 1.55 Räkna ut (a) \\sum _ { k = 0 } ^ { n } { \\frac { 2 } { 3 ^ { k } } } (b) \\sum_{k = 2}^{100} (-1)^{k} 2^{k}\nP 1.53 Ledning: Skriv ut termerna i summorna.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.54",
+    "problemText": "P 1.54 Aritmetiska summor, bestäm första och sista termen och antalet termer. (a) \\frac { ( n - 1 ) n } { 4 } (b) \\frac{(n - m + 1)(3m + 3n + 2)}{2} (c) 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "1.55",
+    "problemText": "P 1.55 Geometriska summor, bestäm första termen, kvoten och antalet termer. (a) 3 - \\frac{1}{3^{n}} (b) \\frac { 4 ( 2 ^ { 9 9 } + 1 ) } { 3 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "1.56",
+    "problemText": "P 1.56 Hur stort måste heltalet n > 0 vara för att följande olikhet ska gälla?\n1 + 1 { , } 1 + ( 1 { , } 1 ) ^ { 2 } + ( 1 { , } 1 ) ^ { 3 } + \\cdots + ( 1 { , } 1 ) ^ { n } > 1 0 0\nP 1.56 n > \\frac { \\ln 1 1 } { \\ln 1 { , } 1 } - 1 \\approx 2 4 ,16 \\left( \\frac{(1{,}1)^{n+1}-1}{1{,}1-1} > 100 \\right)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
     "problemNumber": "1.57",
     "problemText": "P 1.57 Visa att (a) x ^ { n } - 1 = ( x - 1 ) ( x ^ { n - 1 } + x ^ { n - 2 } + \\dots + x + 1 ) { ~ \\check { \\operatorname { f o r } } ~ } n = 1 , 2 , 3 , \\dots (b) x ^ { n } + 1 = ( x + 1 ) ( x ^ { n - 1 } - x ^ { n - 2 } + \\dots - x + 1 ) { \\mathrm { ~ f i o r ~ } } n = 1 , 3 , 5 , \\dots",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.58 Första term 32/3, kvot 1/2 eller första term 32, kvot −1/2",
-    "problemNumber": "1.58",
-    "problemText": "P 1.58 I en geometrisk summa med reella termer är summan av de två första termerna 16 och summan av de fyra följande 5. Bestäm första termen och kvoten i summan.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.59 (a) 4 \\cdot 6 \\cdot 8 \\cdot \\ldots \\cdot ( 2 n ) (b) 2 ^ { 0 } \\cdot 2 ^ { - 1 } \\cdot 2 ^ { - 2 } \\cdot \\ldots \\cdot 2 ^ { - 1 0 0 } = 2 ^ { 0 - 1 - 2 - \\cdots - 1 0 0 } = 2 ^ { - 5 0 5 0 } (c) { \\frac { 2 } { 1 } } \\cdot { \\frac { 3 } { 2 } } \\cdot \\ldots \\cdot { \\frac { n + 1 } { n } } = n + 1 .",
-    "problemNumber": "1.59",
-    "problemText": "P 1.59 Skriv ut faktorerna i följande produkter. Räkna också ut produkterna (b) och (c). (a) \\prod _ { k = 2 } ^ { n } 2 k ! (b) \\prod _ { j = 0 } ^ { 1 0 0 } 2 ^ { - j } (c) \\prod _ { m = 1 } ^ { n } { \\frac { m + 1 } { m } }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.60 \\prod_{k = 2}^{19} (-1)^k k!",
-    "problemNumber": "1.60",
-    "problemText": "P 1.60 Skriv 2 \\cdot ( - 3 ) \\cdot 4 \\cdot ( - 5 ) \\cdot \\ldots \\cdot ( - 1 9 ) med produkttecken.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.61 \\begin{pmatrix} 4 \\\\ 1 \\end{pmatrix} = 4, \\quad \\begin{pmatrix} 4 \\\\ 2 \\end{pmatrix} = 6, \\quad \\begin{pmatrix} 4 \\\\ 3 \\end{pmatrix} = 4, \\quad \\begin{pmatrix} 5 \\\\ 1 \\end{pmatrix} = 5, \\quad \\begin{pmatrix} 5 \\\\ 2 \\end{pmatrix} = 10, \\quad \\begin{pmatrix} 5 \\\\ 3 \\end{pmatrix} = 10, \\quad \\begin{pmatrix} 5 \\\\ 4 \\end{pmatrix} = 5",
-    "problemNumber": "1.61",
-    "problemText": "P 1.61 Räkna \\begin{aligned}&\\cdot u \\; \\binom{4}{1}, \\quad \\binom{4}{2}, \\quad \\binom{4}{3}, \\quad \\binom{5}{1}, \\quad \\binom{5}{2}, \\quad \\binom{5}{3} \\quad och \\quad \\binom{5}{4}\\end{aligned}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.62 (a) 210 (b) 715 \\quad (c) \\frac{n(n^2 - 1)}{6}",
-    "problemNumber": "1.62",
-    "problemText": "P 1.62 Skriv på enklaste form (a) \\binom { 2 1 } { 1 9 } (b) \\left( \\begin{matrix} { 1 3 } \\\\ { 9 } \\\\ \\end{matrix} \\right) (c) { \\binom { n + 1 } { n - 2 } }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.58",
+    "problemText": "P 1.58 I en geometrisk summa med reella termer är summan av de två första termerna 16 och summan av de fyra följande 5. Bestäm första termen och kvoten i summan.\nP 1.58 Första term 32/3, kvot 1/2 eller första term 32, kvot −1/2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.59",
+    "problemText": "P 1.59 Skriv ut faktorerna i följande produkter. Räkna också ut produkterna (b) och (c). (a) \\prod _ { k = 2 } ^ { n } 2 k ! (b) \\prod _ { j = 0 } ^ { 1 0 0 } 2 ^ { - j } (c) \\prod _ { m = 1 } ^ { n } { \\frac { m + 1 } { m } }\nP 1.59 (a) 4 \\cdot 6 \\cdot 8 \\cdot \\ldots \\cdot ( 2 n ) (b) 2 ^ { 0 } \\cdot 2 ^ { - 1 } \\cdot 2 ^ { - 2 } \\cdot \\ldots \\cdot 2 ^ { - 1 0 0 } = 2 ^ { 0 - 1 - 2 - \\cdots - 1 0 0 } = 2 ^ { - 5 0 5 0 } (c) { \\frac { 2 } { 1 } } \\cdot { \\frac { 3 } { 2 } } \\cdot \\ldots \\cdot { \\frac { n + 1 } { n } } = n + 1 .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.60",
+    "problemText": "P 1.60 Skriv 2 \\cdot ( - 3 ) \\cdot 4 \\cdot ( - 5 ) \\cdot \\ldots \\cdot ( - 1 9 ) med produkttecken.\nP 1.60 \\prod_{k = 2}^{19} (-1)^k k!",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.61",
+    "problemText": "P 1.61 Räkna \\begin{aligned}&\\cdot u \\; \\binom{4}{1}, \\quad \\binom{4}{2}, \\quad \\binom{4}{3}, \\quad \\binom{5}{1}, \\quad \\binom{5}{2}, \\quad \\binom{5}{3} \\quad och \\quad \\binom{5}{4}\\end{aligned}\nP 1.61 \\begin{pmatrix} 4 \\\\ 1 \\end{pmatrix} = 4, \\quad \\begin{pmatrix} 4 \\\\ 2 \\end{pmatrix} = 6, \\quad \\begin{pmatrix} 4 \\\\ 3 \\end{pmatrix} = 4, \\quad \\begin{pmatrix} 5 \\\\ 1 \\end{pmatrix} = 5, \\quad \\begin{pmatrix} 5 \\\\ 2 \\end{pmatrix} = 10, \\quad \\begin{pmatrix} 5 \\\\ 3 \\end{pmatrix} = 10, \\quad \\begin{pmatrix} 5 \\\\ 4 \\end{pmatrix} = 5",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.62",
+    "problemText": "P 1.62 Skriv på enklaste form (a) \\binom { 2 1 } { 1 9 } (b) \\left( \\begin{matrix} { 1 3 } \\\\ { 9 } \\\\ \\end{matrix} \\right) (c) { \\binom { n + 1 } { n - 2 } }\nP 1.62 (a) 210 (b) 715 \\quad (c) \\frac{n(n^2 - 1)}{6}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
     "problemNumber": "1.63",
     "problemText": "P 1.63 Bevisa att {n \\choose k} = {n-1 \\choose k-1} + {n-1 \\choose k} för alla heltal n och k sådana att 1 \\leq k \\leq n - 1 P 1.64 Utveckla (a) ( a + b ) ^ { 5 } (b) (2x - 3y)^{4} (c) { \\left( 2 x ^ { 2 } - { \\frac { 1 } { x } } \\right) } ^ { 6 } .",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.65 Endast för x = −3",
-    "problemNumber": "1.65",
-    "problemText": "P 1.65 För vilka reella x gäller sambandet \\sum_{k = 0}^{5} \\binom{5}{k} x^{k} = - 32?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.66 (a) 2 + 6 i (b) 4 - 2 i (c) 3 - 1 2 i (d) −1 (e) 2 (f) −1 − 4i (g) - 1 1 + 1 0 i (h) \\sqrt { 1 3 } (i) \\frac { 5 } { 1 7 } - \\frac { 1 4 } { 1 7 } i",
-    "problemNumber": "1.66",
-    "problemText": "P 1.66 Låt z = 3 + 2 i och w = - 1 + 4 i . Bestäm (a) z + w (b) z - w (c) - 3 w (d) Re w (e) Im z (f) ¯w (g) zw (h) |z| (i) \\frac { z } { w }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.67 | z | ^ { 2 } = | z ^ { 2 } | = 1 3 , z ^ { 2 } = - 5 + 1 2 i",
-    "problemNumber": "1.67",
-    "problemText": "P 1.67 { \\mathrm { L \\mathring { a } t ~ } } z = 2 + 3 i . Beräkna | z | ^ { 2 } , z ^ { 2 } och | z ^ { 2 } |",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.68 3 / 2 5 \\mathrm { r e s p } \\mathrm { - 4 / 2 5 }",
-    "problemNumber": "1.68",
-    "problemText": "P 1.68 Beräkna Re \\left( { \\frac { 1 } { 3 + 4 i } } \\right) och Im \\left( { \\frac { 1 } { 3 + 4 i } } \\right)",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 3
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.64",
+    "problemText": "P 1.64 (a) a^{5}+5a^{4}b+10a^{3}b^{2}+10a^{2}b^{3}+5ab^{4}+b^{5} (b) 1 6 x ^ { 4 } - 9 6 x ^ { 3 } y + 2 1 6 x ^ { 2 } y ^ { 2 } - 2 1 6 x y ^ { 3 } + 8 1 y ^ { 4 } (c) 6 4 x ^ { 1 2 } - 1 9 2 x ^ { 9 } + 2 4 0 x ^ { 6 } - 1 6 0 x ^ { 3 } + 6 0 - \\frac { 1 2 } { x ^ { 3 } } + \\frac { 1 } { x ^ { 6 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 13
+  },
+  {
+    "problemNumber": "1.65",
+    "problemText": "P 1.65 För vilka reella x gäller sambandet \\sum_{k = 0}^{5} \\binom{5}{k} x^{k} = - 32?\nP 1.65 Endast för x = −3",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.66",
+    "problemText": "P 1.66 Låt z = 3 + 2 i och w = - 1 + 4 i . Bestäm (a) z + w (b) z - w (c) - 3 w (d) Re w (e) Im z (f) ¯w (g) zw (h) |z| (i) \\frac { z } { w }\nP 1.66 (a) 2 + 6 i (b) 4 - 2 i (c) 3 - 1 2 i (d) −1 (e) 2 (f) −1 − 4i (g) - 1 1 + 1 0 i (h) \\sqrt { 1 3 } (i) \\frac { 5 } { 1 7 } - \\frac { 1 4 } { 1 7 } i",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.67",
+    "problemText": "P 1.67 { \\mathrm { L \\mathring { a } t ~ } } z = 2 + 3 i . Beräkna | z | ^ { 2 } , z ^ { 2 } och | z ^ { 2 } |\nP 1.67 | z | ^ { 2 } = | z ^ { 2 } | = 1 3 , z ^ { 2 } = - 5 + 1 2 i",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
+    "problemNumber": "1.68",
+    "problemText": "P 1.68 Beräkna Re \\left( { \\frac { 1 } { 3 + 4 i } } \\right) och Im \\left( { \\frac { 1 } { 3 + 4 i } } \\right)\nP 1.68 3 / 2 5 \\mathrm { r e s p } \\mathrm { - 4 / 2 5 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 3
+  },
+  {
     "problemNumber": "1.69",
     "problemText": "P 1.69 Bevisa formlerna Re z = \\frac { z + \\bar { z } } { 2 } , Im z = \\frac { z - \\bar { z } } { 2 i } z \\bar { z } = | z | ^ { 2 } för alla komplexa tal z.\nReella och komplexa tal",
+    "answerText": "",
     "questionImages": [],
+    "answerImages": [],
     "sourceQuestionPageIdx": 3
   },
   {
-    "answerImages": [],
-    "answerText": "P 1.70 Ledning: Studera |zw|2.",
     "problemNumber": "1.70",
-    "problemText": "P 1.70 Visa räknelagen \\left| z w \\right| = \\left| z \\right| \\left| w \\right| för komplexa tal med hjälp av sambandet \\left| z \\right| ^ { 2 } = z \\bar { z }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.71 i ^ { 0 } = 1 , \\quad i ^ { - 1 } = - i , \\quad i ^ { - 2 } = - 1 , \\quad i ^ { - 3 } = i , i ^ { - 4 k } = 1 , \\quad i ^ { - ( 4 k + 1 ) } = - i , \\quad i ^ { - ( 4 k + 2 ) } = - 1 , \\quad i ^ { - ( 4 k + 3 ) } = i , \\quad k = 0 , 1 , 2 , \\ldots",
-    "problemNumber": "1.71",
-    "problemText": "P 1.71 Räkna ut i ^ { 0 } ~ i ^ { - 1 } , i ^ { - 2 } , i ^ { - 3 } , \\ldots . Vad kan allmänt sägas om i ^ { - n } för heltal n \\geq 0 ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.72 (a) z ^ { - 1 } = i , \\quad z ^ { - 2 } = - 1 , \\quad z ^ { - 3 } = - i (b) z ^ { - 1 } = \\frac { 1 + i } { 2 } , \\quad z ^ { - 2 } = \\frac { i } { 2 } , \\quad z ^ { - 3 } = \\frac { - 1 + i } { 4 } (c) z ^ { - 1 } = \\frac { a - i b } { a ^ { 2 } + b ^ { 2 } } , \\quad z ^ { - 2 } = \\frac { a ^ { 2 } - b ^ { 2 } - 2 i a b } { ( a ^ { 2 } + b ^ { 2 } ) ^ { 2 } } , \\quad z ^ { - 3 } = \\frac { a ^ { 3 } - 3 a b ^ { 2 } + i ( b ^ { 3 } - 3 a ^ { 2 } b ) } { ( a ^ { 2 } + b ^ { 2 } ) ^ { 3 } }\nSvar",
-    "problemNumber": "1.72",
-    "problemText": "P 1.72 Räkna ut z ^ { - 1 } , z ^ { - 2 } och z ^ { - 3 } då (a) z = - i (b) z = 1 - i (c) z = a + i b .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 13,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.73 (a) z = 4 + 4 i (b) z = 1 - { \\frac { i } { 7 } } (c) z = 2 - i (d) z = - \\frac{1}{13} - \\frac{5}{13} i (e) z = { \\frac { 1 } { 3 } } - { \\frac { 2 } { 3 } } i",
-    "problemNumber": "1.73",
-    "problemText": "P 1.73 Lös ekvationerna\n(a) (d) z + 3 - i = 7 + 3i (b) 7z - 3 + 2i = 4 + i (c) 2\\bar{z} + 1 + i = \\overline{5 - 3i} ( 2 + 3 i ) z = 1 - i (e) (1 + i)z + (7 + 2i)\\bar{z} = 2 + 5i.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.74 z ligger längst från origo",
-    "problemNumber": "1.74",
-    "problemText": "P 1.74 Vilken av punkterna z = \\frac{(1 + 2i)^4 (2 - 3i)}{(2 - i)^2} och w = \\frac{(\\sqrt{2} + i)^3(1 - i)(\\sqrt{17} - i)}{1 - \\sqrt{2}i} ligger längst från origo?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.75 (a) \\frac { 2 } { \\sqrt { 5 } } (b) \\frac { 1 } { 5 ^ { 6 } }",
-    "problemNumber": "1.75",
-    "problemText": "P 1.75 Räkna ut | z | \\mathrm { d } \\mathring { \\mathrm { a } } z \\mathrm { \\ddot { a } r } (a) \\frac{(3 + i)(5 - i)}{(4 + 3i)(2i - 3)} (b) ( 2 - i ) ^ { - 1 2 }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
+    "problemText": "P 1.70 Visa räknelagen \\left| z w \\right| = \\left| z \\right| \\left| w \\right| för komplexa tal med hjälp av sambandet \\left| z \\right| ^ { 2 } = z \\bar { z }\nP 1.70 Ledning: Studera |zw|2.",
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.71",
+    "problemText": "P 1.71 Räkna ut i ^ { 0 } ~ i ^ { - 1 } , i ^ { - 2 } , i ^ { - 3 } , \\ldots . Vad kan allmänt sägas om i ^ { - n } för heltal n \\geq 0 ?\nP 1.71 i ^ { 0 } = 1 , \\quad i ^ { - 1 } = - i , \\quad i ^ { - 2 } = - 1 , \\quad i ^ { - 3 } = i , i ^ { - 4 k } = 1 , \\quad i ^ { - ( 4 k + 1 ) } = - i , \\quad i ^ { - ( 4 k + 2 ) } = - 1 , \\quad i ^ { - ( 4 k + 3 ) } = i , \\quad k = 0 , 1 , 2 , \\ldots",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.72",
+    "problemText": "P 1.72 Räkna ut z ^ { - 1 } , z ^ { - 2 } och z ^ { - 3 } då (a) z = - i (b) z = 1 - i (c) z = a + i b .\nP 1.72 (a) z ^ { - 1 } = i , \\quad z ^ { - 2 } = - 1 , \\quad z ^ { - 3 } = - i (b) z ^ { - 1 } = \\frac { 1 + i } { 2 } , \\quad z ^ { - 2 } = \\frac { i } { 2 } , \\quad z ^ { - 3 } = \\frac { - 1 + i } { 4 } (c) z ^ { - 1 } = \\frac { a - i b } { a ^ { 2 } + b ^ { 2 } } , \\quad z ^ { - 2 } = \\frac { a ^ { 2 } - b ^ { 2 } - 2 i a b } { ( a ^ { 2 } + b ^ { 2 } ) ^ { 2 } } , \\quad z ^ { - 3 } = \\frac { a ^ { 3 } - 3 a b ^ { 2 } + i ( b ^ { 3 } - 3 a ^ { 2 } b ) } { ( a ^ { 2 } + b ^ { 2 } ) ^ { 3 } }\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.73",
+    "problemText": "P 1.73 Lös ekvationerna\n(a) (d) z + 3 - i = 7 + 3i (b) 7z - 3 + 2i = 4 + i (c) 2\\bar{z} + 1 + i = \\overline{5 - 3i} ( 2 + 3 i ) z = 1 - i (e) (1 + i)z + (7 + 2i)\\bar{z} = 2 + 5i.\nP 1.73 (a) z = 4 + 4 i (b) z = 1 - { \\frac { i } { 7 } } (c) z = 2 - i (d) z = - \\frac{1}{13} - \\frac{5}{13} i (e) z = { \\frac { 1 } { 3 } } - { \\frac { 2 } { 3 } } i",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.74",
+    "problemText": "P 1.74 Vilken av punkterna z = \\frac{(1 + 2i)^4 (2 - 3i)}{(2 - i)^2} och w = \\frac{(\\sqrt{2} + i)^3(1 - i)(\\sqrt{17} - i)}{1 - \\sqrt{2}i} ligger längst från origo?\nP 1.74 z ligger längst från origo",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.75",
+    "problemText": "P 1.75 Räkna ut | z | \\mathrm { d } \\mathring { \\mathrm { a } } z \\mathrm { \\ddot { a } r } (a) \\frac{(3 + i)(5 - i)}{(4 + 3i)(2i - 3)} (b) ( 2 - i ) ^ { - 1 2 }\nP 1.75 (a) \\frac { 2 } { \\sqrt { 5 } } (b) \\frac { 1 } { 5 ^ { 6 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
     "problemNumber": "1.76",
     "problemText": "P 1.76 I denna uppgift ska vi se på hur det komplexa talsystemet definieras. Definiera alltså ett komplext tal z som ett ordnat talpar z = ( x , y ) , där x , y \\in \\mathbb { R } (’ordnat’ betyder att ( x , y ) \\neq ( y , x ) om x \\neq y ) . Om nu z \\; = \\; ( x , y ) och w \\; = \\; ( u , v ) är två komplexa tal definierar vi räknesätten + och · enligt\nz + w = \\left( x + u , y + v \\right) , \\; z \\cdot w = ( x u - y v , x v + y u ) .\n(a) Vi behöver nu visa att våra komplexa tal uppfyller samma räknelagar som de reella talen så att vi kan räkna ’som vanligt’ med komplexa tal. Då bevisen är ganska lika varandra nöjer vi oss med att visa några av dessa räknelagar. Visa därför att z + w = w + z och att c ( w z ) = ( c w ) z för alla komplexa tal c = (a, b), z = (x, y) och w = ( u , v )\n(b) Visa att ( x , 0 ) + ( y , 0 ) = ( x + y , 0 ) och att ( x , 0 ) \\cdot ( y , 0 ) = ( x y , 0 ) så att de komplexa talen på formen ( x , 0 ) beter sig precis som de reella talen. Vi skriver därför x = ( x , 0 ) i fortsättningen.\n(c) Sätt nu i = ( 0 , 1 ) och visa att då är i ^ { 2 } = - 1 . Visa också att det komplexa talet z = ( x , y ) kan skrivas z = (x, y) = x + iy",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.77 x = \\pm \\sqrt{\\frac{\\sqrt{a^{2} + b^{2}} + a}{2}}, \\quad y = \\pm \\sqrt{\\frac{\\sqrt{a^{2} + b^{2}} - a}{2}},\ndär x och y har samma tecken om b > 0 . , motsatta tecken om b < 0",
-    "problemNumber": "1.77",
-    "problemText": "P 1.77 Visa att en ekvation z ^ { 2 } = a + i b (med reella a och b) alltid har lösningar z = x + i y (med reella x och y) genom att visa att ekvationen är ekvivalent med systemet av ekvationer\nx ^ { 2 } - y ^ { 2 } = a \\quad { \\mathrm { o c h } } \\quad 2 x y = b\noch visa att detta system alltid har reella lösningar x och y. En hjälp är att se att ekvationerna medför att x^{2}+y^{2}=\\sqrt{a^{2}+b^{2}}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.78 z _ { 1 , 2 } = \\pm ( 3 - 2 i )",
-    "problemNumber": "1.78",
-    "problemText": "P 1.78 Bestäm alla komplexa lösningar till ekvationen z ^ { 2 } = 5 - 1 2 i",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.79 (a) $z _ { 1 } = 1 + i , \\thinspace z _ { 2 } = - 2 + i \\quad \\mathrm { ( b ) } \\quad z _ { 1 } = i , \\thinspace z _ { 2 } = 1 + 2 i$",
-    "problemNumber": "1.79",
-    "problemText": "P 1.79 Lös ekvationerna (a) z^{2}+(1-2i)z-3-i=0 . \\quad (b) (2+i)z^{2}+(1-7i)z-5=0.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.80 z^{2}+(2b-a^{2})z+b^{2}=0",
-    "problemNumber": "1.80",
-    "problemText": "P 1.80 Finn en andragradsekvation vars rötter är kvadraterna på rötterna till z^{2}+az+b=0",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.81 p ( z ) = ( z ^ { 2 } + 1 ) ( 5 z + 3 )",
-    "problemNumber": "1.81",
-    "problemText": "P 1.81 Låt p ( z ) = 5 z ^ { 3 } + 3 z ^ { 2 } + 5 z + 3 . Beräkna p ( i ) och faktorisera därefter p i reella faktorer av lägsta möjliga grad.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.82 z _ { 1 , 2 } = 2 \\pm i , z _ { 3 , 4 } = - 1 \\pm 2 i",
-    "problemNumber": "1.82",
-    "problemText": "P 1.82 Ekvationen z ^ { 4 } - 2 z ^ { 3 } + 2 z ^ { 2 } - 1 0 z + 2 5 { = } 0 har rötterna z = 2 + i och z = - 1 - 2 i . Lös ekvationen fullständigt.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.83 p ( z ) = ( z - 1 ) ^ { 3 } \\left( z + \\frac { 3 + i \\sqrt { 1 5 } } { 2 } \\right) \\left( z + \\frac { 3 - i \\sqrt { 1 5 } } { 2 } \\right) = ( z - 1 ) ^ { 3 } ( z ^ { 2 } + 3 z + 6 ) .",
-    "problemNumber": "1.83",
-    "problemText": "P 1.83 Faktorisera polynomet p ( z ) = z ^ { 5 } - 1 0 z ^ { 2 } + 1 5 z - 6 fullständigt i komplexa respektive reella faktorer.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.84 a _ { 0 } = 5 , a _ { 1 } = - 4 , a _ { 2 } = 1 1 , a _ { 3 } = - 8 , a _ { 4 } = 7 , a _ { 5 } = - 4",
-    "problemNumber": "1.84",
-    "problemText": "P 1.84 Bestäm de reella talen a _ { 0 } , a _ { 1 } , \\ldots , a _ { 5 } så att polynomet p ( z ) = z ^ { 6 } + a _ { 5 } z ^ { 5 } + \\ldots + a _ { 1 } z + a _ { 0 } har ett enkelt nollställe \\mathrm { ~ i ~ } 2 - i och ett dubbelt i i.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.85 z _ { 1 , 2 } = \\pm i \\sqrt { 3 } , z _ { 3 } = 1 / 2 , z _ { 4 } = - 6",
-    "problemNumber": "1.85",
-    "problemText": "P 1.85 Ekvationen 2 z ^ { 4 } + 1 1 z ^ { 3 } + 3 3 z = 1 8 har en rent imaginär rot. Lös ekvationen.\nProblem",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 4
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.86 z _ { 1 , 2 } = 1 \\pm 2 i , z _ { 3 , 4 } = \\pm i \\sqrt { 7 }",
-    "problemNumber": "1.86",
-    "problemText": "P 1.86 Ekvationen z^{4}+12z^{2}+35=2z^{3}+14z har en rot med realdelen 1. Lös ekvationen.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.87 (a) z_{1,2,3,4} = \\pm 2 \\pm i \\quad (b) z_k = \\sqrt[k]{2} \\exp i (\\pm \\pi / 12 + 2k\\pi / 3), k = 0,1,2",
-    "problemNumber": "1.87",
-    "problemText": "P 1.87 Lös ekvationerna (a) z^{4}-6z^{2}+25=0 \\quad (b) z^{6}+2=2z^{3}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.88 z _ { 1 } = 0 , \\thinspace z _ { 2 , 3 } = \\pm ( 1 + i ) \\sqrt { 3 } , \\thinspace z _ { 4 , 5 } = \\pm ( 1 + i ) / \\sqrt { 3 }",
-    "problemNumber": "1.88",
-    "problemText": "P 1.88 Bestäm alla komplexa tal z sådana att (z + 1 - i)^{6} = (z - 1 + i)^{6}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.89 a = 2, nollställen ±i, −1 ± i",
-    "problemNumber": "1.89",
-    "problemText": "P 1.89 Visa att man kan bestämma konstanten a så att polynomet p ( x ) = x ^ { 4 } + 2 x ^ { 3 } + 3 x ^ { 2 } + a x + 2 är delbart med x ^ { 2 } + 2 x + 2 . Bestäm a och därefter alla nollställen till p .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.90 z6 − 3z4 + 4 (eller en rationell multipel därav)",
-    "problemNumber": "1.90",
-    "problemText": "P 1.90 Ange ett sjättegradspolynom med rationella koefficienter som har ett dubbelt nollställe i punkten z = \\sqrt { 2 } och ett enkelt nollställe i punkten z = i",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 1.91 a = 1, rötter 0, , 1 - i , - 1 - i , - 2 i ; \\quad a = - 4 , \\mathrm { r \\ddot { o } t t e r } \\pm 1 , \\pm 1 - 2 i\nFunktioner",
-    "problemNumber": "1.91",
-    "problemText": "P 1.91 För vilka reella a har ekvationen ( z + i ) ^ { 4 } = a minst en reell rot? Lös ekvationen för dessa a.\n2 Funktioner",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.1 (a) Ja, g^{-1}(x) = f^{-1}(x + 2), x \\in \\mathbb{R} (b) Ja, g^{-1}(x) = f^{-1}\\Big(\\frac{1}{x} - 1\\Big), x \\neq 0 i . R\n(c) Nej, g är inte injektiv, ty g ( - x ) = g ( x )\n(d) Nej, g är inte injektiv, ty g(x1) = g(x2) om f(x1) = −f(x2)",
-    "problemNumber": "2.1",
-    "problemText": "P 2.1 Antag att f är en funktion med D _ { f } = V _ { f } = 1 R och att f har en invers funktion f ^ { - 1 } . Undersök om funktionen g har en invers funktion g ^ { - 1 } och bestäm den i så fall uttryckt i f ^ { - 1 } om (a) g(x) = f(x) - 2 (b) g(x) = \\frac{1}{1 + f(x)} (c) g ( x ) = f ( x ^ { 2 } ) (d) g ( x ) = f ( x ) ^ { 2 }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.2 (a) 0 (b) 1 (c) −1 (d) 2",
-    "problemNumber": "2.2",
-    "problemText": "P 2.2 Visa att funktionen f ( x ) = x ^ { 3 } + x har en invers funktion f ^ { - 1 } och bestäm f ^ { - 1 } ( y ) då\n(a) y = 0 (b) y = 2 (c) y = −2 (d) y = 10\nFörsök inte att bestämma f ^ { - 1 } ( y ) för alla y \\in D _ { f ^ { - 1 } } !",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.3 f ^ { - 1 } ( y ) = \\operatorname { l n } ( 1 - y ^ { 2 } ) , \\quad D _ { f } = ] - \\infty , 0 ] = V _ { f ^ { - 1 } } , \\quad D _ { f ^ { - 1 } } = [ 0 , 1 [ = V _ { f }",
-    "problemNumber": "2.3",
-    "problemText": "P 2.3 Betrakta funktionen f ( x ) = { \\sqrt { 1 - e ^ { x } } } . Bestäm, om möjligt, inversen f ^ { - 1 } samt definitionsoch värdemängd för f och f ^ { - 1 }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.4 (a) f ^ { - 1 } ( y ) = - \\sqrt { y } , \\quad 1 \\leq y \\leq 9 (b) f ^ { - 1 } ( y ) = \\left\\{ \\begin{array} { r l } { \\sqrt { y } } & { \\quad \\mathrm { f \\ddot { o } r ~ } 1 \\leq y \\leq 4 } \\\\ { - \\sqrt { y } } & { \\quad \\mathrm { f \\ddot { o } r ~ } 9 \\leq y \\leq 1 6 } \\end{array} \\right.",
-    "problemNumber": "2.4",
-    "problemText": "P 2.4 Bestäm eventuell invers f ^ { - 1 } till den funktion f som ges av\n(a) f(x) = x^{2} , \\quad -3 \\leq x \\leq -1 (b) f ( x ) = x ^ { 2 } , \\quad - 4 \\leq x \\leq - 3 { \\mathrm { ~ e l l e r ~ } } 1 \\leq x \\leq 2",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.5 c = 1 , a \\in \\mathbb { R } , b \\in \\mathbb { R } med a b \\neq 1 eller c = -1, a = b = 0",
-    "problemNumber": "2.5",
-    "problemText": "P 2.5 För vilka reella konstanter a, b och c gäller att funktionen\nf : x \\mapsto { \\frac { x - a } { b x - c } }\när sin egen invers, d.v.s. att f ^ { - 1 } ( x ) = f ( x ) för x \\in D _ { f } ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.6 D _ { f } = ] - \\infty , - 2 [ \\cup [ - 1 , \\infty [ , f ^ { - 1 } ( x ) = \\frac { 1 - 2 x ^ { 2 } } { x ^ { 2 } - 1 }",
-    "problemNumber": "2.6",
-    "problemText": "P 2.6 Bestäm definitionsmängden samt (om möjligt) inversen till f om f(x) = \\sqrt{\\frac{x + 1}{x + 2}}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.7 (a) \\ln 16 = \\ln 2^{4} = 4\\ln 2 (b) ln 18 (c) \\ln 1 = 0",
-    "problemNumber": "2.7",
-    "problemText": "P 2.7 Förenkla följande uttryck till en term: (a) ln 2 + ln 8 (b) 2 ln 3 + ln 2 (c) ln { \\frac { 2 } { 3 } } + \\ln { \\frac { 3 } { 2 } } .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.8 ln 2+\\ln 3+\\ln 4+\\ln 5<2\\ln 11<3\\ln 5<\\ln 7+2\\ln 6-\\ln 2<7\\ln 2\nSvar",
-    "problemNumber": "2.8",
-    "problemText": "P 2.8 Ordna talen ln 2 + \\ln 3 + \\ln 4 + \\ln 5 , ln 7 + 2 ln 6 − ln 2, 7 ln 2, 3 ln 5 och 2 ln 11 efter storlek.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 14,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.9 (a) \\ln x ^ { - 1 } = - \\ln x (b) \\ln { \\frac { 2 7 } { 4 } }",
-    "problemNumber": "2.9",
-    "problemText": "P 2.9 Förenkla följande uttryck till en term: (a) ln x ^ { 2 } - 3 \\ln x (b) 2 ln 3 + ln 6 − 3 ln 2",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.10 (Se på \\operatorname { l n } x _ { 2 } - \\operatorname { l n } x _ { 1 } )",
-    "problemNumber": "2.10",
-    "problemText": "P 2.10 Visa, med hjälp av olikheten ln x > 0 då x > 1 , att funktionen ln är strängt växande, d.v.s. att x _ { 1 } < x _ { 2 } \\Longrightarrow ln x _ { 1 } < ln x2 gäller för x _ { 1 } \\in D _ { \\mathrm { l n } } och x _ { 2 } \\in D _ { \\mathrm { l n } }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.11 (a) Hur förskjuts ln-funktionens graf? (b) Förenkla, y = − ln x",
-    "problemNumber": "2.11",
-    "problemText": "P 2.11 Rita följande kurvor: (a) y = ln(x − 2) (b) y = \\ln x - \\ln x^{2}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.12 (a) D _ { f } = ] - \\infty , - 1 [ \\cup ] 2 , + \\infty [ , \\quad V _ { f } = \\mathbb { R } (b) D_{f} = \\left[ 2 - \\sqrt{3} , \\; 2 + \\sqrt{3} \\right]",
-    "problemNumber": "2.12",
-    "problemText": "P 2.12 Bestäm definitionsmängden för funktionen f då\n(a) f(x)=\\ln(x^{2}-x-2) (b) f(x) = \\sqrt{\\ln x + \\ln(4 - x)}\nFunktioner",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 5
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.13 (a) D _ { f } = ] 3 , \\infty [\n(b) Omskrivningen \\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } ( 1 - x ) - \\operatorname { l n } ( 3 - x ) } . är felaktig, men omskrivningen\n\\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } ( x - 1 ) - \\operatorname { l n } ( x - 3 ) } . är korrekt. Varför?",
-    "problemNumber": "2.13",
-    "problemText": "P 2.13 (a) Bestäm definitionsmängden till f om f(x) = \\sqrt{\\ln \\left( \\frac{1 - x}{3 - x} \\right)}\n(b) När Linus och Linnea jobbade med (a)-uppgiften försökte de använda omskrivningen \\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } ( 1 - x ) - \\operatorname { l n } ( 3 - x ) } . . Kommentar? Vad hade du sagt om omskriv-\nningen \\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } \\left( \\frac { x - 1 } { x - 3 } \\right) } = \\sqrt { \\operatorname { l n } ( x - 1 ) - \\operatorname { l n } ( x - 3 ) } ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.14 (a) t.ex. x = y = 1 (b) y = \\frac{x}{x - 1} för x > 1",
-    "problemNumber": "2.14",
-    "problemText": "P 2.14 Endast i undantagsfall gäller att \\ln (x + y) = \\ln x + \\ln y.\n(a) Ge exempel på tal x > 0 och y > 0 sådana att likheten ovan inte gäller.\n(b) För vilka x > 0 finns y > 0 sådant att likheten gäller? Bestäm y för varje sådant x.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.15 \\frac { a + b } { 2 } \\qquad \\left( \\ln 3 = \\frac { 3 b - a } { 8 } , \\quad \\ln 2 = \\frac { 3 a - b } { 8 } \\right)",
-    "problemNumber": "2.15",
-    "problemText": "P 2.15 Bestäm ln 36 uttryckt med a = \\ln 2 4 och b = \\ln 5 4",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.16 (a) $e ^ { x } e ^ { y } = 4$ (b) e ^ { x } e ^ { x } = 2 (c) 16",
-    "problemNumber": "2.16",
-    "problemText": "P 2.16 Antag att e ^ { x } = { \\sqrt { 2 } } och e ^ { y } = { \\sqrt { 8 } } . Räkna ut (a) ex+y(b) e ^ { 2 x } (c) e ^ { 2 x + 2 y }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.17 x = { \\frac { 1 } { 2 } } { \\big ( } 3 - \\ln ( e ^ { 3 } - 1 ) { \\big ) }",
-    "problemNumber": "2.17",
-    "problemText": "P 2.17 För vilka reella x gäller sambandet e^{2x + 3} = e^{2x} + e^{3} ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.77",
+    "problemText": "P 1.77 Visa att en ekvation z ^ { 2 } = a + i b (med reella a och b) alltid har lösningar z = x + i y (med reella x och y) genom att visa att ekvationen är ekvivalent med systemet av ekvationer\nx ^ { 2 } - y ^ { 2 } = a \\quad { \\mathrm { o c h } } \\quad 2 x y = b\noch visa att detta system alltid har reella lösningar x och y. En hjälp är att se att ekvationerna medför att x^{2}+y^{2}=\\sqrt{a^{2}+b^{2}}\nP 1.77 x = \\pm \\sqrt{\\frac{\\sqrt{a^{2} + b^{2}} + a}{2}}, \\quad y = \\pm \\sqrt{\\frac{\\sqrt{a^{2} + b^{2}} - a}{2}},\ndär x och y har samma tecken om b > 0 . , motsatta tecken om b < 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.78",
+    "problemText": "P 1.78 Bestäm alla komplexa lösningar till ekvationen z ^ { 2 } = 5 - 1 2 i\nP 1.78 z _ { 1 , 2 } = \\pm ( 3 - 2 i )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.79",
+    "problemText": "P 1.79 Lös ekvationerna (a) z^{2}+(1-2i)z-3-i=0 . \\quad (b) (2+i)z^{2}+(1-7i)z-5=0.\nP 1.79 (a) $z _ { 1 } = 1 + i , \\thinspace z _ { 2 } = - 2 + i \\quad \\mathrm { ( b ) } \\quad z _ { 1 } = i , \\thinspace z _ { 2 } = 1 + 2 i$",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.80",
+    "problemText": "P 1.80 Finn en andragradsekvation vars rötter är kvadraterna på rötterna till z^{2}+az+b=0\nP 1.80 z^{2}+(2b-a^{2})z+b^{2}=0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.81",
+    "problemText": "P 1.81 Låt p ( z ) = 5 z ^ { 3 } + 3 z ^ { 2 } + 5 z + 3 . Beräkna p ( i ) och faktorisera därefter p i reella faktorer av lägsta möjliga grad.\nP 1.81 p ( z ) = ( z ^ { 2 } + 1 ) ( 5 z + 3 )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.82",
+    "problemText": "P 1.82 Ekvationen z ^ { 4 } - 2 z ^ { 3 } + 2 z ^ { 2 } - 1 0 z + 2 5 { = } 0 har rötterna z = 2 + i och z = - 1 - 2 i . Lös ekvationen fullständigt.\nP 1.82 z _ { 1 , 2 } = 2 \\pm i , z _ { 3 , 4 } = - 1 \\pm 2 i",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.83",
+    "problemText": "P 1.83 Faktorisera polynomet p ( z ) = z ^ { 5 } - 1 0 z ^ { 2 } + 1 5 z - 6 fullständigt i komplexa respektive reella faktorer.\nP 1.83 p ( z ) = ( z - 1 ) ^ { 3 } \\left( z + \\frac { 3 + i \\sqrt { 1 5 } } { 2 } \\right) \\left( z + \\frac { 3 - i \\sqrt { 1 5 } } { 2 } \\right) = ( z - 1 ) ^ { 3 } ( z ^ { 2 } + 3 z + 6 ) .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.84",
+    "problemText": "P 1.84 Bestäm de reella talen a _ { 0 } , a _ { 1 } , \\ldots , a _ { 5 } så att polynomet p ( z ) = z ^ { 6 } + a _ { 5 } z ^ { 5 } + \\ldots + a _ { 1 } z + a _ { 0 } har ett enkelt nollställe \\mathrm { ~ i ~ } 2 - i och ett dubbelt i i.\nP 1.84 a _ { 0 } = 5 , a _ { 1 } = - 4 , a _ { 2 } = 1 1 , a _ { 3 } = - 8 , a _ { 4 } = 7 , a _ { 5 } = - 4",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.85",
+    "problemText": "P 1.85 Ekvationen 2 z ^ { 4 } + 1 1 z ^ { 3 } + 3 3 z = 1 8 har en rent imaginär rot. Lös ekvationen.\nProblem\nP 1.85 z _ { 1 , 2 } = \\pm i \\sqrt { 3 } , z _ { 3 } = 1 / 2 , z _ { 4 } = - 6",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 4
+  },
+  {
+    "problemNumber": "1.86",
+    "problemText": "P 1.86 Ekvationen z^{4}+12z^{2}+35=2z^{3}+14z har en rot med realdelen 1. Lös ekvationen.\nP 1.86 z _ { 1 , 2 } = 1 \\pm 2 i , z _ { 3 , 4 } = \\pm i \\sqrt { 7 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "1.87",
+    "problemText": "P 1.87 Lös ekvationerna (a) z^{4}-6z^{2}+25=0 \\quad (b) z^{6}+2=2z^{3}.\nP 1.87 (a) z_{1,2,3,4} = \\pm 2 \\pm i \\quad (b) z_k = \\sqrt[k]{2} \\exp i (\\pm \\pi / 12 + 2k\\pi / 3), k = 0,1,2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "1.88",
+    "problemText": "P 1.88 Bestäm alla komplexa tal z sådana att (z + 1 - i)^{6} = (z - 1 + i)^{6}\nP 1.88 z _ { 1 } = 0 , \\thinspace z _ { 2 , 3 } = \\pm ( 1 + i ) \\sqrt { 3 } , \\thinspace z _ { 4 , 5 } = \\pm ( 1 + i ) / \\sqrt { 3 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "1.89",
+    "problemText": "P 1.89 Visa att man kan bestämma konstanten a så att polynomet p ( x ) = x ^ { 4 } + 2 x ^ { 3 } + 3 x ^ { 2 } + a x + 2 är delbart med x ^ { 2 } + 2 x + 2 . Bestäm a och därefter alla nollställen till p .\nP 1.89 a = 2, nollställen ±i, −1 ± i",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "1.90",
+    "problemText": "P 1.90 Ange ett sjättegradspolynom med rationella koefficienter som har ett dubbelt nollställe i punkten z = \\sqrt { 2 } och ett enkelt nollställe i punkten z = i\nP 1.90 z6 − 3z4 + 4 (eller en rationell multipel därav)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "1.91",
+    "problemText": "P 1.91 För vilka reella a har ekvationen ( z + i ) ^ { 4 } = a minst en reell rot? Lös ekvationen för dessa a.\n2 Funktioner\nP 1.91 a = 1, rötter 0, , 1 - i , - 1 - i , - 2 i ; \\quad a = - 4 , \\mathrm { r \\ddot { o } t t e r } \\pm 1 , \\pm 1 - 2 i\nFunktioner",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.1",
+    "problemText": "P 2.1 Antag att f är en funktion med D _ { f } = V _ { f } = 1 R och att f har en invers funktion f ^ { - 1 } . Undersök om funktionen g har en invers funktion g ^ { - 1 } och bestäm den i så fall uttryckt i f ^ { - 1 } om (a) g(x) = f(x) - 2 (b) g(x) = \\frac{1}{1 + f(x)} (c) g ( x ) = f ( x ^ { 2 } ) (d) g ( x ) = f ( x ) ^ { 2 }\nP 2.1 (a) Ja, g^{-1}(x) = f^{-1}(x + 2), x \\in \\mathbb{R} (b) Ja, g^{-1}(x) = f^{-1}\\Big(\\frac{1}{x} - 1\\Big), x \\neq 0 i . R\n(c) Nej, g är inte injektiv, ty g ( - x ) = g ( x )\n(d) Nej, g är inte injektiv, ty g(x1) = g(x2) om f(x1) = −f(x2)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.2",
+    "problemText": "P 2.2 Visa att funktionen f ( x ) = x ^ { 3 } + x har en invers funktion f ^ { - 1 } och bestäm f ^ { - 1 } ( y ) då\n(a) y = 0 (b) y = 2 (c) y = −2 (d) y = 10\nFörsök inte att bestämma f ^ { - 1 } ( y ) för alla y \\in D _ { f ^ { - 1 } } !\nP 2.2 (a) 0 (b) 1 (c) −1 (d) 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.3",
+    "problemText": "P 2.3 Betrakta funktionen f ( x ) = { \\sqrt { 1 - e ^ { x } } } . Bestäm, om möjligt, inversen f ^ { - 1 } samt definitionsoch värdemängd för f och f ^ { - 1 }\nP 2.3 f ^ { - 1 } ( y ) = \\operatorname { l n } ( 1 - y ^ { 2 } ) , \\quad D _ { f } = ] - \\infty , 0 ] = V _ { f ^ { - 1 } } , \\quad D _ { f ^ { - 1 } } = [ 0 , 1 [ = V _ { f }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.4",
+    "problemText": "P 2.4 Bestäm eventuell invers f ^ { - 1 } till den funktion f som ges av\n(a) f(x) = x^{2} , \\quad -3 \\leq x \\leq -1 (b) f ( x ) = x ^ { 2 } , \\quad - 4 \\leq x \\leq - 3 { \\mathrm { ~ e l l e r ~ } } 1 \\leq x \\leq 2\nP 2.4 (a) f ^ { - 1 } ( y ) = - \\sqrt { y } , \\quad 1 \\leq y \\leq 9 (b) f ^ { - 1 } ( y ) = \\left\\{ \\begin{array} { r l } { \\sqrt { y } } & { \\quad \\mathrm { f \\ddot { o } r ~ } 1 \\leq y \\leq 4 } \\\\ { - \\sqrt { y } } & { \\quad \\mathrm { f \\ddot { o } r ~ } 9 \\leq y \\leq 1 6 } \\end{array} \\right.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.5",
+    "problemText": "P 2.5 För vilka reella konstanter a, b och c gäller att funktionen\nf : x \\mapsto { \\frac { x - a } { b x - c } }\när sin egen invers, d.v.s. att f ^ { - 1 } ( x ) = f ( x ) för x \\in D _ { f } ?\nP 2.5 c = 1 , a \\in \\mathbb { R } , b \\in \\mathbb { R } med a b \\neq 1 eller c = -1, a = b = 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.6",
+    "problemText": "P 2.6 Bestäm definitionsmängden samt (om möjligt) inversen till f om f(x) = \\sqrt{\\frac{x + 1}{x + 2}}.\nP 2.6 D _ { f } = ] - \\infty , - 2 [ \\cup [ - 1 , \\infty [ , f ^ { - 1 } ( x ) = \\frac { 1 - 2 x ^ { 2 } } { x ^ { 2 } - 1 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.7",
+    "problemText": "P 2.7 Förenkla följande uttryck till en term: (a) ln 2 + ln 8 (b) 2 ln 3 + ln 2 (c) ln { \\frac { 2 } { 3 } } + \\ln { \\frac { 3 } { 2 } } .\nP 2.7 (a) \\ln 16 = \\ln 2^{4} = 4\\ln 2 (b) ln 18 (c) \\ln 1 = 0",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.8",
+    "problemText": "P 2.8 Ordna talen ln 2 + \\ln 3 + \\ln 4 + \\ln 5 , ln 7 + 2 ln 6 − ln 2, 7 ln 2, 3 ln 5 och 2 ln 11 efter storlek.\nP 2.8 ln 2+\\ln 3+\\ln 4+\\ln 5<2\\ln 11<3\\ln 5<\\ln 7+2\\ln 6-\\ln 2<7\\ln 2\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.9",
+    "problemText": "P 2.9 Förenkla följande uttryck till en term: (a) ln x ^ { 2 } - 3 \\ln x (b) 2 ln 3 + ln 6 − 3 ln 2\nP 2.9 (a) \\ln x ^ { - 1 } = - \\ln x (b) \\ln { \\frac { 2 7 } { 4 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.10",
+    "problemText": "P 2.10 Visa, med hjälp av olikheten ln x > 0 då x > 1 , att funktionen ln är strängt växande, d.v.s. att x _ { 1 } < x _ { 2 } \\Longrightarrow ln x _ { 1 } < ln x2 gäller för x _ { 1 } \\in D _ { \\mathrm { l n } } och x _ { 2 } \\in D _ { \\mathrm { l n } }\nP 2.10 (Se på \\operatorname { l n } x _ { 2 } - \\operatorname { l n } x _ { 1 } )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.11",
+    "problemText": "P 2.11 Rita följande kurvor: (a) y = ln(x − 2) (b) y = \\ln x - \\ln x^{2}\nP 2.11 (a) Hur förskjuts ln-funktionens graf? (b) Förenkla, y = − ln x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.12",
+    "problemText": "P 2.12 Bestäm definitionsmängden för funktionen f då\n(a) f(x)=\\ln(x^{2}-x-2) (b) f(x) = \\sqrt{\\ln x + \\ln(4 - x)}\nFunktioner\nP 2.12 (a) D _ { f } = ] - \\infty , - 1 [ \\cup ] 2 , + \\infty [ , \\quad V _ { f } = \\mathbb { R } (b) D_{f} = \\left[ 2 - \\sqrt{3} , \\; 2 + \\sqrt{3} \\right]",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 5
+  },
+  {
+    "problemNumber": "2.13",
+    "problemText": "P 2.13 (a) Bestäm definitionsmängden till f om f(x) = \\sqrt{\\ln \\left( \\frac{1 - x}{3 - x} \\right)}\n(b) När Linus och Linnea jobbade med (a)-uppgiften försökte de använda omskrivningen \\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } ( 1 - x ) - \\operatorname { l n } ( 3 - x ) } . . Kommentar? Vad hade du sagt om omskriv-\nningen \\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } \\left( \\frac { x - 1 } { x - 3 } \\right) } = \\sqrt { \\operatorname { l n } ( x - 1 ) - \\operatorname { l n } ( x - 3 ) } ?\nP 2.13 (a) D _ { f } = ] 3 , \\infty [\n(b) Omskrivningen \\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } ( 1 - x ) - \\operatorname { l n } ( 3 - x ) } . är felaktig, men omskrivningen\n\\sqrt { \\operatorname { l n } \\left( \\frac { 1 - x } { 3 - x } \\right) } = \\sqrt { \\operatorname { l n } ( x - 1 ) - \\operatorname { l n } ( x - 3 ) } . är korrekt. Varför?",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.14",
+    "problemText": "P 2.14 Endast i undantagsfall gäller att \\ln (x + y) = \\ln x + \\ln y.\n(a) Ge exempel på tal x > 0 och y > 0 sådana att likheten ovan inte gäller.\n(b) För vilka x > 0 finns y > 0 sådant att likheten gäller? Bestäm y för varje sådant x.\nP 2.14 (a) t.ex. x = y = 1 (b) y = \\frac{x}{x - 1} för x > 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.15",
+    "problemText": "P 2.15 Bestäm ln 36 uttryckt med a = \\ln 2 4 och b = \\ln 5 4\nP 2.15 \\frac { a + b } { 2 } \\qquad \\left( \\ln 3 = \\frac { 3 b - a } { 8 } , \\quad \\ln 2 = \\frac { 3 a - b } { 8 } \\right)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.16",
+    "problemText": "P 2.16 Antag att e ^ { x } = { \\sqrt { 2 } } och e ^ { y } = { \\sqrt { 8 } } . Räkna ut (a) ex+y(b) e ^ { 2 x } (c) e ^ { 2 x + 2 y }\nP 2.16 (a) $e ^ { x } e ^ { y } = 4$ (b) e ^ { x } e ^ { x } = 2 (c) 16",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.17",
+    "problemText": "P 2.17 För vilka reella x gäller sambandet e^{2x + 3} = e^{2x} + e^{3} ?\nP 2.17 x = { \\frac { 1 } { 2 } } { \\big ( } 3 - \\ln ( e ^ { 3 } - 1 ) { \\big ) }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
     "problemNumber": "2.18",
     "problemText": "P 2.18 Visa att\n\\frac { e ^ { x } } { e ^ { y } } = e ^ { x - y } , \\quad \\frac { 1 } { e ^ { x } } = e ^ { - x } \\quad \\mathrm { o c h } \\quad \\left( e ^ { x } \\right) ^ { p } = e ^ { p x } , p \\mathrm { h e l t a l } ,\ngäller för alla reella tal x och y, t.ex. genom att se på ln av vänsterledet i varje formel och använda lämplig regel för ln.",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.19 (a) ex(b) e ^ { x + y } (c) 2 2 / 3 (d) \\sqrt{x^{2}-1}, x>1 (e) 2(\\sqrt{x + 1} + \\sqrt{x - 1})",
-    "problemNumber": "2.19",
-    "problemText": "P 2.19 Förenkla följande uttryck:\n(a) \\frac { e ^ { 2 x } e ^ { - y } } { e ^ { x - y } } (b) \\left( \\frac{e^{- 2x}e^{y}}{e^{- x}e^{2y}} \\right)^{- 1} (c) e^{\\ln 4-\\ln 3}+2e^{\\ln 3}\n(d) \\exp(\\ln \\sqrt{x + 1} + \\ln \\sqrt{x - 1}) (e) 2\\ln(e^{\\sqrt{x + 1}}e^{\\sqrt{x - 1}})",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.20 D _ { f } = [ 0 , \\ln 2 [ , f−1(t) = ln(2t2 + 1) − ln(t2 + 1)",
-    "problemNumber": "2.20",
-    "problemText": "P 2.20 Bestäm definitionsmängden för funktionen f och undersök om f har en invers funktion f ^ { - 1 } och bestäm i så fall ett uttryck för den om f(x) = \\sqrt{\\frac{e^{x} - 1}{2 - e^{x}}}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.19",
+    "problemText": "P 2.19 Förenkla följande uttryck:\n(a) \\frac { e ^ { 2 x } e ^ { - y } } { e ^ { x - y } } (b) \\left( \\frac{e^{- 2x}e^{y}}{e^{- x}e^{2y}} \\right)^{- 1} (c) e^{\\ln 4-\\ln 3}+2e^{\\ln 3}\n(d) \\exp(\\ln \\sqrt{x + 1} + \\ln \\sqrt{x - 1}) (e) 2\\ln(e^{\\sqrt{x + 1}}e^{\\sqrt{x - 1}})\nP 2.19 (a) ex(b) e ^ { x + y } (c) 2 2 / 3 (d) \\sqrt{x^{2}-1}, x>1 (e) 2(\\sqrt{x + 1} + \\sqrt{x - 1})",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.20",
+    "problemText": "P 2.20 Bestäm definitionsmängden för funktionen f och undersök om f har en invers funktion f ^ { - 1 } och bestäm i så fall ett uttryck för den om f(x) = \\sqrt{\\frac{e^{x} - 1}{2 - e^{x}}}\nP 2.20 D _ { f } = [ 0 , \\ln 2 [ , f−1(t) = ln(2t2 + 1) − ln(t2 + 1)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
     "problemNumber": "2.21",
     "problemText": "P 2.21 Visa att 2 < e < 4 genom att sätta x = 2 \\; \\mathrm { i } olikheterna \\frac{x - 1}{x} < ln x < x - 1 för x > 0, \\; x \\neq 1 och använda sambandet ln e = 1",
+    "answerText": "",
     "questionImages": [],
+    "answerImages": [],
     "sourceQuestionPageIdx": 6
   },
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "2.22",
     "problemText": "P 2.22 Visa olikheterna\n\\Big ( 1 + \\frac { 1 } { n } \\Big ) ^ { n } < e < \\Big ( 1 + \\frac { 1 } { n } \\Big ) ^ { n + 1 } \\quad \\mathrm { f i o r } n = 1 , 2 , \\ldots .\nLedning: De är ekvivalenta med olikheterna\n\\ln \\Bigl ( 1 + \\frac { 1 } { n } \\Bigr ) ^ { n } < \\ln e < \\ln \\Bigl ( 1 + \\frac { 1 } { n } \\Bigr ) ^ { n + 1 } .\nVisa att dessa i sin tur följer av olikheterna \\frac{x - 1}{x} < \\ln x < x - 1 med x = 1 + 1 / n",
+    "answerText": "",
     "questionImages": [],
+    "answerImages": [],
     "sourceQuestionPageIdx": 6
   },
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "2.23",
     "problemText": "P 2.23 Visa reglerna\n\\frac { x ^ { \\alpha } } { y ^ { \\alpha } } = \\left( \\frac { x } { y } \\right) ^ { \\alpha } , x ^ { \\alpha } x ^ { \\beta } = x ^ { \\alpha + \\beta } , \\frac { x ^ { \\alpha } } { x ^ { \\beta } } = x ^ { \\alpha - \\beta } , \\frac { 1 } { x ^ { \\alpha } } = x ^ { - \\alpha } \\mathrm { o c h } \\left( x ^ { \\alpha } \\right) ^ { \\beta } = x ^ { \\alpha \\beta } = \\left( x ^ { \\beta } \\right) ^ { \\alpha }\nför reella tal α och \\beta (x > 0, y > 0) , t.ex. genom att se på ln av alla leden i varje formel.",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.24 (a) \\frac { \\sqrt { 5 } } { 3 } (b) 4",
-    "problemNumber": "2.24",
-    "problemText": "P 2.24 Förenkla (a) \\sqrt[4]{\\frac{25}{81}} (b) { \\sqrt [ 4 ] { 8 \\cdot 3 2 } } .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.25 (a) x = \\pm { \\frac { 3 } { \\sqrt { 2 } } } (b) x = - \\frac { 3 } { 2 } (c) Ingen reell lösning",
-    "problemNumber": "2.25",
-    "problemText": "P 2.25 Bestäm alla reella lösningar till (a) 4 x ^ { 4 } = 8 1 (b) 8 x ^ { 3 } + 2 7 = 0 (c) x ^ { 6 } + 4 0 2 7 = 0 .\nProblem",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 6
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.26 D_{f} = \\mathbb{R}, f^{-1}(x) = \\ln \\frac{4 - 3x}{x - 1}",
-    "problemNumber": "2.26",
-    "problemText": "P 2.26 Bestäm definitionsmängden samt (om möjligt) inversen till f om f(x) = \\frac{e^{x} + 4}{e^{x} + 3}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.27 (a) D _ { f } = ] - 1 , 5 / 2 [ , f ^ { - 1 } ( y ) = \\frac { 5 e ^ { y } - 1 } { 2 e ^ { y } + 1 } (b) D _ { f } = ] - \\infty , 1 [ , f ^ { - 1 } ( y ) = \\frac { e ^ { y } - 2 } { e ^ { y } - 1 }",
-    "problemNumber": "2.27",
-    "problemText": "P 2.27 Bestäm definitionsmängden samt (om möjligt) inversen till f om (a) f(x)=\\ln(x+1)-\\ln(5-2x) (b) f(x)=\\ln(2-x)-\\ln(1-x)",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.28 (a) f ^ { - 1 } ( x ) = \\ln \\left( { \\frac { 3 } { 2 } } - { \\sqrt { \\frac { 2 1 } { 4 } - x } } \\right) (b) Invers saknas ty g ( 0 ) = g ( \\ln 2 ) = 5 { \\mathrm { ~ ( t . e x . ) } }",
-    "problemNumber": "2.28",
-    "problemText": "P 2.28 Bestäm (om möjligt) inversen till följande funktioner: (a) f ( x ) = 3 - e ^ { 2 x } + 3 e ^ { x } med D _ { f } = ] - \\infty , 0 ] (b) g ( x ) = 3 - e ^ { 2 x } + 3 e ^ { x } med D _ { g } = [ 0 , \\infty [ .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.29 10",
-    "problemNumber": "2.29",
-    "problemText": "P 2.29 Talet 1 6 ^ { 1 / 4 } + 3 ^ { 4 / 3 } + 1 / 2 ^ { - 3 } + 2 ^ { 2 } / 3 ^ { - 1 / 3 } - 3 ^ { 1 / 3 } / 7 ^ { - 1 } är ett heltal. Vilket?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.30 (a) D _ { f } = [ 0 , 2 ] (b) D _ { f } = [ - \\infty , 0 ]",
-    "problemNumber": "2.30",
-    "problemText": "P 2.30 Bestäm definitionsmängd för funktionen f då (a) f(x) = (2x - x^{2})^{0.1} (b) f(x) = \\sqrt[4]{\\ln(1 - x)}.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.31 (a) Ja, f^{-1}(x) = (e^x - 1)^{1/e}, x \\geq 0\n(b) Nej, f är inte injektiv, ty t.ex. är f ( 1 / 4 ) = f ( 3 / 4 )",
-    "problemNumber": "2.31",
-    "problemText": "P 2.31 Undersök om funktionen f har en invers funktion f ^ { - 1 } och bestäm den i så fall om (a) f(x) = \\ln(x^e + 1), x \\geq 0 (b) f(x) = (x - x^2)^{\\pi}, 0 < x < 1",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.32 (a) 2 ^ { 2 x + y } (b) 3 ^ { 2 x }",
-    "problemNumber": "2.32",
-    "problemText": "P 2.32 Förenkla följande utryck: (a) \\frac { 2 ^ { x } 8 ^ { y } } { 2 ^ { - x } 4 ^ { y } } (b) \\left( { \\frac { 3 ^ { 2 x } } { 9 ^ { - x } } } \\right) ^ { 1 / 2 } .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.33 ( y > { } ^ { 2 } { \\log { 1 0 0 0 } } \\Leftrightarrow { 1 0 0 0 } < ? )",
-    "problemNumber": "2.33",
-    "problemText": "P 2.33 Visa att ^ 2 \\log 1 0 0 0 < 1 0",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.34 (a) f ^ { - 1 } ( x ) = \\ln \\bigl ( 2 + { \\sqrt { x + 4 } } \\bigr ) , (b) D _ { f ^ { - 1 } } = V _ { f } = [ - 4 , + \\infty [ , \\quad V _ { f ^ { - 1 } } = D _ { f } = [ \\operatorname { l n } 2 , + \\infty [",
-    "problemNumber": "2.34",
-    "problemText": "P 2.34 (a) Visa att funktionen f(x) = e^{2x} - 4e^{x}, x \\geq \\ln 2 , är injektiv. Bestäm också den inversa funktionen f ^ { - 1 } (b) Bestäm inversens definitions- och värdemängd.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.35 (a) x = { \\frac { \\sqrt { 9 + 4 e } - 3 } { 2 } } (b) x = { \\frac { \\ln 3 + \\ln 2 } { 2 \\ln 3 - 3 \\ln 2 } } = { \\frac { \\ln ( 6 ) } { \\ln ( 9 / 8 ) } }",
-    "problemNumber": "2.35",
-    "problemText": "P 2.35 Lös ekvationerna (a) \\ln x + \\ln(x + 3) = 1 \\qquad (b) 3^{2x - 1} = 2^{3x + 1}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.36 (a) 0 < x < e ^ { - 1 } eller x > 1 (b) x > 0 med x 6= 1",
-    "problemNumber": "2.36",
-    "problemText": "P 2.36 För vilka reella tal x gäller (a) (ln x)2 > − ln x (b) x ^ { x } > x och x > 0 .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.37 x = 1/6\nSvar",
-    "problemNumber": "2.37",
-    "problemText": "P 2.37 Bestäm alla lösningar x > 0 till ekvationen (2x)^{\\ln 2} = (3x)^{\\ln 3}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 15,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.24",
+    "problemText": "P 2.24 Förenkla (a) \\sqrt[4]{\\frac{25}{81}} (b) { \\sqrt [ 4 ] { 8 \\cdot 3 2 } } .\nP 2.24 (a) \\frac { \\sqrt { 5 } } { 3 } (b) 4",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.25",
+    "problemText": "P 2.25 Bestäm alla reella lösningar till (a) 4 x ^ { 4 } = 8 1 (b) 8 x ^ { 3 } + 2 7 = 0 (c) x ^ { 6 } + 4 0 2 7 = 0 .\nProblem\nP 2.25 (a) x = \\pm { \\frac { 3 } { \\sqrt { 2 } } } (b) x = - \\frac { 3 } { 2 } (c) Ingen reell lösning",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 6
+  },
+  {
+    "problemNumber": "2.26",
+    "problemText": "P 2.26 Bestäm definitionsmängden samt (om möjligt) inversen till f om f(x) = \\frac{e^{x} + 4}{e^{x} + 3}.\nP 2.26 D_{f} = \\mathbb{R}, f^{-1}(x) = \\ln \\frac{4 - 3x}{x - 1}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.27",
+    "problemText": "P 2.27 Bestäm definitionsmängden samt (om möjligt) inversen till f om (a) f(x)=\\ln(x+1)-\\ln(5-2x) (b) f(x)=\\ln(2-x)-\\ln(1-x)\nP 2.27 (a) D _ { f } = ] - 1 , 5 / 2 [ , f ^ { - 1 } ( y ) = \\frac { 5 e ^ { y } - 1 } { 2 e ^ { y } + 1 } (b) D _ { f } = ] - \\infty , 1 [ , f ^ { - 1 } ( y ) = \\frac { e ^ { y } - 2 } { e ^ { y } - 1 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.28",
+    "problemText": "P 2.28 Bestäm (om möjligt) inversen till följande funktioner: (a) f ( x ) = 3 - e ^ { 2 x } + 3 e ^ { x } med D _ { f } = ] - \\infty , 0 ] (b) g ( x ) = 3 - e ^ { 2 x } + 3 e ^ { x } med D _ { g } = [ 0 , \\infty [ .\nP 2.28 (a) f ^ { - 1 } ( x ) = \\ln \\left( { \\frac { 3 } { 2 } } - { \\sqrt { \\frac { 2 1 } { 4 } - x } } \\right) (b) Invers saknas ty g ( 0 ) = g ( \\ln 2 ) = 5 { \\mathrm { ~ ( t . e x . ) } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.29",
+    "problemText": "P 2.29 Talet 1 6 ^ { 1 / 4 } + 3 ^ { 4 / 3 } + 1 / 2 ^ { - 3 } + 2 ^ { 2 } / 3 ^ { - 1 / 3 } - 3 ^ { 1 / 3 } / 7 ^ { - 1 } är ett heltal. Vilket?\nP 2.29 10",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.30",
+    "problemText": "P 2.30 Bestäm definitionsmängd för funktionen f då (a) f(x) = (2x - x^{2})^{0.1} (b) f(x) = \\sqrt[4]{\\ln(1 - x)}.\nP 2.30 (a) D _ { f } = [ 0 , 2 ] (b) D _ { f } = [ - \\infty , 0 ]",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.31",
+    "problemText": "P 2.31 Undersök om funktionen f har en invers funktion f ^ { - 1 } och bestäm den i så fall om (a) f(x) = \\ln(x^e + 1), x \\geq 0 (b) f(x) = (x - x^2)^{\\pi}, 0 < x < 1\nP 2.31 (a) Ja, f^{-1}(x) = (e^x - 1)^{1/e}, x \\geq 0\n(b) Nej, f är inte injektiv, ty t.ex. är f ( 1 / 4 ) = f ( 3 / 4 )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.32",
+    "problemText": "P 2.32 Förenkla följande utryck: (a) \\frac { 2 ^ { x } 8 ^ { y } } { 2 ^ { - x } 4 ^ { y } } (b) \\left( { \\frac { 3 ^ { 2 x } } { 9 ^ { - x } } } \\right) ^ { 1 / 2 } .\nP 2.32 (a) 2 ^ { 2 x + y } (b) 3 ^ { 2 x }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.33",
+    "problemText": "P 2.33 Visa att ^ 2 \\log 1 0 0 0 < 1 0\nP 2.33 ( y > { } ^ { 2 } { \\log { 1 0 0 0 } } \\Leftrightarrow { 1 0 0 0 } < ? )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.34",
+    "problemText": "P 2.34 (a) Visa att funktionen f(x) = e^{2x} - 4e^{x}, x \\geq \\ln 2 , är injektiv. Bestäm också den inversa funktionen f ^ { - 1 } (b) Bestäm inversens definitions- och värdemängd.\nP 2.34 (a) f ^ { - 1 } ( x ) = \\ln \\bigl ( 2 + { \\sqrt { x + 4 } } \\bigr ) , (b) D _ { f ^ { - 1 } } = V _ { f } = [ - 4 , + \\infty [ , \\quad V _ { f ^ { - 1 } } = D _ { f } = [ \\operatorname { l n } 2 , + \\infty [",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.35",
+    "problemText": "P 2.35 Lös ekvationerna (a) \\ln x + \\ln(x + 3) = 1 \\qquad (b) 3^{2x - 1} = 2^{3x + 1}\nP 2.35 (a) x = { \\frac { \\sqrt { 9 + 4 e } - 3 } { 2 } } (b) x = { \\frac { \\ln 3 + \\ln 2 } { 2 \\ln 3 - 3 \\ln 2 } } = { \\frac { \\ln ( 6 ) } { \\ln ( 9 / 8 ) } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.36",
+    "problemText": "P 2.36 För vilka reella tal x gäller (a) (ln x)2 > − ln x (b) x ^ { x } > x och x > 0 .\nP 2.36 (a) 0 < x < e ^ { - 1 } eller x > 1 (b) x > 0 med x 6= 1",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.37",
+    "problemText": "P 2.37 Bestäm alla lösningar x > 0 till ekvationen (2x)^{\\ln 2} = (3x)^{\\ln 3}\nP 2.37 x = 1/6\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
     "problemNumber": "2.38",
     "problemText": "P 2.38 Skissa grafer, dels till en funktion f med D _ { f } = \\mathbb { R } som är, dels till en funktion g med D _ { g } = \\mathbb { R } som inte är (a) injektiv (b) växande (c) strängt växande (d) avtagande (e) strängt avtagande (f) monoton (g) strängt monoton (h) uppåt begränsad (i) nedåt begränsad (j) begränsad (k) jämn (l) udda.",
+    "answerText": "",
     "questionImages": [],
+    "answerImages": [],
     "sourceQuestionPageIdx": 7
   },
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "2.39",
     "problemText": "P 2.39 Skissa grafen till en funktion f som är definierad för alla reella tal och som är (a) ej jämn, ej udda (b) strängt växande, begränsad (c) strängt avtagande, uppåt begränsad, ej nedåt begränsad.",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.40 (a) \\exp \\left( { \\frac { 3 } { 1 + x ^ { 2 } } } \\right) (b) x ^ { 3 } (c) \\frac { 1 } { 1 + e ^ { 6 x } } (d) \\frac{1}{1 + \\ln^{2}x} (e) 3x (f) - \\ln ( 1 + x ^ { 2 } ) (g) \\exp \\left( { \\frac { 3 } { 1 + \\ln ^ { 2 } x } } \\right) (h) \\frac{1}{(1 + x^2)^3} (i) \\frac { 1 } { 1 + x ^ { 6 } } (j) \\frac{1}{1 + 9x^{2}} (k) \\frac { 3 } { 1 + x ^ { 2 } } (l) - \\ln ( 1 + e ^ { 6 x } )",
-    "problemNumber": "2.40",
-    "problemText": "P 2.40 Låt f(x) = e^{3x}, g(x) = \\frac{1}{1 + x^2} och h ( x ) = \\ln x . Uttryck i så enkel form som möjligt (a) f(g(x)) (b) f ( h ( x ) ) (c) g ( f ( x ) ) (d) g ( h ( x ) ) (e) h ( f ( x ) ) (f) (j) h ( g ( x ) ) (g) f ( g ( h ( x ) ) ) (h) (l) f ( h ( g ( x ) ) ) (i) g ( f ( h ( x ) ) ) g ( h ( f ( x ) ) ) (k) h ( f ( g ( x ) ) ) h ( g ( f ( x ) ) )",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.41 (a) T.ex. f(x) = exoch g ( x ) = - x ^ { 2 } (b) T.ex. f(x) = ln(1 + x), g(x) = x2och h(x) = cos x",
-    "problemNumber": "2.41",
-    "problemText": "P 2.41 (a) Finn funktioner f(x) och g(x) sådana att e ^ { - x ^ { 2 } } = f ( g ( x ) ) (b) Finn funktioner f(x), g(x) och h(x) sådana att \\ln ( 1 + \\cos ^ { 2 } x ) = f ( g ( h ( x ) ) )",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.42 (a) Ja (b) Nej, motexempel f ( x ) = g ( x ) = x (c) Ja (d) Ja, nej respektive nej",
-    "problemNumber": "2.42",
-    "problemText": "P 2.42 Antag att f och g båda är strängt växande funktioner och definierade överallt. Ar ¨ (a) f + g (b) fg (c) f ◦ g nödvändigtvis strängt växande? Ange motexempel i annat fall. (d) Lös (a)–(c) men med ”växande” utbytt mot ”avtagande”.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.43 (a) -\\frac{\\sqrt{3}}{2} \\quad resp \\quad \\frac{1}{2} (b) - { \\frac { 1 } { 2 } } \\quad \\mathrm { r e s p } \\quad - { \\frac { \\sqrt { 3 } } { 2 } } (c) \\frac{1}{2} \\quad resp \\quad -\\frac{\\sqrt{3}}{2} (d) 0 resp −1 (e) -\\frac{1}{\\sqrt{2}} \\quad resp \\quad -\\frac{1}{\\sqrt{2}} (f) - { \\frac { \\sqrt { 3 } } { 2 } } \\quad { \\mathrm { r e s p ~ } } { - { \\frac { 1 } { 2 } } }",
-    "problemNumber": "2.43",
-    "problemText": "P 2.43 Rita en enhetscirkel i ett koordinatsystem på ett rutat papper (t.ex. med enheten 10 rutor) och markera de punkter på cirkeln som svarar mot vinklarna \\pi / 6 , \\; \\pi / 4 och \\pi / 3 . Använd sedan definitionen via enhetscirkeln för att blixtsnabbt ange cos v och sin v då v är (a) \\frac{5\\pi}{6} (b) \\frac{4\\pi}{3} (c) -\\frac{\\pi}{3} (d) -\\frac{\\pi}{2} (e) -\\frac{3\\pi}{4} (f) -\\frac{5\\pi}{6}\nFunktioner",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 7
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.44 (a) \\frac { 1 } { \\sqrt { 2 } } (b) -\\frac{1}{2} (c) \\frac { \\sqrt { 3 } } { 2 } (d) - { \\frac { \\sqrt { 3 } } { 2 } }",
-    "problemNumber": "2.44",
-    "problemText": "P 2.44 Ange snabbt (med hjälp av enhetscirkeln) (a) \\cos { \\frac { 2 5 \\pi } { 4 } } (b) \\cos { \\frac { 1 0 0 \\pi } { 3 } } (c) \\cos \\Bigl ( - { \\frac { 2 3 \\pi } { 6 } } \\Bigr ) (d) \\sin \\left( - { \\frac { 2 5 \\pi } { 3 } } \\right)",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.45 (−1)n",
-    "problemNumber": "2.45",
-    "problemText": "P 2.45 Förenkla cos nπ där n \\in \\mathbb { Z } . P 2.46 Bestäm alla lösningar v till (a) sin v = { \\frac { 1 } { 2 } } (b) \\cos v = \\sin v (c) \\sin v = \\sin ( \\pi - v )",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.47 (a) v = - \\frac { \\pi } { 4 } + 2 \\pi n (b) v = \\frac{2\\pi}{3} + 2\\pi n.",
-    "problemNumber": "2.47",
-    "problemText": "P 2.47 Bestäm alla reella tal v sådana att (a) \\cos v = { \\frac { \\sqrt { 2 } } { 2 } } och sin v = - { \\frac { \\sqrt { 2 } } { 2 } } (b) 2\\cos v = -1 och 2 \\sin v = { \\sqrt { 3 } }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.48 (a) -\\frac{2\\sqrt{3}+\\sqrt{5}}{6} (b) -\\frac{2\\sqrt{3}-\\sqrt{5}}{6}",
-    "problemNumber": "2.48",
-    "problemText": "P 2.48 Räkna ut \\cos \\Bigl ( v + { \\frac { \\pi } { 6 } } \\Bigr ) då \\cos v = - { \\frac { 2 } { 3 } } { \\mathrm { ~ o c h } } (a) 0 < v < \\pi (b) \\pi < v < 2 \\pi",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.40",
+    "problemText": "P 2.40 Låt f(x) = e^{3x}, g(x) = \\frac{1}{1 + x^2} och h ( x ) = \\ln x . Uttryck i så enkel form som möjligt (a) f(g(x)) (b) f ( h ( x ) ) (c) g ( f ( x ) ) (d) g ( h ( x ) ) (e) h ( f ( x ) ) (f) (j) h ( g ( x ) ) (g) f ( g ( h ( x ) ) ) (h) (l) f ( h ( g ( x ) ) ) (i) g ( f ( h ( x ) ) ) g ( h ( f ( x ) ) ) (k) h ( f ( g ( x ) ) ) h ( g ( f ( x ) ) )\nP 2.40 (a) \\exp \\left( { \\frac { 3 } { 1 + x ^ { 2 } } } \\right) (b) x ^ { 3 } (c) \\frac { 1 } { 1 + e ^ { 6 x } } (d) \\frac{1}{1 + \\ln^{2}x} (e) 3x (f) - \\ln ( 1 + x ^ { 2 } ) (g) \\exp \\left( { \\frac { 3 } { 1 + \\ln ^ { 2 } x } } \\right) (h) \\frac{1}{(1 + x^2)^3} (i) \\frac { 1 } { 1 + x ^ { 6 } } (j) \\frac{1}{1 + 9x^{2}} (k) \\frac { 3 } { 1 + x ^ { 2 } } (l) - \\ln ( 1 + e ^ { 6 x } )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.41",
+    "problemText": "P 2.41 (a) Finn funktioner f(x) och g(x) sådana att e ^ { - x ^ { 2 } } = f ( g ( x ) ) (b) Finn funktioner f(x), g(x) och h(x) sådana att \\ln ( 1 + \\cos ^ { 2 } x ) = f ( g ( h ( x ) ) )\nP 2.41 (a) T.ex. f(x) = exoch g ( x ) = - x ^ { 2 } (b) T.ex. f(x) = ln(1 + x), g(x) = x2och h(x) = cos x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.42",
+    "problemText": "P 2.42 Antag att f och g båda är strängt växande funktioner och definierade överallt. Ar ¨ (a) f + g (b) fg (c) f ◦ g nödvändigtvis strängt växande? Ange motexempel i annat fall. (d) Lös (a)–(c) men med ”växande” utbytt mot ”avtagande”.\nP 2.42 (a) Ja (b) Nej, motexempel f ( x ) = g ( x ) = x (c) Ja (d) Ja, nej respektive nej",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.43",
+    "problemText": "P 2.43 Rita en enhetscirkel i ett koordinatsystem på ett rutat papper (t.ex. med enheten 10 rutor) och markera de punkter på cirkeln som svarar mot vinklarna \\pi / 6 , \\; \\pi / 4 och \\pi / 3 . Använd sedan definitionen via enhetscirkeln för att blixtsnabbt ange cos v och sin v då v är (a) \\frac{5\\pi}{6} (b) \\frac{4\\pi}{3} (c) -\\frac{\\pi}{3} (d) -\\frac{\\pi}{2} (e) -\\frac{3\\pi}{4} (f) -\\frac{5\\pi}{6}\nFunktioner\nP 2.43 (a) -\\frac{\\sqrt{3}}{2} \\quad resp \\quad \\frac{1}{2} (b) - { \\frac { 1 } { 2 } } \\quad \\mathrm { r e s p } \\quad - { \\frac { \\sqrt { 3 } } { 2 } } (c) \\frac{1}{2} \\quad resp \\quad -\\frac{\\sqrt{3}}{2} (d) 0 resp −1 (e) -\\frac{1}{\\sqrt{2}} \\quad resp \\quad -\\frac{1}{\\sqrt{2}} (f) - { \\frac { \\sqrt { 3 } } { 2 } } \\quad { \\mathrm { r e s p ~ } } { - { \\frac { 1 } { 2 } } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 7
+  },
+  {
+    "problemNumber": "2.44",
+    "problemText": "P 2.44 Ange snabbt (med hjälp av enhetscirkeln) (a) \\cos { \\frac { 2 5 \\pi } { 4 } } (b) \\cos { \\frac { 1 0 0 \\pi } { 3 } } (c) \\cos \\Bigl ( - { \\frac { 2 3 \\pi } { 6 } } \\Bigr ) (d) \\sin \\left( - { \\frac { 2 5 \\pi } { 3 } } \\right)\nP 2.44 (a) \\frac { 1 } { \\sqrt { 2 } } (b) -\\frac{1}{2} (c) \\frac { \\sqrt { 3 } } { 2 } (d) - { \\frac { \\sqrt { 3 } } { 2 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.45",
+    "problemText": "P 2.45 Förenkla cos nπ där n \\in \\mathbb { Z } . P 2.46 Bestäm alla lösningar v till (a) sin v = { \\frac { 1 } { 2 } } (b) \\cos v = \\sin v (c) \\sin v = \\sin ( \\pi - v )\nP 2.45 (−1)n",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.46",
+    "problemText": "P 2.46 (a) v = { \\frac { \\pi } { 6 } } + 2 \\pi n v = { \\frac { 5 \\pi } { 6 } } + 2 \\pi n (b) v = { \\frac { \\pi } { 4 } } + \\pi n (c) v \\in \\mathbb { R }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 16
+  },
+  {
+    "problemNumber": "2.47",
+    "problemText": "P 2.47 Bestäm alla reella tal v sådana att (a) \\cos v = { \\frac { \\sqrt { 2 } } { 2 } } och sin v = - { \\frac { \\sqrt { 2 } } { 2 } } (b) 2\\cos v = -1 och 2 \\sin v = { \\sqrt { 3 } }\nP 2.47 (a) v = - \\frac { \\pi } { 4 } + 2 \\pi n (b) v = \\frac{2\\pi}{3} + 2\\pi n.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.48",
+    "problemText": "P 2.48 Räkna ut \\cos \\Bigl ( v + { \\frac { \\pi } { 6 } } \\Bigr ) då \\cos v = - { \\frac { 2 } { 3 } } { \\mathrm { ~ o c h } } (a) 0 < v < \\pi (b) \\pi < v < 2 \\pi\nP 2.48 (a) -\\frac{2\\sqrt{3}+\\sqrt{5}}{6} (b) -\\frac{2\\sqrt{3}-\\sqrt{5}}{6}",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
     "problemNumber": "2.49",
     "problemText": "P 2.49 Antag att u, v och w är vinklar i en triangel. Visa att sin \\left( \\frac{u}{2} + \\frac{v}{2} \\right) = \\cos \\frac{w}{2}",
-    "questionImages": [],
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.50 (a) \\tan 0 = \\cot { \\frac { \\pi } { 2 } } = 0 \\tan { \\frac { \\pi } { 4 } } = \\cot { \\frac { \\pi } { 4 } } = 1\n(b) \\tan { \\frac { \\pi } { 6 } } = \\cot { \\frac { \\pi } { 3 } } = { \\frac { 1 } { \\sqrt { 3 } } } , \\quad \\tan { \\frac { \\pi } { 3 } } = \\cot { \\frac { \\pi } { 6 } } = { \\sqrt { 3 } } .",
-    "problemNumber": "2.50",
-    "problemText": "P 2.50 Räkna ut (a) tan 0, tan \\frac{\\pi}{4}, cot \\frac{\\pi}{4} och cot \\frac{\\pi}{2} (b) \\tan { \\frac { \\pi } { 6 } } , cot \\frac{\\pi}{6}, tan \\frac{\\pi}{3} och \\cot { \\frac { \\pi } { 3 } } .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.51 (a) - { \\frac { 1 } { \\sqrt { 3 } } } { \\mathrm { ~ r e s p ~ } } { - \\sqrt { 3 } } (b) \\mathrm { B \\mathring { a } d a } \\mathrm { ~ - 1 ~ } (c) Odefinierat resp 0 (d) { \\frac { 1 } { \\sqrt { 3 } } } { \\mathrm { ~ r e s p ~ } } { \\sqrt { 3 } }",
-    "problemNumber": "2.51",
-    "problemText": "P 2.51 Ange tan v och cot v då v är (a) \\frac{5\\pi}{6} (b) -\\frac{\\pi}{4} (c) -\\frac{\\pi}{2} (d) -\\frac{5\\pi}{6}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.52 u = v + πn (n heltal) (både (a) och (b))",
-    "problemNumber": "2.52",
-    "problemText": "P 2.52 Vilka samband gäller mellan vinklarna u och v om (a) tan u = tan v (b) cot u = \\cot v ?",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.53 (a) v = { \\frac { \\pi } { 6 } } + \\pi n (b) v = - \\frac { \\pi } { 4 } + \\pi n (c) v = - { \\frac { \\pi } { 6 } } + \\pi n (d) v = { \\frac { \\pi } { 4 } } + \\pi n (n heltal)",
-    "problemNumber": "2.53",
-    "problemText": "P 2.53 Bestäm alla lösningar v till följande ekvationer: (a) \\tan v = { \\frac { 1 } { \\sqrt { 3 } } } (b) \\cot v = - 1 (c) \\cos v = - \\sqrt{3} \\sin v (d) \\tan v + \\cot v = 2 .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.54 −18",
-    "problemNumber": "2.54",
-    "problemText": "P 2.54 Räkna ut \\tan ( u + v ) då tan u = 3 / 4 och cot v = 2 / 3",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.55 Diskutera dina figurer med läraren",
-    "problemNumber": "2.55",
-    "problemText": "P 2.55 Rita följande kurvor i samma koordinatsystem: (a) y = \\cos x , \\quad y = 2 \\cos x , \\quad y = \\cos 2 x , \\quad y = \\cos ( x / 2 ) , (b) y = \\sin x , \\quad y = 2 \\sin x , \\quad y = \\sin 2 x , \\quad y = \\sin ( x / 2 ) .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.56 \\sqrt { 1 3 }",
-    "problemNumber": "2.56",
-    "problemText": "P 2.56 Bestäm avståndet mellan punkterna P _ { 1 } och P _ { 2 } då de ges genom polära koordinater r _ { 1 } = 1 och \\phi _ { 1 } = \\pi / 3 resp r _ { 2 } = 3 och φ = −π.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.57 u + v = { \\frac { 3 \\pi } { 4 } }",
-    "problemNumber": "2.57",
-    "problemText": "P 2.57 Bestäm u + v då tan u = 2, tan v = 3 , 0 < u < \\pi / 2 och 0 < v < \\pi / 2",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.58 x = { \\frac { \\pi } { 3 } } + 2 \\pi n x = \\pi + 2 \\pi n",
-    "problemNumber": "2.58",
-    "problemText": "P 2.58 Lös ekvationen √3 sin x − cos x = 1.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.59 (b) \\sin x = \\frac{2t}{1 + t^{2}}, \\tan x = \\frac{2t}{1 - t^{2}}, -\\pi < x < \\pi",
-    "problemNumber": "2.59",
-    "problemText": "P 2.59 Låt t = \\tan \\frac{x}{2}, -\\pi < x < \\pi.\n(a) Visa att cos x = \\frac{1 - t^{2}}{1 + t^{2}}, -\\pi < x < \\pi.\n(b) Härled liknande formler för sin x och tan x.\nAnmärkning: Dessa formler är användbara vid beräkning av primitiva funktioner till vissa trigonometriska uttryck.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.60 u + v = \\frac { \\pi } { 4 } + \\pi n (n \\mathrm { h e l t a l ) }",
-    "problemNumber": "2.60",
-    "problemText": "P 2.60 Antag att tan u = 1 / 7 och tan v = 3 / 4 . . Vilka värden kan u + v \\mathrm { h a ? }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.61 Alla vinklar är \\frac{\\pi}{3} (liksidig triangel)",
-    "problemNumber": "2.61",
-    "problemText": "P 2.61 Bestäm vinklarna i en likbent triangel där tangens för vinkeln vid spetsen är 2 gånger sinus för en av de två lika vinklarna vid basen.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.62 1\nSvar",
-    "problemNumber": "2.62",
-    "problemText": "P 2.62 Vad är beloppet av e ^ { i \\phi } om \\phi är reellt?\n\\left\\{ \\begin{array} { l } z _ { 1 } = 1 , \\\\ z _ { 4 } = - 1 + i \\end{array} \\right. z _ { 2 } = - 1 3 , z3 = i, P 2.63 Skriv följande tal i polär form: z _ { 5 } = i \\sqrt { 3 } - 1 z _ { 6 } = - 3 e ^ { - i \\pi / 5 }\nProblem",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 16,
-    "sourceQuestionPageIdx": 8
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.64 (a) T.ex. $4 e ^ { i \\frac { 2 \\pi } { 3 } }$ . (b) r ^ { 5 } e ^ { i 5 v } = 4 e ^ { i \\frac { 2 \\pi } { 3 } } . (c) r ^ { 5 } = 4 { \\mathrm { ~ o c h ~ } } 5 v = { \\frac { 2 \\pi } { 3 } } + n \\cdot 2 \\pi , n \\in \\mathbb { Z } .\n(d) r = 22/5och v =2π+ n ·2π, n ∈ Z. (e) z = i + 22/5ei(2π15 +n·2π5 ), n = 0, 1, 2, 3, 4 (t.ex.) 15 5",
-    "problemNumber": "2.64",
-    "problemText": "P 2.64 I denna uppgift ska vi lösa den binomiska ekvationen ( z - i ) ^ { 5 } = 2 { \\sqrt { 3 } } i - 2\n(a) Skriv högerledet på polär form.\n(b) Sätt z - i = r e ^ { i v } där r \\geq 0 och v \\in \\mathbb { R } . Hur ser ekvationen ut efter detta?\n(c) Se på absolutbelopp och argument av båda leden. Vilket ekvationssystem för r och v ger detta?\n(d) Lös detta ekvationssystem.\n(e) Lös ekvationen ( z - i ) ^ { 5 } = 2 { \\sqrt { 3 } } i - 2 .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 17,
-    "sourceQuestionPageIdx": 9
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.65 (a) z _ { 1 } = \\sqrt [ 3 ] { 2 } e ^ { i 2 \\pi / 9 } , z _ { 2 } = \\sqrt [ 3 ] { 2 } e ^ { i 8 \\pi / 9 } , z _ { 3 } = \\sqrt [ 3 ] { 2 } e ^ { i 1 4 \\pi / 9 }\n(b) z _ { k } = \\sqrt [ 6 ] { 2 } \\exp i ( \\pi / 3 6 + 2 k \\pi / 3 ) , k = 0 , 1 , 2",
-    "problemNumber": "2.65",
-    "problemText": "P 2.65 Lös ekvationerna \\begin{aligned} (a) z^{3} &= i\\sqrt{3} - 1 \\quad \\text { (b) } z^{3} = \\frac{1 + i\\sqrt{3}}{1 + i}.\\end{aligned}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 17,
-    "sourceQuestionPageIdx": 9
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.66 x = \\pm \\frac{2\\pi}{3} + 2\\pi n, n heltal. \\left( e ^ { i x } = - { \\frac { 1 } { 2 } } \\pm i { \\frac { \\sqrt { 3 } } { 2 } } \\right)\nLedning för första delen: Studera real- och imaginärdel till den komplexa ekvationen.",
-    "problemNumber": "2.66",
-    "problemText": "P 2.66 Visa att systemet av ekvationer\n1 + \\cos x + \\cos 2 x = 0 \\qquad { \\mathrm { o c h } } \\qquad \\sin x + \\sin 2 x = 0\när ekvivalent med den enda ekvationen 1 + e ^ { i x } + e ^ { 2 i x } = 0 . Lös sedan systemet genom att i stället lösa denna ekvation.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 17,
-    "sourceQuestionPageIdx": 9
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.67 \\operatorname { R e } w = e ^ { 2 x } sin x, Im w = e ^ { 2 x } cos x",
-    "problemNumber": "2.67",
-    "problemText": "P 2.67 Räkna ut Re w och Im w (som funktioner av x \\in \\mathbb { R } ) då w = i e ^ { 2 x - i x }",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 17,
-    "sourceQuestionPageIdx": 9
-  },
-  {
-    "answerImages": [],
-    "answerText": "P 2.68 A = C _ { 1 } + C _ { 2 } , \\quad B = i ( C _ { 1 } - C _ { 2 } )",
-    "problemNumber": "2.68",
-    "problemText": "P 2.68 Antag att C _ { 1 } och C _ { 2 } är komplexa konstanter och att a och b är reella konstanter. Bestäm komplexa konstanter A och B sådana att\nC _ { 1 } \\mathop { { e } ^ { { ( a + i b ) x } } } + C _ { 2 } \\mathop { { e } ^ { { ( a - i b ) x } } } = \\mathop { { e } ^ { { a x } } } \\left( A \\operatorname { c o s } b x + B \\operatorname { s i n } b x \\right) \\quad \\tilde { \\operatorname { f o r } } x \\in \\mathbb { R } .",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 17,
-    "sourceQuestionPageIdx": 9
-  },
-  {
-    "answerImages": [],
     "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.50",
+    "problemText": "P 2.50 Räkna ut (a) tan 0, tan \\frac{\\pi}{4}, cot \\frac{\\pi}{4} och cot \\frac{\\pi}{2} (b) \\tan { \\frac { \\pi } { 6 } } , cot \\frac{\\pi}{6}, tan \\frac{\\pi}{3} och \\cot { \\frac { \\pi } { 3 } } .\nP 2.50 (a) \\tan 0 = \\cot { \\frac { \\pi } { 2 } } = 0 \\tan { \\frac { \\pi } { 4 } } = \\cot { \\frac { \\pi } { 4 } } = 1\n(b) \\tan { \\frac { \\pi } { 6 } } = \\cot { \\frac { \\pi } { 3 } } = { \\frac { 1 } { \\sqrt { 3 } } } , \\quad \\tan { \\frac { \\pi } { 3 } } = \\cot { \\frac { \\pi } { 6 } } = { \\sqrt { 3 } } .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.51",
+    "problemText": "P 2.51 Ange tan v och cot v då v är (a) \\frac{5\\pi}{6} (b) -\\frac{\\pi}{4} (c) -\\frac{\\pi}{2} (d) -\\frac{5\\pi}{6}\nP 2.51 (a) - { \\frac { 1 } { \\sqrt { 3 } } } { \\mathrm { ~ r e s p ~ } } { - \\sqrt { 3 } } (b) \\mathrm { B \\mathring { a } d a } \\mathrm { ~ - 1 ~ } (c) Odefinierat resp 0 (d) { \\frac { 1 } { \\sqrt { 3 } } } { \\mathrm { ~ r e s p ~ } } { \\sqrt { 3 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.52",
+    "problemText": "P 2.52 Vilka samband gäller mellan vinklarna u och v om (a) tan u = tan v (b) cot u = \\cot v ?\nP 2.52 u = v + πn (n heltal) (både (a) och (b))",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.53",
+    "problemText": "P 2.53 Bestäm alla lösningar v till följande ekvationer: (a) \\tan v = { \\frac { 1 } { \\sqrt { 3 } } } (b) \\cot v = - 1 (c) \\cos v = - \\sqrt{3} \\sin v (d) \\tan v + \\cot v = 2 .\nP 2.53 (a) v = { \\frac { \\pi } { 6 } } + \\pi n (b) v = - \\frac { \\pi } { 4 } + \\pi n (c) v = - { \\frac { \\pi } { 6 } } + \\pi n (d) v = { \\frac { \\pi } { 4 } } + \\pi n (n heltal)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.54",
+    "problemText": "P 2.54 Räkna ut \\tan ( u + v ) då tan u = 3 / 4 och cot v = 2 / 3\nP 2.54 −18",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.55",
+    "problemText": "P 2.55 Rita följande kurvor i samma koordinatsystem: (a) y = \\cos x , \\quad y = 2 \\cos x , \\quad y = \\cos 2 x , \\quad y = \\cos ( x / 2 ) , (b) y = \\sin x , \\quad y = 2 \\sin x , \\quad y = \\sin 2 x , \\quad y = \\sin ( x / 2 ) .\nP 2.55 Diskutera dina figurer med läraren",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.56",
+    "problemText": "P 2.56 Bestäm avståndet mellan punkterna P _ { 1 } och P _ { 2 } då de ges genom polära koordinater r _ { 1 } = 1 och \\phi _ { 1 } = \\pi / 3 resp r _ { 2 } = 3 och φ = −π.\nP 2.56 \\sqrt { 1 3 }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.57",
+    "problemText": "P 2.57 Bestäm u + v då tan u = 2, tan v = 3 , 0 < u < \\pi / 2 och 0 < v < \\pi / 2\nP 2.57 u + v = { \\frac { 3 \\pi } { 4 } }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.58",
+    "problemText": "P 2.58 Lös ekvationen √3 sin x − cos x = 1.\nP 2.58 x = { \\frac { \\pi } { 3 } } + 2 \\pi n x = \\pi + 2 \\pi n",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.59",
+    "problemText": "P 2.59 Låt t = \\tan \\frac{x}{2}, -\\pi < x < \\pi.\n(a) Visa att cos x = \\frac{1 - t^{2}}{1 + t^{2}}, -\\pi < x < \\pi.\n(b) Härled liknande formler för sin x och tan x.\nAnmärkning: Dessa formler är användbara vid beräkning av primitiva funktioner till vissa trigonometriska uttryck.\nP 2.59 (b) \\sin x = \\frac{2t}{1 + t^{2}}, \\tan x = \\frac{2t}{1 - t^{2}}, -\\pi < x < \\pi",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.60",
+    "problemText": "P 2.60 Antag att tan u = 1 / 7 och tan v = 3 / 4 . . Vilka värden kan u + v \\mathrm { h a ? }\nP 2.60 u + v = \\frac { \\pi } { 4 } + \\pi n (n \\mathrm { h e l t a l ) }",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.61",
+    "problemText": "P 2.61 Bestäm vinklarna i en likbent triangel där tangens för vinkeln vid spetsen är 2 gånger sinus för en av de två lika vinklarna vid basen.\nP 2.61 Alla vinklar är \\frac{\\pi}{3} (liksidig triangel)",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.62",
+    "problemText": "P 2.62 Vad är beloppet av e ^ { i \\phi } om \\phi är reellt?\n\\left\\{ \\begin{array} { l } z _ { 1 } = 1 , \\\\ z _ { 4 } = - 1 + i \\end{array} \\right. z _ { 2 } = - 1 3 , z3 = i, P 2.63 Skriv följande tal i polär form: z _ { 5 } = i \\sqrt { 3 } - 1 z _ { 6 } = - 3 e ^ { - i \\pi / 5 }\nProblem\nP 2.62 1\nSvar",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 8
+  },
+  {
+    "problemNumber": "2.63",
+    "problemText": "P 2.63 T.ex. z _ { 1 } = 1 e ^ { i 0 } , \\quad z _ { 2 } = 1 3 e ^ { i \\pi } , \\quad z _ { 3 } = 1 e ^ { i \\pi / 2 } , \\quad z _ { 4 } = \\sqrt { 2 } e ^ { i 3 \\pi / 4 } , \\quad z _ { 5 } = 2 e ^ { i 2 \\pi / 3 } , \\quad z _ { 6 } = 3 e ^ { i 4 \\pi / 5 } .",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 17
+  },
+  {
+    "problemNumber": "2.64",
+    "problemText": "P 2.64 I denna uppgift ska vi lösa den binomiska ekvationen ( z - i ) ^ { 5 } = 2 { \\sqrt { 3 } } i - 2\n(a) Skriv högerledet på polär form.\n(b) Sätt z - i = r e ^ { i v } där r \\geq 0 och v \\in \\mathbb { R } . Hur ser ekvationen ut efter detta?\n(c) Se på absolutbelopp och argument av båda leden. Vilket ekvationssystem för r och v ger detta?\n(d) Lös detta ekvationssystem.\n(e) Lös ekvationen ( z - i ) ^ { 5 } = 2 { \\sqrt { 3 } } i - 2 .\nP 2.64 (a) T.ex. $4 e ^ { i \\frac { 2 \\pi } { 3 } }$ . (b) r ^ { 5 } e ^ { i 5 v } = 4 e ^ { i \\frac { 2 \\pi } { 3 } } . (c) r ^ { 5 } = 4 { \\mathrm { ~ o c h ~ } } 5 v = { \\frac { 2 \\pi } { 3 } } + n \\cdot 2 \\pi , n \\in \\mathbb { Z } .\n(d) r = 22/5och v =2π+ n ·2π, n ∈ Z. (e) z = i + 22/5ei(2π15 +n·2π5 ), n = 0, 1, 2, 3, 4 (t.ex.) 15 5",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "2.65",
+    "problemText": "P 2.65 Lös ekvationerna \\begin{aligned} (a) z^{3} &= i\\sqrt{3} - 1 \\quad \\text { (b) } z^{3} = \\frac{1 + i\\sqrt{3}}{1 + i}.\\end{aligned}\nP 2.65 (a) z _ { 1 } = \\sqrt [ 3 ] { 2 } e ^ { i 2 \\pi / 9 } , z _ { 2 } = \\sqrt [ 3 ] { 2 } e ^ { i 8 \\pi / 9 } , z _ { 3 } = \\sqrt [ 3 ] { 2 } e ^ { i 1 4 \\pi / 9 }\n(b) z _ { k } = \\sqrt [ 6 ] { 2 } \\exp i ( \\pi / 3 6 + 2 k \\pi / 3 ) , k = 0 , 1 , 2",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "2.66",
+    "problemText": "P 2.66 Visa att systemet av ekvationer\n1 + \\cos x + \\cos 2 x = 0 \\qquad { \\mathrm { o c h } } \\qquad \\sin x + \\sin 2 x = 0\när ekvivalent med den enda ekvationen 1 + e ^ { i x } + e ^ { 2 i x } = 0 . Lös sedan systemet genom att i stället lösa denna ekvation.\nP 2.66 x = \\pm \\frac{2\\pi}{3} + 2\\pi n, n heltal. \\left( e ^ { i x } = - { \\frac { 1 } { 2 } } \\pm i { \\frac { \\sqrt { 3 } } { 2 } } \\right)\nLedning för första delen: Studera real- och imaginärdel till den komplexa ekvationen.",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "2.67",
+    "problemText": "P 2.67 Räkna ut Re w och Im w (som funktioner av x \\in \\mathbb { R } ) då w = i e ^ { 2 x - i x }\nP 2.67 \\operatorname { R e } w = e ^ { 2 x } sin x, Im w = e ^ { 2 x } cos x",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
+    "problemNumber": "2.68",
+    "problemText": "P 2.68 Antag att C _ { 1 } och C _ { 2 } är komplexa konstanter och att a och b är reella konstanter. Bestäm komplexa konstanter A och B sådana att\nC _ { 1 } \\mathop { { e } ^ { { ( a + i b ) x } } } + C _ { 2 } \\mathop { { e } ^ { { ( a - i b ) x } } } = \\mathop { { e } ^ { { a x } } } \\left( A \\operatorname { c o s } b x + B \\operatorname { s i n } b x \\right) \\quad \\tilde { \\operatorname { f o r } } x \\in \\mathbb { R } .\nP 2.68 A = C _ { 1 } + C _ { 2 } , \\quad B = i ( C _ { 1 } - C _ { 2 } )",
+    "answerText": "",
+    "questionImages": [],
+    "answerImages": [],
+    "sourceQuestionPageIdx": 9
+  },
+  {
     "problemNumber": "2.69",
     "problemText": "P 2.69 Visa att z w = r s e ^ { i ( \\varphi + \\psi ) } och { \\frac { z } { w } } = { \\frac { r } { s } } e ^ { i ( \\varphi - \\psi ) } , då z och w ges i polär form z = r e ^ { i \\varphi } , \\; w = s e ^ { i \\psi }",
+    "answerText": "",
     "questionImages": [],
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.70 1 + i = { \\sqrt { 2 } } e ^ { i \\pi / 4 } \\Rightarrow ( 1 + i ) ^ { n } = 2 ^ { n / 2 } e ^ { i n \\pi / 4 } , som kan skrivas som 2^{n/2}\\ d \\hat{ a }\\ n=8k;\\quad 2^{n/2}\\overset{\\cdot}{(1+i)}/\\sqrt{2}=2^{(n-1)/2}(1+i)\\ d \\hat{ a }\\ n=8k+1; 2^{n/2}i\\ d \\hat{ a }\\ n=8k+2;\\ \\hat{2}^{n/2}(\\hat{-1}+i)/\\sqrt{2}=2^{(n-1)/2}(-1+i)\\ d \\hat{ a }\\ n=8k+3; - 2 ^ { n / 2 } \\mathrm { d } \\hat { \\mathrm { a } } n = 8 k + 4 ; \\quad 2 ^ { n / 2 } ( - 1 - \\stackrel { \\frown } { i } ) / \\sqrt { 2 } = 2 ^ { ( n - 1 ) / 2 } ( - 1 - \\stackrel { \\frown } { i } ) \\mathrm { d } \\hat { \\mathrm { a } } n = 8 k + 5 ; -2^{n/2}i\\ d\\text{\\text{a}} n = 8k + 6; \\quad 2^{n/2}(1 - i) \\overset{\\frown}{/\\sqrt{2}} = 2^{(n-1)/2}(\\overset{\\frown}{1} - i)\\ d\\text{\\text{a}} n = 8k + 7; k = 0 , 1 , 2 , \\ldots .",
     "problemNumber": "2.70",
-    "problemText": "P 2.70 Räkna ut ( 1 + i ) ^ { n } för n = 0 , 1 , 2 ,",
+    "problemText": "P 2.70 Räkna ut ( 1 + i ) ^ { n } för n = 0 , 1 , 2 ,\nP 2.70 1 + i = { \\sqrt { 2 } } e ^ { i \\pi / 4 } \\Rightarrow ( 1 + i ) ^ { n } = 2 ^ { n / 2 } e ^ { i n \\pi / 4 } , som kan skrivas som 2^{n/2}\\ d \\hat{ a }\\ n=8k;\\quad 2^{n/2}\\overset{\\cdot}{(1+i)}/\\sqrt{2}=2^{(n-1)/2}(1+i)\\ d \\hat{ a }\\ n=8k+1; 2^{n/2}i\\ d \\hat{ a }\\ n=8k+2;\\ \\hat{2}^{n/2}(\\hat{-1}+i)/\\sqrt{2}=2^{(n-1)/2}(-1+i)\\ d \\hat{ a }\\ n=8k+3; - 2 ^ { n / 2 } \\mathrm { d } \\hat { \\mathrm { a } } n = 8 k + 4 ; \\quad 2 ^ { n / 2 } ( - 1 - \\stackrel { \\frown } { i } ) / \\sqrt { 2 } = 2 ^ { ( n - 1 ) / 2 } ( - 1 - \\stackrel { \\frown } { i } ) \\mathrm { d } \\hat { \\mathrm { a } } n = 8 k + 5 ; -2^{n/2}i\\ d\\text{\\text{a}} n = 8k + 6; \\quad 2^{n/2}(1 - i) \\overset{\\frown}{/\\sqrt{2}} = 2^{(n-1)/2}(\\overset{\\frown}{1} - i)\\ d\\text{\\text{a}} n = 8k + 7; k = 0 , 1 , 2 , \\ldots .",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.71 a = \\frac { 1 + 2 i } { 5 } , \\quad b = \\frac { 2 + 1 4 i } { 2 5 } ,\n\\operatorname { R e } \\; \\left( a x + b \\right) e ^ { \\left( 1 + i \\right) x } = e ^ { x } \\Big ( \\Big ( \\frac { x } { 5 } + \\frac { 2 } { 2 5 } \\Big ) \\operatorname { c o s } x - \\Big ( \\frac { 2 x } { 5 } + \\frac { 1 4 } { 2 5 } \\Big ) \\operatorname { s i n } x \\Big ) \\: ,\nIm \\left( ax + b \\right)e^{(1 + i)x} = e^{x}\\Big( \\Big( \\frac{2x}{5} + \\frac{14}{25} \\Big)\\cos x + \\Big( \\frac{x}{5} + \\frac{2}{25} \\Big)\\sin x \\Big)",
     "problemNumber": "2.71",
-    "problemText": "P 2.71 Bestäm komplexa tal a och b sådana att\n(-2+2i)a+(1-2i)(ax+b)=x för alla reella tal x\noch bestäm sedan real- och imaginärdelarna av \\left( a x + b \\right) e ^ { \\left( 1 + i \\right) x }",
+    "problemText": "P 2.71 Bestäm komplexa tal a och b sådana att\n(-2+2i)a+(1-2i)(ax+b)=x för alla reella tal x\noch bestäm sedan real- och imaginärdelarna av \\left( a x + b \\right) e ^ { \\left( 1 + i \\right) x }\nP 2.71 a = \\frac { 1 + 2 i } { 5 } , \\quad b = \\frac { 2 + 1 4 i } { 2 5 } ,\n\\operatorname { R e } \\; \\left( a x + b \\right) e ^ { \\left( 1 + i \\right) x } = e ^ { x } \\Big ( \\Big ( \\frac { x } { 5 } + \\frac { 2 } { 2 5 } \\Big ) \\operatorname { c o s } x - \\Big ( \\frac { 2 x } { 5 } + \\frac { 1 4 } { 2 5 } \\Big ) \\operatorname { s i n } x \\Big ) \\: ,\nIm \\left( ax + b \\right)e^{(1 + i)x} = e^{x}\\Big( \\Big( \\frac{2x}{5} + \\frac{14}{25} \\Big)\\cos x + \\Big( \\frac{x}{5} + \\frac{2}{25} \\Big)\\sin x \\Big)",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.72 (a) \\arcsin 0 = 0, \\arccos 0 = \\frac{\\pi}{2}\n(b) \\arcsin \\frac{1}{2} = \\frac{\\pi}{6}, \\arccos \\frac{1}{2} = \\frac{\\pi}{3}\n(c) \\arcsin\\left(-\\frac{\\sqrt{2}}{2}\\right)=-\\frac{\\pi}{4},\\arccos\\left(-\\frac{\\sqrt{2}}{2}\\right)=\\frac{3\\pi}{4}\n(d) \\arcsin \\left( - \\frac{\\sqrt{3}}{2} \\right) = - \\frac{\\pi}{3}, \\arccos\\left(-\\frac{\\sqrt{3}}{2}\\right)=\\frac{5\\pi}{6}\n(e) \\arcsin(-1) = -\\frac{\\pi}{2}, \\arccos(-1) = \\pi\n(f) ej definierat",
     "problemNumber": "2.72",
-    "problemText": "P 2.72 Räkna ut arcsin x och arccos x om x är (a) 0 (b) \\frac { 1 } { 2 } (c) - { \\frac { \\sqrt { 2 } } { 2 } } (d) - { \\frac { \\sqrt { 3 } } { 2 } } (e) −1 (f) { \\sqrt { 3 } } .",
+    "problemText": "P 2.72 Räkna ut arcsin x och arccos x om x är (a) 0 (b) \\frac { 1 } { 2 } (c) - { \\frac { \\sqrt { 2 } } { 2 } } (d) - { \\frac { \\sqrt { 3 } } { 2 } } (e) −1 (f) { \\sqrt { 3 } } .\nP 2.72 (a) \\arcsin 0 = 0, \\arccos 0 = \\frac{\\pi}{2}\n(b) \\arcsin \\frac{1}{2} = \\frac{\\pi}{6}, \\arccos \\frac{1}{2} = \\frac{\\pi}{3}\n(c) \\arcsin\\left(-\\frac{\\sqrt{2}}{2}\\right)=-\\frac{\\pi}{4},\\arccos\\left(-\\frac{\\sqrt{2}}{2}\\right)=\\frac{3\\pi}{4}\n(d) \\arcsin \\left( - \\frac{\\sqrt{3}}{2} \\right) = - \\frac{\\pi}{3}, \\arccos\\left(-\\frac{\\sqrt{3}}{2}\\right)=\\frac{5\\pi}{6}\n(e) \\arcsin(-1) = -\\frac{\\pi}{2}, \\arccos(-1) = \\pi\n(f) ej definierat",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.73 (a) 0 (b) \\frac{\\pi}{6} (c) -\\frac{\\pi}{4} (d) -\\frac{\\pi}{3}",
     "problemNumber": "2.73",
-    "problemText": "P 2.73 Räkna ut arctan x om x är (a) 0 (b) \\frac { 1 } { \\sqrt { 3 } } (c) −1 (d) - { \\sqrt { 3 } } .",
+    "problemText": "P 2.73 Räkna ut arctan x om x är (a) 0 (b) \\frac { 1 } { \\sqrt { 3 } } (c) −1 (d) - { \\sqrt { 3 } } .\nP 2.73 (a) 0 (b) \\frac{\\pi}{6} (c) -\\frac{\\pi}{4} (d) -\\frac{\\pi}{3}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.74 π + arctan 2",
     "problemNumber": "2.74",
-    "problemText": "P 2.74 Man vet att \\pi < x < \\frac{3\\pi}{2} och att tan x = 2. Bestäm x.",
+    "problemText": "P 2.74 Man vet att \\pi < x < \\frac{3\\pi}{2} och att tan x = 2. Bestäm x.\nP 2.74 π + arctan 2",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.75 (a) -\\frac{\\pi}{7} (b) \\frac { 3 \\pi } { 5 } (c) \\frac{\\pi}{5}",
     "problemNumber": "2.75",
-    "problemText": "P 2.75 Beräkna (a) \\arcsin \\left( \\sin { \\frac { 8 \\pi } { 7 } } \\right) (b) \\arccos\\left(\\cos\\frac{7\\pi}{5}\\right) (c) \\arctan\\left(\\tan\\frac{16\\pi}{5}\\right)",
+    "problemText": "P 2.75 Beräkna (a) \\arcsin \\left( \\sin { \\frac { 8 \\pi } { 7 } } \\right) (b) \\arccos\\left(\\cos\\frac{7\\pi}{5}\\right) (c) \\arctan\\left(\\tan\\frac{16\\pi}{5}\\right)\nP 2.75 (a) -\\frac{\\pi}{7} (b) \\frac { 3 \\pi } { 5 } (c) \\frac{\\pi}{5}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.76 2R sin α",
     "problemNumber": "2.76",
-    "problemText": "P 2.76 Från en punkt på en cirkel med radie R syns en korda under vinkel α. Hur lång är kordan?",
+    "problemText": "P 2.76 Från en punkt på en cirkel med radie R syns en korda under vinkel α. Hur lång är kordan?\nP 2.76 2R sin α",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.77 (a) injektiv ⇒ ej jämn\n(b) växande ⇒ ej strängt avtagande\n(c) strängt växande ⇒ ej avtagande, ej strängt avtagande, ej jämn\n(d) avtagande ⇒ ej strängt växande\n(e) strängt avtagande ⇒ ej växande, ej strängt växande, ej jämn\n(f) monoton är förenlig med alla!\n(g) strängt monoton ⇒ ej jämn\n(h) uppåt begränsad är förenlig med alla!\n(i) nedåt begränsad är förenlig med alla!\n(j) begränsad är förenlig med alla!\n(k) jämn ⇒ ej injektiv, ej strängt växande, ej strängt avtagande, ej strängt monoton\n(l) udda är förenlig med alla!\nSvar",
     "problemNumber": "2.77",
-    "problemText": "P 2.77 Betrakta åter egenskaperna (a)–(l) i uppgift P 2.38. För varje egenskap ( \\mathrm { a } ) \\mathrm { - } ( \\mathrm { l } ) , vilka övriga egenskaper är oförenliga med denna? (Vi betraktar endast funktioner f med D _ { f } = \\mathbb { R } . )",
+    "problemText": "P 2.77 Betrakta åter egenskaperna (a)–(l) i uppgift P 2.38. För varje egenskap ( \\mathrm { a } ) \\mathrm { - } ( \\mathrm { l } ) , vilka övriga egenskaper är oförenliga med denna? (Vi betraktar endast funktioner f med D _ { f } = \\mathbb { R } . )\nP 2.77 (a) injektiv ⇒ ej jämn\n(b) växande ⇒ ej strängt avtagande\n(c) strängt växande ⇒ ej avtagande, ej strängt avtagande, ej jämn\n(d) avtagande ⇒ ej strängt växande\n(e) strängt avtagande ⇒ ej växande, ej strängt växande, ej jämn\n(f) monoton är förenlig med alla!\n(g) strängt monoton ⇒ ej jämn\n(h) uppåt begränsad är förenlig med alla!\n(i) nedåt begränsad är förenlig med alla!\n(j) begränsad är förenlig med alla!\n(k) jämn ⇒ ej injektiv, ej strängt växande, ej strängt avtagande, ej strängt monoton\n(l) udda är förenlig med alla!\nSvar",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 17,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.78 (a) \\sin v = { \\frac { 1 } { 3 } } \\cos v = \\frac{\\sqrt{8}}{3} \\quad \\tan v = \\frac{\\sqrt{2}}{4}\n\\begin{aligned}& (b) \\quad \\sin v = \\frac{\\sqrt{5}}{3} \\quad & \\cos v = \\frac{2}{3} \\quad & \\tan v = \\frac{\\sqrt{5}}{2}\\end{aligned}\n\\begin{aligned} (c) \\quad & \\sin v = \\frac{2}{\\sqrt{5}} \\quad & \\cos v = \\frac{1}{\\sqrt{5}} \\quad & \\tan v = 2\\end{aligned}\n\\begin{aligned} (d) \\quad \\sin v &= -\\frac{1}{3} \\quad & \\cos v &= \\frac{\\sqrt{8}}{3} \\quad \\tan v &= -\\frac{\\sqrt{2}}{4}\\end{aligned}\n\\left( \\mathrm{e} \\right) \\quad \\sin v = \\frac{\\sqrt{5}}{3} \\qquad \\cos v = - \\frac{2}{3} \\quad \\tan v = - \\frac{\\sqrt{5}}{2}\n\\begin{aligned} (f) \\quad \\sin v &= -\\frac{2}{\\sqrt{5}} \\quad \\cos v = \\frac{1}{\\sqrt{5}} \\quad \\tan v = -2\\end{aligned}",
     "problemNumber": "2.78",
-    "problemText": "P 2.78 Räkna ut sin v, cos v och tan v då (a) v = \\arcsin { \\frac { 1 } { 3 } } (b) v = \\operatorname { a r c c o s } { \\frac { 2 } { 3 } } (c) v = \\arctan 2 (d) v = \\arcsin \\left( - \\frac{1}{3} \\right) (e) v = \\arccos\\left( - \\frac{2}{3} \\right) (f) v = \\arctan ( - 2 )",
+    "problemText": "P 2.78 Räkna ut sin v, cos v och tan v då (a) v = \\arcsin { \\frac { 1 } { 3 } } (b) v = \\operatorname { a r c c o s } { \\frac { 2 } { 3 } } (c) v = \\arctan 2 (d) v = \\arcsin \\left( - \\frac{1}{3} \\right) (e) v = \\arccos\\left( - \\frac{2}{3} \\right) (f) v = \\arctan ( - 2 )\nP 2.78 (a) \\sin v = { \\frac { 1 } { 3 } } \\cos v = \\frac{\\sqrt{8}}{3} \\quad \\tan v = \\frac{\\sqrt{2}}{4}\n\\begin{aligned}& (b) \\quad \\sin v = \\frac{\\sqrt{5}}{3} \\quad & \\cos v = \\frac{2}{3} \\quad & \\tan v = \\frac{\\sqrt{5}}{2}\\end{aligned}\n\\begin{aligned} (c) \\quad & \\sin v = \\frac{2}{\\sqrt{5}} \\quad & \\cos v = \\frac{1}{\\sqrt{5}} \\quad & \\tan v = 2\\end{aligned}\n\\begin{aligned} (d) \\quad \\sin v &= -\\frac{1}{3} \\quad & \\cos v &= \\frac{\\sqrt{8}}{3} \\quad \\tan v &= -\\frac{\\sqrt{2}}{4}\\end{aligned}\n\\left( \\mathrm{e} \\right) \\quad \\sin v = \\frac{\\sqrt{5}}{3} \\qquad \\cos v = - \\frac{2}{3} \\quad \\tan v = - \\frac{\\sqrt{5}}{2}\n\\begin{aligned} (f) \\quad \\sin v &= -\\frac{2}{\\sqrt{5}} \\quad \\cos v = \\frac{1}{\\sqrt{5}} \\quad \\tan v = -2\\end{aligned}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.79 \\sqrt{\\frac{3 + \\sqrt{8}}{6}}",
     "problemNumber": "2.79",
-    "problemText": "P 2.79 Räkna ut cos \\left( { \\frac { 1 } { 2 } } \\arcsin { \\frac { 1 } { 3 } } \\right) exakt.\nFunktioner",
+    "problemText": "P 2.79 Räkna ut cos \\left( { \\frac { 1 } { 2 } } \\arcsin { \\frac { 1 } { 3 } } \\right) exakt.\nFunktioner\nP 2.79 \\sqrt{\\frac{3 + \\sqrt{8}}{6}}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 9
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.80 (a) - { \\frac { 1 } { \\sqrt { 3 } } } (b) - { \\frac { \\pi } { 6 } } + n \\pi , n heltal (c) T.ex. 0 < \\alpha + \\beta < \\pi (d) \\frac{5\\pi}{6}",
     "problemNumber": "2.80",
-    "problemText": "P 2.80 Låt \\alpha = \\arcsin { \\frac { 1 3 } { 1 4 } } och \\beta = \\operatorname { a r c c o s } { \\frac { 1 } { 7 } } .\n(a) Beräkna \\tan ( \\alpha + \\beta )\n(b) Bestäm alla vinklar med samma tangensvärde som \\mathrm { ~ i ~ } ( \\mathrm { a } )\n(c) Stäng in \\alpha + \\beta i ett öppet intervall av längd högst π.\n(d) Beräkna \\alpha + \\beta .",
+    "problemText": "P 2.80 Låt \\alpha = \\arcsin { \\frac { 1 3 } { 1 4 } } och \\beta = \\operatorname { a r c c o s } { \\frac { 1 } { 7 } } .\n(a) Beräkna \\tan ( \\alpha + \\beta )\n(b) Bestäm alla vinklar med samma tangensvärde som \\mathrm { ~ i ~ } ( \\mathrm { a } )\n(c) Stäng in \\alpha + \\beta i ett öppet intervall av längd högst π.\n(d) Beräkna \\alpha + \\beta .\nP 2.80 (a) - { \\frac { 1 } { \\sqrt { 3 } } } (b) - { \\frac { \\pi } { 6 } } + n \\pi , n heltal (c) T.ex. 0 < \\alpha + \\beta < \\pi (d) \\frac{5\\pi}{6}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.81 (a) t.ex. $\\sqrt { 2 7 } + 1 3 i ,$ $1 + i \\sqrt { 4 8 } ,$ $- \\sqrt { 3 } + i$ (b) \\frac{5\\pi}{6} + 2nπ, n heltal\n(c) t.ex. $0 < \\alpha + \\beta < \\pi$\n(d) \\frac{5\\pi}{6}",
     "problemNumber": "2.81",
-    "problemText": "P 2.81 Låt α och \\beta vara som i uppgift P 2.80.\n(a) Bestäm tre komplexa tal som har i tur och ordning \\alpha , \\beta och \\alpha + \\beta som argument.\n(b) Bestäm alla argument för det tredje talet i (a).\n(c) Stäng in \\alpha + \\beta i ett öppet intervall av längd högst 2π.\n(d) Beräkna \\alpha + \\beta .",
+    "problemText": "P 2.81 Låt α och \\beta vara som i uppgift P 2.80.\n(a) Bestäm tre komplexa tal som har i tur och ordning \\alpha , \\beta och \\alpha + \\beta som argument.\n(b) Bestäm alla argument för det tredje talet i (a).\n(c) Stäng in \\alpha + \\beta i ett öppet intervall av längd högst 2π.\n(d) Beräkna \\alpha + \\beta .\nP 2.81 (a) t.ex. $\\sqrt { 2 7 } + 1 3 i ,$ $1 + i \\sqrt { 4 8 } ,$ $- \\sqrt { 3 } + i$ (b) \\frac{5\\pi}{6} + 2nπ, n heltal\n(c) t.ex. $0 < \\alpha + \\beta < \\pi$\n(d) \\frac{5\\pi}{6}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.82 (a) $\\pi \\mathrm { ~ \\mu ~ }$ (b) $\\pi + \\arctan ( 3 / 5 )$",
     "problemNumber": "2.82",
-    "problemText": "P 2.82 Förenkla så långt det \\mathrm { g } \\mathring { \\mathrm { a } } \\mathrm { r }\n(a) 3 arctan 2 - \\arctan \\frac{2}{11} (b) arctan 2+\\arctan 3+\\arctan 4",
+    "problemText": "P 2.82 Förenkla så långt det \\mathrm { g } \\mathring { \\mathrm { a } } \\mathrm { r }\n(a) 3 arctan 2 - \\arctan \\frac{2}{11} (b) arctan 2+\\arctan 3+\\arctan 4\nP 2.82 (a) $\\pi \\mathrm { ~ \\mu ~ }$ (b) $\\pi + \\arctan ( 3 / 5 )$",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.83 f^{-1}(x) = \\sqrt{-\\ln\\left(\\frac{\\pi}{2} + \\arctan x\\right)}",
     "problemNumber": "2.83",
-    "problemText": "P 2.83 Låt f(x) = \\tan \\Big( \\frac{\\pi}{2} + e^{-x^2} \\Big), x \\geq 0 . Bestäm om möjligt f ^ { - 1 }",
+    "problemText": "P 2.83 Låt f(x) = \\tan \\Big( \\frac{\\pi}{2} + e^{-x^2} \\Big), x \\geq 0 . Bestäm om möjligt f ^ { - 1 }\nP 2.83 f^{-1}(x) = \\sqrt{-\\ln\\left(\\frac{\\pi}{2} + \\arctan x\\right)}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.84 f(x)=\\begin{cases}-(\\pi+2x),&x\\in[-\\pi,-\\pi/2],\\\\0,&x\\in[-\\pi/2,0],\\\\2x,&x\\in[0,\\pi/2],\\\\\\pi,&x\\in[\\pi/2,\\pi].\\end{cases} Funktionen g är periodisk med perioden 2 \\pi",
     "problemNumber": "2.84",
-    "problemText": "P 2.84 (a) Skriv f(x) = \\arcsin(\\sin x) + \\arccos(\\cos x), -\\pi \\leq x \\leq \\pi utan arcusfunktioner.\n(b) Rita grafen till g(x) = \\arcsin(\\sin x) + \\arccos(\\cos x), x \\in \\mathbb{R}.",
+    "problemText": "P 2.84 (a) Skriv f(x) = \\arcsin(\\sin x) + \\arccos(\\cos x), -\\pi \\leq x \\leq \\pi utan arcusfunktioner.\n(b) Rita grafen till g(x) = \\arcsin(\\sin x) + \\arccos(\\cos x), x \\in \\mathbb{R}.\nP 2.84 f(x)=\\begin{cases}-(\\pi+2x),&x\\in[-\\pi,-\\pi/2],\\\\0,&x\\in[-\\pi/2,0],\\\\2x,&x\\in[0,\\pi/2],\\\\\\pi,&x\\in[\\pi/2,\\pi].\\end{cases} Funktionen g är periodisk med perioden 2 \\pi",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.85 (b) x = { \\sqrt [ 4 ] { 3 / 4 } }",
     "problemNumber": "2.85",
-    "problemText": "P 2.85 Vi studerar ekvationen arctan x = 2 arccos x.\n(a) Visa att om x löser ekvationen så måste 1 / \\sqrt { 2 } < x < 1 . (b) Lös ekvationen!",
+    "problemText": "P 2.85 Vi studerar ekvationen arctan x = 2 arccos x.\n(a) Visa att om x löser ekvationen så måste 1 / \\sqrt { 2 } < x < 1 . (b) Lös ekvationen!\nP 2.85 (b) x = { \\sqrt [ 4 ] { 3 / 4 } }",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.86 (a) \\sin(x + y) = \\sin x \\cos y + \\cos x \\sin y (b) \\tan(x + y) = \\frac{\\tan x + \\tan y}{1 - \\tan x \\tan y}",
     "problemNumber": "2.86",
-    "problemText": "P 2.86 Bevisa följande samband för hyperboliska funktioner. Ange också hur motsvarande samband för trigonometriska funktioner ser ut!\n(a) sinh(x + y) = sinh x cosh y + cosh x sinh y (b) \\operatorname { t a n h } ( x + y ) = { \\frac { \\operatorname { t a n h } x + \\operatorname { t a n h } y } { 1 + \\operatorname { t a n h } x \\operatorname { t a n h } y } } .",
+    "problemText": "P 2.86 Bevisa följande samband för hyperboliska funktioner. Ange också hur motsvarande samband för trigonometriska funktioner ser ut!\n(a) sinh(x + y) = sinh x cosh y + cosh x sinh y (b) \\operatorname { t a n h } ( x + y ) = { \\frac { \\operatorname { t a n h } x + \\operatorname { t a n h } y } { 1 + \\operatorname { t a n h } x \\operatorname { t a n h } y } } .\nP 2.86 (a) \\sin(x + y) = \\sin x \\cos y + \\cos x \\sin y (b) \\tan(x + y) = \\frac{\\tan x + \\tan y}{1 - \\tan x \\tan y}",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.87 \\operatorname { t a n h } ^ { - 1 } ( x ) = \\frac { 1 } { 2 } \\operatorname { l n } \\frac { 1 + x } { 1 - x } , \\enskip D _ { \\operatorname { t a n h } } = V _ { \\operatorname { t a n h } ^ { - 1 } } = \\mathbb { R } , \\enskip V _ { \\operatorname { t a n h } } = D _ { \\operatorname { t a n h } ^ { - 1 } } = ] - 1 , 1 [ ,",
     "problemNumber": "2.87",
-    "problemText": "P 2.87 Bestäm inversen till tanh. Ange också definitions- och värdemängd för tanh och \\mathrm { t a n h ^ { - 1 } }",
+    "problemText": "P 2.87 Bestäm inversen till tanh. Ange också definitions- och värdemängd för tanh och \\mathrm { t a n h ^ { - 1 } }\nP 2.87 \\operatorname { t a n h } ^ { - 1 } ( x ) = \\frac { 1 } { 2 } \\operatorname { l n } \\frac { 1 + x } { 1 - x } , \\enskip D _ { \\operatorname { t a n h } } = V _ { \\operatorname { t a n h } ^ { - 1 } } = \\mathbb { R } , \\enskip V _ { \\operatorname { t a n h } } = D _ { \\operatorname { t a n h } ^ { - 1 } } = ] - 1 , 1 [ ,",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.88 \\operatorname { t a n h } ^ { - 1 } ( v ) = \\operatorname { t a n h } ^ { - 1 } ( v _ { 1 } ) + \\operatorname { t a n h } ^ { - 1 } ( v _ { 2 } )",
     "problemNumber": "2.88",
-    "problemText": "P 2.88 Betrakta två rymdskepp som rör sig rakt mot varandra med farterna v _ { 1 } och v2 i förhållande till en fix punkt mellan dem. I klassisk mekanik är som bekant deras relativa hastighet v = v _ { 1 } + v _ { 2 } , men enligt relativitetsteorin är den\nv = \\frac { v _ { 1 } + v _ { 2 } } { 1 + v _ { 1 } v _ { 2 } } .\n(Vi mäter hastigheterna som bråkdelar av ljushastigheten c ; t.ex. betyder v = 1 / 1 0 hastigheten c / 1 0 , d.v.s. ca 30.000 km/s.) Använd additionsformeln för tanh i uppgift P 2.86b för att beskriva även detta senare samband som en addition. Förklara med hjälp av grafen till tanh!",
+    "problemText": "P 2.88 Betrakta två rymdskepp som rör sig rakt mot varandra med farterna v _ { 1 } och v2 i förhållande till en fix punkt mellan dem. I klassisk mekanik är som bekant deras relativa hastighet v = v _ { 1 } + v _ { 2 } , men enligt relativitetsteorin är den\nv = \\frac { v _ { 1 } + v _ { 2 } } { 1 + v _ { 1 } v _ { 2 } } .\n(Vi mäter hastigheterna som bråkdelar av ljushastigheten c ; t.ex. betyder v = 1 / 1 0 hastigheten c / 1 0 , d.v.s. ca 30.000 km/s.) Använd additionsformeln för tanh i uppgift P 2.86b för att beskriva även detta senare samband som en addition. Förklara med hjälp av grafen till tanh!\nP 2.88 \\operatorname { t a n h } ^ { - 1 } ( v ) = \\operatorname { t a n h } ^ { - 1 } ( v _ { 1 } ) + \\operatorname { t a n h } ^ { - 1 } ( v _ { 2 } )",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.89 (a) ( \\mathbf { \\nabla } ) ^ { 3 } , { \\sqrt { \\mathbf { \\nabla } } } , ln, exp, arccos, arcsin, arctan är injektiva\n(b) ( \\dot{ ) } ^ { 3 } , \\dot{ \\sqrt { } } , ln, exp, arcsin, arctan är strängt växande\n(c) arccos är strängt avtagande\n(d) cos, sin, arccos, arcsin, arctan är begränsade\n(e) ( $) ^ { 2 } , \\sqrt { \\mathrm { ~ , ~ } } |$ |,exp,arccos $\\mathrm { ~ \\ddot { ~ a r } \\geq 0 ~ }$\n(f) ( \\; ) ^ { 2 } , \\dot { ( } \\; ) ^ { 3 } , | \\; | , exp, cos, sin, arctan har definitionsmängd = R\n(g) ( ) ^ { 3 } , \\ln , \\tan har värdemängd = R\n(h) ( ) ^ { 2 } , | | , \\cos är jämna\n(i) ( ) ^ { 3 } , \\sin , \\tan , arcsin, arctan är udda",
     "problemNumber": "2.89",
-    "problemText": "P 2.89 Betrakta följande mängd av funktioner:\nM = \\big \\{ ( { } ) ^ { 2 } , ( { } ) ^ { 3 } , \\sqrt { { } } , | { } | , \\operatorname { l n } , \\operatorname { e x p } , \\operatorname { c o s } , \\operatorname { s i n } , \\operatorname { t a n } , \\operatorname { a r c c o s } , \\operatorname { a r c s i n } , \\operatorname { a r c t a n } \\big \\} .\n(Med ( \\; ) ^ { 2 } menas funktionen x \\mapsto x ^ { 2 } { \\mathrm { ~ o . s . v . } } ) . Skissa funktionernas grafer och ange sedan alla f \\in M sådana att\n(a) f är injektiv (b) f är strängt växande (c) f är strängt avtagande\n(d) f är begränsad (e) f \\geq 0 (f) D _ { f } = \\mathbb { R }\n(g) V _ { f } = \\mathbb { R }\n(h) f { \\mathrm { ~ \\ddot { a } r ~ j \\ddot { a } m n } }\n(i) f { \\mathrm { ~ \\ddot { a } r ~ u d d a ~ } }",
+    "problemText": "P 2.89 Betrakta följande mängd av funktioner:\nM = \\big \\{ ( { } ) ^ { 2 } , ( { } ) ^ { 3 } , \\sqrt { { } } , | { } | , \\operatorname { l n } , \\operatorname { e x p } , \\operatorname { c o s } , \\operatorname { s i n } , \\operatorname { t a n } , \\operatorname { a r c c o s } , \\operatorname { a r c s i n } , \\operatorname { a r c t a n } \\big \\} .\n(Med ( \\; ) ^ { 2 } menas funktionen x \\mapsto x ^ { 2 } { \\mathrm { ~ o . s . v . } } ) . Skissa funktionernas grafer och ange sedan alla f \\in M sådana att\n(a) f är injektiv (b) f är strängt växande (c) f är strängt avtagande\n(d) f är begränsad (e) f \\geq 0 (f) D _ { f } = \\mathbb { R }\n(g) V _ { f } = \\mathbb { R }\n(h) f { \\mathrm { ~ \\ddot { a } r ~ j \\ddot { a } m n } }\n(i) f { \\mathrm { ~ \\ddot { a } r ~ u d d a ~ } }\nP 2.89 (a) ( \\mathbf { \\nabla } ) ^ { 3 } , { \\sqrt { \\mathbf { \\nabla } } } , ln, exp, arccos, arcsin, arctan är injektiva\n(b) ( \\dot{ ) } ^ { 3 } , \\dot{ \\sqrt { } } , ln, exp, arcsin, arctan är strängt växande\n(c) arccos är strängt avtagande\n(d) cos, sin, arccos, arcsin, arctan är begränsade\n(e) ( $) ^ { 2 } , \\sqrt { \\mathrm { ~ , ~ } } |$ |,exp,arccos $\\mathrm { ~ \\ddot { ~ a r } \\geq 0 ~ }$\n(f) ( \\; ) ^ { 2 } , \\dot { ( } \\; ) ^ { 3 } , | \\; | , exp, cos, sin, arctan har definitionsmängd = R\n(g) ( ) ^ { 3 } , \\ln , \\tan har värdemängd = R\n(h) ( ) ^ { 2 } , | | , \\cos är jämna\n(i) ( ) ^ { 3 } , \\sin , \\tan , arcsin, arctan är udda",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   },
   {
-    "answerImages": [],
-    "answerText": "P 2.90 Funktionerna i \\{ ( \\quad ) ^ { 3 } , { \\sqrt { \\quad } } , ln, exp, arccos, arcsin, arctan} är alla injektiva, så för dem gäller f ( x ) = f ( y ) \\Leftrightarrow x = y .",
     "problemNumber": "2.90",
-    "problemText": "P 2.90 Betrakta återigen funktionerna i uppgift P 2.89. Lös för samtliga dessa funktioner ekvationen f(x) = f(y), x, y \\in D_f\nSvar\nReella och komplexa tal",
+    "problemText": "P 2.90 Betrakta återigen funktionerna i uppgift P 2.89. Lös för samtliga dessa funktioner ekvationen f(x) = f(y), x, y \\in D_f\nSvar\nReella och komplexa tal\nP 2.90 Funktionerna i \\{ ( \\quad ) ^ { 3 } , { \\sqrt { \\quad } } , ln, exp, arccos, arcsin, arctan} är alla injektiva, så för dem gäller f ( x ) = f ( y ) \\Leftrightarrow x = y .",
+    "answerText": "",
     "questionImages": [],
-    "sourceAnswerPageIdx": 18,
+    "answerImages": [],
     "sourceQuestionPageIdx": 10
   }
 ]
