@@ -909,41 +909,42 @@ function RoomPage() {
                       : (selectedProblemOccasionEntries ?? [])
                   }
                 />
-                <div className="flex justify-center py-6">
-                  <ProblemHelpActions
-                    roomId={typedRoomId}
-                    problemNumber={selectedProblem.problem.problemNumber}
-                    fileName={selectedProblem.fileName}
-                    subproblemLetters={subproblemLetters}
-                    pending={problemChatPending}
-                    onSelect={async (draft: ProblemHelpStartDraft) => {
-                      await problemChatInputRef.current?.submitStartDraft({
-                        prompt: draft.prompt,
-                        mode: draft.mode,
-                        storageImages: draft.images,
-                        subproblemLetter: draft.subproblemLetter,
-                      })
-                    }}
-                  />
-                </div>
               </div>
-              <ChatInput
-                ref={problemChatInputRef}
-                roomId={typedRoomId}
-                problemGroups={problemGroups?.groups}
-                defaultProblemId={selectedProblem.id}
-                className="shrink-0"
-                pending={problemChatPending}
-                error={problemChatError}
-                placeholder="Lägg till en anteckning… eller skicka direkt"
-                onSubmit={(payload) =>
-                  handleProblemChatSubmit(
-                    selectedProblem.problem.problemNumber,
-                    selectedProblem.fileName,
-                    payload,
-                  )
-                }
-              />
+              <div className="shrink-0 border-t border-border bg-background pt-3">
+                <ProblemHelpActions
+                  roomId={typedRoomId}
+                  problemNumber={selectedProblem.problem.problemNumber}
+                  fileName={selectedProblem.fileName}
+                  subproblemLetters={subproblemLetters}
+                  pending={problemChatPending}
+                  className="pb-2"
+                  onSelect={async (draft: ProblemHelpStartDraft) => {
+                    await problemChatInputRef.current?.submitStartDraft({
+                      prompt: draft.prompt,
+                      mode: draft.mode,
+                      storageImages: draft.images,
+                      subproblemLetter: draft.subproblemLetter,
+                    })
+                  }}
+                />
+                <ChatInput
+                  ref={problemChatInputRef}
+                  roomId={typedRoomId}
+                  problemGroups={problemGroups?.groups}
+                  defaultProblemId={selectedProblem.id}
+                  className="border-t-0 pt-2"
+                  pending={problemChatPending}
+                  error={problemChatError}
+                  placeholder="Lägg till en anteckning… eller skicka direkt"
+                  onSubmit={(payload) =>
+                    handleProblemChatSubmit(
+                      selectedProblem.problem.problemNumber,
+                      selectedProblem.fileName,
+                      payload,
+                    )
+                  }
+                />
+              </div>
             </div>
           )
         ) : isDraftChat || selectedThreadId === null ? (
