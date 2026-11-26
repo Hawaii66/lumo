@@ -7,6 +7,7 @@ import {
   Copy,
   Eye,
   CalendarDays,
+  Footprints,
   Lightbulb,
   Palette,
   ScanSearch,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react"
 
 export const ROOM_TIP_IDS = [
+  "forsta-steget",
   "genomgang",
   "phone-scan",
   "math-input",
@@ -56,11 +58,19 @@ export type RoomTip = {
 
 export const ROOM_TIPS: Array<RoomTip> = [
   {
+    id: "forsta-steget",
+    title: "Första steget",
+    buttonLabel: "Första steget",
+    description:
+      "Välj omfång (Hela eller en deluppgift) och tryck Första steget när du inte vet var du ska börja — en liten ledtråd, inte hela lösningen. Du kan också växla läge med /läge i chatten.",
+    icon: Footprints,
+  },
+  {
     id: "genomgang",
     title: "Genomgång",
     buttonLabel: "Genomgång",
     description:
-      "Öppna en uppgift och tryck Genomgång för steg-för-steg-hjälp — inte en facitdump. Du kan också växla läge med /läge i chatten.",
+      "Välj omfång och tryck Genomgång för steg-för-steg-hjälp — inte en facitdump. Du kan också växla läge med /läge i chatten.",
     icon: Lightbulb,
   },
   {
@@ -68,7 +78,7 @@ export const ROOM_TIPS: Array<RoomTip> = [
     title: "Skanna med telefon",
     buttonLabel: "Skanna",
     description:
-      "Skanna QR-koden på datorn, ta en bild med telefonen så synkas pappret direkt — AI kan hjälpa dig där du kört fast eller hitta små slarvfel.",
+      "Välj omfång, skanna QR-koden på datorn och ta en bild med telefonen — AI hjälper dig där du kört fast eller hittar små slarvfel.",
     icon: ScanSearch,
   },
   {

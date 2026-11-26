@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest"
 import { buildModeStartPrompt, buildScanStartPrompt } from "./chat-mode"
 
 describe("buildModeStartPrompt", () => {
-  it("builds normal and genomgang prompts with mention", () => {
+  it("builds normal, forsta_steget and genomgang prompts with mention", () => {
     expect(buildModeStartPrompt("normal", "1.2", "tenta.pdf")).toBe(
       "@1.2-tenta Hjälp mig med den här uppgiften.",
+    )
+    expect(buildModeStartPrompt("forsta_steget", "1.2", "tenta.pdf")).toBe(
+      "@1.2-tenta Ge mig det första steget för den här uppgiften — en liten ledtråd så jag kommer igång, inte hela lösningen.",
     )
     expect(buildModeStartPrompt("genomgang", "1.2", "tenta.pdf")).toBe(
       "@1.2-tenta Gå igenom uppgiften steg för steg och förklara hur man tänker.",
@@ -14,6 +17,9 @@ describe("buildModeStartPrompt", () => {
   it("scopes prompts to a valid subproblem letter", () => {
     expect(buildModeStartPrompt("normal", "1.2", "tenta.pdf", "B")).toBe(
       "@1.2-tenta Hjälp mig med deluppgift (b).",
+    )
+    expect(buildModeStartPrompt("forsta_steget", "1.2", "tenta.pdf", "a")).toBe(
+      "@1.2-tenta Ge mig det första steget för deluppgift (a) — en liten ledtråd så jag kommer igång, inte hela lösningen. Hoppa över övriga deluppgifter.",
     )
     expect(buildModeStartPrompt("genomgang", "1.2", "tenta.pdf", "a")).toBe(
       "@1.2-tenta Gå igenom endast deluppgift (a) steg för steg och förklara hur man tänker. Hoppa över övriga deluppgifter.",

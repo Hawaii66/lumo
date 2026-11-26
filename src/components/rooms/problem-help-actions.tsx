@@ -1,4 +1,4 @@
-import { Lightbulb, ScanSearch } from "lucide-react"
+import { Footprints, Lightbulb, ScanSearch } from "lucide-react"
 import { useRef, useState } from "react"
 import type { Id } from "../../../convex/_generated/dataModel"
 import {
@@ -20,11 +20,7 @@ export type ProblemHelpStartDraft = {
   subproblemLetter?: string
 }
 
-type PendingKey =
-  | "genomgang"
-  | "scan"
-  | `genomgang-${string}`
-  | `scan-${string}`
+type PendingKey = "forsta_steget" | "genomgang" | "scan"
 
 type ProblemHelpActionsProps = {
   roomId: Id<"rooms">
@@ -47,9 +43,10 @@ export function ProblemHelpActions({
   className,
 }: ProblemHelpActionsProps) {
   const [qrOpen, setQrOpen] = useState(false)
-  const [scanLetter, setScanLetter] = useState<string | null>(null)
   const [localPending, setLocalPending] = useState<PendingKey | null>(null)
-  const scanLetterRef = useRef<string | null>(null)
+  /** null = whole problem (implicit); letter = scoped deluppgift. */
+  const [scopeLetter, setScopeLetter] = useState<string | null>(null)
+  const scopeLetterRef = useRef<string | null>(null)
 
   const letters = subproblemLetters
     .map((letter) => letter.trim().toLowerCase())
@@ -66,34 +63,44 @@ export function ProblemHelpActions({
   }
 
   const busy = pending || localPending !== null || qrOpen
+  /** Primary accent when no deluppgifter, or when one is selected. */
+  const scopeAccent = letters.length === 0 || scopeLetter !== null
+  const modeButtonClass = cn(
+    "flex h-auto min-h-20 w-full flex-col items-center justify-center gap-1 rounded-2xl border-2 bg-background px-3 py-3 whitespace-normal",
+    scopeAccent
+      ? "border-primary text-primary hover:border-primary hover:bg-primary/10 hover:text-primary"
+      : "border-border text-foreground hover:bg-muted",
+  )
+  const modeSubtitleClass = scopeAccent
+    ? "text-xs font-normal text-primary/80"
+    : "text-xs font-normal text-muted-foreground"
 
-  function startGenomgang(letter: string | null) {
+  function selectScope(letter: string) {
+    const next = scopeLetter === letter ? null : letter
+    setScopeLetter(next)
+    scopeLetterRef.current = next
+  }
+
+  function startMode(mode: "forsta_steget" | "genomgang") {
+    const letter = scopeLetter
     void start(
       {
-        mode: "genomgang",
-        prompt: buildModeStartPrompt(
-          "genomgang",
-          problemNumber,
-          fileName,
-          letter,
-        ),
+        mode,
+        prompt: buildModeStartPrompt(mode, problemNumber, fileName, letter),
         subproblemLetter: letter ?? undefined,
       },
-      letter !== null ? `genomgang-${letter}` : "genomgang",
+      mode,
     )
   }
 
-  function openScan(letter: string | null) {
+  function openScan() {
     if (busy) return
-    scanLetterRef.current = letter
-    setScanLetter(letter)
+    scopeLetterRef.current = scopeLetter
     setQrOpen(true)
   }
 
   function handlePhotoUploaded(file: PhoneUploadCompletedFile) {
-    const letter = scanLetterRef.current
-    scanLetterRef.current = null
-    setScanLetter(null)
+    const letter = scopeLetterRef.current
     void start(
       {
         mode: "normal",
@@ -101,141 +108,91 @@ export function ProblemHelpActions({
         images: [{ storageId: file.storageId, filename: file.filename }],
         subproblemLetter: letter ?? undefined,
       },
-      letter !== null ? `scan-${letter}` : "scan",
+      "scan",
     )
   }
 
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
-      <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 sm:items-stretch">
-        {/* Left column: big Genomgång (+ subproblem row when present) */}
+      {letters.length > 0 ? (
         <div
+          role="group"
+          aria-label="Deluppgifter"
+          className="flex w-full max-w-3xl flex-wrap items-center justify-center gap-2"
+        >
+          {letters.map((letter) => {
+            const selected = scopeLetter === letter
+            return (
+              <Button
+                key={letter}
+                type="button"
+                variant="outline"
+                disabled={busy}
+                aria-pressed={selected}
+                title={`Deluppgift (${letter})`}
+                aria-label={`Deluppgift ${letter}`}
+                onClick={() => selectScope(letter)}
+                className={cn(
+                  "h-auto min-h-12 min-w-12 rounded-xl border-2 px-5 py-2.5 text-base font-semibold tabular-nums",
+                  selected
+                    ? "border-primary bg-primary/10 text-primary hover:border-primary hover:bg-primary/10 hover:text-primary"
+                    : "border-border bg-background text-foreground hover:bg-muted",
+                )}
+              >
+                ({letter})
+              </Button>
+            )
+          })}
+        </div>
+      ) : null}
+
+      <div className="grid w-full max-w-3xl grid-cols-1 gap-2 sm:grid-cols-3 sm:items-stretch">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() => startMode("forsta_steget")}
+          className={modeButtonClass}
+        >
+          <Footprints className="size-6 stroke-[1.75]" />
+          <span className="text-base font-semibold tracking-tight">
+            {localPending === "forsta_steget" ? "Startar…" : "Första steget"}
+          </span>
+          <span className={modeSubtitleClass}>
+            En liten puff — kom igång
+          </span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() => startMode("genomgang")}
+          className={modeButtonClass}
+        >
+          <Lightbulb className="size-6 stroke-[1.75]" />
+          <span className="text-base font-semibold tracking-tight">
+            {localPending === "genomgang" ? "Startar…" : "Genomgång"}
+          </span>
+          <span className={modeSubtitleClass}>Steg för steg</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={openScan}
           className={cn(
-            letters.length > 0 && "grid grid-rows-[1fr_auto] gap-2",
-            letters.length === 0 && "flex h-full flex-col",
+            modeButtonClass,
+            qrOpen && scopeAccent && "bg-primary/10",
           )}
         >
-          <Button
-            type="button"
-            variant="outline"
-            disabled={busy}
-            onClick={() => startGenomgang(null)}
-            className={cn(
-              "flex h-auto min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary whitespace-normal",
-              "hover:bg-primary/10 hover:text-primary",
-              letters.length === 0 && "h-full",
-            )}
-          >
-            <Lightbulb className="size-8 stroke-[1.75]" />
-            <span className="text-lg font-semibold tracking-tight">
-              {localPending === "genomgang" ? "Startar…" : "Genomgång"}
-            </span>
-            <span className="text-sm font-normal text-primary/80">
-              Gå igenom uppgiften steg för steg
-            </span>
-          </Button>
-
-          {letters.length > 0 ? (
-            <div
-              role="group"
-              aria-label="Genomgång per deluppgift"
-              className="grid gap-2"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(letters.length, 4)}, minmax(0, 1fr))`,
-              }}
-            >
-              {letters.map((letter) => {
-                const pendingKey = `genomgang-${letter}` as const
-                const letterPending = localPending === pendingKey
-                return (
-                  <Button
-                    key={letter}
-                    type="button"
-                    variant="outline"
-                    disabled={busy}
-                    title={`Genomgång av deluppgift (${letter})`}
-                    aria-label={`Genomgång av deluppgift ${letter}`}
-                    onClick={() => {
-                      if (busy) return
-                      startGenomgang(letter)
-                    }}
-                    className={cn(
-                      "h-auto min-h-10 rounded-xl border-2 border-primary bg-background px-2 py-2 text-sm font-semibold tabular-nums text-primary",
-                      "hover:bg-primary/10 hover:text-primary",
-                      letterPending && "bg-primary/10",
-                    )}
-                  >
-                    {letterPending ? "…" : `(${letter})`}
-                  </Button>
-                )
-              })}
-            </div>
-          ) : null}
-        </div>
-
-        {/* Right column: Scan (+ subproblem row when present) */}
-        <div
-          className={cn(
-            letters.length > 0 && "grid grid-rows-[1fr_auto] gap-2",
-            letters.length === 0 && "flex h-full flex-col",
-          )}
-        >
-          <Button
-            type="button"
-            variant="outline"
-            disabled={busy}
-            onClick={() => openScan(null)}
-            className={cn(
-              "flex h-auto min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-primary bg-background px-5 py-6 text-primary whitespace-normal",
-              "hover:bg-primary/10 hover:text-primary",
-              letters.length === 0 && "h-full",
-              qrOpen && scanLetter === null && "bg-primary/10",
-            )}
-          >
-            <ScanSearch className="size-8 stroke-[1.75]" />
-            <span className="text-lg font-semibold tracking-tight">
-              {localPending === "scan" ? "Startar…" : "Skanna mitt arbete"}
-            </span>
-            <span className="text-sm font-normal text-primary/80">
-              Ladda upp från telefon
-            </span>
-          </Button>
-
-          {letters.length > 0 ? (
-            <div
-              role="group"
-              aria-label="Skanna per deluppgift"
-              className="grid gap-2"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(letters.length, 4)}, minmax(0, 1fr))`,
-              }}
-            >
-              {letters.map((letter) => {
-                const pendingKey = `scan-${letter}` as const
-                const letterPending = localPending === pendingKey
-                const letterWaiting = qrOpen && scanLetter === letter
-                return (
-                  <Button
-                    key={letter}
-                    type="button"
-                    variant="outline"
-                    disabled={busy}
-                    title={`Skanna deluppgift (${letter})`}
-                    aria-label={`Skanna deluppgift ${letter}`}
-                    onClick={() => openScan(letter)}
-                    className={cn(
-                      "h-auto min-h-10 rounded-xl border-2 border-primary bg-background px-2 py-2 text-sm font-semibold tabular-nums text-primary",
-                      "hover:bg-primary/10 hover:text-primary",
-                      (letterPending || letterWaiting) && "bg-primary/10",
-                    )}
-                  >
-                    {letterPending ? "…" : `(${letter})`}
-                  </Button>
-                )
-              })}
-            </div>
-          ) : null}
-        </div>
+          <ScanSearch className="size-6 stroke-[1.75]" />
+          <span className="text-base font-semibold tracking-tight">
+            {localPending === "scan" ? "Startar…" : "Skanna mitt arbete"}
+          </span>
+          <span className={modeSubtitleClass}>Ladda upp från telefon</span>
+        </Button>
       </div>
 
       <PhoneUploadDialog
@@ -243,10 +200,6 @@ export function ProblemHelpActions({
         open={qrOpen}
         onOpenChange={(open) => {
           setQrOpen(open)
-          if (!open) {
-            scanLetterRef.current = null
-            setScanLetter(null)
-          }
         }}
         onCompleted={handlePhotoUploaded}
         showTrigger={false}
