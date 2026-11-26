@@ -4,6 +4,7 @@ import {
   assistantResponseNumber,
   composePromptWithMath,
   fileSlugFromName,
+  filterFormelSlashCommands,
   filterProblemOptions,
   filterSlashCommands,
   findAllMentions,
@@ -15,6 +16,7 @@ import {
   formatProblemMentionToken,
   formatReplyToAssistant,
   insertCitationAtCursor,
+  insertInlineMathAtCursor,
   insertMathRefToken,
   mentionTokenKey,
   nextMathRef,
@@ -183,6 +185,34 @@ describe("slash commands", () => {
     expect(filterSlashCommands("mod").map((c) => c.id)).toEqual(["model"])
     expect(filterSlashCommands("modell").map((c) => c.id)).toEqual(["model"])
     expect(filterSlashCommands("zzz")).toEqual([])
+  })
+
+  it("filters formel-only slash commands", () => {
+    expect(filterFormelSlashCommands("").map((c) => c.id)).toEqual(["formel"])
+    expect(filterFormelSlashCommands("for").map((c) => c.command)).toEqual([
+      "formel",
+    ])
+    expect(filterFormelSlashCommands("läge")).toEqual([])
+  })
+})
+
+describe("insertInlineMathAtCursor", () => {
+  it("inserts $latex$ with surrounding spaces when needed", () => {
+    expect(insertInlineMathAtCursor("ab", 1, "x^2")).toEqual({
+      text: "a $x^2$ b",
+      cursor: 7,
+    })
+    expect(insertInlineMathAtCursor("a ", 2, "y")).toEqual({
+      text: "a $y$",
+      cursor: 5,
+    })
+  })
+
+  it("respects maxLength", () => {
+    expect(insertInlineMathAtCursor("", 0, "x^2", 4)).toEqual({
+      text: "$x^2",
+      cursor: 4,
+    })
   })
 })
 

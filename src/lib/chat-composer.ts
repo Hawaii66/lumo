@@ -347,6 +347,40 @@ export function insertMathRefToken(
   return { text: next, cursor: left.length + token.length }
 }
 
+/** Insert `$latex$` at `cursor`, adding spaces when needed. */
+export function insertInlineMathAtCursor(
+  text: string,
+  cursor: number,
+  latex: string,
+  maxLength?: number,
+): { text: string; cursor: number } {
+  const trimmed = latex.trim()
+  if (!trimmed) {
+    const pos = Math.max(0, Math.min(cursor, text.length))
+    return { text, cursor: pos }
+  }
+  const token = `$${trimmed}$`
+  const pos = Math.max(0, Math.min(cursor, text.length))
+  const before = text.slice(0, pos)
+  const after = text.slice(pos)
+  const left =
+    before.length > 0 && !/\s$/.test(before) ? `${before} ` : before
+  const right =
+    after.length > 0 && !/^\s/.test(after) ? ` ${after}` : after
+  let next = `${left}${token}${right}`
+  let nextCursor = left.length + token.length
+  if (maxLength !== undefined && next.length > maxLength) {
+    next = next.slice(0, maxLength)
+    nextCursor = Math.min(nextCursor, next.length)
+  }
+  return { text: next, cursor: nextCursor }
+}
+
+/** Slash options limited to `/formel` (e.g. reason notes). */
+export function filterFormelSlashCommands(query: string): Array<SlashCommand> {
+  return filterSlashCommands(query).filter((cmd) => cmd.id === "formel")
+}
+
 /** Remove all `(n)` tokens for a math ref and tidy spaces. */
 function removeMathRefFromText(text: string, ref: number): string {
   const re = new RegExp(`\\(${ref}\\)`, "g")

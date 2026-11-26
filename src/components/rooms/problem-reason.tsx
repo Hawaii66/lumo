@@ -1,5 +1,20 @@
-import { Bookmark, Flame, GraduationCap, Lightbulb } from "lucide-react"
-import { useEffect, useState, type ComponentType } from "react"
+import { Bookmark, Flame, GraduationCap, Lightbulb, Sigma } from "lucide-react"
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type KeyboardEvent,
+} from "react"
+import { StaticMath } from "~/components/lumo/static-math"
+import {
+  ChatInputMathChips,
+  type ChatInputMathDraft,
+} from "~/components/rooms/chat-input/math-chips"
+import { ChatInputSlashTypeahead } from "~/components/rooms/chat-input/slash-typeahead"
+import { ComposerTextarea } from "~/components/rooms/composer-textarea"
+import { MathInputDialog } from "~/components/rooms/math-input-dialog"
 import { Button } from "~/components/ui/button"
 import {
   Dialog,
@@ -9,13 +24,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog"
-import { Textarea } from "~/components/ui/textarea"
+import {
+  composePromptWithMath,
+  filterFormelSlashCommands,
+  findSlashQueryAtCursor,
+  insertMathRefToken,
+  nextMathRef,
+  removeAndRenumberMathRefs,
+  splitTextWithInlineMath,
+  type SlashCommand,
+} from "~/lib/chat-composer"
 import {
   PROBLEM_REASON_IDS,
   PROBLEM_REASON_NOTE_MAX,
   type ProblemReasonId,
 } from "~/lib/problem-reasons"
 import { cn } from "~/lib/utils"
+
+const MAX_REASON_MATH_CHIPS = 4
 
 export type ProblemReasonEntry = {
   /** `""` = whole problem; otherwise `a`–`z`. */
@@ -287,99 +313,375 @@ function ProblemReasonPickDialog({
     initial?.reason ?? "hard",
   )
   const [note, setNote] = useState(initial?.note ?? "")
+  const [cursor, setCursor] = useState(0)
+  const [typeaheadOpen, setTypeaheadOpen] = useState(false)
+  const [typeaheadIndex, setTypeaheadIndex] = useState(0)
+  const [mathDrafts, setMathDrafts] = useState<Array<ChatInputMathDraft>>([])
+  const [mathDialogOpen, setMathDialogOpen] = useState(false)
+  const [editingMathId, setEditingMathId] = useState<string | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
+  const mathInsertCursorRef = useRef(0)
 
   useEffect(() => {
     if (!open) return
     setReason(initial?.reason ?? "hard")
     setNote(initial?.note ?? "")
+    setCursor(0)
+    setTypeaheadOpen(false)
+    setTypeaheadIndex(0)
+    setMathDrafts([])
+    setMathDialogOpen(false)
+    setEditingMathId(null)
   }, [open, initial])
+
+  const slashQuery = useMemo(
+    () => findSlashQueryAtCursor(note, cursor),
+    [note, cursor],
+  )
+  const slashOptions = useMemo(
+    () =>
+      slashQuery ? filterFormelSlashCommands(slashQuery.query) : [],
+    [slashQuery],
+  )
+  const showSlashTypeahead =
+    typeaheadOpen && slashQuery !== null && slashOptions.length > 0
+  const mathRefNumbers = useMemo(
+    () => mathDrafts.map((draft) => draft.ref),
+    [mathDrafts],
+  )
+  const editingDraft = editingMathId
+    ? mathDrafts.find((draft) => draft.id === editingMathId)
+    : undefined
+  const mathFull = mathDrafts.length >= MAX_REASON_MATH_CHIPS
+
+  useEffect(() => {
+    if (!slashQuery) {
+      setTypeaheadOpen(false)
+      return
+    }
+    setTypeaheadOpen(true)
+    setTypeaheadIndex(0)
+  }, [slashQuery?.start, slashQuery?.query])
+
+  useEffect(() => {
+    if (!showSlashTypeahead) return
+    optionRefs.current[typeaheadIndex]?.scrollIntoView({ block: "nearest" })
+  }, [showSlashTypeahead, typeaheadIndex])
 
   const named = letter !== undefined && letter !== ""
   const title = named
     ? `Markera deluppgift (${letter})`
     : "Markera uppgiften"
 
+  function handleOpenChange(next: boolean) {
+    // Keep the pick dialog open while the nested math dialog is up.
+    if (!next && mathDialogOpen) return
+    onOpenChange(next)
+  }
+
+  function syncCursorFromTextarea() {
+    const el = textareaRef.current
+    if (!el) return
+    setCursor(el.selectionStart)
+  }
+
+  function focusTextareaAt(pos: number) {
+    requestAnimationFrame(() => {
+      const el = textareaRef.current
+      if (!el) return
+      el.focus()
+      el.setSelectionRange(pos, pos)
+      setCursor(pos)
+    })
+  }
+
+  function stripSlashCommandFromNote(): number {
+    if (!slashQuery) return cursor
+    const before = note.slice(0, slashQuery.start)
+    const after = note.slice(cursor)
+    const next = `${before}${after}`
+    setNote(next)
+    const nextCursor = before.length
+    setCursor(nextCursor)
+    return nextCursor
+  }
+
+  function openMathDialog(editId?: string) {
+    if (editId === undefined && mathFull) return
+    setEditingMathId(editId ?? null)
+    setTypeaheadOpen(false)
+    setMathDialogOpen(true)
+  }
+
+  function openMathDialogAtCursor() {
+    mathInsertCursorRef.current = cursor
+    openMathDialog()
+  }
+
+  function runFormelCommand() {
+    mathInsertCursorRef.current = stripSlashCommandFromNote()
+    openMathDialog()
+  }
+
+  function handleMathConfirm(latex: string) {
+    if (editingMathId) {
+      setMathDrafts((current) =>
+        current.map((draft) =>
+          draft.id === editingMathId ? { ...draft, latex } : draft,
+        ),
+      )
+      setEditingMathId(null)
+      focusTextareaAt(cursor)
+      return
+    }
+
+    const ref = nextMathRef(mathDrafts)
+    setMathDrafts((current) => [
+      ...current,
+      { id: crypto.randomUUID(), ref, latex },
+    ])
+    let nextCursor = mathInsertCursorRef.current
+    setNote((current) => {
+      const inserted = insertMathRefToken(
+        current,
+        mathInsertCursorRef.current,
+        ref,
+      )
+      const next =
+        inserted.text.length > PROBLEM_REASON_NOTE_MAX
+          ? inserted.text.slice(0, PROBLEM_REASON_NOTE_MAX)
+          : inserted.text
+      nextCursor = Math.min(inserted.cursor, next.length)
+      mathInsertCursorRef.current = nextCursor
+      return next
+    })
+    setEditingMathId(null)
+    focusTextareaAt(nextCursor)
+  }
+
+  function removeMathDraft(draft: ChatInputMathDraft) {
+    const { text, drafts } = removeAndRenumberMathRefs(
+      note,
+      mathDrafts,
+      draft.id,
+    )
+    setNote(text)
+    setMathDrafts(drafts)
+  }
+
+  function handleNoteKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (showSlashTypeahead) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault()
+        setTypeaheadIndex((i) =>
+          i + 1 >= slashOptions.length ? 0 : i + 1,
+        )
+        return
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault()
+        setTypeaheadIndex((i) =>
+          i - 1 < 0 ? slashOptions.length - 1 : i - 1,
+        )
+        return
+      }
+      if (
+        event.key === "Enter" ||
+        event.key === "Tab" ||
+        event.key === " "
+      ) {
+        const option = slashOptions[typeaheadIndex]
+        if (option) {
+          event.preventDefault()
+          runFormelCommand()
+          return
+        }
+      }
+      if (event.key === "Escape") {
+        event.preventDefault()
+        setTypeaheadOpen(false)
+        return
+      }
+    }
+
+    // Exact `/formel` + Enter opens even if typeahead was dismissed.
+    if (event.key === "Enter" && !event.shiftKey && slashQuery) {
+      const exact = filterFormelSlashCommands(slashQuery.query)
+      if (exact.length === 1 && exact[0]!.command === slashQuery.query) {
+        event.preventDefault()
+        runFormelCommand()
+      }
+    }
+  }
+
+  function selectSlashOption(_option: SlashCommand) {
+    runFormelCommand()
+  }
+
+  function handleSave() {
+    const composed = composePromptWithMath(note, mathDrafts)
+    onSave(reason, composed.slice(0, PROBLEM_REASON_NOTE_MAX))
+  }
+
+  function handleMathDialogOpenChange(next: boolean) {
+    setMathDialogOpen(next)
+    if (!next) setEditingMathId(null)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            Välj en anledning och valfri anteckning. Max en markering per
-            uppgift.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-3">
-          <div
-            className="grid grid-cols-2 gap-2"
-            role="radiogroup"
-            aria-label="Anledning"
-          >
-            {PROBLEM_REASON_IDS.map((id) => {
-              const meta = REASON_META[id]
-              const Icon = meta.Icon
-              const selected = reason === id
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setReason(id)}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-medium transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                    selected
-                      ? meta.chipClassName
-                      : "border-border bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "size-3.5 shrink-0",
-                      selected ? meta.iconClassName : "text-muted-foreground",
-                    )}
-                    aria-hidden
-                  />
-                  {meta.label}
-                </button>
-              )
-            })}
-          </div>
-          <div className="grid gap-1.5">
-            <label
-              htmlFor="problem-reason-note"
-              className="text-xs font-medium text-muted-foreground"
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>
+              Välj en anledning och valfri anteckning. Max en markering per
+              uppgift.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div
+              className="grid grid-cols-2 gap-2"
+              role="radiogroup"
+              aria-label="Anledning"
             >
-              Anteckning (valfritt)
-            </label>
-            <Textarea
-              id="problem-reason-note"
-              value={note}
-              maxLength={PROBLEM_REASON_NOTE_MAX}
-              rows={3}
-              placeholder="Skriv något att komma ihåg…"
-              onChange={(event) => setNote(event.target.value)}
-            />
-            <p className="text-[10px] text-muted-foreground">
-              {note.length}/{PROBLEM_REASON_NOTE_MAX}
-            </p>
+              {PROBLEM_REASON_IDS.map((id) => {
+                const meta = REASON_META[id]
+                const Icon = meta.Icon
+                const selected = reason === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setReason(id)}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-medium transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                      selected
+                        ? meta.chipClassName
+                        : "border-border bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "size-3.5 shrink-0",
+                        selected
+                          ? meta.iconClassName
+                          : "text-muted-foreground",
+                      )}
+                      aria-hidden
+                    />
+                    {meta.label}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="grid gap-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <label
+                  htmlFor="problem-reason-note"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  Anteckning (valfritt)
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 px-2 text-xs"
+                  disabled={mathFull}
+                  onClick={openMathDialogAtCursor}
+                >
+                  <Sigma className="size-3.5" aria-hidden />
+                  Formel
+                </Button>
+              </div>
+              <ChatInputMathChips
+                drafts={mathDrafts}
+                onEdit={openMathDialog}
+                onRemove={removeMathDraft}
+              />
+              <div className="relative">
+                {showSlashTypeahead ? (
+                  <ChatInputSlashTypeahead
+                    options={slashOptions}
+                    selectedIndex={typeaheadIndex}
+                    optionRefs={optionRefs}
+                    onSelect={selectSlashOption}
+                  />
+                ) : null}
+                <ComposerTextarea
+                  ref={textareaRef}
+                  id="problem-reason-note"
+                  value={note}
+                  mathRefs={mathRefNumbers}
+                  maxLength={PROBLEM_REASON_NOTE_MAX}
+                  rows={3}
+                  placeholder="Skriv något att komma ihåg… /formel"
+                  onChange={(event) => {
+                    setNote(event.target.value)
+                    setCursor(event.target.selectionStart)
+                  }}
+                  onSelect={syncCursorFromTextarea}
+                  onClick={syncCursorFromTextarea}
+                  onKeyUp={syncCursorFromTextarea}
+                  onKeyDown={handleNoteKeyDown}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                {note.length}/{PROBLEM_REASON_NOTE_MAX}
+              </p>
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Avbryt
-          </Button>
-          <Button type="button" onClick={() => onSave(reason, note)}>
-            Spara
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Avbryt
+            </Button>
+            <Button type="button" onClick={handleSave}>
+              Spara
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <MathInputDialog
+        open={mathDialogOpen}
+        onOpenChange={handleMathDialogOpenChange}
+        initialLatex={editingDraft?.latex ?? ""}
+        onConfirm={handleMathConfirm}
+        title={editingDraft ? "Redigera formel" : "Skriv formel"}
+        confirmLabel={editingDraft ? "Spara" : "Lägg till"}
+      />
+    </>
+  )
+}
+
+function ReasonNoteText({ note }: { note: string }) {
+  const segments = splitTextWithInlineMath(note)
+  return (
+    <div className="whitespace-pre-wrap rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-sm">
+      {segments.map((segment, index) => {
+        if (segment.type === "math") {
+          return (
+            <StaticMath
+              key={`math-${index}`}
+              latex={segment.value}
+              display="inline"
+              className="mx-0.5 align-middle"
+            />
+          )
+        }
+        if (!segment.value) return null
+        return <span key={`text-${index}`}>{segment.value}</span>
+      })}
+    </div>
   )
 }
 
@@ -419,9 +721,7 @@ export function ProblemReasonDetailDialog({
           <DialogDescription>{meta.label}</DialogDescription>
         </DialogHeader>
         {entry.note !== undefined && entry.note.trim().length > 0 ? (
-          <p className="whitespace-pre-wrap rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-sm">
-            {entry.note}
-          </p>
+          <ReasonNoteText note={entry.note} />
         ) : (
           <p className="text-sm italic text-muted-foreground">
             Ingen anteckning
