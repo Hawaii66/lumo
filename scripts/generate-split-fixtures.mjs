@@ -143,9 +143,37 @@ async function waitUntilReady(contentHash) {
   }
 }
 
+/** Stable key order so fixtures match normalizeChunkForFixture / vitest. */
+function canonicalizeExpectedChunk(chunk) {
+  return {
+    problemNumber: chunk.problemNumber,
+    problemText: chunk.problemText,
+    answerText: chunk.answerText,
+    questionImages: [...(chunk.questionImages ?? [])].sort((a, b) =>
+      a.path === b.path
+        ? a.subproblemLetter.localeCompare(b.subproblemLetter)
+        : a.path.localeCompare(b.path),
+    ),
+    answerImages: [...(chunk.answerImages ?? [])].sort((a, b) =>
+      a.path === b.path
+        ? a.subproblemLetter.localeCompare(b.subproblemLetter)
+        : a.path.localeCompare(b.path),
+    ),
+    ...(chunk.sourceQuestionPageIdx !== undefined
+      ? { sourceQuestionPageIdx: chunk.sourceQuestionPageIdx }
+      : {}),
+    ...(chunk.sourceAnswerPageIdx !== undefined
+      ? { sourceAnswerPageIdx: chunk.sourceAnswerPageIdx }
+      : {}),
+  };
+}
+
 function writeFixture(suggestedName, bundle) {
   const dir = join(fixturesRoot, suggestedName);
   mkdirSync(dir, { recursive: true });
+  const expected = Array.isArray(bundle.expected)
+    ? bundle.expected.map(canonicalizeExpectedChunk)
+    : bundle.expected;
   writeFileSync(
     join(dir, "middle.json"),
     `${JSON.stringify(bundle.middle, null, 2)}\n`,
@@ -156,7 +184,7 @@ function writeFixture(suggestedName, bundle) {
   );
   writeFileSync(
     join(dir, "expected.json"),
-    `${JSON.stringify(bundle.expected, null, 2)}\n`,
+    `${JSON.stringify(expected, null, 2)}\n`,
   );
   return dir;
 }

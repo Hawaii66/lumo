@@ -91,10 +91,32 @@ function formatPerProblemDiff(
     }
   }
 
+  const expectedOrder = expected.map((c) => c.problemNumber).join(",");
+  const actualOrder = actual.map((c) => c.problemNumber).join(",");
   if (lines.length === 0) {
-    return "(no per-problem field diffs — order or count mismatch)";
+    if (expectedOrder !== actualOrder) {
+      return `chunk order differs\n  expected: ${expectedOrder}\n  actual:   ${actualOrder}`;
+    }
+    return "(no semantic per-problem diffs — check key order / serialization)";
   }
   return lines.join("\n");
+}
+
+/** Rebuild with stable field order (Convex HTTP JSON may alphabetize keys). */
+function canonicalizeChunk(chunk: NormalizedSplitChunk): NormalizedSplitChunk {
+  return normalizeChunkForFixture({
+    problemNumber: chunk.problemNumber,
+    problemText: chunk.problemText,
+    answerText: chunk.answerText,
+    questionImages: chunk.questionImages ?? [],
+    answerImages: chunk.answerImages ?? [],
+    ...(chunk.sourceQuestionPageIdx !== undefined
+      ? { sourceQuestionPageIdx: chunk.sourceQuestionPageIdx }
+      : {}),
+    ...(chunk.sourceAnswerPageIdx !== undefined
+      ? { sourceAnswerPageIdx: chunk.sourceAnswerPageIdx }
+      : {}),
+  });
 }
 
 function listFixtureDirs(): string[] {
@@ -134,21 +156,21 @@ describe("problem split dry-run fixtures", () => {
       const actual = detectProblemChunks(middle, format).map(
         normalizeChunkForFixture,
       );
-      const expected = expectedRaw as NormalizedSplitChunk[];
+      const expected = (expectedRaw as NormalizedSplitChunk[]).map(
+        canonicalizeChunk,
+      );
 
-      if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      try {
+        expect(actual).toEqual(expected);
+      } catch (err) {
         const perProblem = formatPerProblemDiff(expected, actual);
-        expect.soft(actual.map((c) => c.problemNumber)).toEqual(
-          expected.map((c) => c.problemNumber),
-        );
         throw new Error(
           `Split dry-run mismatch for fixture "${name}".\n` +
             `Per-problem changes:\n${perProblem}\n` +
-            `expected ${expected.length} chunks, got ${actual.length}`,
+            `expected ${expected.length} chunks, got ${actual.length}\n` +
+            (err instanceof Error ? err.message : String(err)),
         );
       }
-
-      expect(actual).toEqual(expected);
     });
   }
 });
