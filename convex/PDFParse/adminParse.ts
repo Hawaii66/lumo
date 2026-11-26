@@ -14,8 +14,17 @@ import {
 import { problemFlagValidator } from "../lib/lumoContent";
 import { isShadowProblem } from "../lib/problemAccess";
 import { requireAdmin } from "../lib/roles";
-import { detectProblemChunks } from "./middleJson";
+import { ensureMiddleJson } from "./getOrFetchMiddleJson";
+import { detectProblemChunks, sampleBlockLeads } from "./middleJson";
 import { middleJsonSchema } from "./mineruSchema";
+import {
+  problemNumberFormatValidator,
+  type ProblemNumberFormat,
+} from "./problemNumberFormat";
+import {
+  normalizeChunkForFixture,
+  suggestFixtureName,
+} from "./splitFixture";
 
 const MAX_STATUS_UPDATES = 40;
 const MAX_RECENT_RUNS = 40;
@@ -346,7 +355,8 @@ const splitChunkValidator = v.object({
 });
 
 /**
- * Live problem-split preview from MinerU cache only (no AI).
+ * Live problem-split preview from MinerU cache:
+ * format-detect AI once, then deterministic split (no per-problem convert).
  * Returns null when cache is missing.
  */
 export const previewProblemSplit = action({
@@ -354,6 +364,7 @@ export const previewProblemSplit = action({
   returns: v.union(
     v.null(),
     v.object({
+      format: problemNumberFormatValidator,
       chunkCount: v.number(),
       chunks: v.array(splitChunkValidator),
     }),
@@ -395,8 +406,13 @@ export const previewProblemSplit = action({
       throw new Error("MinerU-cachen är korrupt");
     }
 
-    const chunks = detectProblemChunks(parsed.data);
+    const format: ProblemNumberFormat = await ctx.runAction(
+      internal.PDFParse.lumoFormatAgent.detectProblemNumberFormat,
+      { userId, leads: sampleBlockLeads(parsed.data) },
+    );
+    const chunks = detectProblemChunks(parsed.data, format);
     return {
+      format,
       chunkCount: chunks.length,
       chunks: chunks.map((chunk) => ({
         problemNumber: chunk.problemNumber,
@@ -411,6 +427,179 @@ export const previewProblemSplit = action({
         questionImageCount: chunk.questionImages.length,
         answerImageCount: chunk.answerImages.length,
       })),
+    };
+  },
+});
+
+const fixtureImageRefValidator = v.object({
+  path: v.string(),
+  subproblemLetter: v.string(),
+});
+
+const fixtureChunkValidator = v.object({
+  problemNumber: v.string(),
+  problemText: v.string(),
+  answerText: v.string(),
+  questionImages: v.array(fixtureImageRefValidator),
+  answerImages: v.array(fixtureImageRefValidator),
+  sourceQuestionPageIdx: v.optional(v.number()),
+  sourceAnswerPageIdx: v.optional(v.number()),
+});
+
+/**
+ * Register an uploaded PDF for fixture export (admin only).
+ * Returns contentHash used for MinerU cache + fixture naming.
+ */
+export const registerFixturePdf = mutation({
+  args: {
+    storageId: v.id("_storage"),
+    name: v.string(),
+  },
+  returns: v.object({
+    contentHash: v.string(),
+    name: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const metadata = await ctx.db.system.get("_storage", args.storageId);
+    if (metadata === null) {
+      throw new Error("PDF-filen hittades inte i lagringen");
+    }
+    const contentType = (metadata.contentType ?? "").toLowerCase();
+    if (
+      contentType !== "application/pdf" &&
+      contentType !== "application/octet-stream" &&
+      !args.name.toLowerCase().endsWith(".pdf")
+    ) {
+      throw new Error("Endast PDF-filer är tillåtna");
+    }
+    return {
+      contentHash: metadata.sha256,
+      name: args.name,
+    };
+  },
+});
+
+/** Whether MinerU middle_json is cached for this content hash. */
+export const getMineruCacheReady = query({
+  args: { contentHash: v.string() },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    if ((await softRequireAdmin(ctx)) === null) {
+      return false;
+    }
+    const row = await ctx.db
+      .query("mineruCache")
+      .withIndex("by_contentHash", (q) =>
+        q.eq("contentHash", args.contentHash),
+      )
+      .first();
+    return row !== null;
+  },
+});
+
+/**
+ * Start MinerU if needed for fixture export. Returns ready|pending;
+ * client polls getMineruCacheReady while pending.
+ */
+export const ensureMineruForFixture = action({
+  args: {
+    contentHash: v.string(),
+    storageId: v.id("_storage"),
+  },
+  returns: v.union(v.literal("ready"), v.literal("pending")),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+    const adminId: Id<"users"> | null = await ctx.runQuery(
+      internal.PDFParse.adminParse.getAdminUserIdInternal,
+      {},
+    );
+    if (adminId === null || adminId !== userId) {
+      throw new Error("Endast admin");
+    }
+
+    const ensured = await ensureMiddleJson(
+      ctx,
+      args.contentHash,
+      args.storageId,
+      undefined,
+    );
+    return ensured.status === "ready" ? "ready" : "pending";
+  },
+});
+
+/**
+ * Bundle middle_json + format + expected chunks for a dry-run fixture download.
+ * Same split path as preview; expected matches problemSplit.dry.test.ts.
+ */
+export const exportSplitFixture = action({
+  args: {
+    contentHash: v.string(),
+    /** Optional PDF / run name used to suggest the fixture directory name. */
+    name: v.optional(v.string()),
+  },
+  returns: v.union(
+    v.null(),
+    v.object({
+      suggestedName: v.string(),
+      middle: v.any(),
+      format: problemNumberFormatValidator,
+      expected: v.array(fixtureChunkValidator),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Du måste vara inloggad");
+    }
+    const adminId: Id<"users"> | null = await ctx.runQuery(
+      internal.PDFParse.adminParse.getAdminUserIdInternal,
+      {},
+    );
+    if (adminId === null || adminId !== userId) {
+      throw new Error("Endast admin");
+    }
+
+    const cached: {
+      _id: Id<"mineruCache">;
+      middleJsonStorageId: Id<"_storage">;
+      imageAssets: Array<{ path: string; storageId: Id<"_storage"> }>;
+      zipStorageId: Id<"_storage"> | null;
+    } | null = await ctx.runQuery(
+      internal.PDFParse.mineruCache.getByContentHash,
+      { contentHash: args.contentHash },
+    );
+    if (cached === null) {
+      return null;
+    }
+
+    const blob = await ctx.storage.get(cached.middleJsonStorageId);
+    if (blob === null) {
+      throw new Error("MinerU-cachen saknar data");
+    }
+    const parsed = middleJsonSchema.safeParse(
+      JSON.parse(await blob.text()),
+    );
+    if (!parsed.success) {
+      throw new Error("MinerU-cachen är korrupt");
+    }
+
+    const format: ProblemNumberFormat = await ctx.runAction(
+      internal.PDFParse.lumoFormatAgent.detectProblemNumberFormat,
+      { userId, leads: sampleBlockLeads(parsed.data) },
+    );
+    const expected = detectProblemChunks(parsed.data, format).map(
+      normalizeChunkForFixture,
+    );
+
+    return {
+      suggestedName: suggestFixtureName(args.name ?? "split-fixture"),
+      middle: parsed.data,
+      format,
+      expected,
     };
   },
 });
