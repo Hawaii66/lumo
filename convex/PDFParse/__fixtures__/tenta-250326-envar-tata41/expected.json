@@ -1,43 +1,50 @@
 [
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "1",
     "problemText": "1. Undersök gränsvärdena\n(a) \\lim_{x \\to 0^{+}} \\frac{\\sin \\sqrt{2x}}{e^{\\sqrt{3x}} - 1}\n(b) \\lim_{x \\to 2} \\frac{x^2 + x - 6}{\\ln(5 - 2x)}\n(c) \\lim_{x \\to \\infty} \\frac{\\ln(2x^3 + e^{4x})}{x}.",
+    "answerText": "(a) \\sqrt { \\frac { 2 } { 3 } } (b) -\\frac{5}{2} (c) 4.",
     "questionImages": [],
-    "sourceQuestionPageIdx": 0
+    "answerImages": [],
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
   },
   {
+    "problemNumber": "2",
+    "problemText": "2. Skissa grafen till funktionen f ( x ) = 6 \\ln | x - 2 | - x ^ { 2 } . Ange alla lodräta/vågräta asymptoter samt lokala extrempunkter till f .\nDel A2 - Integralkalkyl",
+    "answerText": "För graf, se ovan. f har lokala maximipunkter i x = - 1 (med det lokala maximivärdet f ( - 1 ) = 6 \\ln 3 - 1 ) och \\mathrm { ~ i ~ } x = 3 (med det lokala maximivärdet f ( 3 ) = - 9 ) . Lokala minimipunkter saknas. Linjen x = 2 är lodrät asymptot och vågräta asymptoter saknas.",
+    "questionImages": [],
     "answerImages": [
       {
         "path": "images/page_2_image_9.jpg",
         "subproblemLetter": ""
       }
     ],
-    "answerText": "För graf, se ovan. f har lokala maximipunkter i x = - 1 (med det lokala maximivärdet f ( - 1 ) = 6 \\ln 3 - 1 ) och \\mathrm { ~ i ~ } x = 3 (med det lokala maximivärdet f ( 3 ) = - 9 ) . Lokala minimipunkter saknas. Linjen x = 2 är lodrät asymptot och vågräta asymptoter saknas.\n3a) Partialintegration av en etta ger\n\\int_{0}^{2} \\ln(x + 1) dx = \\left[ (x + 1)\\ln(x + 1) \\right]_{0}^{2} - \\int_{0}^{2} (x + 1) \\cdot \\frac{1}{x + 1} dx = 3\\ln 3 - \\left[ x \\right]_{0}^{2} = 3\\ln 3 - 2.\nAnmärkning: Att använda x som primitiv till 1 istället för x + 1 funkar förstås också, men ger lite längre räkningar.\n3b) Bytet t = e^{2x} \\Rightarrow dt = 2e^{2x} dx = 2t dx \\Leftrightarrow dx = \\frac{dt}{2t} följt av partialbråksuppdelning ger\n\\begin{aligned} { \\int \\displaylimits _ { 0 } ^ { a } \\frac { d x } { e ^ { 2 x } + 1 } = } & { { } / b = e ^ { 2 a } / = \\int \\displaylimits _ { 1 } ^ { b } \\frac { d t } { 2 t ( t + 1 ) } = \\frac { 1 } { 2 } \\int \\displaylimits _ { 1 } ^ { b } \\left( \\frac { 1 } { t } - \\frac { 1 } { t + 1 } \\right) \\: d t = \\frac { 1 } { 2 } \\left[ \\operatorname { l n } \\left| \\frac { t } { t + 1 } \\right| \\right] _ { 1 } ^ { b } } \\\\ { = } & { { } \\frac { 1 } { 2 } \\left( \\operatorname { l n } \\frac { b } { b + 1 } - \\operatorname { l n } \\frac { 1 } { 2 } \\right) = \\frac { 1 } { 2 } \\left( \\operatorname { l n } 2 - \\operatorname { l n } \\left( 1 + \\frac { 1 } { b } \\right) \\right) \\to \\frac { \\operatorname { l n } 2 } { 2 } , \\; b \\to \\infty , } \\\\ \\end{aligned}\nså \\int \\limits _ { 0 } ^ { a } \\frac { d x } { e ^ { 2 x } + 1 } \\rightarrow \\frac { \\ln 2 } { 2 } , \\; a \\rightarrow \\infty . \\; \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } är alltså konvergent och \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } = \\frac { \\ln 2 } { 2 } .\nAnmärkning: Bytet t = e ^ { - 2 x } fungerar också och ger aningen kortare räkningar.\nSvar: (a) 3 ln 3 − 2 (b) \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } = \\frac { \\ln 2 } { 2 } och är därmed konvergent.\n4a) Variabelbytet t = \\sqrt{x - 3} \\Leftrightarrow x = t^{2} + 3 , \\; t \\geq 0 \\Rightarrow dx = 2tdt ger att\n\\int \\frac{x}{\\sqrt{x - 3}} dx = \\int \\frac{t^2 + 3}{t} \\cdot 2t dt = \\frac{2t^3}{3} + 6t + C = \\frac{2}{3}(x + 6)\\sqrt{x - 3} + C,\ndär C är en godtycklig konstant.\n4b) Trigonometriska ettan samt bytet t = cos x, dt = − sin x dx ger (C är en godtycklig konstant):\n\\begin{aligned}\\int \\frac{\\sin x}{3 - \\sin^2 x} dx &= \\int \\frac{\\sin x}{2 + \\cos^2 x} dx = - \\frac{1}{2} \\int \\frac{dt}{1 + \\left( \\frac{t}{\\sqrt{2}} \\right)^2} = - \\frac{1}{2} \\cdot \\sqrt{2} \\arctan \\left( \\frac{t}{\\sqrt{2}} \\right) + C \\\\&= - \\frac{1}{\\sqrt{2}} \\arctan \\left( \\frac{1}{\\sqrt{2}} \\cos x \\right) + C.\\end{aligned}\n4c) Jämn funktion, symmetriskt intervall ger (I = sökt integral):\nI = 2 \\int \\limits _ { 0 } ^ { 1 / 2 } x \\sin ( \\pi x ) dx = \\frac { 2 } { \\pi } \\left[ - x \\cos ( \\pi x ) \\right] _ { 0 } ^ { 1 / 2 } + \\frac { 2 } { \\pi } \\int \\limits _ { 0 } ^ { 1 / 2 } \\cos ( \\pi x ) dx = \\frac { 2 } { \\pi ^ { 2 } } \\left[ \\sin ( \\pi x ) \\right] _ { 0 } ^ { 1 / 2 } = \\frac { 2 } { \\pi ^ { 2 } } .\n2 -\\frac{1}{\\sqrt{2}}\\arctan\\left(\\frac{1}{\\sqrt{2}}\\cos x\\right)+C 2 Svar: (a) 3 (x + 6)√x − 3 + C (b) (c) π2.",
-    "problemNumber": "2",
-    "problemText": "2. Skissa grafen till funktionen f ( x ) = 6 \\ln | x - 2 | - x ^ { 2 } . Ange alla lodräta/vågräta asymptoter samt lokala extrempunkter till f .\nDel A2 - Integralkalkyl",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 2,
-    "sourceQuestionPageIdx": 0
+    "sourceQuestionPageIdx": 0,
+    "sourceAnswerPageIdx": 2
   },
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "3",
     "problemText": "3. (a) Beräkna \\int\\limits_{0}^{2} \\ln(x + 1) dx.\n(b) Beräkna \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } eller visa divergens.",
+    "answerText": "(a) 3 ln 3 − 2 (b) \\int \\limits _ { 0 } ^ { \\infty } \\frac { d x } { e ^ { 2 x } + 1 } = \\frac { \\ln 2 } { 2 } och är därmed konvergent.",
     "questionImages": [],
-    "sourceQuestionPageIdx": 1
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 3
   },
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "4",
     "problemText": "4. Beräkna (a) \\int \\frac{x}{\\sqrt{x - 3}} dx (b) \\int \\frac{\\sin x}{3 - \\sin^2 x} dx (c) \\int \\limits _ { - 1 / 2 } ^ { 1 / 2 } x \\sin ( \\pi x ) dx.\nDel B",
+    "answerText": "(a) 3 (x + 6)√x − 3 + C (b) (c) π2.",
     "questionImages": [],
-    "sourceQuestionPageIdx": 1
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 3
   },
   {
+    "problemNumber": "5",
+    "problemText": "5. Låt f(x) \\; = \\; \\frac{2x - 11}{x - 1}e^{x} . Bestäm alla värden på den reella konstanten k sådana att ekvationen f ( x ) = k har exakt 3 olika lösningar.",
+    "answerText": "- e ^ { 4 } < k < - 4 e ^ { 5 / 2 }",
+    "questionImages": [],
     "answerImages": [
       {
         "path": "images/page_4_image_3.jpg",
@@ -48,33 +55,30 @@
         "subproblemLetter": ""
       }
     ],
-    "answerText": "- e ^ { 4 } < k < - 4 e ^ { 5 / 2 }\n6a) Se kursboken eller föreläsningsanteckningarna.\n6b) Omflyttning av termer följt av konjugatförlängning ger\n\\begin{aligned} { \\frac { f ( x + h ) - f ( x ) } { h } \\: = \\: } & { { } \\frac { ( x + h ) \\sqrt { x + h } - x \\sqrt { x } } { h } = \\sqrt { x + h } + x \\cdot \\frac { \\sqrt { x + h } - \\sqrt { x } } { h } } \\\\ { \\: = \\: } & { { } \\sqrt { x + h } + \\frac { x ( x + h - x ) } { h ( \\sqrt { x + h } + \\sqrt { x } ) } = \\sqrt { x + h } + \\frac { x } { \\sqrt { x + h } + \\sqrt { x } } } \\\\ { \\: \\to \\: } & { { } \\sqrt { x } + \\frac { x } { \\sqrt { x } + \\sqrt { x } } = \\frac { 3 } { 2 } \\sqrt { x } \\: , \\: h \\to 0 } \\\\ \\end{aligned}\nty \\sqrt { x } är kontinuerlig för x > 0 . Detta visar att f^{\\prime}(x) = \\frac{3}{2}\\sqrt{x} för x > 0\nAnmärkning: Konjugatförlängning direkt (alltså utan att först dela upp i två termer) funkar också och ger något kortare räkningar.\n6c) Sätt f(x) = \\tan x . Enligt medelvärdessatsen finns ett tal \\xi mellan x och y sådant att\n\\operatorname { t a n } x - \\operatorname { t a n } y = f ( x ) - f ( y ) = f ^ { \\prime } ( \\xi ) ( x - y ) = \\frac { 1 } { \\operatorname { c o s } ^ { 2 } \\xi } ( x - y ) .\nTa belopp av båda led och notera att − \\cdot \\frac{\\pi}{4} \\leq \\xi \\leq \\frac{\\pi}{4} \\text { (ty } \\xi mellan x och y) så att cos \\xi \\geq \\frac { 1 } { \\sqrt { 2 } } \\Rightarrow \\frac { 1 } { \\cos ^ { 2 } \\xi } \\leq 2 . Detta ger att | \\tan x - \\tan y | = \\frac{1}{\\cos^2 \\xi} | x - y | \\leq 2 | x - y | vilket skulle visas.\nSvar: (a) Se kursboken eller föreläsningsanteckningarna. (b) Se ovan. (c) Se ovan.",
-    "problemNumber": "5",
-    "problemText": "5. Låt f(x) \\; = \\; \\frac{2x - 11}{x - 1}e^{x} . Bestäm alla värden på den reella konstanten k sådana att ekvationen f ( x ) = k har exakt 3 olika lösningar.",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 4,
-    "sourceQuestionPageIdx": 1
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 4
   },
   {
-    "answerImages": [],
-    "answerText": "",
     "problemNumber": "6",
     "problemText": "6. (a) Låt f vara definierad för alla x \\in \\mathbf { R } . Ange definitionen av f ^ { \\prime } ( x )\n(b) Derivera f ( x ) = x { \\sqrt { x } } för x > 0 med hjälp av definitionen av derivata.\n(c) Låt x,y \\in \\left[ - \\frac{\\pi}{4}, \\frac{\\pi}{4} \\right] . Visa att | tan |x - \\tan y| \\leq 2|x - y|",
+    "answerText": "(a) Se kursboken eller föreläsningsanteckningarna. (b) Se ovan. (c) Se ovan.",
     "questionImages": [],
-    "sourceQuestionPageIdx": 1
+    "answerImages": [],
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 4
   },
   {
+    "problemNumber": "7",
+    "problemText": "7. Låt a < b . Skissa grafen till funktionen f(x) = \\lim_{\\varepsilon \\to 0^{+}} \\int\\limits_{a}^{b} \\frac{\\varepsilon}{(x - t)^2 + \\varepsilon^2} dt.\nLINKOPINGS UNIVERSITET¨ Matematiska institutionen\nTATA41 TEN1\nLösningsskisser för TATA41 250326",
+    "answerText": "7) Variabelbytet y = \\frac{x - t}{\\varepsilon} så att d t = - \\varepsilon d y ger att\n\\int \\limits _ { a } ^ { b } \\frac { \\varepsilon } { ( x - t ) ^ { 2 } + \\varepsilon ^ { 2 } } dt = \\frac { 1 } { \\varepsilon } \\int \\limits _ { a } ^ { b } \\frac { d t } { ( \\frac { x - t } { \\varepsilon } ) ^ { 2 } + 1 } = \\int \\limits _ { \\frac { x - b } { \\varepsilon } } ^ { \\frac { x - a } { \\varepsilon } } \\frac { d y } { y ^ { 2 } + 1 } = \\arctan \\frac { x - a } { \\varepsilon } - \\arctan \\frac { x - b } { \\varepsilon } .\nObservera att arctan \\frac { x - a } { \\varepsilon } \\rightarrow \\frac { \\pi } { 2 } , \\; \\varepsilon \\rightarrow 0 ^ { + } om x > a och att arctan \\frac { x - a } { \\varepsilon } \\rightarrow - \\frac { \\pi } { 2 } , \\; \\varepsilon \\rightarrow 0 ^ { + } om x < a . Om x = a är förstås arctan \\frac{x - a}{\\varepsilon} = 0 för alla \\varepsilon > 0 så arctan \\frac { \\widetilde { x - a } } { \\varepsilon } \\rightarrow 0 , \\; \\varepsilon \\rightarrow 0 ^ { + } . Genom att hantera andra termen på liknande sätt får vi att f ( x ) = { \\left\\{ \\begin{array} { c l l } { { 0 } } & { { \\mathrm { o m } } } & { { x < a { \\mathrm { ~ e l l e r ~ } } x > b } } \\\\ { { \\pi / 2 } } & { { \\mathrm { o m } } } & { { x = a { \\mathrm { ~ e l l e r ~ } } x = b } } \\\\ { { \\pi } } & { { \\mathrm { o m } } } & { { a < x < b } } \\end{array} \\right. }\nDetta ger grafen\nSvar: Se ovan.",
+    "questionImages": [],
     "answerImages": [
       {
         "path": "images/page_5_image_9.jpg",
         "subproblemLetter": ""
       }
     ],
-    "answerText": "7) Variabelbytet y = \\frac{x - t}{\\varepsilon} så att d t = - \\varepsilon d y ger att\n\\int \\limits _ { a } ^ { b } \\frac { \\varepsilon } { ( x - t ) ^ { 2 } + \\varepsilon ^ { 2 } } dt = \\frac { 1 } { \\varepsilon } \\int \\limits _ { a } ^ { b } \\frac { d t } { ( \\frac { x - t } { \\varepsilon } ) ^ { 2 } + 1 } = \\int \\limits _ { \\frac { x - b } { \\varepsilon } } ^ { \\frac { x - a } { \\varepsilon } } \\frac { d y } { y ^ { 2 } + 1 } = \\arctan \\frac { x - a } { \\varepsilon } - \\arctan \\frac { x - b } { \\varepsilon } .\nObservera att arctan \\frac { x - a } { \\varepsilon } \\rightarrow \\frac { \\pi } { 2 } , \\; \\varepsilon \\rightarrow 0 ^ { + } om x > a och att arctan \\frac { x - a } { \\varepsilon } \\rightarrow - \\frac { \\pi } { 2 } , \\; \\varepsilon \\rightarrow 0 ^ { + } om x < a . Om x = a är förstås arctan \\frac{x - a}{\\varepsilon} = 0 för alla \\varepsilon > 0 så arctan \\frac { \\widetilde { x - a } } { \\varepsilon } \\rightarrow 0 , \\; \\varepsilon \\rightarrow 0 ^ { + } . Genom att hantera andra termen på liknande sätt får vi att f ( x ) = { \\left\\{ \\begin{array} { c l l } { { 0 } } & { { \\mathrm { o m } } } & { { x < a { \\mathrm { ~ e l l e r ~ } } x > b } } \\\\ { { \\pi / 2 } } & { { \\mathrm { o m } } } & { { x = a { \\mathrm { ~ e l l e r ~ } } x = b } } \\\\ { { \\pi } } & { { \\mathrm { o m } } } & { { a < x < b } } \\end{array} \\right. }\nDetta ger grafen\nSvar: Se ovan.",
-    "problemNumber": "7",
-    "problemText": "7. Låt a < b . Skissa grafen till funktionen f(x) = \\lim_{\\varepsilon \\to 0^{+}} \\int\\limits_{a}^{b} \\frac{\\varepsilon}{(x - t)^2 + \\varepsilon^2} dt.\nLINKOPINGS UNIVERSITET¨ Matematiska institutionen\nTATA41 TEN1\nLösningsskisser för TATA41 250326\n1a) \\lim_{x \\to 0} \\frac{\\sin \\sqrt{2x}}{e^{\\sqrt{3x}} - 1} = \\lim_{x \\to 0} \\frac{\\sin \\sqrt{2x}}{\\sqrt{2x}} \\cdot \\frac{\\sqrt{2}}{\\sqrt{3}} \\cdot \\frac{1}{\\frac{e^{\\sqrt{3x}} - 1}{\\sqrt{3x}}} = 1 \\cdot \\sqrt{\\frac{2}{3}} \\cdot \\frac{1}{1} = \\sqrt{\\frac{2}{3}} enligt standardgränsvärden.\n1b) \\frac { x ^ { 2 } + x - 6 } { \\operatorname { l n } ( 5 - 2 x ) } = \\frac { ( x - 2 ) ( x + 3 ) } { \\operatorname { l n } ( 1 - 2 ( x - 2 ) ) } = / t = x - 2 / = \\frac { t ( t + 5 ) } { \\operatorname { l n } ( 1 - 2 t ) } = \\frac { t + 5 } { \\frac { \\operatorname { l n } ( 1 - 2 t ) } { - 2 t } \\cdot ( - 2 ) } \\to - \\frac { 5 } { 2 } , \\; t \\to 0 , 2t d v s då x \\to 2 , enligt ett standardgränsvärde.\n1c) \\begin{aligned} &\\frac{\\ln(2x^{3}+e^{4x})}{x}=\\frac{\\ln e^{4x}+\\ln\\left(1+\\frac{2x^{3}}{e^{4x}}\\right)}{x}=4+\\frac{1}{x}\\ln\\left(1+\\frac{2}{4^{3}}\\cdot\\frac{(4x)^{3}}{e^{4x}}\\right)\\rightarrow4+0\\cdot\\ln\\left(1+\\frac{2}{4^{3}}\\cdot0\\right)\\\\ &=4,\\ x\\rightarrow\\infty\\ \\mathrm{enlight}\\ \\mathrm{et}\\ \\mathrm{standardgirnsv}\\mathrm{i}\\mathrm{r}\\mathrm{d}\\mathrm{e}.\\\\ \\end{aligned}",
-    "questionImages": [],
-    "sourceAnswerPageIdx": 5,
-    "sourceQuestionPageIdx": 1
+    "sourceQuestionPageIdx": 1,
+    "sourceAnswerPageIdx": 5
   }
 ]
