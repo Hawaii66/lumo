@@ -9,6 +9,7 @@ import {
   chatModelLevelValidator,
   problemFlagValidator,
 } from "./lib/lumoContent";
+import { problemReportReasonValidator } from "./lib/problemReports";
 
 export default defineSchema({
   ...authTables,
@@ -681,13 +682,7 @@ export default defineSchema({
     problemId: v.id("problems"),
     roomId: v.id("rooms"),
     reporterUserId: v.id("users"),
-    reason: v.union(
-      v.literal("wrong_problem"),
-      v.literal("wrong_answer"),
-      v.literal("missing_figure"),
-      v.literal("wrong_formatting"),
-      v.literal("other"),
-    ),
+    reason: problemReportReasonValidator,
     details: v.string(),
     status: v.union(
       v.literal("open"),

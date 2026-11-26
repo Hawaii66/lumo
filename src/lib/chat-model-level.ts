@@ -58,5 +58,5 @@ export function chatModelLevelLabel(
 ): string {
   const entry = levels.find((row) => row.level === level)
   if (entry === undefined) return `Nivå ${level}`
-  return `${entry.name} · ${entry.creditCost}`
+  return `${entry.name} ${entry.creditCost}`
 }

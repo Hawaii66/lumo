@@ -49,6 +49,30 @@ const MAX_IMAGES = 4
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_MATH_CHIPS = 4
 
+function isTextEntryTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  const tag = target.tagName
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT"
+}
+
+function isInsideOverlay(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false
+  return (
+    target.closest(
+      "[data-slot='dialog-content'], [data-slot='dropdown-menu-content'], [role='dialog'], [role='menu'], [role='listbox']",
+    ) !== null
+  )
+}
+
+function hasOpenLayer(): boolean {
+  return (
+    document.querySelector(
+      "[data-slot='dialog-content'][data-open], [data-slot='dropdown-menu-content'][data-open], [role='menu'][data-open], [role='listbox'][data-open]",
+    ) !== null
+  )
+}
+
 export type UseChatInputComposerArgs = {
   problemGroups: Array<RoomProblemGroup> | undefined
   onSubmit: (payload: ChatInputSubmitPayload) => Promise<void> | void
@@ -60,6 +84,8 @@ export type UseChatInputComposerArgs = {
   modelLevel?: ChatModelLevel
   onModelLevelChange?: (level: ChatModelLevel) => void | Promise<void>
   focusSignal?: number
+  /** Focus the composer and insert the key when the user types outside a field. */
+  captureTyping?: boolean
 }
 
 export function useChatInputComposer({
@@ -73,6 +99,7 @@ export function useChatInputComposer({
   modelLevel,
   onModelLevelChange,
   focusSignal,
+  captureTyping = false,
 }: UseChatInputComposerArgs) {
   const creditConfig = useQuery(api.credits.getConfig)
   const modelLevels = useMemo(
@@ -103,6 +130,16 @@ export function useChatInputComposer({
   const [typeaheadIndex, setTypeaheadIndex] = useState(0)
   const [typeaheadOpen, setTypeaheadOpen] = useState(true)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const promptRef = useRef(prompt)
+  promptRef.current = prompt
+  const captureBlockedRef = useRef(false)
+  captureBlockedRef.current =
+    pending ||
+    mathDialogOpen ||
+    filePickerOpen ||
+    phoneScanOpen ||
+    modeMenuOpen ||
+    modelMenuOpen
   const typeaheadOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const modeOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const modelOptionRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -255,6 +292,47 @@ export function useChatInputComposer({
       textareaRef.current?.focus()
     })
   }, [focusSignal])
+
+  useEffect(() => {
+    if (!captureTyping) return
+
+    function onKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.defaultPrevented || event.isComposing) return
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      if (event.key.length !== 1) return
+      if (captureBlockedRef.current || hasOpenLayer()) return
+
+      const target = event.target
+      if (isTextEntryTarget(target) || isInsideOverlay(target)) return
+      if (
+        (event.key === " " || event.key === "Enter") &&
+        target instanceof Element &&
+        target.closest("button, a, [role='button']")
+      ) {
+        return
+      }
+
+      const el = textareaRef.current
+      if (!el || el.disabled) return
+
+      event.preventDefault()
+      const next = promptRef.current + event.key
+      const nextCursor = next.length
+      setPrompt(next)
+      setCursor(nextCursor)
+      el.focus()
+      requestAnimationFrame(() => {
+        const node = textareaRef.current
+        if (!node) return
+        node.focus()
+        const pos = Math.min(nextCursor, node.value.length)
+        node.setSelectionRange(pos, pos)
+      })
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [captureTyping])
 
   function openMathDialog(editId?: string) {
     if (editId === undefined && mathDrafts.length >= MAX_MATH_CHIPS) {

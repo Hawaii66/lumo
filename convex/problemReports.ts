@@ -16,6 +16,7 @@ import {
   MAX_ADMIN_REPORTS_LIST,
   MAX_REPORT_DETAILS_LENGTH,
   PROBLEM_REPORT_REASON_LABELS,
+  problemReportReasonInputValidator,
   problemReportReasonValidator,
   problemReportStatusValidator,
   type ProblemReportReason,
@@ -166,7 +167,7 @@ export const create = mutation({
   args: {
     roomId: v.id("rooms"),
     problemId: v.id("problems"),
-    reason: problemReportReasonValidator,
+    reason: problemReportReasonInputValidator,
     details: v.string(),
   },
   returns: v.id("problemReports"),

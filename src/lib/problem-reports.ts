@@ -1,7 +1,8 @@
 export const PROBLEM_REPORT_REASONS = [
   "wrong_problem",
   "wrong_answer",
-  "missing_figure",
+  "missing_answer",
+  "missing_image",
   "wrong_formatting",
   "other",
 ] as const
@@ -14,7 +15,8 @@ export const PROBLEM_REPORT_REASON_OPTIONS: Array<{
 }> = [
   { value: "wrong_problem", label: "Fel i uppgiften" },
   { value: "wrong_answer", label: "Fel i facit" },
-  { value: "missing_figure", label: "Saknad figur/bild" },
+  { value: "missing_answer", label: "Saknat svar" },
+  { value: "missing_image", label: "Saknad bild" },
   { value: "wrong_formatting", label: "Fel formatering" },
   { value: "other", label: "Annat" },
 ]

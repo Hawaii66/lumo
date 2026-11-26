@@ -670,6 +670,7 @@ export function ThreadChat({
         modelLevel={modelLevel}
         onModelLevelChange={handleModelLevelChange}
         focusSignal={composerFocusSignal}
+        captureTyping
         onSubmit={async ({ prompt, images, problemIds, storageImages }) => {
           await sendPrompt(prompt, images, problemIds, storageImages)
         }}
@@ -857,6 +858,7 @@ export function DraftThreadChat({
         modelLevel={modelLevel}
         onModelLevelChange={setModelLevel}
         focusSignal={composerFocusSignal}
+        captureTyping
         onSubmit={handleSubmit}
       />
     </div>
