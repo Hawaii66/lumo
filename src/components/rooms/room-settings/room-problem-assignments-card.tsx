@@ -1,5 +1,12 @@
 import { useMutation, useQuery } from "convex/react"
-import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  Eye,
+  GripVertical,
+  X,
+} from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { api } from "../../../../convex/_generated/api"
 import type { Id } from "../../../../convex/_generated/dataModel"
@@ -12,6 +19,10 @@ import {
   starsForLetter,
   type ProblemStars,
 } from "~/components/rooms/problem-stars"
+import {
+  ProblemAssignmentPreviewSheet,
+  type ProblemPreviewTab,
+} from "~/components/rooms/room-settings/problem-assignment-preview-sheet"
 import { Button } from "~/components/ui/button"
 import {
   Card,
@@ -132,6 +143,33 @@ function groupUnitsByPdf(units: Array<AssignableUnit>): Array<PdfGroup> {
   return order.map((key) => groups.get(key)!)
 }
 
+type ProblemUnitGroup = {
+  key: string
+  problemNumber: string
+  units: Array<AssignableUnit>
+}
+
+/** Group consecutive units that share the same problem (for deluppgifter). */
+function groupUnitsByProblem(
+  units: Array<AssignableUnit>,
+): Array<ProblemUnitGroup> {
+  const groups: Array<ProblemUnitGroup> = []
+  for (const unit of units) {
+    const key = `${unit.contentHash}\0${unit.problemNumber}`
+    const last = groups[groups.length - 1]
+    if (last !== undefined && last.key === key) {
+      last.units.push(unit)
+    } else {
+      groups.push({
+        key,
+        problemNumber: unit.problemNumber,
+        units: [unit],
+      })
+    }
+  }
+  return groups
+}
+
 export function RoomProblemAssignmentsCard({
   roomId,
 }: {
@@ -185,13 +223,29 @@ export function RoomProblemAssignmentsCard({
   const [collapsedSections, setCollapsedSections] = useState<
     Record<string, boolean>
   >({})
-  const [selectedKeys, setSelectedKeys] = useState<Set<UnitKey>>(
-    () => new Set(),
-  )
+  const [selectedOrder, setSelectedOrder] = useState<Array<UnitKey>>([])
   const [bulkStars, setBulkStars] = useState<ProblemStars>(0)
   const [bulkOccasionId, setBulkOccasionId] = useState<string | null>(null)
   const [bulkPending, setBulkPending] = useState(false)
   const [bulkError, setBulkError] = useState<string | null>(null)
+  const [dragFromIndex, setDragFromIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [previewProblemId, setPreviewProblemId] =
+    useState<Id<"problems"> | null>(null)
+  const [previewTab, setPreviewTab] = useState<ProblemPreviewTab>("parsed")
+
+  const selectedKeys = useMemo(
+    () => new Set(selectedOrder),
+    [selectedOrder],
+  )
+
+  function openPreview(
+    problemId: Id<"problems">,
+    tab: ProblemPreviewTab = "parsed",
+  ) {
+    setPreviewTab(tab)
+    setPreviewProblemId(problemId)
+  }
 
   useEffect(() => {
     if (occasions === undefined) return
@@ -281,46 +335,70 @@ export function RoomProblemAssignmentsCard({
 
   useEffect(() => {
     if (units === undefined) return
-    setSelectedKeys((prev) => {
-      if (prev.size === 0) return prev
+    setSelectedOrder((prev) => {
+      if (prev.length === 0) return prev
       const valid = new Set(unitByKey.keys())
-      let changed = false
-      const next = new Set<UnitKey>()
-      for (const key of prev) {
-        if (valid.has(key)) next.add(key)
-        else changed = true
-      }
-      return changed ? next : prev
+      const next = prev.filter((key) => valid.has(key))
+      return next.length === prev.length ? prev : next
     })
   }, [units, unitByKey])
 
   function toggleSelected(key: UnitKey, selected: boolean) {
     setBulkError(null)
-    setSelectedKeys((prev) => {
-      const next = new Set(prev)
-      if (selected) next.add(key)
-      else next.delete(key)
-      return next
+    setSelectedOrder((prev) => {
+      if (selected) {
+        if (prev.includes(key)) return prev
+        return [...prev, key]
+      }
+      return prev.filter((existing) => existing !== key)
     })
   }
 
   function setGroupSelected(keys: Array<UnitKey>, selected: boolean) {
     setBulkError(null)
-    setSelectedKeys((prev) => {
-      const next = new Set(prev)
-      for (const key of keys) {
-        if (selected) next.add(key)
-        else next.delete(key)
+    setSelectedOrder((prev) => {
+      if (selected) {
+        const existing = new Set(prev)
+        const next = [...prev]
+        for (const key of keys) {
+          if (!existing.has(key)) {
+            next.push(key)
+            existing.add(key)
+          }
+        }
+        return next
       }
-      return next
+      const remove = new Set(keys)
+      return prev.filter((key) => !remove.has(key))
     })
   }
 
   function clearSelection() {
-    setSelectedKeys(new Set())
+    setSelectedOrder([])
     setBulkStars(0)
     setBulkOccasionId(null)
     setBulkError(null)
+    setDragFromIndex(null)
+    setDragOverIndex(null)
+  }
+
+  function reorderSelected(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return
+    setSelectedOrder((prev) => {
+      if (
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= prev.length ||
+        toIndex >= prev.length
+      ) {
+        return prev
+      }
+      const next = [...prev]
+      const [moved] = next.splice(fromIndex, 1)
+      if (moved === undefined) return prev
+      next.splice(toIndex, 0, moved)
+      return next
+    })
   }
 
   async function handleBulkAssign() {
@@ -331,7 +409,7 @@ export function RoomProblemAssignmentsCard({
     ) {
       return
     }
-    if (bulkOccasionId === null || selectedKeys.size === 0) {
+    if (bulkOccasionId === null || selectedOrder.length === 0) {
       return
     }
     const stars = bulkStars
@@ -340,7 +418,7 @@ export function RoomProblemAssignmentsCard({
       problemId: Id<"problems">
       subproblemLetter?: string
     }> = []
-    for (const key of selectedKeys) {
+    for (const key of selectedOrder) {
       const unit = unitByKey.get(key)
       if (unit === undefined) continue
       payload.push({
@@ -432,6 +510,10 @@ export function RoomProblemAssignmentsCard({
           "inline-flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground",
           args.className,
         )}
+        onClick={(e) => {
+          // Avoid double-toggle when nested in a clickable row.
+          e.stopPropagation()
+        }}
       >
         <input
           type="checkbox"
@@ -472,14 +554,25 @@ export function RoomProblemAssignmentsCard({
         key={args.key}
         className={cn(
           "flex flex-wrap items-center gap-2 rounded-md px-1 py-1.5 text-sm",
-          selected && "bg-muted/60",
+          args.selectable && "cursor-pointer hover:bg-muted/40",
+          selected && "bg-muted/60 hover:bg-muted/60",
         )}
+        onClick={
+          args.selectable
+            ? () => {
+                toggleSelected(args.key, !selected)
+              }
+            : undefined
+        }
       >
         {args.selectable ? (
           <input
             type="checkbox"
             className="size-3.5 shrink-0 rounded border-border"
             checked={selected}
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
             onChange={(e) => {
               toggleSelected(args.key, e.target.checked)
             }}
@@ -499,24 +592,49 @@ export function RoomProblemAssignmentsCard({
             </div>
           ) : null}
         </div>
-        <ProblemStarsControl
-          stars={args.stars}
-          letter={args.letter}
-          hideLetter
-          onChange={(stars) => {
-            void handleStarsChange(args.problemId, args.letter, stars)
+        <div
+          className="flex flex-wrap items-center gap-2"
+          onClick={(e) => {
+            e.stopPropagation()
           }}
-        />
-        <ProblemOccasionControl
-          occasionId={args.occasionId}
-          options={occasionOptions}
-          letter={args.letter}
-          onChange={(next) => {
-            void handleOccasionChange(args.problemId, args.letter, next)
-          }}
-        />
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="size-7 shrink-0 px-0"
+            title="Visa tolkad eller PDF"
+            onClick={() => {
+              openPreview(args.problemId, "parsed")
+            }}
+          >
+            <Eye className="size-3.5" />
+            <span className="sr-only">Visa {args.label}</span>
+          </Button>
+          <ProblemStarsControl
+            stars={args.stars}
+            letter={args.letter}
+            hideLetter
+            onChange={(stars) => {
+              void handleStarsChange(args.problemId, args.letter, stars)
+            }}
+          />
+          <ProblemOccasionControl
+            occasionId={args.occasionId}
+            options={occasionOptions}
+            letter={args.letter}
+            onChange={(next) => {
+              void handleOccasionChange(args.problemId, args.letter, next)
+            }}
+          />
+        </div>
         {args.reorder ? (
-          <span className="inline-flex shrink-0 items-center">
+          <span
+            className="inline-flex shrink-0 items-center"
+            onClick={(e) => {
+              e.stopPropagation()
+            }}
+          >
             <Button
               type="button"
               variant="ghost"
@@ -554,6 +672,70 @@ export function RoomProblemAssignmentsCard({
     )
   }
 
+  function renderProblemGroupedUnits(units: Array<AssignableUnit>) {
+    return groupUnitsByProblem(units).map((group) => {
+      const groupKeys = group.units.map((unit) =>
+        unitKey(unit.contentHash, unit.problemNumber, unit.subproblemLetter),
+      )
+      const rows = group.units.map((unit) =>
+        renderUnitRow({
+          key: unitKey(
+            unit.contentHash,
+            unit.problemNumber,
+            unit.subproblemLetter,
+          ),
+          label: unit.label,
+          problemId: unit.problemId,
+          letter: unit.subproblemLetter,
+          stars: starsForLetter(unit.starEntries, unit.subproblemLetter),
+          occasionId: null,
+          selectable: true,
+        }),
+      )
+
+      if (group.units.length === 1) {
+        return (
+          <ul key={group.key} className="space-y-0.5">
+            {rows}
+          </ul>
+        )
+      }
+
+      const selectedCount = groupKeys.filter((key) =>
+        selectedKeys.has(key),
+      ).length
+      const allSelected = selectedCount === groupKeys.length
+
+      return (
+        <div key={group.key} className="space-y-0.5">
+          <div
+            className={cn(
+              "flex cursor-pointer items-center gap-1.5 rounded-md px-1 py-1 hover:bg-muted/40",
+              allSelected && "bg-muted/40",
+            )}
+            onClick={() => {
+              setGroupSelected(groupKeys, !allSelected)
+            }}
+          >
+            {renderSelectAllControl({
+              keys: groupKeys,
+              label: `Markera alla deluppgifter för ${group.problemNumber}`,
+            })}
+            <span className="min-w-0 flex-1 truncate text-[11px] font-medium tabular-nums text-muted-foreground">
+              {group.problemNumber}
+              <span className="ml-1.5 font-normal normal-case tracking-normal">
+                alla deluppgifter ({group.units.length})
+              </span>
+            </span>
+          </div>
+          <ul className="ml-1 space-y-0.5 border-l border-border pl-1">
+            {rows}
+          </ul>
+        </div>
+      )
+    })
+  }
+
   if (occasions === undefined || units === undefined) {
     return (
       <Card>
@@ -576,9 +758,10 @@ export function RoomProblemAssignmentsCard({
       <CardHeader>
         <CardTitle>Stjärnor och tillfällen</CardTitle>
         <CardDescription>
-          Markera flera uppgifter och tilldela stjärnor och tillfälle
-          samtidigt. Ordningen inom ett tillfälle styr listan under
-          Tillfällen. Skapa tillfällen under Allmänt.
+          Markera uppgifter (hela raden), ordna dem mellan tillfällen och
+          otilldelade, och tilldela stjärnor och tillfälle. Ordningen inom ett
+          tillfälle styr listan under Tillfällen. Skapa tillfällen under
+          Allmänt.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -730,6 +913,147 @@ export function RoomProblemAssignmentsCard({
           )
         })}
 
+        {selectedOrder.length > 0 ? (
+          <div className="sticky top-2 z-10 rounded-lg border border-border bg-card/95 p-3 shadow-md backdrop-blur supports-backdrop-filter:bg-card/90">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium tabular-nums">
+                {selectedOrder.length} vald
+                {selectedOrder.length === 1 ? "" : "a"}
+              </span>
+              <ProblemStarsControl
+                stars={bulkStars}
+                hideLetter
+                onChange={setBulkStars}
+              />
+              <ProblemOccasionControl
+                occasionId={bulkOccasionId}
+                options={occasionOptions}
+                disabled={occasions.length === 0}
+                onChange={setBulkOccasionId}
+              />
+              <Button
+                type="button"
+                size="sm"
+                disabled={
+                  bulkPending ||
+                  bulkStars === 0 ||
+                  bulkOccasionId === null ||
+                  occasions.length === 0
+                }
+                onClick={() => {
+                  void handleBulkAssign()
+                }}
+              >
+                {bulkPending ? "Tilldelar…" : "Tilldela"}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                disabled={bulkPending}
+                onClick={clearSelection}
+              >
+                Avmarkera
+              </Button>
+            </div>
+
+            <div className="mt-3 space-y-1.5">
+              <p className="text-xs text-muted-foreground">
+                Dra för att ändra ordning innan tilldelning.
+              </p>
+              <ul className="max-h-96 space-y-1 overflow-y-auto">
+                {selectedOrder.map((key, index) => {
+                  const unit = unitByKey.get(key)
+                  const label =
+                    unit?.label ??
+                    (unit
+                      ? unit.subproblemLetter
+                        ? `${unit.problemNumber}${unit.subproblemLetter}`
+                        : unit.problemNumber
+                      : "—")
+                  const isDragging = dragFromIndex === index
+                  const isDropTarget =
+                    dragOverIndex === index &&
+                    dragFromIndex !== null &&
+                    dragFromIndex !== index
+                  return (
+                    <li
+                      key={key}
+                      draggable={!bulkPending}
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = "move"
+                        event.dataTransfer.setData("text/plain", key)
+                        setDragFromIndex(index)
+                        setDragOverIndex(index)
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault()
+                        event.dataTransfer.dropEffect = "move"
+                        if (dragFromIndex === null) return
+                        if (dragOverIndex !== index) {
+                          setDragOverIndex(index)
+                        }
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault()
+                        if (dragFromIndex !== null) {
+                          reorderSelected(dragFromIndex, index)
+                        }
+                        setDragFromIndex(null)
+                        setDragOverIndex(null)
+                      }}
+                      onDragEnd={() => {
+                        setDragFromIndex(null)
+                        setDragOverIndex(null)
+                      }}
+                      className={cn(
+                        "flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1.5 text-sm",
+                        !bulkPending && "cursor-grab active:cursor-grabbing",
+                        isDragging && "opacity-50",
+                        isDropTarget && "border-foreground/40 bg-muted/50",
+                      )}
+                    >
+                      <GripVertical
+                        className="size-3.5 shrink-0 text-muted-foreground"
+                        aria-hidden
+                      />
+                      <span className="w-5 shrink-0 tabular-nums text-muted-foreground">
+                        {index + 1}.
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-medium">
+                        {label}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="size-7 shrink-0 px-0"
+                        disabled={bulkPending}
+                        title="Ta bort från urval"
+                        onClick={() => {
+                          toggleSelected(key, false)
+                        }}
+                      >
+                        <X className="size-3.5" />
+                        <span className="sr-only">Ta bort från urval</span>
+                      </Button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+
+            {bulkStars === 0 || bulkOccasionId === null ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Välj stjärnnivå och tillfälle, sedan Tilldela.
+              </p>
+            ) : null}
+            {bulkError ? (
+              <p className="mt-2 text-sm text-destructive">{bulkError}</p>
+            ) : null}
+          </div>
+        ) : null}
+
         <section className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
@@ -834,29 +1158,12 @@ export function RoomProblemAssignmentsCard({
                         {chapterBuckets.map((bucket) => {
                           if (bucket.major === null || bucket.label === null) {
                             return (
-                              <ul
+                              <div
                                 key={`${pdfGroup.fileId}:flat`}
                                 className="space-y-0.5"
                               >
-                                {bucket.units.map((unit) =>
-                                  renderUnitRow({
-                                    key: unitKey(
-                                      unit.contentHash,
-                                      unit.problemNumber,
-                                      unit.subproblemLetter,
-                                    ),
-                                    label: unit.label,
-                                    problemId: unit.problemId,
-                                    letter: unit.subproblemLetter,
-                                    stars: starsForLetter(
-                                      unit.starEntries,
-                                      unit.subproblemLetter,
-                                    ),
-                                    occasionId: null,
-                                    selectable: true,
-                                  }),
-                                )}
-                              </ul>
+                                {renderProblemGroupedUnits(bucket.units)}
+                              </div>
                             )
                           }
 
@@ -902,26 +1209,9 @@ export function RoomProblemAssignmentsCard({
                                 </CollapsibleTrigger>
                               </div>
                               <CollapsibleContent>
-                                <ul className="mt-0.5 ml-1 space-y-0.5 border-l border-border pl-1">
-                                  {bucket.units.map((unit) =>
-                                    renderUnitRow({
-                                      key: unitKey(
-                                        unit.contentHash,
-                                        unit.problemNumber,
-                                        unit.subproblemLetter,
-                                      ),
-                                      label: unit.label,
-                                      problemId: unit.problemId,
-                                      letter: unit.subproblemLetter,
-                                      stars: starsForLetter(
-                                        unit.starEntries,
-                                        unit.subproblemLetter,
-                                      ),
-                                      occasionId: null,
-                                      selectable: true,
-                                    }),
-                                  )}
-                                </ul>
+                                <div className="mt-0.5 ml-1 space-y-0.5 border-l border-border pl-1">
+                                  {renderProblemGroupedUnits(bucket.units)}
+                                </div>
                               </CollapsibleContent>
                             </Collapsible>
                           )
@@ -983,61 +1273,17 @@ export function RoomProblemAssignmentsCard({
             </div>
           )}
         </section>
-
-        {selectedKeys.size > 0 ? (
-          <div className="sticky bottom-2 z-10 rounded-lg border border-border bg-card/95 p-3 shadow-md backdrop-blur supports-backdrop-filter:bg-card/90">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium tabular-nums">
-                {selectedKeys.size} vald
-                {selectedKeys.size === 1 ? "" : "a"}
-              </span>
-              <ProblemStarsControl
-                stars={bulkStars}
-                hideLetter
-                onChange={setBulkStars}
-              />
-              <ProblemOccasionControl
-                occasionId={bulkOccasionId}
-                options={occasionOptions}
-                disabled={occasions.length === 0}
-                onChange={setBulkOccasionId}
-              />
-              <Button
-                type="button"
-                size="sm"
-                disabled={
-                  bulkPending ||
-                  bulkStars === 0 ||
-                  bulkOccasionId === null ||
-                  occasions.length === 0
-                }
-                onClick={() => {
-                  void handleBulkAssign()
-                }}
-              >
-                {bulkPending ? "Tilldelar…" : "Tilldela"}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={bulkPending}
-                onClick={clearSelection}
-              >
-                Avmarkera
-              </Button>
-            </div>
-            {bulkStars === 0 || bulkOccasionId === null ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Välj stjärnnivå och tillfälle, sedan Tilldela.
-              </p>
-            ) : null}
-            {bulkError ? (
-              <p className="mt-2 text-sm text-destructive">{bulkError}</p>
-            ) : null}
-          </div>
-        ) : null}
       </CardContent>
+
+      <ProblemAssignmentPreviewSheet
+        roomId={roomId}
+        problemId={previewProblemId}
+        open={previewProblemId !== null}
+        initialTab={previewTab}
+        onOpenChange={(open) => {
+          if (!open) setPreviewProblemId(null)
+        }}
+      />
     </Card>
   )
 }
